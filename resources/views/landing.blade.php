@@ -1628,7 +1628,10 @@
             }
 
             .about-feature-content h3 {
-                font-size: 1.1rem !important;
+                font-size: 1rem !important;
+            }
+
+font-size: 1.1rem !important;
                 margin-bottom: 0.4rem !important;
             }
 
@@ -1955,6 +1958,47 @@
             .stats-grid {
                 grid-template-columns: repeat(2, 1fr);
                 gap: 2rem;
+            }
+
+            /* CEO section mobile */
+            .ceo-section {
+                padding: 3rem 1rem !important;
+            }
+
+            .ceo-section .section-header h2 {
+                font-size: 2rem !important;
+            }
+
+            .ceo-section .section-header p {
+                font-size: 1rem !important;
+                margin-bottom: 2rem !important;
+            }
+
+            .ceo-content {
+                grid-template-columns: 1fr !important;
+                gap: 2rem !important;
+                padding: 2rem 1.5rem !important;
+            }
+
+            .ceo-content img {
+                max-width: 100% !important;
+                width: 100% !important;
+            }
+
+            .ceo-content h2 {
+                font-size: 2rem !important;
+            }
+
+            .ceo-content h3 {
+                font-size: 1.25rem !important;
+            }
+
+            .ceo-content > div:last-child > div:last-child {
+                flex-direction: column !important;
+            }
+
+            .ceo-content > div:last-child > div:last-child > div {
+                min-width: 100% !important;
             }
 
             .stat-item h3 {
@@ -2420,58 +2464,34 @@
         <div class="divider-line-thin"></div>
     </div>
 
-
-
-    <section id="about" style="position: relative; padding: 0; overflow: hidden;">
-        <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: url('https://images.unsplash.com/photo-1511632765486-a01980e01a18?w=1600') center/cover;"></div>
-        <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, rgba(30, 64, 175, 0.9), rgba(59, 130, 246, 0.85));"></div>
-        <div style="position: relative; z-index: 1; padding: 6rem 2rem;">
-            <div class="container">
-                <div class="section-header fade-in" style="margin-bottom: 4rem;">
-                    <h2 style="color: white; text-shadow: 0 2px 10px rgba(0,0,0,0.2); -webkit-text-fill-color: white;">Trusted by Thousands</h2>
-                    <p style="color: white;">Building connections that matter</p>
+    <section class="section-light ceo-section" style="padding: 6rem 2rem; background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);">
+        <div class="container" style="max-width: 1200px; margin: 0 auto;">
+            <div class="section-header fade-in" style="text-align: center; margin-bottom: 4rem;">
+                <h2 style="font-size: 3rem; font-weight: 700; margin-bottom: 1rem;">
+                    <span style="color: #f97316;">Meet</span> <span style="background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Our Founder</span>
+                </h2>
+            </div>
+            <div class="ceo-content" style="display: grid; grid-template-columns: 1fr 1.5fr; gap: 4rem; align-items: center; background: white; padding: 3rem; border-radius: 24px; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1); border: 3px solid #3b82f6;">
+                <div class="fade-in" style="text-align: center;">
+                    <div style="position: relative; display: inline-block;">
+                        <img src="{{ asset('CEO.jpg') }}" alt="Charles Andrew Santiago - CEO and Founder of CAS Private Care LLC" style="width: 100%; max-width: 700px; height: auto; border-radius: 20px; box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);" loading="lazy" decoding="async">
+                        <div style="position: absolute; bottom: -15px; right: -15px; background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); padding: 1rem 1.5rem; border-radius: 15px; box-shadow: 0 10px 30px rgba(59, 130, 246, 0.3);">
+                            <i class="bi bi-award-fill" style="font-size: 2rem; color: white;" aria-hidden="true"></i>
+                        </div>
+                    </div>
                 </div>
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 2rem;">
-                    <div class="fade-in" style="background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); padding: 2.5rem; border-radius: 20px; border: 1px solid rgba(255,255,255,0.2); text-align: center;">
-                        <div style="width: 80px; height: 80px; background: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem;">
-                            <i class="bi bi-people-fill" style="font-size: 2.5rem; color: #f97316;"></i>
-                        </div>
-                        <h3 style="font-size: 3rem; color: white; font-weight: 700; margin-bottom: 0.5rem;"><span class="counter" data-target="{{ str_replace(',', '', $stats['total_caregivers']) }}">0</span>+</h3>
-                        <p style="color: rgba(255,255,255,0.9); font-size: 1.1rem; margin: 0;">Active Caregivers</p>
-                        <div style="width: 100%; height: 8px; background: rgba(255,255,255,0.2); border-radius: 10px; margin-top: 1rem; overflow: hidden;">
-                            <div class="progress-bar" data-progress="90" style="height: 100%; background: white; border-radius: 10px; width: 0; transition: width 2s ease;"></div>
-                        </div>
+                <div class="fade-in">
+                    <div style="margin-bottom: 2rem;">
+                        <h3 style="font-size: 1.5rem; color: #1e293b; margin: 0 0 0.5rem 0; font-weight: 600;">CAS PRIVATE CARE LLC</h3>
+                        <p style="color: #64748b; margin: 0; font-size: 0.9rem;">Professional Caregiving Services</p>
                     </div>
-                    <div class="fade-in" style="background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); padding: 2.5rem; border-radius: 20px; border: 1px solid rgba(255,255,255,0.2); text-align: center;">
-                        <div style="width: 80px; height: 80px; background: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem;">
-                            <i class="bi bi-heart-fill" style="font-size: 2.5rem; color: #f97316;"></i>
-                        </div>
-                        <h3 style="font-size: 3rem; color: white; font-weight: 700; margin-bottom: 0.5rem;"><span class="counter" data-target="{{ str_replace(',', '', $stats['total_clients']) }}">0</span>+</h3>
-                        <p style="color: rgba(255,255,255,0.9); font-size: 1.1rem; margin: 0;">Happy Families</p>
-                        <div style="width: 100%; height: 8px; background: rgba(255,255,255,0.2); border-radius: 10px; margin-top: 1rem; overflow: hidden;">
-                            <div class="progress-bar" data-progress="95" style="height: 100%; background: white; border-radius: 10px; width: 0; transition: width 2s ease;"></div>
-                        </div>
-                    </div>
-                    <div class="fade-in" style="background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); padding: 2.5rem; border-radius: 20px; border: 1px solid rgba(255,255,255,0.2); text-align: center;">
-                        <div style="width: 80px; height: 80px; background: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem;">
-                            <i class="bi bi-star-fill" style="font-size: 2.5rem; color: #f97316;"></i>
-                        </div>
-                        <h3 style="font-size: 3rem; color: white; font-weight: 700; margin-bottom: 0.5rem;"><span class="counter" data-target="{{ $stats['satisfaction_rate'] }}">0</span>%</h3>
-                        <p style="color: rgba(255,255,255,0.9); font-size: 1.1rem; margin: 0;">Satisfaction Rate</p>
-                        <div style="width: 100%; height: 8px; background: rgba(255,255,255,0.2); border-radius: 10px; margin-top: 1rem; overflow: hidden;">
-                            <div class="progress-bar" data-progress="98" style="height: 100%; background: white; border-radius: 10px; width: 0; transition: width 2s ease;"></div>
-                        </div>
-                    </div>
-                    <div class="fade-in" style="background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); padding: 2.5rem; border-radius: 20px; border: 1px solid rgba(255,255,255,0.2); text-align: center;">
-                        <div style="width: 80px; height: 80px; background: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem;">
-                            <i class="bi bi-headset" style="font-size: 2.5rem; color: #f97316;"></i>
-                        </div>
-                        <h3 style="font-size: 3rem; color: white; font-weight: 700; margin-bottom: 0.5rem;">24/7</h3>
-                        <p style="color: rgba(255,255,255,0.9); font-size: 1.1rem; margin: 0;">Support Available</p>
-                        <div style="width: 100%; height: 8px; background: rgba(255,255,255,0.2); border-radius: 10px; margin-top: 1rem; overflow: hidden;">
-                            <div class="progress-bar" data-progress="100" style="height: 100%; background: white; border-radius: 10px; width: 0; transition: width 2s ease;"></div>
-                        </div>
-                    </div>
+                    <h2 style="font-size: 2.5rem; font-weight: 700; margin-bottom: 0.5rem; color: #1e293b;">
+                        <span style="color: #f97316;">Charles Andrew</span> <span style="color: #1e40af;">Santiago</span>
+                    </h2>
+                    <p style="font-size: 1.3rem; color: #3b82f6; font-weight: 600; margin-bottom: 1.5rem;">CEO / Founder</p>
+                    <p style="font-size: 1.1rem; color: #64748b; line-height: 1.8; margin-bottom: 0;">
+                        With a vision to transform the caregiving industry, Charles Andrew Santiago is dedicated to building a trusted platform that connects families with exceptional contractors. His goal is to ensure every family receives quality, compassionate care while creating meaningful opportunities for professional contractors. Through CAS Private Care LLC, he strives to make professional caregiving services accessible, reliable, and safe for everyone, fostering stronger communities one connection at a time.
+                    </p>
                 </div>
             </div>
         </div>
@@ -2494,6 +2514,7 @@
             </div>
         </div>
     </section>
+
     </main>
 
     <footer>
@@ -2556,7 +2577,7 @@
                     <button class="newsletter-btn">Subscribe</button>
                 </div>
                 <div style="margin-top: 1.5rem;">
-                    <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3861.4076!2d120.9842!3d14.5995!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMTTCsDM1JzU4LjIiTiAxMjDCsDU5JzAzLjEiRQ!5e0!3m2!1sen!2sph!4v1234567890" width="100%" height="120" style="border:0; border-radius: 8px;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                    <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d387190.27991608967!2d-74.25987368715493!3d40.69767006377258!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x89c24fa5d33f083b%3A0xc80b8f06e177fe62!2sNew%20York%2C%20NY%2C%20USA!5e0!3m2!1sen!2sus!4v1234567890" width="100%" height="120" style="border:0; border-radius: 8px;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
                 </div>
             </div>
         </div>
