@@ -1,0 +1,3 @@
+* text=auto
+# do not treat AppData files as text (avoid conversions)
+AppData/** -text

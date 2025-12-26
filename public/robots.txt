@@ -1,0 +1,17 @@
+User-agent: *
+Disallow: /admin/
+Disallow: /api/
+Disallow: /client/dashboard
+Disallow: /caregiver/dashboard
+Disallow: /marketing/dashboard
+Disallow: /training/dashboard
+Disallow: /storage/
+Disallow: /build/
+
+# Allow search engines to index public pages
+Allow: /
+Allow: /login
+Allow: /register
+
+# Sitemap location - update with your actual domain
+# Sitemap: https://yoursite.com/sitemap.xml

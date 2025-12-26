@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Caregiver API</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .result { background: #f0f0f0; padding: 15px; margin: 10px 0; border-radius: 5px; }
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+        button { padding: 10px 20px; margin: 5px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h1>Caregiver API Test</h1>
+    
+    <button onclick="testAPI()">Test Caregiver Stats API</button>
+    <button onclick="clearCache()">Clear Cache & Reload</button>
+    
+    <div id="results"></div>
+
+    <script>
+        async function testAPI() {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '<p>Loading...</p>';
+            
+            try {
+                const response = await fetch('/api/caregiver/25/stats');
+                const data = await response.json();
+                
+                let html = '<div class="result success">';
+                html += '<h3>✓ API Response Successful</h3>';
+                html += '<p><strong>Caregiver ID:</strong> 25</p>';
+                html += '<p><strong>Active Assignments:</strong> ' + (data.active_assignments?.length || 0) + '</p>';
+                
+                if (data.active_assignments && data.active_assignments.length > 0) {
+                    html += '<h4>Assignment Details:</h4>';
+                    data.active_assignments.forEach((assignment, index) => {
+                        html += '<p><strong>Assignment ' + (index + 1) + ':</strong></p>';
+                        html += '<ul>';
+                        html += '<li>Client Name: ' + (assignment.booking?.client?.name || 'N/A') + '</li>';
+                        html += '<li>Service Type: ' + (assignment.booking?.service_type || 'N/A') + '</li>';
+                        html += '<li>Service Date: ' + (assignment.booking?.service_date || 'N/A') + '</li>';
+                        html += '</ul>';
+                    });
+                } else {
+                    html += '<p style="color: orange;">⚠ No active assignments found</p>';
+                }
+                
+                html += '<h4>Full Response:</h4>';
+                html += '<pre>' + JSON.stringify(data, null, 2) + '</pre>';
+                html += '</div>';
+                
+                resultsDiv.innerHTML = html;
+            } catch (error) {
+                resultsDiv.innerHTML = '<div class="result error"><h3>✗ API Error</h3><p>' + error.message + '</p></div>';
+            }
+        }
+        
+        function clearCache() {
+            if (confirm('This will clear the cache and reload the page. Continue?')) {
+                // Clear cache and reload
+                caches.keys().then(names => {
+                    names.forEach(name => {
+                        caches.delete(name);
+                    });
+                });
+                location.reload(true);
+            }
+        }
+        
+        // Auto-run test on page load
+        window.onload = testAPI;
+    </script>
+</body>
+</html>
