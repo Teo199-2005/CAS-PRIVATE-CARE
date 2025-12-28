@@ -1,0 +1,11 @@
+# Add these lines to your .env file (replace any existing MAIL_* entries)
+
+MAIL_MAILER=smtp
+MAIL_HOST=smtp-relay.brevo.com
+MAIL_PORT=587
+MAIL_USERNAME=teofiloharry69@gmail.com
+MAIL_PASSWORD=xsmtpsib-be767ee79aa324f3b695a4670157c63326cc464a3161d7fc34bc1e94c7f05f60-vNg0zUZpBjeh2eI4
+MAIL_ENCRYPTION=tls
+MAIL_FROM_ADDRESS=teofiloharry69@gmail.com
+MAIL_FROM_NAME="CAS Private Care"
+

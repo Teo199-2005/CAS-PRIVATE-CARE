@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="{{ asset('logo flower.png') }}">
     
     <!-- Primary Meta Tags -->
     <title>CAS Private Care LLC - Verified Caregivers & Home Care Services New York</title>
@@ -42,16 +43,26 @@
       'priceRange' => '$$',
       'address' => [
         '@type' => 'PostalAddress',
-        'streetAddress' => '123 Care Street',
-        'addressLocality' => 'Manila',
-        'addressRegion' => 'Metro Manila',
-        'postalCode' => '1000',
-        'addressCountry' => 'PH'
+        'addressLocality' => 'New York',
+        'addressRegion' => 'NY',
+        'addressCountry' => 'US'
       ],
       'geo' => [
         '@type' => 'GeoCoordinates',
-        'latitude' => 14.5995,
-        'longitude' => 120.9842
+        'latitude' => 40.7128,
+        'longitude' => -74.0060
+      ],
+      'areaServed' => [
+        '@type' => 'City',
+        'name' => 'New York'
+      ],
+      'serviceArea' => [
+        '@type' => 'GeoCircle',
+        'geoMidpoint' => [
+          '@type' => 'GeoCoordinates',
+          'latitude' => 40.7128,
+          'longitude' => -74.0060
+        ]
       ],
       'openingHoursSpecification' => [
         '@type' => 'OpeningHoursSpecification',
@@ -87,7 +98,7 @@
         'name' => 'CAS Private Care LLC'
       ],
       'areaServed' => [
-        '@type' => 'Country',
+        '@type' => 'State',
         'name' => 'New York'
       ],
       'hasOfferCatalog' => [
@@ -136,6 +147,9 @@
     <!-- Preload critical images for LCP -->
     <link rel="preload" as="image" href="{{ asset('cover.jpg') }}">
     <link rel="preload" as="image" href="{{ asset('logo flower.png') }}">
+    
+    @include('partials.nav-footer-styles')
+    
     <style>
         * {
             margin: 0;
@@ -152,162 +166,8 @@
             -moz-osx-font-smoothing: grayscale;
         }
 
-        nav {
-            position: fixed;
-            top: 0;
-            width: 100%;
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(20px);
-            box-shadow: 0 4px 30px rgba(30, 58, 138, 0.08);
-            z-index: 1000;
-            padding: 0.75rem 0;
-            height: 80px;
-            border-bottom: 3px solid #f97316;
-        }
-
-        .nav-container {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 0 2rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            height: 100%;
-        }
-
-        .logo-section {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
-
-        .logo-section img {
-            height: 90px;
-            width: auto;
-            object-fit: contain;
-        }
-
-        .brand-name {
-            font-family: 'Montserrat', sans-serif;
-            font-size: 1.75rem;
-            font-weight: 800;
-            background: linear-gradient(135deg, #0B4FA2 0%, #0E63B6 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            letter-spacing: -0.02em;
-            text-transform: uppercase;
-        }
-
-        .nav-links {
-            display: flex;
-            gap: 2rem;
-            list-style: none;
-            align-items: center;
-        }
-
-        .nav-links a {
-            text-decoration: none;
-            color: #0B4FA2;
-            font-weight: 500;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            font-size: 1rem;
-            padding: 0.5rem 1rem;
-            border-radius: 8px;
-            position: relative;
-        }
-
-        .nav-links a:not(.cta-btn):hover {
-            color: #2F86D6;
-            background: rgba(47, 134, 214, 0.08);
-            backdrop-filter: blur(10px);
-            transform: translateY(-2px);
-        }
-
-        .dropdown {
-            position: relative;
-        }
-
-        .dropdown-menu {
-            position: absolute;
-            top: 100%;
-            left: 0;
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
-            padding: 0.5rem 0;
-            min-width: 200px;
-            opacity: 0;
-            visibility: hidden;
-            transform: translateY(-10px);
-            transition: all 0.3s ease;
-            z-index: 1000;
-        }
-
-        .dropdown:hover .dropdown-menu {
-            opacity: 1;
-            visibility: visible;
-            transform: translateY(0);
-        }
-
-        .dropdown-menu a {
-            display: block;
-            padding: 0.75rem 1.5rem;
-            color: #0B4FA2;
-            text-decoration: none;
-            transition: all 0.3s;
-            border-radius: 0;
-        }
-
-        .dropdown-menu a:hover {
-            background: rgba(47, 134, 214, 0.1);
-            color: #2F86D6;
-            transform: none;
-        }
-
-        .cta-btn {
-            background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
-            color: white !important;
-            padding: 0.75rem 1.5rem !important;
-            border-radius: 50px;
-            font-weight: 600;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.2);
-        }
-
-        .cta-btn::before {
-            display: none;
-        }
-
-        .cta-btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 30px rgba(59, 130, 246, 0.4);
-            background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
-        }
-
-        .mobile-menu-btn {
-            display: none;
-            background: none;
-            border: none;
-            font-size: 1.5rem;
-            color: #1e40af;
-            cursor: pointer;
-            padding: 0.5rem;
-            border-radius: 8px;
-            transition: background 0.3s;
-            z-index: 1001;
-        }
-
-        .mobile-menu-btn:hover {
-            background: rgba(30, 64, 175, 0.1);
-        }
-
-        .mobile-menu-btn:active {
-            background: rgba(30, 64, 175, 0.2);
-        }
-
         .hero {
-            margin-top: 80px;
+            margin-top: 88px;
             padding: 8rem 2rem 6rem;
             text-align: center;
             position: relative;
@@ -643,6 +503,103 @@
             padding: 5rem 2rem;
         }
 
+        /* Unique Section Styling */
+        #features {
+            padding: 7rem 2rem;
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 50%, #f1f5f9 100%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        #features::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -10%;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(59, 130, 246, 0.1) 0%, transparent 70%);
+            border-radius: 50%;
+        }
+
+        #how-it-works {
+            padding: 8rem 2rem;
+            background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 50%, #bfdbfe 100%);
+            position: relative;
+        }
+
+        #how-it-works::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: 
+                radial-gradient(circle at 20% 50%, rgba(59, 130, 246, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(249, 115, 22, 0.1) 0%, transparent 50%);
+            pointer-events: none;
+        }
+
+        #services {
+            padding: 6rem 2rem;
+            position: relative;
+        }
+
+        #services::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent 0%, #e2e8f0 20%, #cbd5e1 50%, #e2e8f0 80%, transparent 100%);
+        }
+
+        #locations {
+            padding: 7rem 2rem;
+            position: relative;
+        }
+
+        #locations .container {
+            position: relative;
+            z-index: 1;
+        }
+
+        #requirements {
+            padding: 8rem 2rem;
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 50%, #fef3c7 100%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        #requirements::before {
+            content: '';
+            position: absolute;
+            top: -100px;
+            right: -100px;
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, rgba(249, 115, 22, 0.15) 0%, transparent 70%);
+            border-radius: 50%;
+        }
+
+        #requirements::after {
+            content: '';
+            position: absolute;
+            bottom: -100px;
+            left: -100px;
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, rgba(59, 130, 246, 0.15) 0%, transparent 70%);
+            border-radius: 50%;
+        }
+
+        #about-section {
+            padding: 8rem 2rem;
+            position: relative;
+        }
+
         .section-light {
             background-color: #ffffff;
             background-image: url("https://www.transparenttextures.com/patterns/batthern.png");
@@ -658,10 +615,68 @@
             margin: 0 auto;
         }
 
+        /* Unique Container Widths */
+        #features .container {
+            max-width: 1400px;
+        }
+
+        #how-it-works .container {
+            max-width: 1300px;
+            position: relative;
+            z-index: 1;
+        }
+
+        #services .container {
+            max-width: 1400px;
+        }
+
+        #locations .container {
+            max-width: 1600px;
+        }
+
+        #requirements .container {
+            max-width: 1300px;
+            position: relative;
+            z-index: 1;
+        }
+
         .section-header {
             text-align: center;
             margin-bottom: 4rem;
             position: relative;
+        }
+
+        /* Unique Section Headers */
+        #how-it-works .section-header {
+            margin-bottom: 5rem;
+        }
+
+        #how-it-works .section-header h2 {
+            color: #1e40af;
+        }
+
+        #how-it-works .section-header p {
+            color: #64748b;
+        }
+
+        #services .section-header {
+            margin-bottom: 5rem;
+        }
+
+        #locations .section-header {
+            margin-bottom: 4.5rem;
+        }
+
+        #requirements .section-header {
+            margin-bottom: 5rem;
+        }
+
+        #requirements .section-header h2 {
+            color: #1e40af;
+        }
+
+        #requirements .section-header p {
+            color: #64748b;
         }
 
         .section-header h2 {
@@ -705,12 +720,22 @@
         .feature-card {
             position: relative;
             background: white;
-            padding: 2.5rem;
-            border-radius: 20px;
-            box-shadow: 0 10px 30px rgba(30, 58, 138, 0.1);
+            padding: 3rem;
+            border-radius: 24px;
+            box-shadow: 0 15px 40px rgba(30, 58, 138, 0.15);
             transition: transform 0.3s, box-shadow 0.3s;
             overflow: hidden;
-            min-height: 350px;
+            min-height: 380px;
+            border: 2px solid transparent;
+        }
+
+        #features .feature-card {
+            background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+        }
+
+        #features .feature-card:hover {
+            border-color: #3b82f6;
+            box-shadow: 0 25px 60px rgba(59, 130, 246, 0.25);
         }
 
         .feature-card:hover {
@@ -764,9 +789,25 @@
         .steps-container {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
-            gap: 1rem;
-            margin-top: 3rem;
+            gap: 2rem;
+            margin-top: 4rem;
             position: relative;
+        }
+
+        #how-it-works .step {
+            background: white;
+            border: 2px solid rgba(59, 130, 246, 0.2);
+            padding: 2.5rem;
+            border-radius: 24px;
+            transition: all 0.4s ease;
+            box-shadow: 0 10px 30px rgba(59, 130, 246, 0.15);
+        }
+
+        #how-it-works .step:hover {
+            background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+            border-color: #3b82f6;
+            transform: translateY(-8px);
+            box-shadow: 0 20px 50px rgba(59, 130, 246, 0.25);
         }
 
         .step {
@@ -835,16 +876,304 @@
             letter-spacing: -0.01em;
         }
 
+        #how-it-works .step h3 {
+            background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
         .step p {
             color: #64748b;
             line-height: 1.7;
             font-weight: 400;
         }
 
+        #how-it-works .step p {
+            color: #64748b;
+        }
+
+        #how-it-works .step-number {
+            background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
+            box-shadow: 0 10px 30px rgba(59, 130, 246, 0.4);
+        }
+
         .services-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 1.5rem;
+            gap: 2.5rem;
+            margin-top: 2rem;
+        }
+
+        #services .service-item {
+            border-radius: 28px;
+            box-shadow: 0 15px 40px rgba(30, 58, 138, 0.2);
+        }
+
+        #services .service-item:nth-child(odd) {
+            transform: translateY(20px);
+        }
+
+        #services .service-item:nth-child(even) {
+            transform: translateY(-10px);
+        }
+
+        .location-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 2rem;
+            margin-top: 4rem;
+        }
+
+        #locations .location-card {
+            box-shadow: 0 15px 45px rgba(0, 0, 0, 0.2);
+        }
+
+        .location-card {
+            background: white;
+            padding: 2.5rem;
+            border-radius: 0;
+            box-shadow: 0 10px 40px rgba(30, 58, 138, 0.12);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 2px solid transparent;
+            position: relative;
+            overflow: hidden;
+            min-height: 400px;
+            display: flex;
+            flex-direction: column;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+
+        .location-card::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(to bottom, rgba(0, 0, 0, 0.3) 0%, rgba(0, 0, 0, 0.7) 100%);
+            z-index: 0;
+            transition: opacity 0.4s ease;
+        }
+
+        .location-card:hover::after {
+            opacity: 0.85;
+        }
+
+        .location-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 5px;
+            background: linear-gradient(90deg, #3b82f6 0%, #f97316 100%);
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: transform 0.4s ease;
+            z-index: 2;
+        }
+
+        .location-card:hover {
+            transform: translateY(-12px);
+            box-shadow: 0 25px 60px rgba(59, 130, 246, 0.25);
+            border-color: #3b82f6;
+        }
+
+        .location-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .location-card > * {
+            position: relative;
+            z-index: 1;
+        }
+
+        .location-card-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 16px;
+            background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1.5rem;
+            font-size: 1.75rem;
+            color: white;
+            box-shadow: 0 8px 20px rgba(59, 130, 246, 0.3);
+            transition: all 0.4s ease;
+        }
+
+        .location-card:hover .location-card-icon {
+            transform: scale(1.1) rotate(5deg);
+            box-shadow: 0 12px 30px rgba(59, 130, 246, 0.4);
+        }
+
+        .location-card h4 {
+            font-size: 1.65rem;
+            color: white;
+            margin-bottom: 1rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .location-card p {
+            color: rgba(255, 255, 255, 0.95);
+            line-height: 1.8;
+            margin-bottom: auto;
+            font-size: 1.05rem;
+            text-shadow: 0 1px 5px rgba(0, 0, 0, 0.3);
+        }
+
+        .location-card-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.875rem 2rem;
+            background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
+            color: white;
+            font-weight: 600;
+            text-decoration: none;
+            border-radius: 50px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+            position: relative;
+            z-index: 2;
+            margin-top: auto;
+        }
+
+        .location-card-link:hover {
+            background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+            transform: translateX(5px);
+            box-shadow: 0 6px 20px rgba(249, 115, 22, 0.4);
+            gap: 1rem;
+        }
+
+        .location-card-link i {
+            transition: transform 0.3s ease;
+        }
+
+        .location-card-link:hover i {
+            transform: translateX(3px);
+        }
+
+        @media (max-width: 1200px) {
+            .location-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        @media (max-width: 900px) {
+            .location-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        .requirements-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 3rem;
+            margin-top: 4rem;
+        }
+
+        #requirements .requirement-item {
+            background: white;
+            border: 2px solid rgba(59, 130, 246, 0.2);
+            padding: 3rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        #requirements .requirement-item:hover {
+            background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+            border-color: #3b82f6;
+            box-shadow: 0 25px 60px rgba(59, 130, 246, 0.25);
+        }
+
+        .requirement-item {
+            background: rgba(255, 255, 255, 0.06);
+            padding: 2.5rem;
+            border-radius: 24px;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+        }
+
+        .requirement-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(249, 115, 22, 0.1) 100%);
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+
+        .requirement-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: #3b82f6;
+            transform: translateY(-8px);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+        }
+
+        .requirement-item:hover::before {
+            opacity: 1;
+        }
+
+        .requirement-item > * {
+            position: relative;
+            z-index: 1;
+        }
+
+        .requirement-item h3 {
+            font-size: 1.85rem;
+            color: #1e40af;
+            margin-bottom: 1.5rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 1.25rem;
+            letter-spacing: -0.01em;
+        }
+
+        .requirement-icon-wrapper {
+            width: 70px;
+            height: 70px;
+            border-radius: 18px;
+            background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            box-shadow: 0 8px 25px rgba(249, 115, 22, 0.4);
+            transition: all 0.4s ease;
+        }
+
+        .requirement-item:hover .requirement-icon-wrapper {
+            transform: scale(1.1) rotate(5deg);
+            box-shadow: 0 12px 35px rgba(249, 115, 22, 0.5);
+        }
+
+        .requirement-item h3 i {
+            color: white;
+            font-size: 2rem;
+        }
+
+        .requirement-item p {
+            color: #64748b;
+            line-height: 1.9;
+            font-size: 1.05rem;
+        }
+
+        .requirement-item p strong {
+            color: #1e40af;
+            font-weight: 700;
         }
 
         .service-item {
@@ -1026,12 +1355,6 @@
             border-radius: 10px;
         }
 
-        .footer-logo-text {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: white;
-        }
-
         .footer-brand p {
             color: #94a3b8;
             line-height: 1.7;
@@ -1200,74 +1523,6 @@
                 font-size: 14px;
             }
 
-            nav {
-                padding: 0.5rem 0;
-                height: 70px;
-            }
-
-            .nav-container {
-                padding: 0 1rem;
-            }
-
-            .logo-section img {
-                height: 60px;
-            }
-
-            .brand-name {
-                font-size: 1rem;
-            }
-
-            .mobile-menu-btn {
-                display: block;
-                font-size: 1.5rem;
-                padding: 0.5rem;
-                color: #1e40af;
-            }
-
-            .nav-links {
-                display: none;
-                position: fixed;
-                top: 70px;
-                left: 0;
-                right: 0;
-                background: white;
-                flex-direction: column;
-                padding: 1.5rem;
-                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
-                max-height: calc(100vh - 70px);
-                overflow-y: auto;
-                z-index: 999;
-            }
-
-            .nav-links.active {
-                display: flex;
-            }
-
-            .nav-links li {
-                width: 100%;
-                margin-bottom: 0.5rem;
-            }
-
-            .nav-links a {
-                display: block;
-                padding: 1rem;
-                width: 100%;
-                text-align: center;
-                border-radius: 8px;
-            }
-
-            .dropdown-menu {
-                position: static;
-                opacity: 1;
-                visibility: visible;
-                transform: none;
-                box-shadow: none;
-                padding: 0.5rem 0;
-                margin-top: 0.5rem;
-                background: #f8fafc;
-                border-radius: 8px;
-            }
-
             .hero {
                 margin-top: 70px;
                 padding: 2rem 1rem;
@@ -1415,36 +1670,40 @@
                 line-height: 1.6;
             }
 
-            /* Steps Section - Mobile Layout */
+            /* Steps Section - Mobile Layout (2x2 grid) */
             .steps-container {
-                grid-template-columns: 1fr;
+                grid-template-columns: repeat(2, 1fr);
                 gap: 1.25rem;
-                margin-top: 2rem;
+                margin-top: 2.5rem;
                 position: relative;
             }
 
             .steps-container::before {
-                content: '';
-                position: absolute;
-                left: 35px;
-                top: 0;
-                bottom: 0;
-                width: 3px;
-                background: linear-gradient(180deg, #f97316 0%, #ea580c 100%);
-                z-index: 0;
+                display: none;
             }
 
             .step {
-                padding: 1.5rem;
-                background: white;
-                border-radius: 16px;
-                box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+                padding: 2rem 1.25rem;
+                background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+                border-radius: 20px;
+                border: 2px solid #e2e8f0;
+                box-shadow: 0 8px 24px rgba(30, 58, 138, 0.1), 
+                            0 2px 8px rgba(0, 0, 0, 0.05);
                 position: relative;
                 display: flex;
-                align-items: flex-start;
-                gap: 1.25rem;
-                text-align: left;
+                flex-direction: column;
+                align-items: center;
+                gap: 1rem;
+                text-align: center;
                 z-index: 1;
+                transition: all 0.3s ease;
+            }
+
+            .step:hover {
+                transform: translateY(-4px);
+                box-shadow: 0 12px 32px rgba(59, 130, 246, 0.15),
+                            0 4px 12px rgba(0, 0, 0, 0.08);
+                border-color: #3b82f6;
             }
 
             .step::after {
@@ -1455,39 +1714,54 @@
                 width: 60px;
                 height: 60px;
                 font-size: 1.5rem;
-                margin: 0;
+                margin: 0 auto 0.5rem;
                 flex-shrink: 0;
                 position: relative;
                 z-index: 2;
-                box-shadow: 0 6px 20px rgba(249, 115, 22, 0.35);
+                background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+                box-shadow: 0 8px 24px rgba(249, 115, 22, 0.4),
+                            0 4px 12px rgba(249, 115, 22, 0.2);
             }
 
             .step-content {
                 flex: 1;
+                width: 100%;
             }
 
             .step h3 {
                 font-size: 1.15rem;
-                margin-bottom: 0.5rem;
-                line-height: 1.3;
+                margin-bottom: 0.75rem;
+                line-height: 1.4;
+                font-weight: 700;
+                background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                background-clip: text;
             }
 
             .step p {
                 font-size: 0.875rem;
                 line-height: 1.6;
                 margin: 0;
-                color: #64748b;
+                color: #475569;
+                font-weight: 400;
             }
 
-            /* Services Section - Mobile Layout */
+            /* Services Section - Mobile Layout (2x2 grid) */
             .services-grid {
-                grid-template-columns: 1fr;
-                gap: 1.5rem;
+                grid-template-columns: repeat(2, 1fr);
+                gap: 1.25rem;
             }
 
             .service-item {
-                height: 280px;
-                border-radius: 16px;
+                height: 320px;
+                border-radius: 20px;
+                box-shadow: 0 8px 24px rgba(30, 58, 138, 0.15);
+            }
+
+            .service-item:hover {
+                transform: translateY(-6px);
+                box-shadow: 0 16px 40px rgba(59, 130, 246, 0.25);
             }
 
             .service-content {
@@ -1496,15 +1770,16 @@
             }
 
             .service-item h4 {
-                font-size: 1.5rem;
+                font-size: 1.2rem;
                 margin-bottom: 0.75rem;
-                line-height: 1.2;
+                line-height: 1.3;
+                font-weight: 700;
             }
 
             .service-description {
-                font-size: 0.9rem;
+                font-size: 0.875rem;
                 margin-bottom: 1.25rem;
-                line-height: 1.5;
+                line-height: 1.6;
                 opacity: 0.95;
                 display: -webkit-box;
                 -webkit-line-clamp: 3;
@@ -1518,6 +1793,80 @@
                 font-weight: 600;
                 border-radius: 8px;
                 align-self: flex-start;
+            }
+
+            /* Location Grid - Mobile (2x2 layout) */
+            .location-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 1rem;
+            }
+
+            .location-card {
+                padding: 1.5rem;
+                border-radius: 0;
+                min-height: 320px;
+            }
+
+            .location-card-icon {
+                width: 45px;
+                height: 45px;
+                font-size: 1.4rem;
+                margin-bottom: 1rem;
+            }
+
+            .location-card h4 {
+                font-size: 1.2rem;
+                margin-bottom: 0.75rem;
+                line-height: 1.3;
+            }
+
+            .location-card p {
+                font-size: 0.85rem;
+                line-height: 1.6;
+                margin-bottom: 1.25rem;
+                display: -webkit-box;
+                -webkit-line-clamp: 4;
+                -webkit-box-orient: vertical;
+                overflow: hidden;
+            }
+
+            .location-card-link {
+                padding: 0.625rem 1.25rem;
+                font-size: 0.875rem;
+            }
+
+            /* Requirements Grid - Mobile */
+            .requirements-grid {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+
+            .requirement-item {
+                padding: 1.75rem;
+                border-radius: 20px;
+            }
+
+            .requirement-item h3 {
+                font-size: 1.4rem;
+                margin-bottom: 1.25rem;
+                flex-direction: row;
+                align-items: center;
+                gap: 1rem;
+            }
+
+            .requirement-icon-wrapper {
+                width: 55px;
+                height: 55px;
+                font-size: 1.5rem;
+            }
+
+            .requirement-item h3 i {
+                font-size: 1.5rem;
+            }
+
+            .requirement-item p {
+                font-size: 0.95rem;
+                line-height: 1.75;
             }
 
             .stats-grid {
@@ -1536,34 +1885,6 @@
 
             .stat-item p {
                 font-size: 0.95rem;
-            }
-
-            .footer-content {
-                grid-template-columns: 1fr;
-                gap: 2rem;
-                text-align: center;
-            }
-
-            .footer-section {
-                text-align: center;
-            }
-
-            .footer-section ul {
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                gap: 0.5rem;
-            }
-
-            .footer-bottom {
-                flex-direction: column;
-                gap: 1rem;
-                text-align: center;
-            }
-
-            .footer-bottom-links {
-                flex-direction: column;
-                gap: 0.75rem;
             }
 
             /* About section mobile */
@@ -1654,83 +1975,12 @@ font-size: 1.1rem !important;
                 font-size: 2rem !important;
             }
 
-            /* Newsletter form mobile */
-            .newsletter-input {
-                flex-direction: column;
-            }
-
-            .newsletter-input input,
-            .newsletter-btn {
-                width: 100%;
-            }
-
-            /* Footer improvements */
-            .footer-logo img {
-                height: 80px !important;
-            }
-
-            iframe {
-                height: 200px !important;
-            }
         }
 
         /* Small tablets and large phones */
         @media (min-width: 481px) and (max-width: 768px) {
-            nav {
-                padding: 0.6rem 0;
-                height: 75px;
-            }
-
-            .nav-container {
-                padding: 0 1.5rem;
-            }
-
-            .logo-section img {
-                height: 70px;
-            }
-
-            .brand-name {
-                font-size: 1.15rem;
-            }
-
-            .mobile-menu-btn {
-                display: block;
-                font-size: 1.5rem;
-            }
-
-            .nav-links {
-                display: none;
-                position: fixed;
-                top: 75px;
-                left: 0;
-                right: 0;
-                background: white;
-                flex-direction: column;
-                padding: 2rem;
-                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
-                max-height: calc(100vh - 75px);
-                overflow-y: auto;
-                z-index: 999;
-            }
-
-            .nav-links.active {
-                display: flex;
-            }
-
-            .nav-links li {
-                width: 100%;
-                margin-bottom: 0.75rem;
-            }
-
-            .nav-links a {
-                display: block;
-                padding: 1rem;
-                width: 100%;
-                text-align: center;
-            }
-
             .hero {
-                margin-top: 75px;
+                margin-top: 72px;
                 padding: 3rem 1.5rem;
             }
 
@@ -1841,15 +2091,43 @@ font-size: 1.1rem !important;
                 grid-template-columns: repeat(2, 1fr);
             }
 
+            .location-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 1.75rem;
+            }
+
+            .location-card {
+                padding: 2rem;
+                border-radius: 0;
+                min-height: 380px;
+            }
+
+            .location-card-icon {
+                width: 55px;
+                height: 55px;
+                font-size: 1.65rem;
+            }
+
+            .requirements-grid {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+            }
+
+            .requirement-item {
+                padding: 2.25rem;
+            }
+
+            .requirement-icon-wrapper {
+                width: 65px;
+                height: 65px;
+                font-size: 1.85rem;
+            }
+
             .stats-grid {
                 grid-template-columns: repeat(2, 1fr);
                 gap: 1.5rem;
             }
 
-            .footer-content {
-                grid-template-columns: 1fr 1fr;
-                gap: 2rem;
-            }
 
             /* About section tablet */
             #about-section > div {
@@ -1860,18 +2138,6 @@ font-size: 1.1rem !important;
 
         /* Standard mobile breakpoint (kept for backward compatibility) */
         @media (max-width: 768px) {
-            .nav-links {
-                display: none;
-            }
-
-            .nav-links.active {
-                display: flex;
-            }
-
-            .mobile-menu-btn {
-                display: block;
-            }
-
             .hero {
                 padding: 3rem 1.5rem;
             }
@@ -1943,16 +2209,76 @@ font-size: 1.1rem !important;
             }
 
             .steps-container {
-                grid-template-columns: 1fr;
-                gap: 2rem;
+                grid-template-columns: repeat(2, 1fr);
+                gap: 1.25rem;
             }
 
             .step::after {
                 display: none;
             }
 
+            .step {
+                padding: 2rem 1.25rem;
+                background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+                border: 2px solid #e2e8f0;
+                box-shadow: 0 8px 24px rgba(30, 58, 138, 0.1);
+            }
+
+            .step:hover {
+                transform: translateY(-4px);
+                box-shadow: 0 12px 32px rgba(59, 130, 246, 0.15);
+                border-color: #3b82f6;
+            }
+
+            .step-number {
+                width: 60px;
+                height: 60px;
+                font-size: 1.5rem;
+                margin: 0 auto 0.5rem;
+                box-shadow: 0 8px 24px rgba(249, 115, 22, 0.4);
+            }
+
+            .step h3 {
+                font-size: 1.15rem;
+                margin-bottom: 0.75rem;
+                font-weight: 700;
+            }
+
+            .step p {
+                font-size: 0.875rem;
+                line-height: 1.6;
+                color: #475569;
+            }
+
             .services-grid {
-                grid-template-columns: 1fr;
+                grid-template-columns: repeat(2, 1fr);
+                gap: 1.25rem;
+            }
+
+            .service-item {
+                height: 320px;
+                box-shadow: 0 8px 24px rgba(30, 58, 138, 0.15);
+            }
+
+            .service-item:hover {
+                transform: translateY(-6px);
+                box-shadow: 0 16px 40px rgba(59, 130, 246, 0.25);
+            }
+
+            .service-content {
+                padding: 1.5rem;
+            }
+
+            .service-content h4 {
+                font-size: 1.2rem;
+                margin-bottom: 0.75rem;
+                font-weight: 700;
+            }
+
+            .service-description {
+                font-size: 0.875rem;
+                line-height: 1.6;
+                -webkit-line-clamp: 3;
             }
 
             .stats-grid {
@@ -2003,11 +2329,6 @@ font-size: 1.1rem !important;
 
             .stat-item h3 {
                 font-size: 2rem;
-            }
-
-            .footer-content {
-                grid-template-columns: 1fr;
-                gap: 2rem;
             }
         }
 
@@ -2077,11 +2398,6 @@ font-size: 1.1rem !important;
                 padding: 2rem;
             }
 
-            .footer-content {
-                grid-template-columns: repeat(2, 1fr);
-                gap: 2rem;
-            }
-
             .steps-container {
                 grid-template-columns: repeat(2, 1fr);
                 gap: 2rem;
@@ -2140,10 +2456,6 @@ font-size: 1.1rem !important;
             }
 
             .services-grid {
-                grid-template-columns: repeat(3, 1fr);
-            }
-
-            .footer-content {
                 grid-template-columns: repeat(3, 1fr);
             }
         }
@@ -2234,32 +2546,7 @@ font-size: 1.1rem !important;
             <img src="{{ asset('logo.png') }}" alt="CAS Private Care LLC Logo" width="300" height="300">
         </div>
     </div>
-    <nav>
-        <div class="nav-container">
-            <div class="logo-section">
-                <img src="{{ asset('logo flower.png') }}" alt="CAS Private Care LLC Logo - Professional Caregiving Services" width="150" height="150">
-            </div>
-            <button class="mobile-menu-btn" onclick="toggleMenu()" aria-label="Toggle navigation menu" aria-expanded="false" aria-controls="navLinks" id="mobileMenuBtn">
-                <span aria-hidden="true">☰</span>
-            </button>
-            <ul class="nav-links" id="navLinks">
-                <li><a href="#features">Features</a></li>
-                <li><a href="#how-it-works">How It Works</a></li>
-                <li class="dropdown">
-                    <a href="#services">Services <i class="bi bi-chevron-down" style="font-size: 0.8rem; margin-left: 0.5rem;"></i></a>
-                    <div class="dropdown-menu">
-                        <a href="#services">Browse All Services</a>
-                        <a href="{{ url('/register') }}">Get Started</a>
-                        <a href="{{ url('/login') }}">Login</a>
-                    </div>
-                </li>
-                <li><a href="#training">Training Center</a></li>
-                <li><a href="#about">About</a></li>
-                <li><a href="{{ url('/login') }}">Login</a></li>
-                <li><a href="{{ url('/register') }}" class="cta-btn">Register</a></li>
-            </ul>
-        </div>
-    </nav>
+    @include('partials.navigation')
 
     <main id="main-content">
     <header class="hero">
@@ -2280,7 +2567,7 @@ font-size: 1.1rem !important;
                     <button onclick="switchService('personal')" id="btn-personal" style="position: relative; z-index: 2; padding: 0.75rem 1.5rem; border: none; border-radius: 25px; background: transparent; color: white; font-weight: 600; cursor: pointer; transition: color 0.3s; flex: 1;">Personal Care</button>
                 </div>
                 
-                <p id="hero-description" style="transition: opacity 0.5s ease;">A modern and trustworthy caregiving marketplace where families effortlessly connect with verified caregivers, nannies, and home helpers.</p>
+                <p id="hero-description" style="transition: opacity 0.5s ease;">A modern and trustworthy platform connecting families with verified partners and contractors - caregivers, housekeepers, personal assistants, marketing partners, and training centers.</p>
                 
                 <div class="hero-buttons">
                     <a href="#" class="btn-primary" id="find-btn" style="transition: opacity 0.5s ease;">Find a Caregiver</a>
@@ -2325,7 +2612,7 @@ font-size: 1.1rem !important;
             </div>
             <div class="fade-in" itemprop="description">
                 <h2 style="font-size: 3rem; font-weight: 700; margin-bottom: 1.5rem;"><span style="color: #f97316;">What</span> <span style="background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">is CAS Private Care LLC?</span></h2>
-                <p style="font-size: 1.1rem; color: #64748b; line-height: 1.8; margin-bottom: 2rem;">Your trusted platform connecting families with verified caregivers for quality care services. We make finding professional care simple, safe, and reliable.</p>
+                <p style="font-size: 1.1rem; color: #64748b; line-height: 1.8; margin-bottom: 2rem;">Your trusted platform connecting families with verified partners and contractors for quality care services. We make finding professional partners simple, safe, and reliable.</p>
                 <div class="about-features-grid">
                     <div class="about-feature-card">
                         <div class="about-feature-icon">
@@ -2333,7 +2620,7 @@ font-size: 1.1rem !important;
                         </div>
                         <div class="about-feature-content">
                             <h3><span style="color: #f97316;">For</span> <span style="color: #1e40af;">Families</span></h3>
-                            <p>Browse verified caregivers, nannies, and helpers. Book instantly with secure payments.</p>
+                            <p>Browse verified partners and contractors. Book instantly with secure payments.</p>
                         </div>
                     </div>
                     <div class="about-feature-card">
@@ -2364,40 +2651,34 @@ font-size: 1.1rem !important;
         <div class="divider-line-thin"></div>
     </div>
 
-    <section class="section-dark" id="how-it-works" itemscope itemtype="https://schema.org/HowTo">
-        <div class="container">
-            <div class="section-header fade-in">
-                <h2 itemprop="name"><span style="color: #f97316;">How</span> CAS Private Care LLC Works</h2>
-                <p>Simple, fast, and secure — connecting care in four easy steps</p>
+    <section class="section-dark ceo-section" style="padding: 6rem 2rem;">
+        <div class="container" style="max-width: 1200px; margin: 0 auto;">
+            <div class="section-header fade-in" style="text-align: center; margin-bottom: 4rem;">
+                <h2 style="font-size: 3rem; font-weight: 700; margin-bottom: 1rem;">
+                    <span style="color: #f97316;">Meet</span> <span style="background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Our Founder</span>
+                </h2>
             </div>
-            <div class="steps-container">
-                <div class="step fade-in">
-                    <div class="step-number">1</div>
-                    <div class="step-content">
-                        <h3><span style="color: #f97316;">Browse</span> <span style="background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">& Select</span></h3>
-                        <p>Clients search for caregivers or nannies, review their profiles, credentials, and ratings to find the perfect match.</p>
+            <div class="ceo-content" style="display: grid; grid-template-columns: 1fr 1.5fr; gap: 4rem; align-items: center; background: white; padding: 3rem; border-radius: 0; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1); border: 3px solid #3b82f6;">
+                <div class="fade-in" style="text-align: center;">
+                    <div style="position: relative; display: inline-block;">
+                        <img src="{{ asset('CEO.jpg') }}" alt="Charles Andrew Santiago - CEO and Founder of CAS Private Care LLC" style="width: 100%; max-width: 700px; height: auto; border-radius: 20px; box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);" loading="lazy" decoding="async">
+                        <div style="position: absolute; bottom: -15px; right: -15px; background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); padding: 1rem 1.5rem; border-radius: 15px; box-shadow: 0 10px 30px rgba(59, 130, 246, 0.3);">
+                            <i class="bi bi-award-fill" style="font-size: 2rem; color: white;" aria-hidden="true"></i>
+                        </div>
                     </div>
                 </div>
-                <div class="step fade-in">
-                    <div class="step-number">2</div>
-                    <div class="step-content">
-                        <h3><span style="color: #f97316;">Book</span> <span style="background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">& Schedule</span></h3>
-                        <p>Choose your preferred schedule and book instantly. Payments are processed securely through our platform.</p>
+                <div class="fade-in">
+                    <div style="margin-bottom: 2rem;">
+                        <h3 style="font-size: 1.5rem; color: #1e293b; margin: 0 0 0.5rem 0; font-weight: 600;">CAS PRIVATE CARE LLC</h3>
+                        <p style="color: #64748b; margin: 0; font-size: 0.9rem;">Professional Caregiving Services</p>
                     </div>
-                </div>
-                <div class="step fade-in">
-                    <div class="step-number">3</div>
-                    <div class="step-content">
-                        <h3><span style="color: #f97316;">Connect</span> <span style="background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">& Care</span></h3>
-                        <p>Contractors receive bookings, connect with families, and deliver exceptional care while building their reputation.</p>
-                    </div>
-                </div>
-                <div class="step fade-in">
-                    <div class="step-number">4</div>
-                    <div class="step-content">
-                        <h3><span style="color: #f97316;">Rate</span> <span style="background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">& Review</span></h3>
-                        <p>Share your experience and help others make informed decisions. Build trust within the community.</p>
-                    </div>
+                    <h2 style="font-size: 2.5rem; font-weight: 700; margin-bottom: 0.5rem; color: #1e293b;">
+                        <span style="color: #f97316;">Charles Andrew</span> <span style="color: #1e40af;">Santiago</span>
+                    </h2>
+                    <p style="font-size: 1.3rem; color: #3b82f6; font-weight: 600; margin-bottom: 1.5rem;">CEO / Founder</p>
+                    <p style="font-size: 1.1rem; color: #64748b; line-height: 1.8; margin-bottom: 0;">
+                        With a vision to transform the caregiving industry, Charles Andrew Santiago is dedicated to building a trusted platform that connects families with exceptional contractors. His goal is to ensure every family receives quality, compassionate care while creating meaningful opportunities for professional contractors. Through CAS Private Care LLC, he strives to make professional caregiving services accessible, reliable, and safe for everyone, fostering stronger communities one connection at a time.
+                    </p>
                 </div>
             </div>
         </div>
@@ -2464,34 +2745,70 @@ font-size: 1.1rem !important;
         <div class="divider-line-thin"></div>
     </div>
 
-    <section class="section-light ceo-section" style="padding: 6rem 2rem; background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);">
-        <div class="container" style="max-width: 1200px; margin: 0 auto;">
-            <div class="section-header fade-in" style="text-align: center; margin-bottom: 4rem;">
-                <h2 style="font-size: 3rem; font-weight: 700; margin-bottom: 1rem;">
-                    <span style="color: #f97316;">Meet</span> <span style="background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Our Founder</span>
-                </h2>
+    <!-- Location Coverage Section -->
+    <section class="section-dark" id="locations">
+        <div class="container">
+            <div class="section-header fade-in">
+                <h2><span style="color: #f97316;">Professional Partners</span> Available Throughout New York State</h2>
+                <p>
+                    Verified partners available across all of New York State. Find caregivers, housekeeping, personal assistants, and more in your area.
+                </p>
             </div>
-            <div class="ceo-content" style="display: grid; grid-template-columns: 1fr 1.5fr; gap: 4rem; align-items: center; background: white; padding: 3rem; border-radius: 24px; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1); border: 3px solid #3b82f6;">
-                <div class="fade-in" style="text-align: center;">
-                    <div style="position: relative; display: inline-block;">
-                        <img src="{{ asset('CEO.jpg') }}" alt="Charles Andrew Santiago - CEO and Founder of CAS Private Care LLC" style="width: 100%; max-width: 700px; height: auto; border-radius: 20px; box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);" loading="lazy" decoding="async">
-                        <div style="position: absolute; bottom: -15px; right: -15px; background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); padding: 1rem 1.5rem; border-radius: 15px; box-shadow: 0 10px 30px rgba(59, 130, 246, 0.3);">
-                            <i class="bi bi-award-fill" style="font-size: 2rem; color: white;" aria-hidden="true"></i>
-                        </div>
+
+            <div class="location-grid">
+                <div class="location-card fade-in" style="background-image: url('https://images.unsplash.com/photo-1496442226666-8d4d0e62e6e9?w=800&q=80');">
+                    <div class="location-card-icon">
+                        <i class="bi bi-building"></i>
                     </div>
+                    <h4>Manhattan Partners</h4>
+                    <p>Professional partner services throughout Manhattan, from Upper East Side to Lower Manhattan. Available 24/7 for immediate service needs across all partner types.</p>
+                    <a href="{{ url('/register') }}" class="location-card-link">
+                        Join as Partner <i class="bi bi-arrow-right"></i>
+                    </a>
                 </div>
-                <div class="fade-in">
-                    <div style="margin-bottom: 2rem;">
-                        <h3 style="font-size: 1.5rem; color: #1e293b; margin: 0 0 0.5rem 0; font-weight: 600;">CAS PRIVATE CARE LLC</h3>
-                        <p style="color: #64748b; margin: 0; font-size: 0.9rem;">Professional Caregiving Services</p>
+
+                <div class="location-card fade-in" style="background-image: url('https://images.unsplash.com/photo-1505843513577-22bb7d21e455?w=800&q=80');">
+                    <div class="location-card-icon">
+                        <i class="bi bi-geo-alt"></i>
                     </div>
-                    <h2 style="font-size: 2.5rem; font-weight: 700; margin-bottom: 0.5rem; color: #1e293b;">
-                        <span style="color: #f97316;">Charles Andrew</span> <span style="color: #1e40af;">Santiago</span>
-                    </h2>
-                    <p style="font-size: 1.3rem; color: #3b82f6; font-weight: 600; margin-bottom: 1.5rem;">CEO / Founder</p>
-                    <p style="font-size: 1.1rem; color: #64748b; line-height: 1.8; margin-bottom: 0;">
-                        With a vision to transform the caregiving industry, Charles Andrew Santiago is dedicated to building a trusted platform that connects families with exceptional contractors. His goal is to ensure every family receives quality, compassionate care while creating meaningful opportunities for professional contractors. Through CAS Private Care LLC, he strives to make professional caregiving services accessible, reliable, and safe for everyone, fostering stronger communities one connection at a time.
-                    </p>
+                    <h4>Brooklyn Partners</h4>
+                    <p>Trusted partners serving all Brooklyn neighborhoods. From Park Slope to Brighton Beach, we're here to connect families with quality contractors and partners.</p>
+                    <a href="{{ url('/register') }}" class="location-card-link">
+                        Join as Partner <i class="bi bi-arrow-right"></i>
+                    </a>
+                </div>
+
+                <div class="location-card fade-in" style="background-image: url('https://images.unsplash.com/photo-1500916434205-0c77489c6cf7?w=800&q=80');">
+                    <div class="location-card-icon">
+                        <i class="bi bi-map"></i>
+                    </div>
+                    <h4>Queens Partners</h4>
+                    <p>Reliable partner services across Queens, including Astoria, Flushing, and Jamaica. Comprehensive support for all partner types and service needs.</p>
+                    <a href="{{ url('/register') }}" class="location-card-link">
+                        Join as Partner <i class="bi bi-arrow-right"></i>
+                    </a>
+                </div>
+
+                <div class="location-card fade-in" style="background-image: url('https://images.unsplash.com/photo-1514565131-fce0801e5785?w=800&q=80');">
+                    <div class="location-card-icon">
+                        <i class="bi bi-geo-fill"></i>
+                    </div>
+                    <h4>Bronx Partners</h4>
+                    <p>Professional partners serving the Bronx communities. Specialized services including elderly care, personal care, housekeeping, and more.</p>
+                    <a href="{{ url('/register') }}" class="location-card-link">
+                        Join as Partner <i class="bi bi-arrow-right"></i>
+                    </a>
+                </div>
+
+                <div class="location-card fade-in" style="background-image: url('https://www.nyhabitat.com/blog/wp-content/uploads/2014/09/New-york-nyc-borough-staten-island-ferry-manhattan-skyline.jpg');">
+                    <div class="location-card-icon">
+                        <i class="bi bi-geo-alt-fill"></i>
+                    </div>
+                    <h4>Staten Island Partners</h4>
+                    <p>Dedicated partner services for Staten Island residents. Personalized connections tailored to your family's unique needs and requirements.</p>
+                    <a href="{{ url('/register') }}" class="location-card-link">
+                        Join as Partner <i class="bi bi-arrow-right"></i>
+                    </a>
                 </div>
             </div>
         </div>
@@ -2502,17 +2819,63 @@ font-size: 1.1rem !important;
         <div class="divider-line-thin"></div>
     </div>
 
-    <section class="section-dark">
+    <section class="section-light" id="how-it-works" itemscope itemtype="https://schema.org/HowTo">
         <div class="container">
             <div class="section-header fade-in">
+                <h2 itemprop="name"><span style="color: #f97316;">How</span> CAS Private Care LLC Works</h2>
+                <p>Simple, fast, and secure — connecting care in four easy steps</p>
+            </div>
+            <div class="steps-container">
+                <div class="step fade-in">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <h3><span style="color: #f97316;">Browse</span> <span style="background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">& Select</span></h3>
+                        <p>Clients search for caregivers or nannies, review their profiles, credentials, and ratings to find the perfect match.</p>
+                    </div>
+                </div>
+                <div class="step fade-in">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <h3><span style="color: #f97316;">Book</span> <span style="background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">& Schedule</span></h3>
+                        <p>Choose your preferred schedule and book instantly. Payments are processed securely through our platform.</p>
+                    </div>
+                </div>
+                <div class="step fade-in">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <h3><span style="color: #f97316;">Connect</span> <span style="background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">& Care</span></h3>
+                        <p>Partners and contractors receive bookings, connect with families, and deliver exceptional services while building their reputation.</p>
+                    </div>
+                </div>
+                <div class="step fade-in">
+                    <div class="step-number">4</div>
+                    <div class="step-content">
+                        <h3><span style="color: #f97316;">Rate</span> <span style="background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">& Review</span></h3>
+                        <p>Share your experience and help others make informed decisions. Build trust within the community.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <div class="section-divider">
+        <div class="divider-line-thick"></div>
+        <div class="divider-line-thin"></div>
+    </div>
+
+    <section class="section-dark" style="padding: 7rem 2rem; position: relative; overflow: hidden;">
+        <div class="container" style="max-width: 1200px; margin: 0 auto; position: relative; z-index: 1;">
+            <div class="section-header fade-in">
                 <h2><span style="color: #f97316;">Ready</span> to Get Started?</h2>
-                <p>Join CAS Private Care LLC today and experience the future of caregiving services</p>
+                <p style="color: #64748b;">Join CAS Private Care LLC today and experience the future of caregiving services</p>
             </div>
             <div class="hero-buttons" style="margin-top: 3rem; justify-content: center;">
                 <a href="{{ url('/register') }}" class="btn-primary">Sign Up Now</a>
                 <a href="#how-it-works" class="btn-secondary">Learn More</a>
             </div>
         </div>
+        <div style="position: absolute; top: -100px; right: -100px; width: 400px; height: 400px; background: radial-gradient(circle, rgba(59, 130, 246, 0.1) 0%, transparent 70%); border-radius: 50%; pointer-events: none;"></div>
+        <div style="position: absolute; bottom: -100px; left: -100px; width: 400px; height: 400px; background: radial-gradient(circle, rgba(249, 115, 22, 0.1) 0%, transparent 70%); border-radius: 50%; pointer-events: none;"></div>
     </section>
 
     </main>
@@ -2535,24 +2898,25 @@ font-size: 1.1rem !important;
             <div class="footer-section">
                 <h3>For Clients</h3>
                 <ul>
-                    <li><a href="#services">Browse Services</a></li>
-                    <li><a href="#how-it-works">How It Works</a></li>
+                    <li><a href="{{ url('/') }}#services">Browse Services</a></li>
+                    <li><a href="{{ url('/') }}#how-it-works">How It Works</a></li>
                     <li><a href="{{ url('/register') }}">Sign Up</a></li>
                     <li><a href="{{ url('/login') }}">Login</a></li>
-                    <li><a href="#about">About</a></li>
+                    <li><a href="{{ url('/about') }}">About</a></li>
                 </ul>
             </div>
             <div class="footer-section">
-                <h3>For Caregivers</h3>
+                <h3>For Partners</h3>
                 <ul>
                     <li><a href="{{ url('/register') }}">Join as Caregiver</a></li>
-                    <li><a href="#training">Training Center</a></li>
-                    <li><a href="#how-it-works">How It Works</a></li>
+                    <li><a href="{{ url('/register') }}">Marketing Partner</a></li>
+                    <li><a href="{{ url('/register') }}">Training Center</a></li>
+                    <li><a href="{{ url('/') }}#how-it-works">How It Works</a></li>
                 </ul>
                 <h3 style="margin-top: 2rem;">Company</h3>
                 <ul>
-                    <li><a href="#about">About Us</a></li>
-                    <li><a href="#contact">Contact</a></li>
+                    <li><a href="{{ url('/about') }}">About Us</a></li>
+                    <li><a href="{{ url('/contact') }}">Contact</a></li>
                     <li><a href="{{ url('/register') }}">Sign Up</a></li>
                 </ul>
             </div>
@@ -2583,31 +2947,16 @@ font-size: 1.1rem !important;
         </div>
         <div class="footer-divider"></div>
         <div class="footer-bottom">
-            <p>&copy; 2024 CAS Private Care LLC. All rights reserved.</p>
+            <p>&copy; 2025 CAS Private Care LLC. All rights reserved.</p>
             <div class="footer-bottom-links">
                 <a href="{{ url('/privacy') }}">Privacy Policy</a>
                 <a href="{{ url('/terms') }}">Terms of Service</a>
-                <a href="#contact">Contact</a>
+                <a href="{{ url('/contact') }}">Contact</a>
             </div>
         </div>
     </footer>
 
     <script>
-        function toggleMenu() {
-            const navLinks = document.getElementById('navLinks');
-            const menuBtn = document.getElementById('mobileMenuBtn');
-            const isExpanded = navLinks.classList.toggle('active');
-            menuBtn.setAttribute('aria-expanded', isExpanded);
-        }
-
-        document.addEventListener('click', function(event) {
-            const nav = document.querySelector('nav');
-            const navLinks = document.getElementById('navLinks');
-            
-            if (!nav.contains(event.target) && navLinks.classList.contains('active')) {
-                navLinks.classList.remove('active');
-            }
-        });
 
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {
             anchor.addEventListener('click', function (e) {
@@ -2753,6 +3102,673 @@ font-size: 1.1rem !important;
             currentService = (currentService + 1) % services.length;
             switchService(services[currentService]);
         }, 5000);
+    </script>
+
+    <!-- FAQ Chatbot -->
+    <div id="chatbot-container">
+        <!-- Floating Chat Button -->
+        <button id="chatbot-toggle" class="chatbot-toggle" aria-label="Open FAQ Chat" title="Ask us anything">
+            <i class="bi bi-chat-dots-fill"></i>
+            <span class="chatbot-notification">1</span>
+        </button>
+
+        <!-- Chat Window -->
+        <div id="chatbot-window" class="chatbot-window hidden">
+            <div class="chatbot-header">
+                <div class="chatbot-header-content">
+                    <div class="chatbot-avatar">
+                        <i class="bi bi-robot"></i>
+                    </div>
+                    <div class="chatbot-header-text">
+                        <h3>CAS Private Care Assistant</h3>
+                        <p>We're here to help!</p>
+                    </div>
+                </div>
+                <button id="chatbot-close" class="chatbot-close" aria-label="Close chat">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            </div>
+            
+            <div class="chatbot-body" id="chatbot-body">
+                <div class="chat-message bot-message">
+                    <div class="message-avatar">
+                        <i class="bi bi-robot"></i>
+                    </div>
+                    <div class="message-content">
+                        <p>Hello! I'm here to help answer your questions about CAS Private Care. What would you like to know?</p>
+                    </div>
+                </div>
+
+                <!-- Quick FAQ Options -->
+                <div class="quick-questions">
+                    <button class="quick-question-btn" data-question="How do I become a partner?">
+                        How do I become a partner?
+                    </button>
+                    <button class="quick-question-btn" data-question="What types of partners do you have?">
+                        What types of partners do you have?
+                    </button>
+                    <button class="quick-question-btn" data-question="How does the platform work?">
+                        How does the platform work?
+                    </button>
+                    <button class="quick-question-btn" data-question="What are your rates?">
+                        What are your rates?
+                    </button>
+                </div>
+            </div>
+
+            <div class="chatbot-footer">
+                <div class="chatbot-input-container">
+                    <input type="text" id="chatbot-input" placeholder="Type your question..." autocomplete="off">
+                    <button id="chatbot-send" class="chatbot-send-btn" aria-label="Send message">
+                        <i class="bi bi-send-fill"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        /* Chatbot Styles */
+        #chatbot-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 9999;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        .chatbot-toggle {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            box-shadow: 0 4px 20px rgba(59, 130, 246, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+        }
+
+        .chatbot-toggle:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 30px rgba(59, 130, 246, 0.6);
+        }
+
+        .chatbot-toggle:active {
+            transform: scale(0.95);
+        }
+
+        .chatbot-notification {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: #f97316;
+            color: white;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid white;
+            animation: pulse-notification 2s infinite;
+        }
+
+        @keyframes pulse-notification {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .chatbot-window {
+            position: absolute;
+            bottom: 80px;
+            right: 0;
+            width: 380px;
+            height: 600px;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            animation: slideUp 0.3s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .chatbot-window.hidden {
+            display: none;
+        }
+
+        .chatbot-header {
+            background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
+            color: white;
+            padding: 1.25rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .chatbot-header-content {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .chatbot-avatar {
+            width: 40px;
+            height: 40px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+        }
+
+        .chatbot-header-text h3 {
+            margin: 0;
+            font-size: 1rem;
+            font-weight: 700;
+        }
+
+        .chatbot-header-text p {
+            margin: 0;
+            font-size: 0.85rem;
+            opacity: 0.9;
+        }
+
+        .chatbot-close {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+            font-size: 1rem;
+        }
+
+        .chatbot-close:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .chatbot-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1.5rem;
+            background: #f8fafc;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .chatbot-body::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .chatbot-body::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .chatbot-body::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 3px;
+        }
+
+        .chatbot-body::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        .chat-message {
+            display: flex;
+            gap: 0.75rem;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .bot-message {
+            align-items: flex-start;
+        }
+
+        .user-message {
+            flex-direction: row-reverse;
+            align-items: flex-start;
+        }
+
+        .message-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            font-size: 1rem;
+        }
+
+        .bot-message .message-avatar {
+            background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
+            color: white;
+        }
+
+        .user-message .message-avatar {
+            background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+            color: white;
+        }
+
+        .message-content {
+            max-width: 75%;
+            padding: 0.875rem 1rem;
+            border-radius: 16px;
+            line-height: 1.5;
+            font-size: 0.9rem;
+        }
+
+        .bot-message .message-content {
+            background: white;
+            color: #1e293b;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            border-bottom-left-radius: 4px;
+        }
+
+        .user-message .message-content {
+            background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+
+        .message-content p {
+            margin: 0;
+        }
+
+        .typing-indicator {
+            display: flex;
+            gap: 4px;
+            padding: 0.875rem 1rem;
+        }
+
+        .typing-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #94a3b8;
+            animation: typing 1.4s infinite;
+        }
+
+        .typing-dot:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .typing-dot:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes typing {
+            0%, 60%, 100% {
+                transform: translateY(0);
+                opacity: 0.7;
+            }
+            30% {
+                transform: translateY(-10px);
+                opacity: 1;
+            }
+        }
+
+        .quick-questions {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+
+        .quick-question-btn {
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 0.75rem 1rem;
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.875rem;
+            color: #1e293b;
+            font-weight: 500;
+        }
+
+        .quick-question-btn:hover {
+            border-color: #3b82f6;
+            background: #f0f9ff;
+            color: #3b82f6;
+            transform: translateX(4px);
+        }
+
+        .chatbot-footer {
+            border-top: 1px solid #e2e8f0;
+            padding: 1rem;
+            background: white;
+        }
+
+        .chatbot-input-container {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        #chatbot-input {
+            flex: 1;
+            border: 2px solid #e2e8f0;
+            border-radius: 24px;
+            padding: 0.75rem 1rem;
+            font-size: 0.9rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        #chatbot-input:focus {
+            border-color: #3b82f6;
+        }
+
+        .chatbot-send-btn {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
+            border: none;
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            font-size: 1.1rem;
+        }
+
+        .chatbot-send-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+        }
+
+        .chatbot-send-btn:active {
+            transform: scale(0.95);
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            #chatbot-container {
+                bottom: 15px;
+                right: 15px;
+            }
+
+            .chatbot-window {
+                width: calc(100vw - 30px);
+                height: calc(100vh - 100px);
+                max-height: 600px;
+                bottom: 75px;
+                right: 0;
+            }
+
+            .chatbot-toggle {
+                width: 56px;
+                height: 56px;
+                font-size: 1.35rem;
+            }
+        }
+    </style>
+
+    <script>
+        // FAQ Data
+        const faqData = {
+            'how do i become a partner': {
+                answer: 'To become a partner with CAS Private Care, click "Become a Partner" on our homepage or visit the registration page. Select your partner type (Caregiver, Housekeeping, Personal Assistant, Marketing Partner, or Training Center), complete the registration form with your credentials and information, and our team will review your application. Once approved, you\'ll be able to create your profile and start connecting with clients.'
+            },
+            'what types of partners do you have': {
+                answer: 'We have five types of partners: 1) Caregivers - providing personal care, companionship, and assistance with daily living activities. 2) Housekeeping - offering cleaning, laundry, and home organization services. 3) Personal Assistants - helping with administrative tasks, scheduling, and personal support. 4) Marketing Partners - promoting our platform and connecting us with potential clients and partners. 5) Training Centers - providing education and certification programs for our partners.'
+            },
+            'how does the platform work': {
+                answer: 'Our platform connects families with verified partners in 4 simple steps: 1) Browse & Select - Families search and review partner profiles, credentials, and ratings. 2) Book & Schedule - Choose preferred dates/times and book instantly with secure payments. 3) Connect & Care - Partners receive bookings and deliver exceptional services. 4) Rate & Review - Share experiences and build trust within the community.'
+            },
+            'what are your rates': {
+                answer: 'Our rates vary by service type and partner experience. Basic companion care starts around $22-25/hour, personal care ranges $25-28/hour, and specialized care can be $28-32/hour. We also offer daily packages ($180-240/day) and monthly packages with discounts. All rates are transparent and displayed on partner profiles. Contact us for specific pricing based on your needs.'
+            },
+            'how do i verify a partner': {
+                answer: 'All partners on CAS Private Care are thoroughly verified before joining. We conduct criminal background checks, verify licenses and certifications, check professional references, and confirm work history. You can view verification badges on each partner\'s profile showing their verified status, licenses, and background check completion.'
+            },
+            'are partners licensed': {
+                answer: 'Partners providing medical services or home health aide services must be licensed by the New York State Department of Health. All partners undergo background checks and certification verification regardless of service type. We ensure all partners meet or exceed New York State requirements for their respective services.'
+            },
+            'what services do partners provide': {
+                answer: 'Our partners provide various services: Caregivers offer personal care, meal preparation, medication reminders, companionship, and specialized care. Housekeeping partners handle cleaning, laundry, home organization, and errands. Personal Assistants help with scheduling, administrative tasks, and personal support. Each partner specializes in their area of expertise to provide quality services.'
+            },
+            'how quickly can i get a partner': {
+                answer: 'For emergency situations, we can typically arrange a partner within 4-6 hours. For scheduled services, we recommend booking 24-48 hours in advance to ensure the best match. Our online platform allows instant browsing and booking of available partners. We maintain a large network across all NYC boroughs to ensure availability.'
+            },
+            'do you serve all nyc boroughs': {
+                answer: 'Yes! CAS Private Care provides verified partners throughout all five NYC boroughs: Manhattan, Brooklyn, Queens, Bronx, and Staten Island. We also serve surrounding areas in New York State. Our extensive network ensures we can match you with a qualified partner in your area.'
+            },
+            'what payment methods do you accept': {
+                answer: 'We accept multiple payment methods including credit cards, debit cards, and secure online payments through our platform. All payments are processed securely with encryption. We also offer payment plans and can coordinate with insurance for qualifying services. Pricing is transparent with no hidden fees.'
+            },
+            'can i become a partner if i am a family member': {
+                answer: 'Yes, in some cases. Through programs like CDPAP (Consumer Directed Personal Assistance Program), family members can become paid partners for eligible Medicaid recipients. Family members must complete required training and pass background checks. Contact us to learn more about eligibility and requirements for family member partnerships.'
+            }
+        };
+
+        // Chatbot Functionality
+        const chatbotToggle = document.getElementById('chatbot-toggle');
+        const chatbotWindow = document.getElementById('chatbot-window');
+        const chatbotClose = document.getElementById('chatbot-close');
+        const chatbotBody = document.getElementById('chatbot-body');
+        const chatbotInput = document.getElementById('chatbot-input');
+        const chatbotSend = document.getElementById('chatbot-send');
+        const notificationBadge = document.querySelector('.chatbot-notification');
+
+        let isChatOpen = false;
+
+        // Toggle chatbot
+        chatbotToggle.addEventListener('click', () => {
+            if (isChatOpen) {
+                closeChatbot();
+            } else {
+                openChatbot();
+            }
+        });
+
+        chatbotClose.addEventListener('click', closeChatbot);
+
+        function openChatbot() {
+            chatbotWindow.classList.remove('hidden');
+            isChatOpen = true;
+            chatbotInput.focus();
+            if (notificationBadge) {
+                notificationBadge.style.display = 'none';
+            }
+        }
+
+        function closeChatbot() {
+            chatbotWindow.classList.add('hidden');
+            isChatOpen = false;
+        }
+
+        // Send message function
+        function sendMessage(message) {
+            if (!message.trim()) return;
+
+            // Add user message
+            addMessage(message, 'user');
+            chatbotInput.value = '';
+
+            // Show typing indicator
+            const typingId = showTypingIndicator();
+
+            // Process after delay (simulate thinking)
+            setTimeout(() => {
+                removeTypingIndicator(typingId);
+                const answer = findAnswer(message);
+                addMessage(answer, 'bot', true);
+            }, 800 + Math.random() * 500);
+        }
+
+        function addMessage(text, sender, withTyping = false) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `chat-message ${sender}-message`;
+
+            const avatar = document.createElement('div');
+            avatar.className = 'message-avatar';
+            avatar.innerHTML = sender === 'bot' ? '<i class="bi bi-robot"></i>' : '<i class="bi bi-person-fill"></i>';
+
+            const content = document.createElement('div');
+            content.className = 'message-content';
+            const p = document.createElement('p');
+            p.textContent = text;
+            content.appendChild(p);
+
+            messageDiv.appendChild(avatar);
+            messageDiv.appendChild(content);
+
+            chatbotBody.appendChild(messageDiv);
+            scrollToBottom();
+
+            // Type out message with animation
+            if (withTyping && sender === 'bot') {
+                p.textContent = '';
+                typeMessage(p, text);
+            }
+        }
+
+        function typeMessage(element, text) {
+            let i = 0;
+            const typingInterval = setInterval(() => {
+                if (i < text.length) {
+                    element.textContent += text[i];
+                    i++;
+                    scrollToBottom();
+                } else {
+                    clearInterval(typingInterval);
+                }
+            }, 20 + Math.random() * 10);
+        }
+
+        function showTypingIndicator() {
+            const typingDiv = document.createElement('div');
+            typingDiv.className = 'chat-message bot-message typing-indicator-message';
+            typingDiv.id = 'typing-indicator';
+
+            const avatar = document.createElement('div');
+            avatar.className = 'message-avatar';
+            avatar.innerHTML = '<i class="bi bi-robot"></i>';
+
+            const content = document.createElement('div');
+            content.className = 'message-content';
+            const typingIndicator = document.createElement('div');
+            typingIndicator.className = 'typing-indicator';
+            for (let i = 0; i < 3; i++) {
+                const dot = document.createElement('div');
+                dot.className = 'typing-dot';
+                typingIndicator.appendChild(dot);
+            }
+            content.appendChild(typingIndicator);
+
+            typingDiv.appendChild(avatar);
+            typingDiv.appendChild(content);
+            chatbotBody.appendChild(typingDiv);
+            scrollToBottom();
+
+            return 'typing-indicator';
+        }
+
+        function removeTypingIndicator(id) {
+            const typingElement = document.getElementById(id);
+            if (typingElement) {
+                typingElement.remove();
+            }
+        }
+
+        function findAnswer(question) {
+            const normalizedQuestion = question.toLowerCase().trim();
+            
+            // Direct match
+            if (faqData[normalizedQuestion]) {
+                return faqData[normalizedQuestion].answer;
+            }
+
+            // Keyword matching
+            for (const [key, data] of Object.entries(faqData)) {
+                const keywords = key.split(' ');
+                const questionWords = normalizedQuestion.split(' ');
+                const matchCount = keywords.filter(kw => questionWords.some(qw => qw.includes(kw) || kw.includes(qw))).length;
+                
+                if (matchCount >= 2) {
+                    return data.answer;
+                }
+            }
+
+            // Default response
+            return 'I\'m sorry, I didn\'t quite understand that. Could you try rephrasing your question? You can also ask about: becoming a partner, partner types, how the platform works, rates, verification, or services.';
+        }
+
+        function scrollToBottom() {
+            chatbotBody.scrollTop = chatbotBody.scrollHeight;
+        }
+
+        // Send button click
+        chatbotSend.addEventListener('click', () => {
+            sendMessage(chatbotInput.value);
+        });
+
+        // Enter key press
+        chatbotInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                sendMessage(chatbotInput.value);
+            }
+        });
+
+        // Quick question buttons
+        document.querySelectorAll('.quick-question-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const question = btn.getAttribute('data-question');
+                sendMessage(question);
+            });
+        });
+
+        // Close on outside click (mobile)
+        document.addEventListener('click', (e) => {
+            if (isChatOpen && !chatbotWindow.contains(e.target) && !chatbotToggle.contains(e.target)) {
+                // Allow clicks inside chatbot window
+                if (!chatbotWindow.contains(e.target)) {
+                    closeChatbot();
+                }
+            }
+        });
     </script>
 </body>
 </html>

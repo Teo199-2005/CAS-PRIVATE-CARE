@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="{{ asset('logo flower.png') }}">
     <title>Register - CAS Private Care LLC</title>
     <meta name="description" content="Create your CAS Private Care LLC account to connect with verified caregivers and access professional care services.">
     <meta name="robots" content="index, follow">
@@ -472,21 +473,12 @@
         }
 
         .zip-location-display {
-            margin-top: 0.375rem;
-            font-size: 0.8rem;
-            color: #64748b;
+            margin-top: -8px;
+            font-size: 0.75rem;
+            color: #000000;
             font-weight: 600;
-            padding: 0.375rem 0.625rem;
-            background-color: #f1f5f9;
-            border-radius: 6px;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .zip-location-display::before {
-            content: '📍';
-            font-size: 0.875rem;
+            line-height: 1.2;
+            display: block;
         }
 
         .password-strength {
@@ -550,6 +542,58 @@
 
         .password-strength-text.strong {
             color: #10b981;
+        }
+
+        .password-requirements {
+            margin-top: 0.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.375rem;
+        }
+
+        .requirement-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.8rem;
+            transition: all 0.2s ease;
+        }
+
+        .requirement-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 1.25rem;
+            height: 1.25rem;
+            border-radius: 50%;
+            font-size: 0.7rem;
+            font-weight: bold;
+            color: #dc2626;
+            background-color: #fee2e2;
+            flex-shrink: 0;
+            transition: all 0.2s ease;
+        }
+
+        .requirement-item.valid .requirement-icon {
+            color: #059669;
+            background-color: #d1fae5;
+        }
+
+        .requirement-item.valid .requirement-icon::before {
+            content: '✓';
+        }
+
+        .requirement-item:not(.valid) .requirement-icon::before {
+            content: '✗';
+        }
+
+        .requirement-text {
+            color: #64748b;
+            transition: color 0.2s ease;
+        }
+
+        .requirement-item.valid .requirement-text {
+            color: #059669;
         }
 
         .password-match {
@@ -853,6 +897,22 @@
                 color: #606770;
             }
 
+            .password-requirements {
+                margin-top: 0.375rem;
+                gap: 0.25rem;
+            }
+
+            .requirement-item {
+                font-size: 0.75rem;
+                gap: 0.375rem;
+            }
+
+            .requirement-icon {
+                width: 1.125rem;
+                height: 1.125rem;
+                font-size: 0.65rem;
+            }
+
             .password-match {
                 font-size: 0.6875rem;
                 margin-top: 0.25rem;
@@ -861,22 +921,64 @@
 
             /* ZIP code location display */
             .zip-location-display {
+                margin-top: -8px;
                 font-size: 0.75rem;
-                padding: 0.375rem 0.5rem;
-                margin-top: 0.25rem;
-                background: #f5f6f7;
-                border: 1px solid #e4e6eb;
-                border-radius: 6px;
+                color: #000000;
+                font-weight: 600;
+                line-height: 1.2;
+                display: block;
             }
 
             /* Error messages */
-            .error-message {
-                font-size: 0.75rem;
-                padding: 0.375rem 0.625rem;
-                margin-top: 0.25rem;
-                background: #fff4e6;
-                border-left: 3px solid #ff6b35;
-                border-radius: 4px;
+        .error-message {
+            font-size: 0.75rem;
+            padding: 0.375rem 0.625rem;
+            margin-top: 0.25rem;
+            background: #fff4e6;
+            border-left: 3px solid #ff6b35;
+            border-radius: 4px;
+        }
+
+        /* Email warning message */
+        .email-warning-message {
+            font-size: 0.875rem;
+            padding: 0.625rem 0.875rem;
+            margin-top: 0.5rem;
+            background: #fef3c7;
+            border: 1px solid #fbbf24;
+            border-left: 3px solid #f59e0b;
+            border-radius: 6px;
+            color: #92400e;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 500;
+        }
+
+        .email-warning-message i {
+            font-size: 1rem;
+            color: #f59e0b;
+        }
+
+            /* Email warning message */
+            .email-warning-message {
+                font-size: 0.875rem;
+                padding: 0.625rem 0.875rem;
+                margin-top: 0.5rem;
+                background: #fef3c7;
+                border: 1px solid #fbbf24;
+                border-left: 3px solid #f59e0b;
+                border-radius: 6px;
+                color: #92400e;
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+                font-weight: 500;
+            }
+
+            .email-warning-message i {
+                font-size: 1rem;
+                color: #f59e0b;
             }
 
             .error-message::before {
@@ -1527,7 +1629,7 @@
         }
 
         .auth-container.partner-registration .zip-location-display {
-            color: #b45309;
+            color: #000000;
         }
 
         .auth-container.partner-registration .password-strength-fill.good {
@@ -1707,6 +1809,8 @@
             justify-content: center;
             z-index: 1001;
             padding: 2rem;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
         }
 
         .partner-type-modal.hidden {
@@ -1922,6 +2026,122 @@
         @media (max-width: 767px) {
             .partner-type-options {
                 grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        /* Mobile Responsive Styles for Partner Type Modal */
+        @media (max-width: 480px) {
+            .partner-type-modal {
+                padding: 0;
+                align-items: flex-start;
+                padding-top: 0;
+                overflow-y: auto;
+                -webkit-overflow-scrolling: touch;
+                height: 100vh;
+            }
+
+            .partner-type-content {
+                padding: 3rem 1.25rem 2rem;
+                border-radius: 0;
+                max-width: 100%;
+                width: 100%;
+                min-height: 100vh;
+                height: auto;
+                overflow: visible !important;
+                position: relative;
+                margin: 0;
+            }
+
+            .partner-type-header {
+                margin-bottom: 2rem;
+            }
+
+            .partner-type-header .modal-logo {
+                margin-bottom: 1.25rem;
+            }
+
+            .partner-type-header .modal-logo img {
+                height: 70px;
+                max-width: 140px;
+            }
+
+            .partner-type-header h2 {
+                font-size: 1.75rem;
+                margin-bottom: 0.5rem;
+            }
+
+            .partner-type-header p {
+                font-size: 1rem;
+            }
+
+            .partner-type-options {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+                margin-bottom: 1.5rem;
+            }
+
+            .partner-type-option {
+                padding: 1.5rem 1rem;
+                border-radius: 12px;
+            }
+
+            .partner-type-icon {
+                width: 60px;
+                height: 60px;
+                margin: 0 auto 1rem;
+                border-radius: 12px;
+            }
+
+            .partner-type-icon i {
+                font-size: 2rem;
+            }
+
+            .partner-type-title {
+                font-size: 1.1rem;
+                margin-bottom: 1rem;
+            }
+
+            .partner-type-button {
+                padding: 0.875rem 1.25rem;
+                font-size: 0.95rem;
+                border-radius: 8px;
+            }
+
+            .back-button {
+                top: 1rem;
+                left: 1rem;
+                padding: 0.5rem 0.875rem;
+                font-size: 0.875rem;
+                border-radius: 6px;
+            }
+        }
+
+        @media (min-width: 481px) and (max-width: 767px) {
+            .partner-type-content {
+                padding: 2.5rem 1.75rem 2rem;
+                border-radius: 20px;
+            }
+
+            .partner-type-header h2 {
+                font-size: 2rem;
+            }
+
+            .partner-type-options {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 1.25rem;
+            }
+
+            .partner-type-option {
+                padding: 1.75rem 1.25rem;
+            }
+
+            .partner-type-icon {
+                width: 70px;
+                height: 70px;
+            }
+
+            .partner-type-icon i {
+                font-size: 2.25rem;
             }
         }
 
@@ -2216,14 +2436,14 @@
             <div class="form-row">
                 <div class="form-group">
                     <label for="first_name">First Name</label>
-                    <input type="text" id="first_name" name="first_name" class="form-input" placeholder="Enter your first name" value="{{ session('oauth_user.name') ? explode(' ', session('oauth_user.name'))[0] : old('first_name') }}" required autocomplete="given-name" aria-required="true">
+                    <input type="text" id="first_name" name="first_name" class="form-input" placeholder="Enter your first name" value="{{ session('oauth_user.name') ? explode(' ', session('oauth_user.name'))[0] : old('first_name') }}" required autocomplete="given-name" aria-required="true" pattern="[A-Za-z\s]+" title="Only letters and spaces are allowed" oninput="this.value = this.value.replace(/[^A-Za-z\s]/g, '')">
                     @error('first_name')
                         <div class="error-message">{{ $message }}</div>
                     @enderror
                 </div>
                 <div class="form-group">
                     <label for="last_name">Last Name</label>
-                    <input type="text" id="last_name" name="last_name" class="form-input" placeholder="Enter your last name" value="{{ session('oauth_user.name') ? (explode(' ', session('oauth_user.name'), 2)[1] ?? '') : old('last_name') }}" required autocomplete="family-name" aria-required="true">
+                    <input type="text" id="last_name" name="last_name" class="form-input" placeholder="Enter your last name" value="{{ session('oauth_user.name') ? (explode(' ', session('oauth_user.name'), 2)[1] ?? '') : old('last_name') }}" required autocomplete="family-name" aria-required="true" pattern="[A-Za-z\s]+" title="Only letters and spaces are allowed" oninput="this.value = this.value.replace(/[^A-Za-z\s]/g, '')">
                     @error('last_name')
                         <div class="error-message">{{ $message }}</div>
                     @enderror
@@ -2233,6 +2453,10 @@
             <div class="form-group">
                 <label for="email">Email Address</label>
                 <input type="email" id="email" name="email" class="form-input" placeholder="your@email.com" value="{{ session('oauth_user.email') ?? old('email') }}" {{ session('oauth_user.email') ? 'readonly' : '' }} required autocomplete="email" aria-required="true">
+                <div id="email-exists-warning" class="email-warning-message" style="display: none;">
+                    <i class="bi bi-exclamation-triangle"></i>
+                    This email address is already registered. Please use a different email or try logging in.
+                </div>
                 @error('email')
                     <div class="error-message">{{ $message }}</div>
                 @enderror
@@ -2249,7 +2473,7 @@
             <div class="form-group">
                 <label for="zip_code">ZIP Code</label>
                 <input type="text" id="zip_code" name="zip_code" class="form-input" placeholder="Enter ZIP code" value="{{ old('zip_code') }}" required autocomplete="postal-code" aria-required="true" pattern="[0-9]{5}" maxlength="5" inputmode="numeric">
-                <div id="zip-location-display" class="zip-location-display" style="display: none;"></div>
+                <div id="zip-location-display" class="zip-location-display"></div>
                 @error('zip_code')
                     <div class="error-message">{{ $message }}</div>
                 @enderror
@@ -2269,6 +2493,24 @@
                         <div id="password-strength-fill" class="password-strength-fill"></div>
                     </div>
                     <div id="password-strength-text" class="password-strength-text"></div>
+                </div>
+                <div id="password-requirements" class="password-requirements">
+                    <div class="requirement-item" id="req-length">
+                        <span class="requirement-icon">✗</span>
+                        <span class="requirement-text">At least 8 characters</span>
+                    </div>
+                    <div class="requirement-item" id="req-uppercase">
+                        <span class="requirement-icon">✗</span>
+                        <span class="requirement-text">One capital letter</span>
+                    </div>
+                    <div class="requirement-item" id="req-digit">
+                        <span class="requirement-icon">✗</span>
+                        <span class="requirement-text">One digit</span>
+                    </div>
+                    <div class="requirement-item" id="req-special">
+                        <span class="requirement-icon">✗</span>
+                        <span class="requirement-text">One special character</span>
+                    </div>
                 </div>
                 @error('password')
                     <div class="error-message">{{ $message }}</div>
@@ -2518,10 +2760,11 @@
         const urlParams = new URLSearchParams(window.location.search);
         const presetType = urlParams.get('type') || '{{ old("user_type", "") }}';
         const presetPartner = urlParams.get('partner') || '';
+        const showPartnerTypes = urlParams.get('show_partner_types') === 'true';
         
         // Check if OAuth user exists (means returning from OAuth)
         const hasOAuthUser = {{ session('oauth_user') ? 'true' : 'false' }};
-        console.log('Page load - hasOAuthUser:', hasOAuthUser, 'presetPartner:', presetPartner);
+        console.log('Page load - hasOAuthUser:', hasOAuthUser, 'presetPartner:', presetPartner, 'showPartnerTypes:', showPartnerTypes);
         
         // Map partner types to display names
         const partnerTypeNames = {
@@ -2594,6 +2837,12 @@
         // If partner type is specified in URL, skip modals and go directly to partner registration
         if (presetPartner && validPartnerTypes.includes(presetPartner)) {
             showPartnerRegistrationForm(presetPartner);
+        }
+        // If show_partner_types parameter is set, show partner type selection modal directly
+        else if (showPartnerTypes) {
+            console.log('show_partner_types parameter detected - showing partner type selection');
+            document.getElementById('registrationModal').classList.add('hidden');
+            document.getElementById('partnerTypeModal').classList.remove('hidden');
         }
         // If OAuth user exists but no partner in URL, try to get from session or show partner selection
         // (This handles the case where OAuth returns but partner type wasn't preserved in URL)
@@ -2808,32 +3057,6 @@
             const zipCodeInput = document.getElementById('zip_code');
             const zipLocationDisplay = document.getElementById('zip-location-display');
             
-            if (zipCodeInput) {
-                zipCodeInput.addEventListener('input', function(e) {
-                    // Remove any non-digit characters
-                    this.value = this.value.replace(/\D/g, '');
-                    // Limit to 5 digits
-                    if (this.value.length > 5) {
-                        this.value = this.value.slice(0, 5);
-                    }
-                    
-                    // Lookup ZIP code location
-                    lookupZipCodeLocation(this.value);
-                });
-
-                zipCodeInput.addEventListener('blur', function(e) {
-                    // Lookup ZIP code location on blur as well
-                    lookupZipCodeLocation(this.value);
-                });
-
-                zipCodeInput.addEventListener('keypress', function(e) {
-                    // Only allow digits
-                    if (!/[0-9]/.test(e.key) && !['Backspace', 'Delete', 'Tab', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
-                        e.preventDefault();
-                    }
-                });
-            }
-
             // ZIP code lookup function
             async function lookupZipCodeLocation(zip) {
                 if (!zipLocationDisplay) return;
@@ -2850,7 +3073,7 @@
                             }
                         }
                     } catch (error) {
-                        console.log('ZIP code lookup failed:', error);
+                        console.error('ZIP code lookup failed:', error);
                     }
                     
                     // Hide display if lookup fails
@@ -2862,10 +3085,46 @@
                     zipLocationDisplay.textContent = '';
                 }
             }
+            
+            if (zipCodeInput) {
+                zipCodeInput.addEventListener('input', function(e) {
+                    // Remove any non-digit characters
+                    let value = this.value.replace(/\D/g, '');
+                    // Limit to 5 digits
+                    if (value.length > 5) {
+                        value = value.slice(0, 5);
+                    }
+                    this.value = value;
+                    
+                    // Lookup ZIP code location when 5 digits are entered
+                    if (value.length === 5) {
+                        lookupZipCodeLocation(value);
+                    } else {
+                        if (zipLocationDisplay) {
+                            zipLocationDisplay.style.display = 'none';
+                            zipLocationDisplay.textContent = '';
+                        }
+                    }
+                });
 
-            // Lookup ZIP code on page load if there's an old value
-            if (zipCodeInput && zipCodeInput.value && zipCodeInput.value.length === 5) {
-                lookupZipCodeLocation(zipCodeInput.value);
+                zipCodeInput.addEventListener('blur', function(e) {
+                    // Lookup ZIP code location on blur as well
+                    if (this.value.length === 5) {
+                        lookupZipCodeLocation(this.value);
+                    }
+                });
+
+                zipCodeInput.addEventListener('keypress', function(e) {
+                    // Only allow digits
+                    if (!/[0-9]/.test(e.key) && !['Backspace', 'Delete', 'Tab', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+                        e.preventDefault();
+                    }
+                });
+                
+                // Lookup ZIP code on page load if there's an old value
+                if (zipCodeInput.value && zipCodeInput.value.length === 5) {
+                    lookupZipCodeLocation(zipCodeInput.value);
+                }
             }
 
             // Phone number formatting - US format (XXX) XXX-XXXX
@@ -2906,6 +3165,55 @@
                 }
             }
 
+            // Email existence check
+            const emailInput = document.getElementById('email');
+            const emailWarning = document.getElementById('email-exists-warning');
+            let emailCheckTimeout = null;
+
+            if (emailInput && emailWarning && !emailInput.readOnly) {
+                emailInput.addEventListener('blur', function() {
+                    checkEmailExists(this.value);
+                });
+
+                emailInput.addEventListener('input', function() {
+                    // Clear warning when user starts typing
+                    emailWarning.style.display = 'none';
+                    emailInput.style.borderColor = '';
+
+                    // Debounce the email check
+                    clearTimeout(emailCheckTimeout);
+                    const email = this.value.trim();
+                    
+                    if (email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                        emailCheckTimeout = setTimeout(() => {
+                            checkEmailExists(email);
+                        }, 500); // Wait 500ms after user stops typing
+                    }
+                });
+            }
+
+            async function checkEmailExists(email) {
+                if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                    return;
+                }
+
+                try {
+                    const response = await fetch(`/api/check-email-exists/${encodeURIComponent(email)}`);
+                    if (response.ok) {
+                        const data = await response.json();
+                        if (data.exists) {
+                            emailWarning.style.display = 'flex';
+                            emailInput.style.borderColor = '#f59e0b';
+                        } else {
+                            emailWarning.style.display = 'none';
+                            emailInput.style.borderColor = '';
+                        }
+                    }
+                } catch (error) {
+                    console.error('Email check failed:', error);
+                }
+            }
+
             // Password strength indicator
             const passwordInput = document.getElementById('password');
             const passwordStrengthFill = document.getElementById('password-strength-fill');
@@ -2932,42 +3240,117 @@
                     passwordStrengthFill.className = 'password-strength-fill';
                     passwordStrengthText.textContent = '';
                     passwordStrengthText.className = 'password-strength-text';
+                    // Reset all requirements
+                    updatePasswordRequirements(password);
                     return;
                 }
+
+                // Update individual requirements first
+                updatePasswordRequirements(password);
+
+                // Check if all requirements are met
+                const hasLength = password.length >= 8;
+                const hasUppercase = /[A-Z]/.test(password);
+                const hasDigit = /[0-9]/.test(password);
+                const hasSpecial = /[^a-zA-Z0-9]/.test(password);
+
+                const allRequirementsMet = hasLength && hasUppercase && hasDigit && hasSpecial;
 
                 let strength = 0;
                 let strengthText = '';
                 let strengthClass = '';
 
-                // Length check
-                if (password.length >= 8) strength++;
-                if (password.length >= 12) strength++;
-
-                // Character variety checks
-                if (/[a-z]/.test(password)) strength++; // lowercase
-                if (/[A-Z]/.test(password)) strength++; // uppercase
-                if (/[0-9]/.test(password)) strength++; // numbers
-                if (/[^a-zA-Z0-9]/.test(password)) strength++; // special characters
-
-                // Determine strength level
-                if (strength <= 2) {
-                    strengthText = 'Weak password';
-                    strengthClass = 'weak';
-                } else if (strength <= 4) {
-                    strengthText = 'Fair password';
-                    strengthClass = 'fair';
-                } else if (strength <= 5) {
-                    strengthText = 'Good password';
-                    strengthClass = 'good';
-                } else {
+                // If all requirements are met, it's a strong password
+                if (allRequirementsMet) {
                     strengthText = 'Strong password';
                     strengthClass = 'strong';
+                } else {
+                    // Length check
+                    if (password.length >= 8) strength++;
+                    if (password.length >= 12) strength++;
+
+                    // Character variety checks
+                    if (/[a-z]/.test(password)) strength++; // lowercase
+                    if (/[A-Z]/.test(password)) strength++; // uppercase
+                    if (/[0-9]/.test(password)) strength++; // numbers
+                    if (/[^a-zA-Z0-9]/.test(password)) strength++; // special characters
+
+                    // Determine strength level
+                    if (strength <= 2) {
+                        strengthText = 'Weak password';
+                        strengthClass = 'weak';
+                    } else if (strength <= 4) {
+                        strengthText = 'Fair password';
+                        strengthClass = 'fair';
+                    } else if (strength <= 5) {
+                        strengthText = 'Good password';
+                        strengthClass = 'good';
+                    } else {
+                        strengthText = 'Strong password';
+                        strengthClass = 'strong';
+                    }
                 }
 
-                // Update UI
+                // Update UI - ensure width is set based on strength class
                 passwordStrengthFill.className = `password-strength-fill ${strengthClass}`;
+                
+                // Explicitly set width based on strength class
+                if (strengthClass === 'weak') {
+                    passwordStrengthFill.style.width = '33%';
+                } else if (strengthClass === 'fair') {
+                    passwordStrengthFill.style.width = '66%';
+                } else if (strengthClass === 'good') {
+                    passwordStrengthFill.style.width = '85%';
+                } else if (strengthClass === 'strong') {
+                    passwordStrengthFill.style.width = '100%';
+                } else {
+                    passwordStrengthFill.style.width = '0%';
+                }
+                
                 passwordStrengthText.textContent = strengthText;
                 passwordStrengthText.className = `password-strength-text ${strengthClass}`;
+            }
+
+            function updatePasswordRequirements(password) {
+                // Check length (at least 8 characters)
+                const reqLength = document.getElementById('req-length');
+                if (reqLength) {
+                    if (password.length >= 8) {
+                        reqLength.classList.add('valid');
+                    } else {
+                        reqLength.classList.remove('valid');
+                    }
+                }
+
+                // Check uppercase letter
+                const reqUppercase = document.getElementById('req-uppercase');
+                if (reqUppercase) {
+                    if (/[A-Z]/.test(password)) {
+                        reqUppercase.classList.add('valid');
+                    } else {
+                        reqUppercase.classList.remove('valid');
+                    }
+                }
+
+                // Check digit
+                const reqDigit = document.getElementById('req-digit');
+                if (reqDigit) {
+                    if (/[0-9]/.test(password)) {
+                        reqDigit.classList.add('valid');
+                    } else {
+                        reqDigit.classList.remove('valid');
+                    }
+                }
+
+                // Check special character
+                const reqSpecial = document.getElementById('req-special');
+                if (reqSpecial) {
+                    if (/[^a-zA-Z0-9]/.test(password)) {
+                        reqSpecial.classList.add('valid');
+                    } else {
+                        reqSpecial.classList.remove('valid');
+                    }
+                }
             }
 
             function checkPasswordMatch() {

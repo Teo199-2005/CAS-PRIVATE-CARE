@@ -6,6 +6,7 @@ use App\Models\Booking;
 use App\Models\ReferralCode;
 use App\Services\NotificationService;
 use App\Services\PaymentService;
+use App\Services\EmailService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -395,12 +396,34 @@ class BookingController extends Controller
             $oldStatus = $booking->status;
             $booking->update(['status' => 'approved']);
             
-            // Send notification to client
+            // Load client for email
+            $booking->load('client');
+            $client = $booking->client;
+            
+            // Send in-app notification to client
             NotificationService::notifyBookingApproved($booking);
+            
+            // Send email notification to client
+            $emailSent = false;
+            $emailMessage = '';
+            if ($client && $client->email) {
+                try {
+                    EmailService::sendBookingApprovedEmail($booking);
+                    $emailSent = true;
+                    $emailMessage = "Approval email sent to {$client->email}";
+                } catch (\Exception $e) {
+                    Log::warning("Failed to send booking approved email: " . $e->getMessage());
+                    $emailMessage = "Failed to send email to {$client->email}: " . $e->getMessage();
+                }
+            } else {
+                $emailMessage = "Client email not found";
+            }
             
             return response()->json([
                 'success' => true,
-                'message' => 'Booking approved successfully'
+                'message' => 'Booking approved successfully' . ($emailSent ? '. ' . $emailMessage : ($emailMessage ? '. ' . $emailMessage : '')),
+                'email_sent' => $emailSent,
+                'email_message' => $emailMessage
             ]);
         } catch (\Exception $e) {
             return response()->json([

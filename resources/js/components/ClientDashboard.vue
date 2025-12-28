@@ -1040,10 +1040,10 @@
                 <v-card-text class="pa-8">
                   <v-row>
                     <v-col cols="12" md="6">
-                      <v-text-field v-model="profileData.firstName" label="First Name" variant="outlined" />
+                      <v-text-field v-model="profileData.firstName" label="First Name" variant="outlined" @update:model-value="profileData.firstName = filterLettersOnly(profileData.firstName)" />
                     </v-col>
                     <v-col cols="12" md="6">
-                      <v-text-field v-model="profileData.lastName" label="Last Name" variant="outlined" />
+                      <v-text-field v-model="profileData.lastName" label="Last Name" variant="outlined" @update:model-value="profileData.lastName = filterLettersOnly(profileData.lastName)" />
                     </v-col>
                     <v-col cols="12" md="6">
                       <v-text-field v-model="profileData.email" label="Email" variant="outlined" type="email" />
@@ -1989,6 +1989,12 @@ const lookupProfileZipCode = async () => {
 
 const onProfileCountyChange = (county) => {
   profileData.value.city = ''; // Reset city when county changes
+};
+
+// Filter to allow only letters and spaces for name fields
+const filterLettersOnly = (value) => {
+  if (!value) return '';
+  return value.replace(/[^A-Za-z\s]/g, '');
 };
 
 const currentSection = ref(localStorage.getItem('clientSection') || 'dashboard');

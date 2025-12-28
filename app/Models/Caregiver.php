@@ -13,6 +13,7 @@ class Caregiver extends Model
         'user_id',
         'training_center_id',
         'has_training_center',
+        'training_center_approval_status',
         'first_name',
         'last_name',
         'gender',

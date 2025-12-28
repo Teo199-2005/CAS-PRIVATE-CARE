@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="{{ asset('logo flower.png') }}">
     <title>Login - CAS Private Care LLC</title>
     <meta name="description" content="Login to your CAS Private Care LLC account to manage caregiving services, bookings, and more.">
     <meta name="robots" content="noindex, nofollow">
@@ -670,6 +671,9 @@
             // Submit to password reset endpoint
             fetch('/password/email', {
                 method: 'POST',
+                headers: {
+                    'Accept': 'application/json'
+                },
                 body: formData
             })
             .then(response => {

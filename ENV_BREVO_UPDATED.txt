@@ -1,0 +1,17 @@
+# Updated Brevo Configuration for .env file
+# Copy these lines to your .env file
+
+# ============================================
+# BREVO SMTP CONFIGURATION (UPDATED)
+# ============================================
+MAIL_MAILER=smtp
+MAIL_HOST=smtp-relay.brevo.com
+MAIL_PORT=587
+MAIL_USERNAME=teofiloharry69@gmail.com
+MAIL_PASSWORD=xsmtpsib-be767ee79aa324f3b695a4670157c63326cc464a3161d7fc34bc1e94c7f05f60-vNg0zUZpBjeh2eI4
+MAIL_ENCRYPTION=tls
+MAIL_FROM_ADDRESS=teofiloharry69@gmail.com
+MAIL_FROM_NAME="CAS Private Care"
+QUEUE_CONNECTION=sync
+BREVO_API_KEY=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
+

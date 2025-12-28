@@ -14,6 +14,8 @@ use App\Models\PasswordReset;
 use App\Rules\ValidPhoneNumber;
 use App\Rules\ValidNYPhoneNumber;
 use App\Services\NotificationService;
+use App\Services\EmailService;
+use Illuminate\Support\Str;
 
 class AuthController extends Controller
 {
@@ -28,8 +30,9 @@ class AuthController extends Controller
             $request->session()->regenerate();
             $user = Auth::user();
 
-            // Check if contractor is pending approval
-            if ($user->user_type === 'caregiver' && ($user->status === 'pending' || ($user->status !== 'Active' && $user->status !== 'approved'))) {
+            // Check if contractor/partner is pending approval
+            $partnerTypes = ['caregiver', 'marketing', 'training_center'];
+            if (in_array($user->user_type, $partnerTypes) && ($user->status === 'pending' || ($user->status !== 'Active' && $user->status !== 'approved'))) {
                 // If status is null or not Active/approved, treat as pending (for existing records)
                 if ($user->status === null || ($user->status !== 'Active' && $user->status !== 'approved')) {
                     if ($user->status === null) {
@@ -42,8 +45,8 @@ class AuthController extends Controller
                 return back()->withErrors(['email' => 'Your account is pending approval. Please wait for an administrator to approve your application before logging in.'])->withInput();
             }
             
-            // Check if contractor is rejected
-            if ($user->user_type === 'caregiver' && $user->status === 'rejected') {
+            // Check if contractor/partner is rejected
+            if (in_array($user->user_type, $partnerTypes) && $user->status === 'rejected') {
                 Auth::logout();
                 $request->session()->invalidate();
                 $request->session()->regenerateToken();
@@ -68,6 +71,7 @@ class AuthController extends Controller
 
     public function register(Request $request)
     {
+        // Validate basic fields first
         $validated = $request->validate([
             'first_name' => 'required|string|max:255|regex:/^[a-zA-Z\s\-\']+$/',
             'last_name' => 'required|string|max:255|regex:/^[a-zA-Z\s\-\']+$/',
@@ -75,12 +79,28 @@ class AuthController extends Controller
             'phone' => ['required', new ValidNYPhoneNumber],
             'zip_code' => ['required', 'string', 'regex:/^\d{5}$/', 'max:5'],
             'password' => session('oauth_user') ? 'nullable' : 'required|min:8|max:255|confirmed',
-            'user_type' => 'required|in:client,caregiver',
+            'user_type' => 'required|in:client,caregiver,marketing,training_center',
+            'partner_type' => 'nullable|in:caregiver,housekeeping,personal_assistant,marketing_partner,training_center',
             'terms' => 'required|accepted'
         ], [
             'password.regex' => 'Password must contain at least one uppercase letter, one lowercase letter, and one number.',
             'zip_code.regex' => 'Please enter a valid 5-digit ZIP code.'
         ]);
+        
+        // Map partner_type to user_type if provided (for partner registrations)
+        // This overrides the user_type from the form
+        $partnerType = $validated['partner_type'] ?? null;
+        if ($partnerType) {
+            // Map partner types to user types
+            $userTypeMap = [
+                'caregiver' => 'caregiver',
+                'housekeeping' => 'caregiver',
+                'personal_assistant' => 'caregiver',
+                'marketing_partner' => 'marketing',
+                'training_center' => 'training_center'
+            ];
+            $validated['user_type'] = $userTypeMap[$partnerType] ?? 'caregiver';
+        }
 
         // Check if this is OAuth registration
         $oauthUser = session('oauth_user');
@@ -91,8 +111,9 @@ class AuthController extends Controller
         // Format as (XXX) XXX-XXXX for storage
         $formattedPhone = '(' . substr($phoneNumber, 0, 3) . ') ' . substr($phoneNumber, 3, 3) . '-' . substr($phoneNumber, 6, 4);
         
-        // Set status based on user type
-        $status = $validated['user_type'] === 'caregiver' ? 'pending' : null;
+        // Set status based on user type - all partner types need approval
+        $partnerTypes = ['caregiver', 'marketing', 'training_center'];
+        $status = in_array($validated['user_type'], $partnerTypes) ? 'pending' : null;
         
         $user = User::create([
             'name' => $validated['first_name'] . ' ' . $validated['last_name'],
@@ -111,31 +132,45 @@ class AuthController extends Controller
                 'first_name' => $validated['first_name'],
                 'last_name' => $validated['last_name']
             ]);
-        } else {
-            // Set contractor status to pending for approval
-            $user->update(['status' => 'pending']);
-            
+        } elseif ($validated['user_type'] === 'caregiver') {
+            // Create caregiver record for caregiver, housekeeping, or personal_assistant
+            // Note: first_name and last_name are stored in the users table, not caregivers table
             Caregiver::create([
                 'user_id' => $user->id,
-                'first_name' => $validated['first_name'],
-                'last_name' => $validated['last_name'],
                 'gender' => 'female',
                 'availability_status' => 'available'
             ]);
         }
+        // For marketing and training_center, no additional model creation needed
 
         // Clear OAuth session data
         session()->forget('oauth_user');
         
-        // Send welcome notification
+        // Send welcome notification (in-app notification)
         try {
             NotificationService::notifyAccountCreated($user);
         } catch (\Exception $e) {
             \Log::warning("Failed to send welcome notification: " . $e->getMessage());
         }
         
-        // For contractors, show pending approval message
-        if ($validated['user_type'] === 'caregiver') {
+        // Send welcome email
+        try {
+            EmailService::sendWelcomeEmail($user);
+        } catch (\Exception $e) {
+            \Log::warning("Failed to send welcome email: " . $e->getMessage());
+        }
+        
+        // Send email verification (only if not OAuth, OAuth users are pre-verified)
+        if (!$oauthUser && !$user->email_verified_at) {
+            try {
+                EmailService::sendVerificationEmail($user);
+            } catch (\Exception $e) {
+                \Log::warning("Failed to send verification email: " . $e->getMessage());
+            }
+        }
+        
+        // For contractors/partners, show pending approval message
+        if (in_array($validated['user_type'], ['caregiver', 'marketing', 'training_center'])) {
             return redirect('/login')->with('info', 'Your account has been created successfully! Your application is pending approval. You will be able to login once an administrator approves your account.');
         }
         
@@ -158,19 +193,45 @@ class AuthController extends Controller
         $user = User::where('email', $request->email)->first();
         
         if (!$user) {
-            return response()->json(['message' => 'Email not found'], 404);
+            // Don't reveal if email exists for security
+            return response()->json(['status' => 'If that email exists, a password reset link has been sent.']);
         }
+        
+        // Generate token
+        $token = Str::random(64);
         
         // Create password reset record
         PasswordReset::updateOrCreate(
             ['email' => $request->email],
             [
-                'token' => \Illuminate\Support\Str::random(60),
-                'created_at' => now()
+                'user_id' => $user->id,
+                'token' => hash('sha256', $token),
+                'status' => 'pending',
+                'requested_at' => now()
             ]
         );
         
-        return response()->json(['status' => 'Password reset link sent!']);
+        // Send password reset email
+        try {
+            EmailService::sendPasswordResetEmail($user, $token);
+            // Notify admins in-app that a password reset was requested
+            try {
+                \App\Services\NotificationService::create(
+                    3, // default admin user id (consider making this dynamic)
+                    'Password Reset Requested',
+                    "A password reset was requested for {$user->email}.",
+                    'System',
+                    'normal'
+                );
+            } catch (\Exception $e) {
+                \Log::warning('Failed to create admin notification for password reset: ' . $e->getMessage());
+            }
+        } catch (\Exception $e) {
+            \Log::error("Failed to send password reset email: " . $e->getMessage());
+            return response()->json(['message' => 'Failed to send reset email. Please try again later.'], 500);
+        }
+        
+        return response()->json(['status' => 'If that email exists, a password reset link has been sent.']);
     }
 
     public function redirectToProvider($provider)
@@ -239,6 +300,25 @@ class AuthController extends Controller
             $user = User::where('email', $socialUser->getEmail())->first();
             
             if ($user) {
+                // Check if contractor/partner is pending approval
+                $partnerTypes = ['caregiver', 'marketing', 'training_center'];
+                if (in_array($user->user_type, $partnerTypes) && ($user->status === 'pending' || ($user->status !== 'Active' && $user->status !== 'approved'))) {
+                    // If status is null or not Active/approved, treat as pending (for existing records)
+                    if ($user->status === null || ($user->status !== 'Active' && $user->status !== 'approved')) {
+                        if ($user->status === null) {
+                            $user->update(['status' => 'pending']);
+                        }
+                    }
+                    session()->forget('oauth_referrer');
+                    return redirect('/login')->withErrors(['email' => 'Your account is pending approval. Please wait for an administrator to approve your application before logging in.']);
+                }
+                
+                // Check if contractor/partner is rejected
+                if (in_array($user->user_type, $partnerTypes) && $user->status === 'rejected') {
+                    session()->forget('oauth_referrer');
+                    return redirect('/login')->withErrors(['email' => 'Your application has been rejected. Please contact support for more information.']);
+                }
+                
                 // Existing user - just login
                 Auth::login($user);
                 session()->forget('oauth_referrer');
@@ -248,6 +328,10 @@ class AuthController extends Controller
                     return redirect('/admin/dashboard-vue');
                 } elseif ($user->user_type === 'caregiver') {
                     return redirect('/caregiver/dashboard-vue');
+                } elseif ($user->user_type === 'marketing') {
+                    return redirect('/marketing/dashboard-vue');
+                } elseif (in_array($user->user_type, ['training', 'training_center'])) {
+                    return redirect('/training/dashboard-vue');
                 } else {
                     return redirect('/client/dashboard-vue');
                 }

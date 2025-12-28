@@ -1,16 +1,55 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\LandingController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\CaregiverController;
+use App\Http\Controllers\ContactController;
 
 // Public Routes
 Route::get('/', [LandingController::class, 'index']);
 Route::get('/api/landing/stats', [LandingController::class, 'stats']); // Public stats endpoint
 Route::get('/sitemap.xml', [\App\Http\Controllers\SitemapController::class, 'index']); // Sitemap
+
+// SEO-Optimized Pages
+Route::get('/caregiver-new-york', function () {
+    return view('caregiver-new-york');
+})->name('caregiver-new-york');
+Route::get('/hire-caregiver-new-york', function () {
+    return view('hire-caregiver-new-york');
+})->name('hire-caregiver-new-york');
+Route::get('/caregiver-brooklyn', function () {
+    return view('caregiver-brooklyn');
+})->name('caregiver-brooklyn');
+Route::get('/caregiver-manhattan', function () {
+    return view('caregiver-manhattan');
+})->name('caregiver-manhattan');
+Route::get('/caregiver-queens', function () {
+    return view('caregiver-queens');
+})->name('caregiver-queens');
+Route::get('/caregiver-bronx', function () {
+    return view('caregiver-bronx');
+})->name('caregiver-bronx');
+Route::get('/caregiver-staten-island', function () {
+    return view('caregiver-staten-island');
+})->name('caregiver-staten-island');
+Route::get('/contractor-partner', function () {
+    return view('contractor-partner');
+})->name('contractor-partner');
+Route::get('/faq', function () {
+    return view('faq');
+})->name('faq');
+Route::get('/about', function () {
+    return view('about');
+})->name('about');
+Route::get('/blog', function () {
+    return view('blog');
+})->name('blog');
+Route::get('/contact', [ContactController::class, 'show'])->name('contact');
+Route::post('/contact', [ContactController::class, 'submit'])->name('contact.submit');
 Route::get('/login', function () {
     return view('login');
 })->name('login');
@@ -19,6 +58,72 @@ Route::get('/register', function () {
     return view('register');
 })->name('register');
 Route::post('/register', [\App\Http\Controllers\AuthController::class, 'register'])->name('register');
+
+// Public API Routes (no authentication required)
+Route::prefix('api')->middleware(['web'])->group(function () {
+    // ZIP code lookup (public)
+    Route::get('/zipcode-lookup/{zip}', function($zip) {
+        // Validate ZIP code format
+        if (!preg_match('/^\d{5}$/', $zip)) {
+            return response()->json([
+                'success' => false,
+                'error' => 'Invalid ZIP code format'
+            ], 400);
+        }
+        
+        // ZIP code to location mapping for New York
+        $zipCodeMap = [
+            '10001' => 'Manhattan, NY', '10002' => 'Manhattan, NY', '10003' => 'Manhattan, NY', '10004' => 'Manhattan, NY',
+            '10005' => 'Manhattan, NY', '10006' => 'Manhattan, NY', '10007' => 'Manhattan, NY', '10009' => 'Manhattan, NY',
+            '10010' => 'Manhattan, NY', '10011' => 'Manhattan, NY', '10012' => 'Manhattan, NY', '10013' => 'Manhattan, NY',
+            '10014' => 'Manhattan, NY', '10016' => 'Manhattan, NY', '10017' => 'Manhattan, NY', '10018' => 'Manhattan, NY',
+            '10019' => 'Manhattan, NY', '10020' => 'Manhattan, NY', '10021' => 'Manhattan, NY', '10022' => 'Manhattan, NY',
+            '10023' => 'Manhattan, NY', '10024' => 'Manhattan, NY', '10025' => 'Manhattan, NY', '10026' => 'Manhattan, NY',
+            '10027' => 'Manhattan, NY', '10028' => 'Manhattan, NY', '10029' => 'Manhattan, NY', '10030' => 'Manhattan, NY',
+            '10031' => 'Manhattan, NY', '10032' => 'Manhattan, NY', '10033' => 'Manhattan, NY', '10034' => 'Manhattan, NY',
+            '10035' => 'Manhattan, NY', '10036' => 'Manhattan, NY', '10037' => 'Manhattan, NY', '10038' => 'Manhattan, NY',
+            '10039' => 'Manhattan, NY', '10040' => 'Manhattan, NY', '10044' => 'Manhattan, NY', '10065' => 'Manhattan, NY',
+            '10069' => 'Manhattan, NY', '10075' => 'Manhattan, NY', '10128' => 'Manhattan, NY', '10280' => 'Manhattan, NY',
+            '11201' => 'Brooklyn, NY', '11203' => 'Brooklyn, NY', '11204' => 'Brooklyn, NY', '11205' => 'Brooklyn, NY',
+            '11206' => 'Brooklyn, NY', '11207' => 'Brooklyn, NY', '11208' => 'Brooklyn, NY', '11209' => 'Brooklyn, NY',
+            '11210' => 'Brooklyn, NY', '11211' => 'Brooklyn, NY', '11212' => 'Brooklyn, NY', '11213' => 'Brooklyn, NY',
+            '11214' => 'Brooklyn, NY', '11215' => 'Brooklyn, NY', '11216' => 'Brooklyn, NY', '11217' => 'Brooklyn, NY',
+            '11218' => 'Brooklyn, NY', '11219' => 'Brooklyn, NY', '11220' => 'Brooklyn, NY', '11221' => 'Brooklyn, NY',
+            '11222' => 'Brooklyn, NY', '11223' => 'Brooklyn, NY', '11224' => 'Brooklyn, NY', '11225' => 'Brooklyn, NY',
+            '11226' => 'Brooklyn, NY', '11228' => 'Brooklyn, NY', '11229' => 'Brooklyn, NY', '11230' => 'Brooklyn, NY',
+            '11231' => 'Brooklyn, NY', '11232' => 'Brooklyn, NY', '11233' => 'Brooklyn, NY', '11234' => 'Brooklyn, NY',
+            '11235' => 'Brooklyn, NY', '11236' => 'Brooklyn, NY', '11237' => 'Brooklyn, NY', '11238' => 'Brooklyn, NY',
+            '11239' => 'Brooklyn, NY',
+            '11354' => 'Flushing, NY', '11355' => 'Flushing, NY', '11356' => 'Flushing, NY', '11357' => 'Flushing, NY',
+            '11358' => 'Flushing, NY', '11360' => 'Bayside, NY', '11361' => 'Bayside, NY', '11362' => 'Bayside, NY',
+            '11363' => 'Bayside, NY', '11364' => 'Bayside, NY', '11365' => 'Fresh Meadows, NY', '11366' => 'Fresh Meadows, NY',
+            '11367' => 'Fresh Meadows, NY', '11368' => 'Corona, NY', '11369' => 'East Elmhurst, NY', '11370' => 'Elmhurst, NY',
+            '11371' => 'Elmhurst, NY', '11372' => 'Jackson Heights, NY', '11373' => 'Jackson Heights, NY', '11374' => 'Rego Park, NY',
+            '11375' => 'Forest Hills, NY', '11377' => 'Woodside, NY', '11378' => 'Maspeth, NY', '11379' => 'Middle Village, NY',
+            '11385' => 'Ridgewood, NY',
+            '10451' => 'Bronx, NY', '10452' => 'Bronx, NY', '10453' => 'Bronx, NY', '10454' => 'Bronx, NY',
+            '10455' => 'Bronx, NY', '10456' => 'Bronx, NY', '10457' => 'Bronx, NY', '10458' => 'Bronx, NY',
+            '10459' => 'Bronx, NY', '10460' => 'Bronx, NY', '10461' => 'Bronx, NY', '10462' => 'Bronx, NY',
+            '10463' => 'Bronx, NY', '10464' => 'Bronx, NY', '10465' => 'Bronx, NY', '10466' => 'Bronx, NY',
+            '10467' => 'Bronx, NY', '10468' => 'Bronx, NY', '10469' => 'Bronx, NY', '10470' => 'Bronx, NY',
+            '10471' => 'Bronx, NY', '10472' => 'Bronx, NY', '10473' => 'Bronx, NY', '10474' => 'Bronx, NY',
+            '10475' => 'Bronx, NY',
+            '10301' => 'Staten Island, NY', '10302' => 'Staten Island, NY', '10303' => 'Staten Island, NY',
+            '10304' => 'Staten Island, NY', '10305' => 'Staten Island, NY', '10306' => 'Staten Island, NY',
+            '10307' => 'Staten Island, NY', '10308' => 'Staten Island, NY', '10309' => 'Staten Island, NY',
+            '10310' => 'Staten Island, NY', '10311' => 'Staten Island, NY', '10312' => 'Staten Island, NY',
+            '10314' => 'Staten Island, NY'
+        ];
+        
+        $location = $zipCodeMap[$zip] ?? 'New York, NY';
+        
+        return response()->json([
+            'success' => true,
+            'location' => $location,
+            'zip' => $zip
+        ]);
+    });
+});
 Route::get('/auth/{provider}', [\App\Http\Controllers\AuthController::class, 'redirectToProvider']);
 Route::get('/auth/{provider}/callback', [\App\Http\Controllers\AuthController::class, 'handleProviderCallback']);
 Route::post('/logout', [\App\Http\Controllers\AuthController::class, 'logout']);
@@ -56,10 +161,24 @@ Route::get('/caregiver/dashboard', function () {
     return view('caregiver-dashboard');
 });
 Route::get('/caregiver/dashboard-vue', function () {
-        if (auth()->user()->user_type !== 'caregiver') {
+        $user = auth()->user();
+        if ($user->user_type !== 'caregiver') {
             return redirect('/login');
         }
-    return view('caregiver-dashboard-vue');
+        // Check if account is pending or rejected
+        if ($user->status === 'pending' || ($user->status !== 'Active' && $user->status !== 'approved' && $user->status !== null)) {
+            Auth::logout();
+            request()->session()->invalidate();
+            request()->session()->regenerateToken();
+            return redirect('/login')->withErrors(['email' => 'Your account is pending approval. Please wait for an administrator to approve your application before logging in.']);
+        }
+        if ($user->status === 'rejected') {
+            Auth::logout();
+            request()->session()->invalidate();
+            request()->session()->regenerateToken();
+            return redirect('/login')->withErrors(['email' => 'Your application has been rejected. Please contact support for more information.']);
+        }
+        return view('caregiver-dashboard-vue');
     })->name('caregiver.dashboard');
     
     // Admin Dashboard - accessible by admins only
@@ -74,16 +193,44 @@ Route::post('/admin/settings', [AdminController::class, 'updateSettings']);
 
     // Marketing Dashboard - accessible by marketing staff
     Route::get('/marketing/dashboard-vue', function () {
-        if (auth()->user()->user_type !== 'marketing') {
+        $user = auth()->user();
+        if ($user->user_type !== 'marketing') {
             return redirect('/login');
+        }
+        // Check if account is pending or rejected
+        if ($user->status === 'pending' || ($user->status !== 'Active' && $user->status !== 'approved' && $user->status !== null)) {
+            Auth::logout();
+            request()->session()->invalidate();
+            request()->session()->regenerateToken();
+            return redirect('/login')->withErrors(['email' => 'Your account is pending approval. Please wait for an administrator to approve your application before logging in.']);
+        }
+        if ($user->status === 'rejected') {
+            Auth::logout();
+            request()->session()->invalidate();
+            request()->session()->regenerateToken();
+            return redirect('/login')->withErrors(['email' => 'Your application has been rejected. Please contact support for more information.']);
         }
         return view('marketing-dashboard-vue');
     })->name('marketing.dashboard');
     
     // Training Dashboard - accessible by training centers
     Route::get('/training/dashboard-vue', function () {
-        if (!in_array(auth()->user()->user_type, ['training', 'training_center'])) {
+        $user = auth()->user();
+        if (!in_array($user->user_type, ['training', 'training_center'])) {
             return redirect('/login');
+        }
+        // Check if account is pending or rejected
+        if ($user->status === 'pending' || ($user->status !== 'Active' && $user->status !== 'approved' && $user->status !== null)) {
+            Auth::logout();
+            request()->session()->invalidate();
+            request()->session()->regenerateToken();
+            return redirect('/login')->withErrors(['email' => 'Your account is pending approval. Please wait for an administrator to approve your application before logging in.']);
+        }
+        if ($user->status === 'rejected') {
+            Auth::logout();
+            request()->session()->invalidate();
+            request()->session()->regenerateToken();
+            return redirect('/login')->withErrors(['email' => 'Your application has been rejected. Please contact support for more information.']);
         }
         return view('training-dashboard-vue');
     })->name('training.dashboard');
@@ -98,6 +245,72 @@ Route::post('/profile/update', [ProfileController::class, 'update']);
 
     // Caregiver available clients page
 Route::get('/available-clients', [CaregiverController::class, 'availableClients']);
+});
+
+// Public API Routes (no authentication required)
+Route::prefix('api')->middleware(['web'])->group(function () {
+    // ZIP code lookup (public)
+    Route::get('/zipcode-lookup/{zip}', function($zip) {
+        // Validate ZIP code format
+        if (!preg_match('/^\d{5}$/', $zip)) {
+            return response()->json([
+                'success' => false,
+                'error' => 'Invalid ZIP code format'
+            ], 400);
+        }
+        
+        // ZIP code to location mapping for New York
+        $zipCodeMap = [
+            '10001' => 'Manhattan, NY', '10002' => 'Manhattan, NY', '10003' => 'Manhattan, NY', '10004' => 'Manhattan, NY',
+            '10005' => 'Manhattan, NY', '10006' => 'Manhattan, NY', '10007' => 'Manhattan, NY', '10009' => 'Manhattan, NY',
+            '10010' => 'Manhattan, NY', '10011' => 'Manhattan, NY', '10012' => 'Manhattan, NY', '10013' => 'Manhattan, NY',
+            '10014' => 'Manhattan, NY', '10016' => 'Manhattan, NY', '10017' => 'Manhattan, NY', '10018' => 'Manhattan, NY',
+            '10019' => 'Manhattan, NY', '10020' => 'Manhattan, NY', '10021' => 'Manhattan, NY', '10022' => 'Manhattan, NY',
+            '10023' => 'Manhattan, NY', '10024' => 'Manhattan, NY', '10025' => 'Manhattan, NY', '10026' => 'Manhattan, NY',
+            '10027' => 'Manhattan, NY', '10028' => 'Manhattan, NY', '10029' => 'Manhattan, NY', '10030' => 'Manhattan, NY',
+            '10031' => 'Manhattan, NY', '10032' => 'Manhattan, NY', '10033' => 'Manhattan, NY', '10034' => 'Manhattan, NY',
+            '10035' => 'Manhattan, NY', '10036' => 'Manhattan, NY', '10037' => 'Manhattan, NY', '10038' => 'Manhattan, NY',
+            '10039' => 'Manhattan, NY', '10040' => 'Manhattan, NY', '10044' => 'Manhattan, NY', '10065' => 'Manhattan, NY',
+            '10069' => 'Manhattan, NY', '10075' => 'Manhattan, NY', '10128' => 'Manhattan, NY', '10280' => 'Manhattan, NY',
+            '11201' => 'Brooklyn, NY', '11203' => 'Brooklyn, NY', '11204' => 'Brooklyn, NY', '11205' => 'Brooklyn, NY',
+            '11206' => 'Brooklyn, NY', '11207' => 'Brooklyn, NY', '11208' => 'Brooklyn, NY', '11209' => 'Brooklyn, NY',
+            '11210' => 'Brooklyn, NY', '11211' => 'Brooklyn, NY', '11212' => 'Brooklyn, NY', '11213' => 'Brooklyn, NY',
+            '11214' => 'Brooklyn, NY', '11215' => 'Brooklyn, NY', '11216' => 'Brooklyn, NY', '11217' => 'Brooklyn, NY',
+            '11218' => 'Brooklyn, NY', '11219' => 'Brooklyn, NY', '11220' => 'Brooklyn, NY', '11221' => 'Brooklyn, NY',
+            '11222' => 'Brooklyn, NY', '11223' => 'Brooklyn, NY', '11224' => 'Brooklyn, NY', '11225' => 'Brooklyn, NY',
+            '11226' => 'Brooklyn, NY', '11228' => 'Brooklyn, NY', '11229' => 'Brooklyn, NY', '11230' => 'Brooklyn, NY',
+            '11231' => 'Brooklyn, NY', '11232' => 'Brooklyn, NY', '11233' => 'Brooklyn, NY', '11234' => 'Brooklyn, NY',
+            '11235' => 'Brooklyn, NY', '11236' => 'Brooklyn, NY', '11237' => 'Brooklyn, NY', '11238' => 'Brooklyn, NY',
+            '11239' => 'Brooklyn, NY',
+            '11354' => 'Flushing, NY', '11355' => 'Flushing, NY', '11356' => 'Flushing, NY', '11357' => 'Flushing, NY',
+            '11358' => 'Flushing, NY', '11360' => 'Bayside, NY', '11361' => 'Bayside, NY', '11362' => 'Bayside, NY',
+            '11363' => 'Bayside, NY', '11364' => 'Bayside, NY', '11365' => 'Fresh Meadows, NY', '11366' => 'Fresh Meadows, NY',
+            '11367' => 'Fresh Meadows, NY', '11368' => 'Corona, NY', '11369' => 'East Elmhurst, NY', '11370' => 'Elmhurst, NY',
+            '11371' => 'Elmhurst, NY', '11372' => 'Jackson Heights, NY', '11373' => 'Jackson Heights, NY', '11374' => 'Rego Park, NY',
+            '11375' => 'Forest Hills, NY', '11377' => 'Woodside, NY', '11378' => 'Maspeth, NY', '11379' => 'Middle Village, NY',
+            '11385' => 'Ridgewood, NY',
+            '10451' => 'Bronx, NY', '10452' => 'Bronx, NY', '10453' => 'Bronx, NY', '10454' => 'Bronx, NY',
+            '10455' => 'Bronx, NY', '10456' => 'Bronx, NY', '10457' => 'Bronx, NY', '10458' => 'Bronx, NY',
+            '10459' => 'Bronx, NY', '10460' => 'Bronx, NY', '10461' => 'Bronx, NY', '10462' => 'Bronx, NY',
+            '10463' => 'Bronx, NY', '10464' => 'Bronx, NY', '10465' => 'Bronx, NY', '10466' => 'Bronx, NY',
+            '10467' => 'Bronx, NY', '10468' => 'Bronx, NY', '10469' => 'Bronx, NY', '10470' => 'Bronx, NY',
+            '10471' => 'Bronx, NY', '10472' => 'Bronx, NY', '10473' => 'Bronx, NY', '10474' => 'Bronx, NY',
+            '10475' => 'Bronx, NY',
+            '10301' => 'Staten Island, NY', '10302' => 'Staten Island, NY', '10303' => 'Staten Island, NY',
+            '10304' => 'Staten Island, NY', '10305' => 'Staten Island, NY', '10306' => 'Staten Island, NY',
+            '10307' => 'Staten Island, NY', '10308' => 'Staten Island, NY', '10309' => 'Staten Island, NY',
+            '10310' => 'Staten Island, NY', '10311' => 'Staten Island, NY', '10312' => 'Staten Island, NY',
+            '10314' => 'Staten Island, NY'
+        ];
+        
+        $location = $zipCodeMap[$zip] ?? 'New York, NY';
+        
+        return response()->json([
+            'success' => true,
+            'location' => $location,
+            'zip' => $zip
+        ]);
+    });
 });
 
 // API Routes with Authentication
@@ -246,6 +459,21 @@ Route::prefix('api')->middleware(['web', 'auth'])->group(function () {
     Route::get('/referral-codes/my-code', [\App\Http\Controllers\ReferralCodeController::class, 'getMyCode']);
     Route::post('/referral-codes/validate', [\App\Http\Controllers\ReferralCodeController::class, 'validateCode']);
     
+    // Training Centers (for caregiver profile dropdown)
+    Route::get('/training-centers', function() {
+        $trainingCenters = \App\Models\User::whereIn('user_type', ['training_center', 'training'])
+            ->where('status', 'Active')
+            ->orderBy('name', 'asc')
+            ->get()
+            ->map(function($user) {
+                return $user->name;
+            })
+            ->values()
+            ->toArray();
+        
+        return response()->json(['trainingCenters' => $trainingCenters]);
+    });
+    
     // Receipts
     Route::get('/receipts/{bookingId}', [\App\Http\Controllers\ReceiptController::class, 'generate']);
     Route::get('/receipts/{bookingId}/download', [\App\Http\Controllers\ReceiptController::class, 'download']);
@@ -274,6 +502,135 @@ Route::prefix('api')->middleware(['web', 'auth'])->group(function () {
         ]);
     });
     
+    // ZIP code lookup (public)
+    Route::get('/zipcode-lookup/{zip}', function($zip) {
+        // Validate ZIP code format
+        if (!preg_match('/^\d{5}$/', $zip)) {
+            return response()->json([
+                'success' => false,
+                'error' => 'Invalid ZIP code format'
+            ], 400);
+        }
+        
+        // ZIP code to location mapping for New York
+        $zipCodeMap = [
+            '10001' => 'Manhattan, NY', '10002' => 'Manhattan, NY', '10003' => 'Manhattan, NY', '10004' => 'Manhattan, NY',
+            '10005' => 'Manhattan, NY', '10006' => 'Manhattan, NY', '10007' => 'Manhattan, NY', '10009' => 'Manhattan, NY',
+            '10010' => 'Manhattan, NY', '10011' => 'Manhattan, NY', '10012' => 'Manhattan, NY', '10013' => 'Manhattan, NY',
+            '10014' => 'Manhattan, NY', '10016' => 'Manhattan, NY', '10017' => 'Manhattan, NY', '10018' => 'Manhattan, NY',
+            '10019' => 'Manhattan, NY', '10020' => 'Manhattan, NY', '10021' => 'Manhattan, NY', '10022' => 'Manhattan, NY',
+            '10023' => 'Manhattan, NY', '10024' => 'Manhattan, NY', '10025' => 'Manhattan, NY', '10026' => 'Manhattan, NY',
+            '10027' => 'Manhattan, NY', '10028' => 'Manhattan, NY', '10029' => 'Manhattan, NY', '10030' => 'Manhattan, NY',
+            '10031' => 'Manhattan, NY', '10032' => 'Manhattan, NY', '10033' => 'Manhattan, NY', '10034' => 'Manhattan, NY',
+            '10035' => 'Manhattan, NY', '10036' => 'Manhattan, NY', '10037' => 'Manhattan, NY', '10038' => 'Manhattan, NY',
+            '10039' => 'Manhattan, NY', '10040' => 'Manhattan, NY', '10044' => 'Manhattan, NY', '10065' => 'Manhattan, NY',
+            '10069' => 'Manhattan, NY', '10075' => 'Manhattan, NY', '10128' => 'Manhattan, NY', '10280' => 'Manhattan, NY',
+            '11201' => 'Brooklyn, NY', '11203' => 'Brooklyn, NY', '11204' => 'Brooklyn, NY', '11205' => 'Brooklyn, NY',
+            '11206' => 'Brooklyn, NY', '11207' => 'Brooklyn, NY', '11208' => 'Brooklyn, NY', '11209' => 'Brooklyn, NY',
+            '11210' => 'Brooklyn, NY', '11211' => 'Brooklyn, NY', '11212' => 'Brooklyn, NY', '11213' => 'Brooklyn, NY',
+            '11214' => 'Brooklyn, NY', '11215' => 'Brooklyn, NY', '11216' => 'Brooklyn, NY', '11217' => 'Brooklyn, NY',
+            '11218' => 'Brooklyn, NY', '11219' => 'Brooklyn, NY', '11220' => 'Brooklyn, NY', '11221' => 'Brooklyn, NY',
+            '11222' => 'Brooklyn, NY', '11223' => 'Brooklyn, NY', '11224' => 'Brooklyn, NY', '11225' => 'Brooklyn, NY',
+            '11226' => 'Brooklyn, NY', '11228' => 'Brooklyn, NY', '11229' => 'Brooklyn, NY', '11230' => 'Brooklyn, NY',
+            '11231' => 'Brooklyn, NY', '11232' => 'Brooklyn, NY', '11233' => 'Brooklyn, NY', '11234' => 'Brooklyn, NY',
+            '11235' => 'Brooklyn, NY', '11236' => 'Brooklyn, NY', '11237' => 'Brooklyn, NY', '11238' => 'Brooklyn, NY',
+            '11239' => 'Brooklyn, NY',
+            '11354' => 'Flushing, NY', '11355' => 'Flushing, NY', '11356' => 'Flushing, NY', '11357' => 'Flushing, NY',
+            '11358' => 'Flushing, NY', '11360' => 'Bayside, NY', '11361' => 'Bayside, NY', '11362' => 'Bayside, NY',
+            '11363' => 'Bayside, NY', '11364' => 'Bayside, NY', '11365' => 'Fresh Meadows, NY', '11366' => 'Fresh Meadows, NY',
+            '11367' => 'Fresh Meadows, NY', '11368' => 'Corona, NY', '11369' => 'East Elmhurst, NY', '11370' => 'Elmhurst, NY',
+            '11371' => 'Elmhurst, NY', '11372' => 'Jackson Heights, NY', '11373' => 'Jackson Heights, NY', '11374' => 'Rego Park, NY',
+            '11375' => 'Forest Hills, NY', '11377' => 'Woodside, NY', '11378' => 'Maspeth, NY', '11379' => 'Middle Village, NY',
+            '11385' => 'Ridgewood, NY',
+            '10451' => 'Bronx, NY', '10452' => 'Bronx, NY', '10453' => 'Bronx, NY', '10454' => 'Bronx, NY',
+            '10455' => 'Bronx, NY', '10456' => 'Bronx, NY', '10457' => 'Bronx, NY', '10458' => 'Bronx, NY',
+            '10459' => 'Bronx, NY', '10460' => 'Bronx, NY', '10461' => 'Bronx, NY', '10462' => 'Bronx, NY',
+            '10463' => 'Bronx, NY', '10464' => 'Bronx, NY', '10465' => 'Bronx, NY', '10466' => 'Bronx, NY',
+            '10467' => 'Bronx, NY', '10468' => 'Bronx, NY', '10469' => 'Bronx, NY', '10470' => 'Bronx, NY',
+            '10471' => 'Bronx, NY', '10472' => 'Bronx, NY', '10473' => 'Bronx, NY', '10474' => 'Bronx, NY',
+            '10475' => 'Bronx, NY',
+            '10301' => 'Staten Island, NY', '10302' => 'Staten Island, NY', '10303' => 'Staten Island, NY',
+            '10304' => 'Staten Island, NY', '10305' => 'Staten Island, NY', '10306' => 'Staten Island, NY',
+            '10307' => 'Staten Island, NY', '10308' => 'Staten Island, NY', '10309' => 'Staten Island, NY',
+            '10310' => 'Staten Island, NY', '10311' => 'Staten Island, NY', '10312' => 'Staten Island, NY',
+            '10314' => 'Staten Island, NY'
+        ];
+        
+        $location = $zipCodeMap[$zip] ?? 'New York, NY';
+        
+        return response()->json([
+            'success' => true,
+            'location' => $location,
+            'zip' => $zip
+        ]);
+    });
+});
+
+// Public API Routes (no authentication required)  
+Route::prefix('api')->middleware(['web'])->group(function () {
+    // ZIP code lookup (public)
+    Route::get('/zipcode-lookup/{zip}', function($zip) {
+        // Validate ZIP code format
+        if (!preg_match('/^\d{5}$/', $zip)) {
+            return response()->json([
+                'success' => false,
+                'error' => 'Invalid ZIP code format'
+            ], 400);
+        }
+        
+        // ZIP code to location mapping for New York
+        $zipCodeMap = [
+            '10001' => 'Manhattan, NY', '10002' => 'Manhattan, NY', '10003' => 'Manhattan, NY', '10004' => 'Manhattan, NY',
+            '10005' => 'Manhattan, NY', '10006' => 'Manhattan, NY', '10007' => 'Manhattan, NY', '10009' => 'Manhattan, NY',
+            '10010' => 'Manhattan, NY', '10011' => 'Manhattan, NY', '10012' => 'Manhattan, NY', '10013' => 'Manhattan, NY',
+            '10014' => 'Manhattan, NY', '10016' => 'Manhattan, NY', '10017' => 'Manhattan, NY', '10018' => 'Manhattan, NY',
+            '10019' => 'Manhattan, NY', '10020' => 'Manhattan, NY', '10021' => 'Manhattan, NY', '10022' => 'Manhattan, NY',
+            '10023' => 'Manhattan, NY', '10024' => 'Manhattan, NY', '10025' => 'Manhattan, NY', '10026' => 'Manhattan, NY',
+            '10027' => 'Manhattan, NY', '10028' => 'Manhattan, NY', '10029' => 'Manhattan, NY', '10030' => 'Manhattan, NY',
+            '10031' => 'Manhattan, NY', '10032' => 'Manhattan, NY', '10033' => 'Manhattan, NY', '10034' => 'Manhattan, NY',
+            '10035' => 'Manhattan, NY', '10036' => 'Manhattan, NY', '10037' => 'Manhattan, NY', '10038' => 'Manhattan, NY',
+            '10039' => 'Manhattan, NY', '10040' => 'Manhattan, NY', '10044' => 'Manhattan, NY', '10065' => 'Manhattan, NY',
+            '10069' => 'Manhattan, NY', '10075' => 'Manhattan, NY', '10128' => 'Manhattan, NY', '10280' => 'Manhattan, NY',
+            '11201' => 'Brooklyn, NY', '11203' => 'Brooklyn, NY', '11204' => 'Brooklyn, NY', '11205' => 'Brooklyn, NY',
+            '11206' => 'Brooklyn, NY', '11207' => 'Brooklyn, NY', '11208' => 'Brooklyn, NY', '11209' => 'Brooklyn, NY',
+            '11210' => 'Brooklyn, NY', '11211' => 'Brooklyn, NY', '11212' => 'Brooklyn, NY', '11213' => 'Brooklyn, NY',
+            '11214' => 'Brooklyn, NY', '11215' => 'Brooklyn, NY', '11216' => 'Brooklyn, NY', '11217' => 'Brooklyn, NY',
+            '11218' => 'Brooklyn, NY', '11219' => 'Brooklyn, NY', '11220' => 'Brooklyn, NY', '11221' => 'Brooklyn, NY',
+            '11222' => 'Brooklyn, NY', '11223' => 'Brooklyn, NY', '11224' => 'Brooklyn, NY', '11225' => 'Brooklyn, NY',
+            '11226' => 'Brooklyn, NY', '11228' => 'Brooklyn, NY', '11229' => 'Brooklyn, NY', '11230' => 'Brooklyn, NY',
+            '11231' => 'Brooklyn, NY', '11232' => 'Brooklyn, NY', '11233' => 'Brooklyn, NY', '11234' => 'Brooklyn, NY',
+            '11235' => 'Brooklyn, NY', '11236' => 'Brooklyn, NY', '11237' => 'Brooklyn, NY', '11238' => 'Brooklyn, NY',
+            '11239' => 'Brooklyn, NY',
+            '11354' => 'Flushing, NY', '11355' => 'Flushing, NY', '11356' => 'Flushing, NY', '11357' => 'Flushing, NY',
+            '11358' => 'Flushing, NY', '11360' => 'Bayside, NY', '11361' => 'Bayside, NY', '11362' => 'Bayside, NY',
+            '11363' => 'Bayside, NY', '11364' => 'Bayside, NY', '11365' => 'Fresh Meadows, NY', '11366' => 'Fresh Meadows, NY',
+            '11367' => 'Fresh Meadows, NY', '11368' => 'Corona, NY', '11369' => 'East Elmhurst, NY', '11370' => 'Elmhurst, NY',
+            '11371' => 'Elmhurst, NY', '11372' => 'Jackson Heights, NY', '11373' => 'Jackson Heights, NY', '11374' => 'Rego Park, NY',
+            '11375' => 'Forest Hills, NY', '11377' => 'Woodside, NY', '11378' => 'Maspeth, NY', '11379' => 'Middle Village, NY',
+            '11385' => 'Ridgewood, NY',
+            '10451' => 'Bronx, NY', '10452' => 'Bronx, NY', '10453' => 'Bronx, NY', '10454' => 'Bronx, NY',
+            '10455' => 'Bronx, NY', '10456' => 'Bronx, NY', '10457' => 'Bronx, NY', '10458' => 'Bronx, NY',
+            '10459' => 'Bronx, NY', '10460' => 'Bronx, NY', '10461' => 'Bronx, NY', '10462' => 'Bronx, NY',
+            '10463' => 'Bronx, NY', '10464' => 'Bronx, NY', '10465' => 'Bronx, NY', '10466' => 'Bronx, NY',
+            '10467' => 'Bronx, NY', '10468' => 'Bronx, NY', '10469' => 'Bronx, NY', '10470' => 'Bronx, NY',
+            '10471' => 'Bronx, NY', '10472' => 'Bronx, NY', '10473' => 'Bronx, NY', '10474' => 'Bronx, NY',
+            '10475' => 'Bronx, NY',
+            '10301' => 'Staten Island, NY', '10302' => 'Staten Island, NY', '10303' => 'Staten Island, NY',
+            '10304' => 'Staten Island, NY', '10305' => 'Staten Island, NY', '10306' => 'Staten Island, NY',
+            '10307' => 'Staten Island, NY', '10308' => 'Staten Island, NY', '10309' => 'Staten Island, NY',
+            '10310' => 'Staten Island, NY', '10311' => 'Staten Island, NY', '10312' => 'Staten Island, NY',
+            '10314' => 'Staten Island, NY'
+        ];
+        
+        $location = $zipCodeMap[$zip] ?? 'New York, NY';
+        
+        return response()->json([
+            'success' => true,
+            'location' => $location,
+            'zip' => $zip
+        ]);
+    });
+    
     // Location data (public)
     Route::get('/location-data', function() {
         $jsonPath = storage_path('app/data/ny_accurate_counties.json');
@@ -283,7 +640,18 @@ Route::prefix('api')->middleware(['web', 'auth'])->group(function () {
         return response()->json(['error' => 'Location data not found'], 404);
     });
     
-    // === ADMIN ONLY ROUTES ===
+    // Check if email exists (public)
+    Route::get('/check-email-exists/{email}', function($email) {
+        $exists = \App\Models\User::where('email', $email)->exists();
+        return response()->json([
+            'exists' => $exists,
+            'email' => $email
+        ]);
+    });
+});
+
+// API Routes with Authentication
+Route::prefix('api')->middleware(['web', 'auth'])->group(function () {
     Route::middleware(['user.type:admin'])->group(function () {
         Route::get('/admin/stats', [\App\Http\Controllers\DashboardController::class, 'adminStats']);
         Route::get('/admin/users', [\App\Http\Controllers\DashboardController::class, 'adminUsers']);
@@ -313,6 +681,7 @@ Route::prefix('api')->middleware(['web', 'auth'])->group(function () {
         Route::post('/admin/password-resets/{id}/process', [\App\Http\Controllers\AdminController::class, 'processPasswordReset']);
         Route::get('/admin/announcements', [\App\Http\Controllers\AdminController::class, 'getAnnouncements']);
         Route::post('/admin/announcements', [\App\Http\Controllers\AdminController::class, 'storeAnnouncement']);
+        Route::post('/admin/test-email', [\App\Http\Controllers\AdminController::class, 'sendTestEmail']);
         
         // Booking assignment management
         Route::post('/bookings/{id}/assign', [\App\Http\Controllers\AdminController::class, 'assignCaregivers']);
@@ -441,10 +810,68 @@ Route::prefix('api')->middleware(['web', 'auth'])->group(function () {
     
     // === TRAINING CENTER ROUTES ===
     Route::middleware(['user.type:training,training_center'])->group(function () {
+        // Get pending caregiver requests
+        Route::get('/training/pending-caregivers', function(\Illuminate\Http\Request $request) {
+            $userId = auth()->id();
+            
+            $pendingCaregivers = \App\Models\Caregiver::where('training_center_id', $userId)
+                ->where('training_center_approval_status', 'pending')
+                ->with('user')
+                ->get()
+                ->map(function ($caregiver) {
+                    return [
+                        'id' => $caregiver->id,
+                        'name' => $caregiver->user->name ?? 'Unknown',
+                        'email' => $caregiver->user->email ?? '',
+                        'phone' => $caregiver->user->phone ?? '',
+                        'years_experience' => $caregiver->years_experience ?? 0,
+                        'specializations' => $caregiver->specializations ?? [],
+                        'bio' => $caregiver->bio ?? '',
+                        'requested_at' => $caregiver->updated_at ? $caregiver->updated_at->format('M d, Y') : ''
+                    ];
+                });
+            
+            return response()->json(['pendingCaregivers' => $pendingCaregivers]);
+        });
+        
+        // Approve caregiver request
+        Route::post('/training/caregivers/{id}/approve', function($id) {
+            $userId = auth()->id();
+            
+            $caregiver = \App\Models\Caregiver::where('id', $id)
+                ->where('training_center_id', $userId)
+                ->where('training_center_approval_status', 'pending')
+                ->firstOrFail();
+            
+            $caregiver->update(['training_center_approval_status' => 'approved']);
+            
+            return response()->json(['success' => true, 'message' => 'Caregiver approved successfully']);
+        });
+        
+        // Reject caregiver request
+        Route::post('/training/caregivers/{id}/reject', function($id) {
+            $userId = auth()->id();
+            
+            $caregiver = \App\Models\Caregiver::where('id', $id)
+                ->where('training_center_id', $userId)
+                ->where('training_center_approval_status', 'pending')
+                ->firstOrFail();
+            
+            $caregiver->update([
+                'training_center_approval_status' => 'rejected',
+                'training_center_id' => null,
+                'has_training_center' => false
+            ]);
+            
+            return response()->json(['success' => true, 'message' => 'Caregiver request rejected']);
+        });
+        
         Route::get('/training/stats', function(\Illuminate\Http\Request $request) {
             $userId = auth()->id();
             
+            // Only show approved caregivers
             $caregivers = \App\Models\Caregiver::where('training_center_id', $userId)
+                ->where('training_center_approval_status', 'approved')
                 ->with('user')
                 ->get();
             

@@ -201,5 +201,24 @@ class NotificationService
             'high'
         );
     }
+
+    /**
+     * Notify contractor that their account has been rejected
+     */
+    public static function notifyAccountRejected(User $user, string $reason = null): void
+    {
+        $message = "Your contractor application has been rejected.";
+        if ($reason) {
+            $message .= " Reason: {$reason}";
+        }
+        
+        self::create(
+            $user->id,
+            'Application Rejected',
+            $message,
+            'System',
+            'high'
+        );
+    }
 }
 

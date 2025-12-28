@@ -9,10 +9,11 @@ class PasswordReset extends Model
     protected $table = 'password_resets_custom';
     
     protected $fillable = [
+        'user_id',
         'email',
         'token',
-        'created_at'
+        'status',
+        'requested_at',
+        'completed_at'
     ];
-    
-    public $timestamps = false;
 }

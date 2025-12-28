@@ -1,0 +1,43 @@
+# Brevo Email Configuration for .env file
+# Copy these lines to your .env file (create it if it doesn't exist)
+
+# ============================================
+# BREVO SMTP CONFIGURATION (READY TO USE)
+# ============================================
+MAIL_MAILER=smtp
+MAIL_HOST=smtp-relay.brevo.com
+MAIL_PORT=587
+MAIL_USERNAME=spensys2025@gmail.com
+MAIL_PASSWORD=xsmtpsib-c6ec5cc89e425d6f21b4708fe02bf7080714fbf4389e43c69bfb79b1c119ceec-1YFdx0WMUJvArNs9
+MAIL_ENCRYPTION=tls
+MAIL_FROM_ADDRESS=spensys2025@gmail.com
+MAIL_FROM_NAME="CAS Private Care"
+QUEUE_CONNECTION=sync
+
+# ============================================
+# BREVO API KEY (Optional - for future use)
+# ============================================
+BREVO_API_KEY=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
+
+# ============================================
+# IMPORTANT: VERIFY YOUR SENDER EMAIL IN BREVO
+# ============================================
+# Before using this configuration:
+# 1. Log in to Brevo → Settings → Senders, domains, IPs → Senders
+# 2. Click "Add a sender"
+# 3. Add: spensys2025@gmail.com
+# 4. Verify via the email link Brevo sends
+# 5. Once verified, you can use it as MAIL_FROM_ADDRESS
+#
+# OR, if you want to use noreply@casprivatecare.online:
+# 1. Add it as a sender in Brevo
+# 2. Verify it (may require domain verification)
+# 3. Update MAIL_FROM_ADDRESS=noreply@casprivatecare.online
+
+# ============================================
+# SECURITY NOTES:
+# ============================================
+# - Never commit your .env file to version control
+# - Delete this file (BREVO_ENV_CONFIG.txt) after copying to .env
+# - Keep your SMTP password secure
+

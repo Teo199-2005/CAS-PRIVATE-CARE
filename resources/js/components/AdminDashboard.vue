@@ -24,6 +24,7 @@
   >
     <template #header-left>
       <v-btn color="error" size="x-large" prepend-icon="mdi-bullhorn" class="admin-btn" @click="announceDialog = true">Send Announcement</v-btn>
+      <v-btn color="success" size="x-large" prepend-icon="mdi-email-send" class="admin-btn ml-2" @click="testEmailDialog = true">Test Email</v-btn>
     </template>
 
     <!-- Dashboard Section -->
@@ -221,7 +222,7 @@
 
       <v-card elevation="0">
         <v-card-title class="card-header pa-8 d-flex justify-space-between align-center">
-          <span class="section-title error--text">User Management</span>
+          <span class="section-title error--text">Users</span>
           <v-btn v-if="selectedUsers.length > 0" color="error" variant="outlined" prepend-icon="mdi-delete" @click="deleteSelectedUsers">
             Delete Selected ({{ selectedUsers.length }})
           </v-btn>
@@ -429,7 +430,7 @@
       </div>
       <v-card elevation="0">
         <v-card-title class="card-header pa-8 d-flex justify-space-between align-center">
-          <span class="section-title error--text">Caregiver Management</span>
+          <span class="section-title error--text">Caregivers</span>
           <v-btn v-if="selectedCaregivers.length > 0" color="error" variant="outlined" prepend-icon="mdi-delete" @click="deleteSelectedCaregivers">
             Delete Selected ({{ selectedCaregivers.length }})
           </v-btn>
@@ -658,7 +659,7 @@
       </div>
       <v-card elevation="0">
         <v-card-title class="card-header pa-8 d-flex justify-space-between align-center">
-          <span class="section-title error--text">Client Management</span>
+          <span class="section-title error--text">Clients</span>
           <v-btn v-if="selectedClients.length > 0" color="error" variant="outlined" prepend-icon="mdi-delete" @click="deleteSelectedClients">
             Delete Selected ({{ selectedClients.length }})
           </v-btn>
@@ -678,24 +679,24 @@
       </v-card>
     </div>
 
-    <!-- Marketing Staff Management Section -->
+    <!-- Marketing Partner Management Section -->
     <div v-if="currentSection === 'marketing-staff'">
       <div class="mb-6">
         <v-row class="align-center">
           <v-col cols="12" md="3">
-            <v-text-field v-model="marketingStaffSearch" placeholder="Search marketing staff..." prepend-inner-icon="mdi-magnify" variant="outlined" density="compact" hide-details />
+            <v-text-field v-model="marketingStaffSearch" placeholder="Search marketing partner..." prepend-inner-icon="mdi-magnify" variant="outlined" density="compact" hide-details />
           </v-col>
           <v-col cols="12" md="2">
             <v-select v-model="marketingStaffStatusFilter" :items="['All', 'Active', 'Inactive']" label="All Status" variant="outlined" density="compact" hide-details />
           </v-col>
           <v-col cols="12" md="3">
-            <v-btn color="error" prepend-icon="mdi-plus" @click="openMarketingStaffDialog()">Add Marketing Staff</v-btn>
+            <v-btn color="error" prepend-icon="mdi-plus" @click="openMarketingStaffDialog()">Add Marketing Partner</v-btn>
           </v-col>
         </v-row>
       </div>
       <v-card elevation="0">
         <v-card-title class="card-header pa-8 d-flex justify-space-between align-center">
-          <span class="section-title error--text">Marketing Staff Management</span>
+          <span class="section-title error--text">Marketing Partner</span>
           <v-btn v-if="selectedMarketingStaff.length > 0" color="error" variant="outlined" prepend-icon="mdi-delete" @click="deleteSelectedMarketingStaff">
             Delete Selected ({{ selectedMarketingStaff.length }})
           </v-btn>
@@ -726,12 +727,12 @@
       </v-card>
     </div>
 
-    <!-- View Marketing Staff Details Dialog -->
+    <!-- View Marketing Partner Details Dialog -->
     <v-dialog v-model="viewMarketingStaffDialog" max-width="800">
       <v-card v-if="viewingMarketingStaff">
         <v-card-title class="pa-6" style="background: #dc2626; color: white;">
           <div class="d-flex align-center justify-space-between w-100">
-            <span class="section-title" style="color: white;">Marketing Staff Details</span>
+            <span class="section-title" style="color: white;">Marketing Partner Details</span>
             <v-btn icon="mdi-close" variant="text" style="color: white;" @click="viewMarketingStaffDialog = false"></v-btn>
           </div>
         </v-card-title>
@@ -813,27 +814,34 @@
       </v-card>
     </v-dialog>
 
-    <!-- Add/Edit Marketing Staff Dialog -->
+    <!-- Add/Edit Marketing Partner Dialog -->
     <v-dialog v-model="marketingStaffDialog" max-width="900" scrollable>
       <v-card>
         <v-card-title class="pa-6" style="background: #dc2626; color: white;">
-          <span class="section-title" style="color: white;">{{ editingMarketingStaff ? 'Edit Marketing Staff' : 'Add Marketing Staff' }}</span>
+          <span class="section-title" style="color: white;">{{ editingMarketingStaff ? 'Edit Marketing Partner' : 'Add Marketing Partner' }}</span>
         </v-card-title>
         <v-card-text class="pa-6">
           <div class="mb-4">
             <h3 class="text-h6 mb-4">Personal Information</h3>
             <v-row>
               <v-col cols="12" md="6">
-                <v-text-field v-model="marketingStaffFormData.firstName" label="First Name *" variant="outlined" required />
+                <v-text-field v-model="marketingStaffFormData.firstName" label="First Name *" variant="outlined" required @update:model-value="marketingStaffFormData.firstName = filterLettersOnly(marketingStaffFormData.firstName)" />
               </v-col>
               <v-col cols="12" md="6">
-                <v-text-field v-model="marketingStaffFormData.lastName" label="Last Name *" variant="outlined" required />
+                <v-text-field v-model="marketingStaffFormData.lastName" label="Last Name *" variant="outlined" required @update:model-value="marketingStaffFormData.lastName = filterLettersOnly(marketingStaffFormData.lastName)" />
               </v-col>
               <v-col cols="12" md="6">
                 <v-text-field v-model="marketingStaffFormData.email" label="Email *" type="email" variant="outlined" required />
               </v-col>
               <v-col cols="12" md="6">
-                <v-text-field v-model="marketingStaffFormData.phone" label="Phone" variant="outlined" />
+                <v-text-field 
+                  v-model="marketingStaffFormData.phone" 
+                  label="Phone" 
+                  variant="outlined"
+                  placeholder="(646) 282-8282"
+                  maxlength="14"
+                  @update:model-value="marketingStaffFormData.phone = formatPhoneNumber(marketingStaffFormData.phone)"
+                />
               </v-col>
               <v-col cols="12" md="6">
                 <v-text-field v-model="marketingStaffFormData.birthdate" label="Birthdate" variant="outlined" type="date" />
@@ -854,10 +862,53 @@
                 <v-text-field v-model="marketingStaffFormData.city" label="City" variant="outlined" />
               </v-col>
               <v-col cols="12" md="6">
-                <v-text-field v-model="marketingStaffFormData.zip_code" label="ZIP Code" variant="outlined" />
+                <v-text-field 
+                  v-model="marketingStaffFormData.zip_code" 
+                  label="ZIP Code" 
+                  variant="outlined"
+                  maxlength="5"
+                  :rules="[v => !v || /^\d{5}$/.test(v) || 'Please enter a valid 5-digit ZIP code']"
+                  placeholder="Enter ZIP code"
+                  @input="lookupMarketingStaffZipCode"
+                  @blur="lookupMarketingStaffZipCode"
+                >
+                  <template v-slot:prepend-inner>
+                    <v-icon>mdi-map-marker</v-icon>
+                  </template>
+                </v-text-field>
+                <div v-if="marketingStaffZipLocation" style="font-weight: 600; color: #000000; margin-top: -8px; font-size: 0.75rem; line-height: 1.2;">
+                  {{ marketingStaffZipLocation }}
+                </div>
               </v-col>
               <v-col cols="12" md="6">
-                <v-text-field v-if="!editingMarketingStaff" v-model="marketingStaffFormData.password" label="Password *" type="password" variant="outlined" required />
+                <v-text-field 
+                  v-if="!editingMarketingStaff" 
+                  v-model="marketingStaffFormData.password" 
+                  label="Password *" 
+                  :type="showMarketingPassword ? 'text' : 'password'" 
+                  variant="outlined" 
+                  required
+                  :append-inner-icon="showMarketingPassword ? 'mdi-eye-off' : 'mdi-eye'"
+                  @click:append-inner="showMarketingPassword = !showMarketingPassword"
+                />
+                <div v-if="!editingMarketingStaff && marketingStaffFormData.password" class="password-requirements mt-2">
+                  <div class="requirement-item" :class="{ valid: passwordMeetsLength(marketingStaffFormData.password) }">
+                    <span class="requirement-icon">{{ passwordMeetsLength(marketingStaffFormData.password) ? '✓' : '✗' }}</span>
+                    <span class="requirement-text">At least 8 characters</span>
+                  </div>
+                  <div class="requirement-item" :class="{ valid: passwordMeetsUppercase(marketingStaffFormData.password) }">
+                    <span class="requirement-icon">{{ passwordMeetsUppercase(marketingStaffFormData.password) ? '✓' : '✗' }}</span>
+                    <span class="requirement-text">One capital letter</span>
+                  </div>
+                  <div class="requirement-item" :class="{ valid: passwordMeetsDigit(marketingStaffFormData.password) }">
+                    <span class="requirement-icon">{{ passwordMeetsDigit(marketingStaffFormData.password) ? '✓' : '✗' }}</span>
+                    <span class="requirement-text">One digit</span>
+                  </div>
+                  <div class="requirement-item" :class="{ valid: passwordMeetsSpecial(marketingStaffFormData.password) }">
+                    <span class="requirement-icon">{{ passwordMeetsSpecial(marketingStaffFormData.password) ? '✓' : '✗' }}</span>
+                    <span class="requirement-text">One special character</span>
+                  </div>
+                </div>
               </v-col>
               <v-col cols="12" md="6">
                 <v-select v-model="marketingStaffFormData.status" :items="['Active', 'Inactive']" label="Status *" variant="outlined" required />
@@ -890,7 +941,7 @@
       </div>
       <v-card elevation="0">
         <v-card-title class="card-header pa-8 d-flex justify-space-between align-center">
-          <span class="section-title error--text">Training Center Management</span>
+          <span class="section-title error--text">Accredited Training Center</span>
           <v-btn v-if="selectedTrainingCenters.length > 0" color="error" variant="outlined" prepend-icon="mdi-delete" @click="deleteSelectedTrainingCenters">
             Delete Selected ({{ selectedTrainingCenters.length }})
           </v-btn>
@@ -919,7 +970,7 @@
     </div>
 
     <!-- View Training Center Details Dialog -->
-    <v-dialog v-model="viewTrainingCenterDialog" max-width="900">
+    <v-dialog v-model="viewTrainingCenterDialog" max-width="900" scrollable>
       <v-card v-if="viewingTrainingCenter">
         <v-card-title class="pa-6" style="background: #dc2626; color: white;">
           <div class="d-flex align-center justify-space-between w-100">
@@ -927,7 +978,7 @@
             <v-btn icon="mdi-close" variant="text" style="color: white;" @click="viewTrainingCenterDialog = false"></v-btn>
           </div>
         </v-card-title>
-        <v-card-text class="pa-6">
+        <v-card-text class="pa-6" style="max-height: calc(80vh - 140px); overflow-y: auto;">
           <v-row>
             <v-col cols="12" class="text-center mb-4">
               <v-avatar size="120" color="warning" class="mb-3">
@@ -1007,25 +1058,27 @@
           
           <div v-if="viewingTrainingCenter.caregivers && viewingTrainingCenter.caregivers.length > 0">
             <h3 class="mb-3">Caregivers Using This Training Center</h3>
-            <v-table density="compact">
-              <thead>
-                <tr>
-                  <th>Name</th>
-                  <th>Email</th>
-                  <th>Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="caregiver in viewingTrainingCenter.caregivers" :key="caregiver.id">
-                  <td>{{ caregiver.name }}</td>
-                  <td>{{ caregiver.email }}</td>
-                  <td><v-chip size="x-small" color="success">Active</v-chip></td>
-                </tr>
-              </tbody>
-            </v-table>
+            <div style="max-height: 300px; overflow-y: auto;">
+              <v-table density="compact">
+                <thead style="position: sticky; top: 0; background-color: white; z-index: 1;">
+                  <tr>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="caregiver in viewingTrainingCenter.caregivers" :key="caregiver.id">
+                    <td>{{ caregiver.name }}</td>
+                    <td>{{ caregiver.email }}</td>
+                    <td><v-chip size="x-small" color="success">Active</v-chip></td>
+                  </tr>
+                </tbody>
+              </v-table>
+            </div>
           </div>
         </v-card-text>
-        <v-card-actions class="pa-6 pt-0">
+        <v-card-actions class="pa-6">
           <v-spacer />
           <v-btn color="grey" variant="outlined" @click="viewTrainingCenterDialog = false">Close</v-btn>
           <v-btn color="error" @click="openTrainingCenterDialog(viewingTrainingCenter); viewTrainingCenterDialog = false">Edit</v-btn>
@@ -1041,25 +1094,23 @@
         </v-card-title>
         <v-card-text class="pa-6">
           <div class="mb-4">
-            <h3 class="text-h6 mb-4">Personal Information</h3>
+            <h3 class="text-h6 mb-4">Training Center Information</h3>
             <v-row>
-              <v-col cols="12" md="6">
-                <v-text-field v-model="trainingCenterFormData.firstName" label="First Name *" variant="outlined" required />
-              </v-col>
-              <v-col cols="12" md="6">
-                <v-text-field v-model="trainingCenterFormData.lastName" label="Last Name *" variant="outlined" required />
+              <v-col cols="12">
+                <v-text-field v-model="trainingCenterFormData.name" label="Training Center Name *" variant="outlined" required />
               </v-col>
               <v-col cols="12" md="6">
                 <v-text-field v-model="trainingCenterFormData.email" label="Email *" type="email" variant="outlined" required />
               </v-col>
               <v-col cols="12" md="6">
-                <v-text-field v-model="trainingCenterFormData.phone" label="Phone" variant="outlined" />
-              </v-col>
-              <v-col cols="12" md="6">
-                <v-text-field v-model="trainingCenterFormData.birthdate" label="Birthdate" variant="outlined" type="date" />
-              </v-col>
-              <v-col cols="12" md="6">
-                <v-text-field :model-value="calculateAge(trainingCenterFormData.birthdate)" label="Age" variant="outlined" readonly />
+                <v-text-field 
+                  v-model="trainingCenterFormData.phone" 
+                  label="Phone" 
+                  variant="outlined"
+                  placeholder="(646) 282-8282"
+                  maxlength="14"
+                  @update:model-value="trainingCenterFormData.phone = formatPhoneNumber(trainingCenterFormData.phone)"
+                />
               </v-col>
               <v-col cols="12">
                 <v-text-field v-model="trainingCenterFormData.address" label="Address" variant="outlined" />
@@ -1074,10 +1125,54 @@
                 <v-text-field v-model="trainingCenterFormData.city" label="City" variant="outlined" />
               </v-col>
               <v-col cols="12" md="6">
-                <v-text-field v-model="trainingCenterFormData.zip_code" label="ZIP Code" variant="outlined" />
+                <v-text-field 
+                  v-model="trainingCenterFormData.zip_code" 
+                  label="ZIP Code" 
+                  variant="outlined"
+                  maxlength="5"
+                  :rules="[v => !v || /^\d{5}$/.test(v) || 'Please enter a valid 5-digit ZIP code']"
+                  placeholder="Enter ZIP code"
+                  @input="lookupTrainingCenterZipCode"
+                  @blur="lookupTrainingCenterZipCode"
+                >
+                  <template v-slot:prepend-inner>
+                    <v-icon>mdi-map-marker</v-icon>
+                  </template>
+                </v-text-field>
+                <div v-if="trainingCenterZipLocation" style="font-weight: 600; color: #000000; margin-top: -8px; font-size: 0.75rem; line-height: 1.2;">
+                  {{ trainingCenterZipLocation }}
+                </div>
               </v-col>
               <v-col cols="12" md="6">
-                <v-text-field v-if="!editingTrainingCenter" v-model="trainingCenterFormData.password" label="Password (Optional)" type="password" variant="outlined" hint="Leave blank to auto-generate secure password" persistent-hint />
+                <v-text-field 
+                  v-if="!editingTrainingCenter" 
+                  v-model="trainingCenterFormData.password" 
+                  label="Password (Optional)" 
+                  :type="showTrainingPassword ? 'text' : 'password'" 
+                  variant="outlined" 
+                  hint="Leave blank to auto-generate secure password" 
+                  persistent-hint
+                  :append-inner-icon="showTrainingPassword ? 'mdi-eye-off' : 'mdi-eye'"
+                  @click:append-inner="showTrainingPassword = !showTrainingPassword"
+                />
+                <div v-if="!editingTrainingCenter && trainingCenterFormData.password" class="password-requirements mt-2">
+                  <div class="requirement-item" :class="{ valid: passwordMeetsLength(trainingCenterFormData.password) }">
+                    <span class="requirement-icon">{{ passwordMeetsLength(trainingCenterFormData.password) ? '✓' : '✗' }}</span>
+                    <span class="requirement-text">At least 8 characters</span>
+                  </div>
+                  <div class="requirement-item" :class="{ valid: passwordMeetsUppercase(trainingCenterFormData.password) }">
+                    <span class="requirement-icon">{{ passwordMeetsUppercase(trainingCenterFormData.password) ? '✓' : '✗' }}</span>
+                    <span class="requirement-text">One capital letter</span>
+                  </div>
+                  <div class="requirement-item" :class="{ valid: passwordMeetsDigit(trainingCenterFormData.password) }">
+                    <span class="requirement-icon">{{ passwordMeetsDigit(trainingCenterFormData.password) ? '✓' : '✗' }}</span>
+                    <span class="requirement-text">One digit</span>
+                  </div>
+                  <div class="requirement-item" :class="{ valid: passwordMeetsSpecial(trainingCenterFormData.password) }">
+                    <span class="requirement-icon">{{ passwordMeetsSpecial(trainingCenterFormData.password) ? '✓' : '✗' }}</span>
+                    <span class="requirement-text">One special character</span>
+                  </div>
+                </div>
               </v-col>
               <v-col cols="12" md="6">
                 <v-select v-model="trainingCenterFormData.status" :items="['Active', 'Inactive']" label="Status *" variant="outlined" required />
@@ -1101,18 +1196,150 @@
         </v-card-title>
         <v-data-table :headers="applicationHeaders" :items="pendingApplications" :items-per-page="10" class="elevation-0 table-no-checkbox">
           <template v-slot:item.type="{ item }">
-            <v-chip :color="item.type === 'Caregiver' ? 'success' : 'primary'" size="small" class="font-weight-bold" :prepend-icon="item.type === 'Caregiver' ? 'mdi-account-heart' : 'mdi-account'">{{ item.type }}</v-chip>
+            <v-chip 
+              :color="item.type === 'Caregiver' ? 'success' : (item.type === 'Marketing Partner' ? 'info' : 'warning')" 
+              size="small" 
+              class="font-weight-bold" 
+              :prepend-icon="item.type === 'Caregiver' ? 'mdi-account-heart' : (item.type === 'Marketing Partner' ? 'mdi-bullhorn-variant' : 'mdi-school')"
+            >
+              {{ item.type }}
+            </v-chip>
+          </template>
+          <template v-slot:item.applied="{ item }">
+            <span v-if="item.applied_at">{{ new Date(item.applied_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) }}</span>
+            <span v-else>N/A</span>
           </template>
           <template v-slot:item.documents="{ item }">
-            <v-chip :color="item.documents === 'Complete' ? 'success' : 'warning'" size="small" class="font-weight-bold" :prepend-icon="getStatusIcon(item.documents)">{{ item.documents }}</v-chip>
+            <v-chip 
+              :color="(item.status && (item.status.toLowerCase() === 'approved')) ? 'success' : 'warning'" 
+              size="small" 
+              class="font-weight-bold" 
+              :prepend-icon="(item.status && (item.status.toLowerCase() === 'approved')) ? 'mdi-check-circle' : 'mdi-clock-outline'"
+            >
+              {{ (item.status && (item.status.toLowerCase() === 'approved')) ? 'Approved' : 'Pending' }}
+            </v-chip>
           </template>
           <template v-slot:item.actions="{ item }">
-            <v-btn size="x-small" color="success" variant="flat" icon="mdi-check" class="mr-1" @click="approveApplication(item)"></v-btn>
-            <v-btn size="x-small" color="error" variant="flat" icon="mdi-close" @click="rejectApplication(item)"></v-btn>
+            <div class="action-buttons">
+              <v-btn class="action-btn-view" icon="mdi-eye" size="small" @click="viewApplication(item)"></v-btn>
+              <v-btn class="action-btn-approve" icon="mdi-check" size="small" @click="approveApplication(item)"></v-btn>
+              <v-btn class="action-btn-reject" icon="mdi-close" size="small" @click="rejectApplication(item)"></v-btn>
+            </div>
           </template>
         </v-data-table>
       </v-card>
     </div>
+
+    <!-- View Application Details Dialog -->
+    <v-dialog v-model="viewApplicationDialog" max-width="800">
+      <v-card v-if="viewingApplication">
+        <v-card-title class="pa-6" style="background: #dc2626; color: white;">
+          <div class="d-flex align-center justify-space-between w-100">
+            <span class="section-title" style="color: white;">Application Details</span>
+            <v-btn icon="mdi-close" variant="text" style="color: white;" @click="viewApplicationDialog = false"></v-btn>
+          </div>
+        </v-card-title>
+        <v-card-text class="pa-6">
+          <v-row>
+            <v-col cols="12" class="text-center mb-4">
+              <v-avatar size="120" :color="viewingApplication.type === 'Caregiver' ? 'success' : (viewingApplication.type === 'Marketing Partner' ? 'info' : 'warning')" class="mb-3">
+                <span class="text-h3 font-weight-bold text-white">{{ viewingApplication.name.split(' ').map(n => n[0]).join('') }}</span>
+              </v-avatar>
+              <h2>{{ viewingApplication.name }}</h2>
+              <v-chip 
+                :color="viewingApplication.type === 'Caregiver' ? 'success' : (viewingApplication.type === 'Marketing Partner' ? 'info' : 'warning')" 
+                size="large" 
+                class="mt-2 font-weight-bold"
+                :prepend-icon="viewingApplication.type === 'Caregiver' ? 'mdi-account-heart' : (viewingApplication.type === 'Marketing Partner' ? 'mdi-bullhorn-variant' : 'mdi-school')"
+              >
+                {{ viewingApplication.type }}
+              </v-chip>
+              <v-chip :color="(viewingApplication.status && (viewingApplication.status.toLowerCase() === 'approved')) ? 'success' : 'warning'" class="mt-2 ml-2" size="large">
+                <v-icon size="16" class="mr-1">{{ (viewingApplication.status && (viewingApplication.status.toLowerCase() === 'approved')) ? 'mdi-check-circle' : 'mdi-clock-outline' }}</v-icon>
+                {{ (viewingApplication.status && (viewingApplication.status.toLowerCase() === 'approved')) ? 'Approved' : 'Pending' }}
+              </v-chip>
+            </v-col>
+          </v-row>
+          
+          <v-divider class="mb-4"></v-divider>
+          
+          <v-row>
+            <v-col cols="12" md="6">
+              <div class="detail-section">
+                <div class="detail-label">Email</div>
+                <div class="detail-value">{{ viewingApplication.email }}</div>
+              </div>
+            </v-col>
+            <v-col cols="12" md="6">
+              <div class="detail-section">
+                <div class="detail-label">Phone</div>
+                <div class="detail-value">{{ viewingApplication.phone || 'Not provided' }}</div>
+              </div>
+            </v-col>
+            <v-col cols="12" md="6">
+              <div class="detail-section">
+                <div class="detail-label">Application Type</div>
+                <div class="detail-value">
+                  <v-chip 
+                    :color="viewingApplication.type === 'Caregiver' ? 'success' : (viewingApplication.type === 'Marketing Partner' ? 'info' : 'warning')" 
+                    size="small" 
+                    class="font-weight-bold"
+                    :prepend-icon="viewingApplication.type === 'Caregiver' ? 'mdi-account-heart' : (viewingApplication.type === 'Marketing Partner' ? 'mdi-bullhorn-variant' : 'mdi-school')"
+                  >
+                    {{ viewingApplication.type }}
+                  </v-chip>
+                </div>
+              </div>
+            </v-col>
+            <v-col cols="12" md="6">
+              <div class="detail-section">
+                <div class="detail-label">Applied Date</div>
+                <div class="detail-value">{{ viewingApplication.applied_at ? new Date(viewingApplication.applied_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : 'N/A' }}</div>
+              </div>
+            </v-col>
+            <v-col cols="12" md="6">
+              <div class="detail-section">
+                <div class="detail-label">Document Status</div>
+                <div class="detail-value">
+                  <v-chip 
+                    :color="viewingApplication.documents === 'Complete' ? 'success' : 'warning'" 
+                    size="small" 
+                    class="font-weight-bold"
+                    :prepend-icon="viewingApplication.documents === 'Complete' ? 'mdi-check-circle' : 'mdi-alert-circle'"
+                  >
+                    {{ viewingApplication.documents === 'Complete' ? 'Documents Complete' : 'Documents Pending' }}
+                  </v-chip>
+                </div>
+              </div>
+            </v-col>
+            <v-col cols="12" md="6">
+              <div class="detail-section">
+                <div class="detail-label">Application Status</div>
+                <div class="detail-value">
+                  <v-chip 
+                    :color="(viewingApplication.status && (viewingApplication.status.toLowerCase() === 'approved')) ? 'success' : 'warning'" 
+                    size="small" 
+                    class="font-weight-bold"
+                    :prepend-icon="(viewingApplication.status && (viewingApplication.status.toLowerCase() === 'approved')) ? 'mdi-check-circle' : 'mdi-clock-outline'"
+                  >
+                    {{ (viewingApplication.status && (viewingApplication.status.toLowerCase() === 'approved')) ? 'Approved' : 'Pending' }}
+                  </v-chip>
+                </div>
+              </div>
+            </v-col>
+          </v-row>
+          
+          <v-divider class="my-4"></v-divider>
+          
+          <v-card-actions class="pa-0">
+            <v-spacer></v-spacer>
+            <v-btn color="grey" variant="text" @click="viewApplicationDialog = false">Close</v-btn>
+            <v-btn color="success" variant="flat" prepend-icon="mdi-check" @click="approveApplication(viewingApplication); viewApplicationDialog = false">Approve</v-btn>
+            <v-btn color="error" variant="flat" prepend-icon="mdi-close" @click="rejectApplication(viewingApplication); viewApplicationDialog = false">Reject</v-btn>
+          </v-card-actions>
+        </v-card-text>
+      </v-card>
+    </v-dialog>
 
     <!-- Password Resets Section -->
     <div v-if="currentSection === 'password-resets'">
@@ -1128,8 +1355,10 @@
             <v-chip :color="item.userType === 'Caregiver' ? 'success' : 'primary'" size="small" class="font-weight-bold" :prepend-icon="item.userType === 'Caregiver' ? 'mdi-account-heart' : 'mdi-account'">{{ item.userType }}</v-chip>
           </template>
           <template v-slot:item.actions="{ item }">
-            <v-btn v-if="item.status === 'Pending'" size="x-small" color="error" variant="flat" icon="mdi-lock-reset" @click="processPasswordReset(item)"></v-btn>
-            <v-icon v-else color="grey" size="small">mdi-check-circle</v-icon>
+            <div class="action-buttons">
+              <v-btn v-if="item.status === 'Pending'" class="action-btn-approve" icon="mdi-check" size="small" @click="processPasswordReset(item)"></v-btn>
+              <v-icon v-else color="grey" size="small">mdi-check-circle</v-icon>
+            </div>
           </template>
         </v-data-table>
       </v-card>
@@ -1285,7 +1514,7 @@
 
       <v-card elevation="0">
         <v-card-title class="card-header pa-8 d-flex justify-space-between align-center">
-          <span class="section-title error--text">Client Bookings Management</span>
+          <span class="section-title error--text">Client Bookings</span>
           <v-btn v-if="selectedBookings.length > 0" color="error" variant="outlined" prepend-icon="mdi-delete" @click="deleteSelectedBookings">
             Delete Selected ({{ selectedBookings.length }})
           </v-btn>
@@ -1593,10 +1822,10 @@
             <v-card-text class="pa-8">
               <v-row>
                 <v-col cols="12" md="6">
-                  <v-text-field v-model="profileData.firstName" label="First Name" variant="outlined" />
-                </v-col>
-                <v-col cols="12" md="6">
-                  <v-text-field v-model="profileData.lastName" label="Last Name" variant="outlined" />
+                  <v-text-field v-model="profileData.firstName" label="First Name" variant="outlined" @update:model-value="profileData.firstName = filterLettersOnly(profileData.firstName)" />
+                  </v-col>
+                  <v-col cols="12" md="6">
+                  <v-text-field v-model="profileData.lastName" label="Last Name" variant="outlined" @update:model-value="profileData.lastName = filterLettersOnly(profileData.lastName)" />
                 </v-col>
                 <v-col cols="12" md="6">
                   <v-text-field v-model="profileData.email" label="Email" variant="outlined" type="email" />
@@ -1689,6 +1918,34 @@
       </v-card>
     </v-dialog>
 
+    <!-- Test Email Dialog -->
+    <v-dialog v-model="testEmailDialog" max-width="500">
+      <v-card>
+        <v-card-title class="pa-6" style="background: #dc2626; color: white;">
+          <span class="section-title" style="color: white;">Test Email Configuration</span>
+        </v-card-title>
+        <v-card-text class="pa-6">
+          <p class="mb-4">Send a test email to verify your Brevo email configuration is working correctly.</p>
+          <v-text-field 
+            v-model="testEmailAddress" 
+            label="Test Email Address" 
+            variant="outlined" 
+            placeholder="teofiloharry69@gmail.com"
+            prepend-inner-icon="mdi-email"
+            class="mb-4"
+          />
+          <v-alert type="info" variant="tonal" class="mb-4">
+            This will send a test email to verify your SMTP configuration is working.
+          </v-alert>
+        </v-card-text>
+        <v-card-actions class="pa-6 pt-0">
+          <v-spacer />
+          <v-btn color="grey" variant="outlined" @click="testEmailDialog = false">Cancel</v-btn>
+          <v-btn color="error" :loading="sendingTestEmail" @click="sendTestEmail">Send Test Email</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
     <!-- Add User Dialog -->
     <v-dialog v-model="addUserDialog" max-width="600">
       <v-card>
@@ -1698,19 +1955,48 @@
         <v-card-text class="pa-6">
           <v-row>
             <v-col cols="12" md="6">
-              <v-text-field label="First Name" variant="outlined" />
+              <v-text-field v-model="addUserFormData.firstName" label="First Name" variant="outlined" @update:model-value="addUserFormData.firstName = filterLettersOnly(addUserFormData.firstName)" />
             </v-col>
             <v-col cols="12" md="6">
-              <v-text-field label="Last Name" variant="outlined" />
+              <v-text-field v-model="addUserFormData.lastName" label="Last Name" variant="outlined" @update:model-value="addUserFormData.lastName = filterLettersOnly(addUserFormData.lastName)" />
             </v-col>
             <v-col cols="12">
-              <v-text-field label="Email" variant="outlined" type="email" />
+              <v-text-field v-model="addUserFormData.email" label="Email" variant="outlined" type="email" />
+            </v-col>
+            <v-col cols="12">
+              <v-text-field 
+                v-model="addUserFormData.password" 
+                label="Password *" 
+                :type="showAddUserPassword ? 'text' : 'password'" 
+                variant="outlined" 
+                required
+                :append-inner-icon="showAddUserPassword ? 'mdi-eye-off' : 'mdi-eye'"
+                @click:append-inner="showAddUserPassword = !showAddUserPassword"
+              />
+              <div v-if="addUserFormData.password" class="password-requirements mt-2">
+                <div class="requirement-item" :class="{ valid: passwordMeetsLength(addUserFormData.password) }">
+                  <span class="requirement-icon">{{ passwordMeetsLength(addUserFormData.password) ? '✓' : '✗' }}</span>
+                  <span class="requirement-text">At least 8 characters</span>
+                </div>
+                <div class="requirement-item" :class="{ valid: passwordMeetsUppercase(addUserFormData.password) }">
+                  <span class="requirement-icon">{{ passwordMeetsUppercase(addUserFormData.password) ? '✓' : '✗' }}</span>
+                  <span class="requirement-text">One capital letter</span>
+                </div>
+                <div class="requirement-item" :class="{ valid: passwordMeetsDigit(addUserFormData.password) }">
+                  <span class="requirement-icon">{{ passwordMeetsDigit(addUserFormData.password) ? '✓' : '✗' }}</span>
+                  <span class="requirement-text">One digit</span>
+                </div>
+                <div class="requirement-item" :class="{ valid: passwordMeetsSpecial(addUserFormData.password) }">
+                  <span class="requirement-icon">{{ passwordMeetsSpecial(addUserFormData.password) ? '✓' : '✗' }}</span>
+                  <span class="requirement-text">One special character</span>
+                </div>
+              </div>
             </v-col>
             <v-col cols="12" md="6">
-              <v-select :items="['Client', 'Caregiver', 'Admin']" label="User Type" variant="outlined" />
+              <v-select v-model="addUserFormData.userType" :items="['Client', 'Caregiver', 'Admin']" label="User Type" variant="outlined" />
             </v-col>
             <v-col cols="12" md="6">
-              <v-select :items="['Active', 'Inactive']" label="Status" variant="outlined" />
+              <v-select v-model="addUserFormData.status" :items="['Active', 'Inactive']" label="Status" variant="outlined" />
             </v-col>
           </v-row>
         </v-card-text>
@@ -1733,16 +2019,23 @@
             <h3 class="text-h6 mb-4">Personal Information</h3>
             <v-row>
               <v-col cols="12" md="6">
-                <v-text-field v-model="clientForm.firstName" label="First Name *" variant="outlined" required />
+                <v-text-field v-model="clientForm.firstName" label="First Name *" variant="outlined" required @update:model-value="clientForm.firstName = filterLettersOnly(clientForm.firstName)" />
               </v-col>
               <v-col cols="12" md="6">
-                <v-text-field v-model="clientForm.lastName" label="Last Name *" variant="outlined" required />
+                <v-text-field v-model="clientForm.lastName" label="Last Name *" variant="outlined" required @update:model-value="clientForm.lastName = filterLettersOnly(clientForm.lastName)" />
               </v-col>
               <v-col cols="12" md="6">
                 <v-text-field v-model="clientForm.email" label="Email *" variant="outlined" type="email" required />
               </v-col>
               <v-col cols="12" md="6">
-                <v-text-field v-model="clientForm.phone" label="Phone" variant="outlined" />
+                <v-text-field 
+                  v-model="clientForm.phone" 
+                  label="Phone" 
+                  variant="outlined"
+                  placeholder="(646) 282-8282"
+                  maxlength="14"
+                  @update:model-value="clientForm.phone = formatPhoneNumber(clientForm.phone)"
+                />
               </v-col>
               <v-col cols="12" md="6">
                 <v-text-field v-model="clientForm.birthdate" label="Birthdate" variant="outlined" type="date" />
@@ -1763,7 +2056,52 @@
                 <v-select v-model="clientForm.city" :items="clientCities" label="City" variant="outlined" :disabled="!clientForm.county" />
               </v-col>
               <v-col cols="12" md="6">
-                <v-text-field v-model="clientForm.zip_code" label="ZIP Code" variant="outlined" />
+                <v-text-field 
+                  v-model="clientForm.zip_code" 
+                  label="ZIP Code" 
+                  variant="outlined"
+                  maxlength="5"
+                  :rules="[v => !v || /^\d{5}$/.test(v) || 'Please enter a valid 5-digit ZIP code']"
+                  placeholder="Enter ZIP code"
+                  @input="lookupClientZipCode"
+                  @blur="lookupClientZipCode"
+                >
+                  <template v-slot:prepend-inner>
+                    <v-icon>mdi-map-marker</v-icon>
+                  </template>
+                </v-text-field>
+                <div v-if="clientZipLocation" style="font-weight: 600; color: #000000; margin-top: -8px; font-size: 0.75rem; line-height: 1.2;">
+                  {{ clientZipLocation }}
+                </div>
+              </v-col>
+              <v-col cols="12" v-if="!editingClient">
+                <v-text-field 
+                  v-model="clientForm.password" 
+                  label="Password *" 
+                  :type="showClientPassword ? 'text' : 'password'" 
+                  variant="outlined" 
+                  required
+                  :append-inner-icon="showClientPassword ? 'mdi-eye-off' : 'mdi-eye'"
+                  @click:append-inner="showClientPassword = !showClientPassword"
+                />
+                <div v-if="clientForm.password" class="password-requirements mt-2">
+                  <div class="requirement-item" :class="{ valid: passwordMeetsLength(clientForm.password) }">
+                    <span class="requirement-icon">{{ passwordMeetsLength(clientForm.password) ? '✓' : '✗' }}</span>
+                    <span class="requirement-text">At least 8 characters</span>
+                  </div>
+                  <div class="requirement-item" :class="{ valid: passwordMeetsUppercase(clientForm.password) }">
+                    <span class="requirement-icon">{{ passwordMeetsUppercase(clientForm.password) ? '✓' : '✗' }}</span>
+                    <span class="requirement-text">One capital letter</span>
+                  </div>
+                  <div class="requirement-item" :class="{ valid: passwordMeetsDigit(clientForm.password) }">
+                    <span class="requirement-icon">{{ passwordMeetsDigit(clientForm.password) ? '✓' : '✗' }}</span>
+                    <span class="requirement-text">One digit</span>
+                  </div>
+                  <div class="requirement-item" :class="{ valid: passwordMeetsSpecial(clientForm.password) }">
+                    <span class="requirement-icon">{{ passwordMeetsSpecial(clientForm.password) ? '✓' : '✗' }}</span>
+                    <span class="requirement-text">One special character</span>
+                  </div>
+                </div>
               </v-col>
               <v-col cols="12">
                 <v-select v-model="clientForm.status" :items="['Active', 'Inactive']" label="Status *" variant="outlined" required />
@@ -1856,16 +2194,23 @@
             <h3 class="text-h6 mb-4">Personal Information</h3>
             <v-row>
               <v-col cols="12" md="6">
-                <v-text-field v-model="caregiverForm.firstName" label="First Name *" variant="outlined" required />
+                <v-text-field v-model="caregiverForm.firstName" label="First Name *" variant="outlined" required @update:model-value="caregiverForm.firstName = filterLettersOnly(caregiverForm.firstName)" />
               </v-col>
               <v-col cols="12" md="6">
-                <v-text-field v-model="caregiverForm.lastName" label="Last Name *" variant="outlined" required />
+                <v-text-field v-model="caregiverForm.lastName" label="Last Name *" variant="outlined" required @update:model-value="caregiverForm.lastName = filterLettersOnly(caregiverForm.lastName)" />
               </v-col>
               <v-col cols="12" md="6">
                 <v-text-field v-model="caregiverForm.email" label="Email *" variant="outlined" type="email" required />
               </v-col>
               <v-col cols="12" md="6">
-                <v-text-field v-model="caregiverForm.phone" label="Phone" variant="outlined" />
+                <v-text-field 
+                  v-model="caregiverForm.phone" 
+                  label="Phone" 
+                  variant="outlined"
+                  placeholder="(646) 282-8282"
+                  maxlength="14"
+                  @update:model-value="caregiverForm.phone = formatPhoneNumber(caregiverForm.phone)"
+                />
               </v-col>
               <v-col cols="12" md="6">
                 <v-text-field v-model="caregiverForm.birthdate" label="Birthdate" variant="outlined" type="date" />
@@ -1886,7 +2231,52 @@
                 <v-select v-model="caregiverForm.city" :items="caregiverCities" label="City" variant="outlined" :disabled="!caregiverForm.county" />
               </v-col>
               <v-col cols="12" md="6">
-                <v-text-field v-model="caregiverForm.zip_code" label="ZIP Code" variant="outlined" />
+                <v-text-field 
+                  v-model="caregiverForm.zip_code" 
+                  label="ZIP Code" 
+                  variant="outlined"
+                  maxlength="5"
+                  :rules="[v => !v || /^\d{5}$/.test(v) || 'Please enter a valid 5-digit ZIP code']"
+                  placeholder="Enter ZIP code"
+                  @input="lookupCaregiverZipCode"
+                  @blur="lookupCaregiverZipCode"
+                >
+                  <template v-slot:prepend-inner>
+                    <v-icon>mdi-map-marker</v-icon>
+                  </template>
+                </v-text-field>
+                <div v-if="caregiverZipLocation" style="font-weight: 600; color: #000000; margin-top: -8px; font-size: 0.75rem; line-height: 1.2;">
+                  {{ caregiverZipLocation }}
+                </div>
+              </v-col>
+              <v-col cols="12" v-if="!editingCaregiver">
+                <v-text-field 
+                  v-model="caregiverForm.password" 
+                  label="Password *" 
+                  :type="showCaregiverPassword ? 'text' : 'password'" 
+                  variant="outlined" 
+                  required
+                  :append-inner-icon="showCaregiverPassword ? 'mdi-eye-off' : 'mdi-eye'"
+                  @click:append-inner="showCaregiverPassword = !showCaregiverPassword"
+                />
+                <div v-if="caregiverForm.password" class="password-requirements mt-2">
+                  <div class="requirement-item" :class="{ valid: passwordMeetsLength(caregiverForm.password) }">
+                    <span class="requirement-icon">{{ passwordMeetsLength(caregiverForm.password) ? '✓' : '✗' }}</span>
+                    <span class="requirement-text">At least 8 characters</span>
+                  </div>
+                  <div class="requirement-item" :class="{ valid: passwordMeetsUppercase(caregiverForm.password) }">
+                    <span class="requirement-icon">{{ passwordMeetsUppercase(caregiverForm.password) ? '✓' : '✗' }}</span>
+                    <span class="requirement-text">One capital letter</span>
+                  </div>
+                  <div class="requirement-item" :class="{ valid: passwordMeetsDigit(caregiverForm.password) }">
+                    <span class="requirement-icon">{{ passwordMeetsDigit(caregiverForm.password) ? '✓' : '✗' }}</span>
+                    <span class="requirement-text">One digit</span>
+                  </div>
+                  <div class="requirement-item" :class="{ valid: passwordMeetsSpecial(caregiverForm.password) }">
+                    <span class="requirement-icon">{{ passwordMeetsSpecial(caregiverForm.password) ? '✓' : '✗' }}</span>
+                    <span class="requirement-text">One special character</span>
+                  </div>
+                </div>
               </v-col>
             </v-row>
           </div>
@@ -1927,9 +2317,12 @@
     <v-dialog v-model="confirmDialog" max-width="500">
       <v-card>
         <v-card-title class="pa-6" style="background: #dc2626; color: white;">
-          <div class="d-flex align-center">
-            <v-icon color="white" class="mr-3">mdi-alert-circle</v-icon>
-            <span class="section-title" style="color: white;">{{ confirmData.title }}</span>
+          <div class="d-flex align-center justify-space-between w-100">
+            <div class="d-flex align-center">
+              <v-icon color="white" class="mr-3">{{ confirmData.buttonIcon === 'mdi-check' ? 'mdi-check-circle' : 'mdi-alert-circle' }}</v-icon>
+              <span class="section-title" style="color: white;">{{ confirmData.title }}</span>
+            </div>
+            <v-btn icon="mdi-close" variant="text" style="color: white;" @click="confirmDialog = false"></v-btn>
           </div>
         </v-card-title>
         <v-card-text class="pa-6">
@@ -1938,7 +2331,7 @@
         <v-card-actions class="pa-6 pt-0">
           <v-spacer />
           <v-btn color="grey" variant="outlined" @click="confirmDialog = false">Cancel</v-btn>
-          <v-btn color="error" @click="handleConfirm">Confirm</v-btn>
+          <v-btn :color="confirmData.buttonColor" variant="flat" :prepend-icon="confirmData.buttonIcon" @click="handleConfirm">{{ confirmData.buttonText }}</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -2326,6 +2719,47 @@
                       <v-icon color="success" size="18" class="mr-2">mdi-cash-multiple</v-icon>
                       <span class="booking-detail-label">Order Total:</span>
                       <span class="booking-detail-value font-weight-bold text-success" style="font-size: 1.2em;">{{ viewingBooking.formattedPrice || '$0' }}</span>
+                    </div>
+                  </v-col>
+                </v-row>
+              </div>
+            </v-col>
+          </v-row>
+
+          <!-- Voucher/Referral Code Information -->
+          <v-row v-if="viewingBooking.referralCode" class="mb-4">
+            <v-col cols="12">
+              <div class="booking-overview-card">
+                <div class="booking-overview-header">
+                  <v-icon color="primary" size="24" class="mr-3">mdi-ticket-percent</v-icon>
+                  <span class="booking-overview-title">Voucher Applied</span>
+                </div>
+                <v-divider class="my-3" />
+                <v-row>
+                  <v-col cols="12" md="6">
+                    <div class="booking-detail-item">
+                      <v-icon color="primary" size="18" class="mr-2">mdi-ticket</v-icon>
+                      <span class="booking-detail-label">Referral Code:</span>
+                      <v-chip color="primary" size="small" class="ml-2 font-weight-bold">
+                        {{ viewingBooking.referralCode.code }}
+                      </v-chip>
+                    </div>
+                    <div class="booking-detail-item" v-if="viewingBooking.referralDiscountApplied">
+                      <v-icon color="success" size="18" class="mr-2">mdi-tag</v-icon>
+                      <span class="booking-detail-label">Discount Applied:</span>
+                      <span class="booking-detail-value text-success font-weight-bold">${{ viewingBooking.referralDiscountApplied }}/hour</span>
+                    </div>
+                  </v-col>
+                  <v-col cols="12" md="6" v-if="viewingBooking.referralCode.user">
+                    <div class="booking-detail-item">
+                      <v-icon color="info" size="18" class="mr-2">mdi-account-circle</v-icon>
+                      <span class="booking-detail-label">Referred By:</span>
+                      <span class="booking-detail-value">{{ viewingBooking.referralCode.user.name }}</span>
+                    </div>
+                    <div class="booking-detail-item" v-if="viewingBooking.referralCode.user.email">
+                      <v-icon color="info" size="18" class="mr-2">mdi-email</v-icon>
+                      <span class="booking-detail-label">Email:</span>
+                      <span class="booking-detail-value">{{ viewingBooking.referralCode.user.email }}</span>
                     </div>
                   </v-col>
                 </v-row>
@@ -2921,6 +3355,9 @@ const addUserDialog = ref(false);
 const viewCaregiverDialog = ref(false);
 const viewingCaregiver = ref(null);
 const announceDialog = ref(false);
+const testEmailDialog = ref(false);
+const testEmailAddress = ref('teofiloharry69@gmail.com');
+const sendingTestEmail = ref(false);
 const clientDialog = ref(false);
 const caregiverDialog = ref(false);
 const editingClient = ref(false);
@@ -2936,6 +3373,7 @@ const clientForm = ref({
   county: '', 
   city: '', 
   zip_code: '', 
+  password: '',
   status: 'Active' 
 });
 const caregiverForm = ref({ 
@@ -2949,6 +3387,7 @@ const caregiverForm = ref({
   county: '', 
   city: '', 
   zip_code: '', 
+  password: '',
   experience: '', 
   trainingCenter: '', 
   customTrainingCenter: '', 
@@ -2994,6 +3433,19 @@ const userChart = ref(null);
 const showCurrentPassword = ref(false);
 const showNewPassword = ref(false);
 const showConfirmPassword = ref(false);
+const showMarketingPassword = ref(false);
+const showTrainingPassword = ref(false);
+const showAddUserPassword = ref(false);
+const showClientPassword = ref(false);
+const showCaregiverPassword = ref(false);
+const addUserFormData = ref({
+  firstName: '',
+  lastName: '',
+  email: '',
+  password: '',
+  userType: 'Client',
+  status: 'Active'
+});
 const maintenanceMode = ref(false);
 
 const caregivers = ref([]);
@@ -3011,6 +3463,9 @@ const selectedBookings = ref([]);
 
 const pendingApplications = ref([]);
 
+const viewApplicationDialog = ref(false);
+const viewingApplication = ref(null);
+
 const loadApplications = async () => {
   try {
     const response = await fetch('/api/admin/applications');
@@ -3019,6 +3474,11 @@ const loadApplications = async () => {
   } catch (error) {
     console.error('Failed to load applications:', error);
   }
+};
+
+const viewApplication = (application) => {
+  viewingApplication.value = application;
+  viewApplicationDialog.value = true;
 };
 
 const passwordResets = ref([]);
@@ -3081,11 +3541,9 @@ const editingTrainingCenter = ref(null);
 const viewTrainingCenterDialog = ref(false);
 const viewingTrainingCenter = ref(null);
 const trainingCenterFormData = ref({
-  firstName: '',
-  lastName: '',
+  name: '',
   email: '',
   phone: '',
-  birthdate: '',
   address: '',
   state: 'New York',
   county: '',
@@ -3094,6 +3552,7 @@ const trainingCenterFormData = ref({
   password: '',
   status: 'Active'
 });
+const trainingCenterZipLocation = ref('');
 const trainingCenterHeaders = [
   { title: 'Name', key: 'name' },
   { title: 'Email', key: 'email' },
@@ -3109,9 +3568,9 @@ const applicationHeaders = [
   { title: 'Name', key: 'name' },
   { title: 'Email', key: 'email' },
   { title: 'Type', key: 'type' },
+  { title: 'Phone', key: 'phone' },
   { title: 'Applied', key: 'applied' },
-  { title: 'Documents', key: 'documents' },
-  { title: 'Experience', key: 'experience' },
+  { title: 'Status', key: 'documents' },
   { title: 'Actions', key: 'actions', sortable: false },
 ];
 
@@ -3203,14 +3662,14 @@ const navItems = ref([
   { icon: 'mdi-bell', title: 'Notifications', value: 'notifications', badge: adminUnreadCount.value > 0 },
   { 
     icon: 'mdi-account-group', 
-    title: 'User Management', 
+    title: 'Users', 
     value: 'user-management',
     isToggle: true,
     expanded: false,
     children: [
       { icon: 'mdi-account-heart', title: 'Caregivers', value: 'caregivers' },
       { icon: 'mdi-account-multiple', title: 'Clients', value: 'clients' },
-      { icon: 'mdi-bullhorn-variant', title: 'Marketing Staff', value: 'marketing-staff' },
+      { icon: 'mdi-bullhorn-variant', title: 'Marketing Partner', value: 'marketing-staff' },
       { icon: 'mdi-school', title: 'Training Centers', value: 'training-centers' }
     ]
   },
@@ -3525,6 +3984,89 @@ const lookupBookingZipCode = () => {
     bookingZipLocation.value = zipCodeMap[zip] || 'New York, NY';
   } else {
     bookingZipLocation.value = '';
+  }
+};
+
+const lookupTrainingCenterZipCode = () => {
+  const zip = trainingCenterFormData.value.zip_code;
+  if (zip && zip.length === 5 && /^\d{5}$/.test(zip)) {
+    trainingCenterZipLocation.value = zipCodeMap[zip] || 'New York, NY';
+  } else {
+    trainingCenterZipLocation.value = '';
+  }
+};
+
+// Phone number formatting function - NY format (XXX) XXX-XXXX
+const formatPhoneNumber = (value) => {
+  if (!value) return '';
+  // Remove all non-numeric characters
+  let cleaned = value.replace(/\D/g, '');
+  // Limit to 10 digits
+  if (cleaned.length > 10) {
+    cleaned = cleaned.slice(0, 10);
+  }
+  // Format as (XXX) XXX-XXXX
+  if (cleaned.length === 0) {
+    return '';
+  } else if (cleaned.length <= 3) {
+    return `(${cleaned}`;
+  } else if (cleaned.length <= 6) {
+    return `(${cleaned.slice(0, 3)}) ${cleaned.slice(3)}`;
+  } else {
+    return `(${cleaned.slice(0, 3)}) ${cleaned.slice(3, 6)}-${cleaned.slice(6, 10)}`;
+  }
+};
+
+// Password requirement check functions
+const passwordMeetsLength = (password) => {
+  return password && password.length >= 8;
+};
+
+const passwordMeetsUppercase = (password) => {
+  return password && /[A-Z]/.test(password);
+};
+
+const passwordMeetsDigit = (password) => {
+  return password && /[0-9]/.test(password);
+};
+
+const passwordMeetsSpecial = (password) => {
+  return password && /[^a-zA-Z0-9]/.test(password);
+};
+
+// Filter to allow only letters and spaces for name fields
+const filterLettersOnly = (value) => {
+  if (!value) return '';
+  return value.replace(/[^A-Za-z\s]/g, '');
+};
+
+const clientZipLocation = ref('');
+const lookupClientZipCode = () => {
+  const zip = clientForm.value.zip_code;
+  if (zip && zip.length === 5 && /^\d{5}$/.test(zip)) {
+    clientZipLocation.value = zipCodeMap[zip] || 'New York, NY';
+  } else {
+    clientZipLocation.value = '';
+  }
+};
+
+const caregiverZipLocation = ref('');
+const lookupCaregiverZipCode = () => {
+  const zip = caregiverForm.value.zip_code;
+  if (zip && zip.length === 5 && /^\d{5}$/.test(zip)) {
+    caregiverZipLocation.value = zipCodeMap[zip] || 'New York, NY';
+  } else {
+    caregiverZipLocation.value = '';
+  }
+};
+
+const marketingStaffZipLocation = ref('');
+const lookupMarketingStaffZipCode = () => {
+  const zip = marketingStaffFormData.value.zip_code;
+  if (zip && zip.length === 5 && /^\d{5}$/.test(zip)) {
+    marketingStaffZipLocation.value = zipCodeMap[zip] || 'New York, NY';
+  } else {
+    marketingStaffZipLocation.value = '';
   }
 };
 
@@ -4225,7 +4767,23 @@ const loadClientBookings = async () => {
     clientBookings.value = bookings.map(b => {
       const date = new Date(b.service_date);
       const time = b.start_time ? new Date(`1970-01-01T${b.start_time}`) : date;
-      const caregiversNeeded = Math.ceil(b.duration_days / 15) || 1;
+      // Calculate caregivers needed based on hours per day
+      // 8 hours per day = 1 caregiver, 12 hours = 2 caregivers, 24 hours = 3 caregivers
+      const extractHours = (dutyType) => {
+        if (!dutyType) return 8;
+        const match = dutyType.match(/(\d+)\s*Hours?/i);
+        return match ? parseInt(match[1]) : 8;
+      };
+      
+      const calculateCaregiversNeeded = (dutyType) => {
+        const hoursPerDay = extractHours(dutyType);
+        if (hoursPerDay <= 8) return 1;
+        if (hoursPerDay <= 12) return 2;
+        if (hoursPerDay <= 24) return 3;
+        return Math.ceil(hoursPerDay / 8); // For more than 24 hours
+      };
+      
+      const caregiversNeeded = b.caregivers_needed !== undefined ? b.caregivers_needed : calculateCaregiversNeeded(b.duty_type);
       const assignedCount = b.assignments?.length || 0;
       
       // Calculate coverage end date
@@ -4327,7 +4885,11 @@ const loadClientBookings = async () => {
         hoursPerDay: hoursPerDay,
         hourlyRate: hourlyRate,
         totalBudget: totalBudget,
-        formattedPrice: '$' + totalBudget.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })
+        formattedPrice: '$' + totalBudget.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 }),
+        // Referral code/voucher information
+        referralCode: b.referral_code || null,
+        referralCodeId: b.referral_code_id || null,
+        referralDiscountApplied: b.referral_discount_applied || null
       };
     });
     
@@ -4511,59 +5073,130 @@ const suspendUser = (user) => {
 };
 
 const approveApplication = async (application) => {
-  if (confirm(`Approve application for ${application.name}?`)) {
-    try {
-      await fetch(`/api/admin/applications/${application.id}/approve`, {
-        method: 'POST',
-        headers: {
-          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+  showConfirm(
+    'Approve Application',
+    `Are you sure you want to approve the application for ${application.name}? The contractor will be able to access their dashboard once approved.`,
+    async () => {
+      try {
+        const response = await fetch(`/api/admin/applications/${application.id}/approve`, {
+          method: 'POST',
+          headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+          }
+        });
+        const result = await response.json();
+        if (result.success) {
+          const emailMsg = result.email_sent ? ` Approval email sent to ${application.email}.` : (result.email_message ? ` ${result.email_message}` : '');
+          success(`${application.name} has been approved!${emailMsg}`, 'Application Approved');
+        } else {
+          error('Failed to approve application. Please try again.', 'Approval Failed');
         }
-      });
-      success(`${application.name} has been approved!`, 'Application Approved');
-      loadApplications();
-    } catch (err) {
-      error('Failed to approve application. Please try again.', 'Approval Failed');
-    }
-  }
+        loadApplications();
+      } catch (err) {
+        error('Failed to approve application. Please try again.', 'Approval Failed');
+      }
+    },
+    'success',
+    'Approve',
+    'mdi-check'
+  );
 };
 
 const rejectApplication = async (application) => {
-  if (confirm(`Reject application for ${application.name}?`)) {
-    try {
-      await fetch(`/api/admin/applications/${application.id}/reject`, {
-        method: 'POST',
-        headers: {
-          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+  showConfirm(
+    'Reject Application',
+    `Are you sure you want to reject the application for ${application.name}? This action cannot be undone and the applicant will not be able to access their dashboard.`,
+    async () => {
+      try {
+        const response = await fetch(`/api/admin/applications/${application.id}/reject`, {
+          method: 'POST',
+          headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+          }
+        });
+        const result = await response.json();
+        if (result.success) {
+          const emailMsg = result.email_sent ? ` Rejection email sent to ${application.email}.` : (result.email_message ? ` ${result.email_message}` : '');
+          warning(`${application.name} has been rejected.${emailMsg}`, 'Application Rejected');
+        } else {
+          error('Failed to reject application. Please try again.', 'Rejection Failed');
         }
-      });
-      warning(`${application.name} has been rejected.`, 'Application Rejected');
-      loadApplications();
-    } catch (err) {
-      error('Failed to reject application. Please try again.', 'Rejection Failed');
-    }
-  }
+        loadApplications();
+      } catch (err) {
+        error('Failed to reject application. Please try again.', 'Rejection Failed');
+      }
+    },
+    'error',
+    'Reject',
+    'mdi-close'
+  );
 };
 
 const processPasswordReset = async (reset) => {
-  if (confirm(`Process password reset for ${reset.email}?`)) {
-    try {
-      await fetch(`/api/admin/password-resets/${reset.id}/process`, {
-        method: 'POST',
-        headers: {
-          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+  showConfirm(
+    'Process Password Reset',
+    `Process password reset for ${reset.email}? This will set the user's password to 123456.`,
+    async () => {
+      try {
+        const response = await fetch(`/api/admin/password-resets/${reset.id}/process`, {
+          method: 'POST',
+          headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+          }
+        });
+        const result = await response.json().catch(() => ({ success: response.ok }));
+        if (result.success) {
+          const emailMsg = result.email_sent ? ` Notification email sent to ${reset.email}.` : '';
+          success(`Password reset processed for ${reset.email}.${emailMsg}`, 'Reset Complete');
+        } else {
+          error('Failed to process password reset. Please try again.', 'Reset Failed');
         }
-      });
-      success(`Password reset processed for ${reset.email}`, 'Reset Complete');
-      loadPasswordResets();
-    } catch (err) {
-      error('Failed to process password reset. Please try again.', 'Reset Failed');
-    }
-  }
+        loadPasswordResets();
+      } catch (err) {
+        error('Failed to process password reset. Please try again.', 'Reset Failed');
+      }
+    },
+    'success',
+    'Approve',
+    'mdi-lock-reset'
+  );
 };
 
 const verifyUser = (user, type) => {
   user.verified = !user.verified;
   success(`${user.name} verification status updated.`, 'Verification Updated');
+};
+
+const sendTestEmail = async () => {
+  if (!testEmailAddress.value || !testEmailAddress.value.includes('@')) {
+    warning('Please enter a valid email address.', 'Invalid Email');
+    return;
+  }
+  
+  sendingTestEmail.value = true;
+  try {
+    const response = await fetch('/api/admin/test-email', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+      },
+      body: JSON.stringify({ email: testEmailAddress.value })
+    });
+    
+    const result = await response.json();
+    
+    if (result.success) {
+      success(result.message || `Test email sent successfully to ${testEmailAddress.value}!`, 'Test Email Sent');
+      testEmailDialog.value = false;
+    } else {
+      error(result.message || 'Failed to send test email. Please check your configuration.', 'Test Email Failed');
+    }
+  } catch (err) {
+    error('Failed to send test email. Please try again.', 'Test Email Failed');
+  } finally {
+    sendingTestEmail.value = false;
+  }
 };
 
 const sendAnnouncement = async () => {
@@ -4581,7 +5214,8 @@ const sendAnnouncement = async () => {
       body: JSON.stringify(announcementData.value)
     });
     const result = await response.json();
-    success(`Announcement sent successfully! ${result.notifications_sent || 0} notifications created.`, 'Announcement Sent');
+    const emailMsg = result.emails_sent ? ` Emails sent to ${result.emails_sent} out of ${result.notifications_sent || 0} recipients.` : '';
+    success(`Announcement sent successfully! ${result.notifications_sent || 0} notifications created.${emailMsg}`, 'Announcement Sent');
     announcementData.value = { title: '', message: '', type: 'info', recipients: 'all', priority: 'normal' };
     announceDialog.value = false;
     // Refresh notifications after sending announcement
@@ -4646,8 +5280,12 @@ const openClientDialog = (client = null) => {
       county: client.county || '',
       city: client.city || client.borough || '',
       zip_code: client.zip_code || '',
+      password: '',
       status: client.status || 'Active'
     };
+    if (client.zip_code) {
+      lookupClientZipCode();
+    }
   } else {
     editingClient.value = false;
     clientForm.value = { 
@@ -4661,8 +5299,10 @@ const openClientDialog = (client = null) => {
       county: '', 
       city: '', 
       zip_code: '', 
+      password: '',
       status: 'Active' 
     };
+    clientZipLocation.value = '';
   }
   clientDialog.value = true;
 };
@@ -4678,9 +5318,34 @@ const saveClient = async () => {
       error('Please fill in required fields: First Name, Last Name, and Email', 'Validation Error');
       return;
     }
+    if (!editingClient.value && !clientForm.value.password) {
+      error('Password is required for new clients', 'Validation Error');
+      return;
+    }
     
     const url = editingClient.value ? `/api/admin/users/${clientForm.value.id}` : '/api/admin/users';
     const method = editingClient.value ? 'PUT' : 'POST';
+    
+    const formData = {
+      name: `${clientForm.value.firstName} ${clientForm.value.lastName}`.trim(),
+      firstName: clientForm.value.firstName,
+      lastName: clientForm.value.lastName,
+      email: clientForm.value.email,
+      phone: clientForm.value.phone || null,
+      date_of_birth: clientForm.value.birthdate || null,
+      address: clientForm.value.address || null,
+      state: clientForm.value.state || 'New York',
+      county: clientForm.value.county || null,
+      city: clientForm.value.city || null,
+      borough: clientForm.value.city || null,
+      zip_code: clientForm.value.zip_code || null,
+      status: clientForm.value.status,
+      user_type: 'client'
+    };
+    
+    if (!editingClient.value && clientForm.value.password) {
+      formData.password = clientForm.value.password;
+    }
     
     const response = await fetch(url, {
       method,
@@ -4688,22 +5353,7 @@ const saveClient = async () => {
         'Content-Type': 'application/json',
         'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
       },
-      body: JSON.stringify({
-        name: `${clientForm.value.firstName} ${clientForm.value.lastName}`.trim(),
-        firstName: clientForm.value.firstName,
-        lastName: clientForm.value.lastName,
-        email: clientForm.value.email,
-        phone: clientForm.value.phone || null,
-        date_of_birth: clientForm.value.birthdate || null,
-        address: clientForm.value.address || null,
-        state: clientForm.value.state || 'New York',
-        county: clientForm.value.county || null,
-        city: clientForm.value.city || null,
-        borough: clientForm.value.city || null,
-        zip_code: clientForm.value.zip_code || null,
-        status: clientForm.value.status,
-        user_type: 'client'
-      })
+      body: JSON.stringify(formData)
     });
     
     if (response.ok) {
@@ -4896,20 +5546,20 @@ const saveMarketingStaff = async () => {
     });
 
     if (response.ok) {
-      success(editingMarketingStaff.value ? 'Marketing staff updated!' : 'Marketing staff created!', 'Success');
+      success(editingMarketingStaff.value ? 'Marketing partner updated!' : 'Marketing partner created!', 'Success');
       marketingStaffDialog.value = false;
       loadMarketingStaff();
     } else {
       throw new Error('Failed to save');
     }
   } catch (err) {
-    error('Failed to save marketing staff', 'Error');
+    error('Failed to save marketing partner', 'Error');
   }
 };
 
 const deleteMarketingStaff = (staff) => {
   showConfirm(
-    'Delete Marketing Staff',
+    'Delete Marketing Partner',
     `Are you sure you want to delete ${staff.name}? This action cannot be undone.`,
     async () => {
       try {
@@ -4919,10 +5569,10 @@ const deleteMarketingStaff = (staff) => {
             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
           }
         });
-        success('Marketing staff deleted!', 'Deleted');
+        success('Marketing partner deleted!', 'Deleted');
         loadMarketingStaff();
       } catch (err) {
-        error('Failed to delete marketing staff', 'Error');
+        error('Failed to delete marketing partner', 'Error');
       }
     }
   );
@@ -4979,13 +5629,10 @@ const viewTrainingCenterDetails = async (center) => {
 const openTrainingCenterDialog = (center = null) => {
   if (center) {
     editingTrainingCenter.value = center;
-    const nameParts = (center.name || '').split(' ');
     trainingCenterFormData.value = {
-      firstName: nameParts[0] || '',
-      lastName: nameParts.slice(1).join(' ') || '',
+      name: center.name || '',
       email: center.email || '',
       phone: center.phone || '',
-      birthdate: center.date_of_birth || '',
       address: center.address || '',
       state: center.state || 'New York',
       county: center.county || '',
@@ -4994,14 +5641,17 @@ const openTrainingCenterDialog = (center = null) => {
       password: '',
       status: center.status || 'Active'
     };
+    if (center.zip_code) {
+      lookupTrainingCenterZipCode();
+    } else {
+      trainingCenterZipLocation.value = '';
+    }
   } else {
     editingTrainingCenter.value = null;
     trainingCenterFormData.value = { 
-      firstName: '', 
-      lastName: '', 
+      name: '', 
       email: '', 
       phone: '', 
-      birthdate: '', 
       address: '', 
       state: 'New York', 
       county: '', 
@@ -5010,27 +5660,39 @@ const openTrainingCenterDialog = (center = null) => {
       password: '', 
       status: 'Active' 
     };
+    trainingCenterZipLocation.value = '';
   }
   trainingCenterDialog.value = true;
 };
 
 const saveTrainingCenter = async () => {
   try {
-    if (!trainingCenterFormData.value.firstName || !trainingCenterFormData.value.lastName || !trainingCenterFormData.value.email) {
-      error('Please fill in required fields: First Name, Last Name, and Email', 'Validation Error');
+    if (!trainingCenterFormData.value.name || !trainingCenterFormData.value.email) {
+      error('Please fill in required fields: Training Center Name and Email', 'Validation Error');
       return;
     }
+    
+    if (editingTrainingCenter.value && !editingTrainingCenter.value.id) {
+      console.error('Editing training center but no ID found:', editingTrainingCenter.value);
+      error('Invalid training center data. Please refresh the page and try again.', 'Error');
+      return;
+    }
+    
     const url = editingTrainingCenter.value 
       ? `/api/admin/training-centers/${editingTrainingCenter.value.id}`
       : '/api/admin/training-centers';
     
+    console.log('Saving training center:', {
+      isEdit: !!editingTrainingCenter.value,
+      id: editingTrainingCenter.value?.id,
+      url: url,
+      formData: trainingCenterFormData.value
+    });
+    
     const formData = {
-      name: `${trainingCenterFormData.value.firstName} ${trainingCenterFormData.value.lastName}`.trim(),
-      firstName: trainingCenterFormData.value.firstName,
-      lastName: trainingCenterFormData.value.lastName,
+      name: trainingCenterFormData.value.name.trim(),
       email: trainingCenterFormData.value.email,
       phone: trainingCenterFormData.value.phone || null,
-      date_of_birth: trainingCenterFormData.value.birthdate || null,
       address: trainingCenterFormData.value.address || null,
       state: trainingCenterFormData.value.state || 'New York',
       county: trainingCenterFormData.value.county || null,
@@ -5110,6 +5772,7 @@ const openCaregiverDialog = (caregiver = null) => {
       county: caregiver.county || '',
       city: caregiver.city || caregiver.borough || '',
       zip_code: caregiver.zip_code || '',
+      password: '',
       experience: caregiver.years_experience || caregiver.experience || '',
       trainingCenter: caregiver.training_center || '',
       customTrainingCenter: '',
@@ -5118,6 +5781,9 @@ const openCaregiverDialog = (caregiver = null) => {
       bio: caregiver.bio || '',
       status: caregiver.status || 'Active'
     };
+    if (caregiver.zip_code) {
+      lookupCaregiverZipCode();
+    }
   } else {
     editingCaregiver.value = false;
     caregiverForm.value = { 
@@ -5131,6 +5797,7 @@ const openCaregiverDialog = (caregiver = null) => {
       county: '', 
       city: '', 
       zip_code: '', 
+      password: '',
       experience: '', 
       trainingCenter: '', 
       customTrainingCenter: '', 
@@ -5139,6 +5806,7 @@ const openCaregiverDialog = (caregiver = null) => {
       bio: '', 
       status: 'Active' 
     };
+    caregiverZipLocation.value = '';
   }
   caregiverDialog.value = true;
 };
@@ -5240,6 +5908,10 @@ const saveCaregiver = async () => {
       error('Please fill in required fields: First Name, Last Name, and Email', 'Validation Error');
       return;
     }
+    if (!editingCaregiver.value && !caregiverForm.value.password) {
+      error('Password is required for new caregivers', 'Validation Error');
+      return;
+    }
 
     const url = editingCaregiver.value ? `/api/admin/users/${caregiverForm.value.id}` : '/api/admin/users';
     const method = editingCaregiver.value ? 'PUT' : 'POST';
@@ -5263,6 +5935,10 @@ const saveCaregiver = async () => {
       status: caregiverForm.value.status,
       user_type: 'caregiver'
     };
+    
+    if (!editingCaregiver.value && caregiverForm.value.password) {
+      formData.password = caregiverForm.value.password;
+    }
 
     const response = await fetch(url, {
       method,
@@ -5288,10 +5964,10 @@ const saveCaregiver = async () => {
 };
 
 const confirmDialog = ref(false);
-const confirmData = ref({ title: '', message: '', action: null });
+const confirmData = ref({ title: '', message: '', action: null, buttonColor: 'error', buttonText: 'Confirm', buttonIcon: 'mdi-check' });
 
-const showConfirm = (title, message, action) => {
-  confirmData.value = { title, message, action };
+const showConfirm = (title, message, action, buttonColor = 'error', buttonText = 'Confirm', buttonIcon = 'mdi-check') => {
+  confirmData.value = { title, message, action, buttonColor, buttonText, buttonIcon };
   confirmDialog.value = true;
 };
 
@@ -5515,8 +6191,8 @@ const deleteSelectedClients = async () => {
 const deleteSelectedMarketingStaff = async () => {
   if (selectedMarketingStaff.value.length === 0) return;
   showConfirm(
-    'Delete Selected Marketing Staff',
-    `Are you sure you want to delete ${selectedMarketingStaff.value.length} marketing staff member(s)? This action cannot be undone.`,
+    'Delete Selected Marketing Partner',
+    `Are you sure you want to delete ${selectedMarketingStaff.value.length} marketing partner(s)? This action cannot be undone.`,
     async () => {
       try {
         let deletedCount = 0;
@@ -5540,27 +6216,27 @@ const deleteSelectedMarketingStaff = async () => {
               deletedCount++;
             } else {
               failedCount++;
-              console.error(`Failed to delete marketing staff ${staffId}:`, data);
+              console.error(`Failed to delete marketing partner ${staffId}:`, data);
             }
           } catch (err) {
             failedCount++;
-            console.error(`Error deleting marketing staff ${staffId}:`, err);
+            console.error(`Error deleting marketing partner ${staffId}:`, err);
           }
         }
         
         if (failedCount === 0) {
-          success(`${deletedCount} marketing staff member(s) deleted successfully!`, 'Marketing Staff Deleted');
+          success(`${deletedCount} marketing partner(s) deleted successfully!`, 'Marketing Partner Deleted');
         } else if (deletedCount > 0) {
-          warning(`${deletedCount} marketing staff member(s) deleted, but ${failedCount} failed.`, 'Partial Success');
+          warning(`${deletedCount} marketing partner(s) deleted, but ${failedCount} failed.`, 'Partial Success');
         } else {
-          error('Failed to delete marketing staff. Please try again.', 'Delete Failed');
+          error('Failed to delete marketing partner. Please try again.', 'Delete Failed');
         }
         
         selectedMarketingStaff.value = [];
         await loadMarketingStaff();
       } catch (err) {
         console.error('Bulk delete error:', err);
-        error('Failed to delete marketing staff. Please try again.', 'Delete Failed');
+        error('Failed to delete marketing partner. Please try again.', 'Delete Failed');
       }
     }
   );
@@ -5912,8 +6588,10 @@ const approveBooking = async (booking) => {
     });
     
     if (response.ok) {
+      const result = await response.json();
       booking.status = 'approved';
-      success(`Booking for ${booking.client} has been approved!`, 'Booking Approved');
+      const emailMsg = result.email_sent ? ` Approval email sent to ${booking.client_email || 'client'}.` : (result.email_message ? ` ${result.email_message}` : '');
+      success(`Booking for ${booking.client} has been approved!${emailMsg}`, 'Booking Approved');
       // Show assign dialog immediately after approval
       setTimeout(() => {
         assignCaregiverDialog(booking);
@@ -6715,6 +7393,51 @@ onMounted(() => {
   align-items: center !important;
   margin: 0 auto !important;
   width: 100% !important;
+}
+
+/* Password Requirements Styling */
+.password-requirements {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  margin-top: 0.5rem;
+}
+
+.requirement-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8rem;
+  transition: all 0.2s ease;
+}
+
+.requirement-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.25rem;
+  height: 1.25rem;
+  border-radius: 50%;
+  font-size: 0.7rem;
+  font-weight: bold;
+  color: #dc2626;
+  background-color: #fee2e2;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+}
+
+.requirement-item.valid .requirement-icon {
+  color: #059669;
+  background-color: #d1fae5;
+}
+
+.requirement-text {
+  color: #64748b;
+  transition: color 0.2s ease;
+}
+
+.requirement-item.valid .requirement-text {
+  color: #059669;
 }
 </style>
 

@@ -30,17 +30,24 @@ DB_USERNAME=your_database_user
 DB_PASSWORD=your_secure_database_password
 ```
 
-### Email Configuration
+### Email Configuration (Brevo - Recommended)
 ```env
 MAIL_MAILER=smtp
-MAIL_HOST=smtp.mailtrap.io
-MAIL_PORT=2525
-MAIL_USERNAME=your_smtp_username
-MAIL_PASSWORD=your_smtp_password
+MAIL_HOST=smtp-relay.brevo.com
+MAIL_PORT=587
+MAIL_USERNAME=your_brevo_email@example.com
+MAIL_PASSWORD=your_brevo_smtp_password
 MAIL_ENCRYPTION=tls
 MAIL_FROM_ADDRESS=noreply@yourdomain.com
 MAIL_FROM_NAME="${APP_NAME}"
 ```
+
+**Setup Instructions:**
+1. Sign up at https://www.brevo.com
+2. Go to Settings → SMTP & API → SMTP
+3. Generate an SMTP password
+4. Verify your sender email address in Settings → Senders
+5. See `BREVO_EMAIL_SETUP.md` for detailed setup guide
 
 ### OAuth Configuration (Optional but Recommended)
 ```env

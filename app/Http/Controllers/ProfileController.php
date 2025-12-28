@@ -231,8 +231,61 @@ class ProfileController extends Controller
             ]);
         }
 
-        // Update caregiver record
+        // Ensure caregiver record exists
+        if (!$user->caregiver) {
+            \App\Models\Caregiver::create([
+                'user_id' => $user->id,
+                'first_name' => $validated['firstName'] ?? '',
+                'last_name' => $validated['lastName'] ?? '',
+                'gender' => 'female',
+                'availability_status' => 'available'
+            ]);
+            $user->refresh();
+        }
+
+        // Handle training center
         $caregiverData = [];
+        
+        // Check if custom training center checkbox is checked
+        $isCustomTrainingCenter = isset($validated['customTrainingCenter']) && !empty(trim($validated['customTrainingCenter']));
+        
+        if ($isCustomTrainingCenter) {
+            // Custom training center - clear the training_center_id
+            $caregiverData['training_center_id'] = null;
+            $caregiverData['has_training_center'] = false;
+            $caregiverData['training_center_approval_status'] = null;
+            \Log::info('Custom training center selected, clearing training_center_id');
+        } else if (isset($validated['trainingCenter']) && !empty(trim($validated['trainingCenter']))) {
+            // Find training center by name
+            $trainingCenterName = trim($validated['trainingCenter']);
+            $trainingCenter = \App\Models\User::whereIn('user_type', ['training_center', 'training'])
+                ->where('name', $trainingCenterName)
+                ->where('status', 'Active')
+                ->first();
+            
+            if ($trainingCenter) {
+                $caregiverData['training_center_id'] = $trainingCenter->id;
+                $caregiverData['has_training_center'] = true;
+                // Set approval status to pending - requires training center approval
+                $caregiverData['training_center_approval_status'] = 'pending';
+                \Log::info('Training center association requested (pending approval):', [
+                    'caregiver_id' => $user->caregiver->id,
+                    'training_center_id' => $trainingCenter->id,
+                    'training_center_name' => $trainingCenter->name
+                ]);
+            } else {
+                \Log::warning('Training center not found:', ['name' => $trainingCenterName]);
+            }
+        } else if (isset($validated['trainingCenter']) && empty(trim($validated['trainingCenter']))) {
+            // Training center was explicitly cleared (empty string sent)
+            $caregiverData['training_center_id'] = null;
+            $caregiverData['has_training_center'] = false;
+            $caregiverData['training_center_approval_status'] = null;
+            \Log::info('Training center cleared from caregiver');
+        }
+        // If trainingCenter is not in validated array, don't change it (user didn't modify this field)
+
+        // Update caregiver record
         if (isset($validated['experience'])) $caregiverData['years_experience'] = $validated['experience'];
         if (isset($validated['bio'])) $caregiverData['bio'] = $validated['bio'];
         if (isset($validated['training_certificate'])) {
@@ -254,9 +307,19 @@ class ProfileController extends Controller
             $user->refresh();
             $caregiver = $user->caregiver ? $user->caregiver->fresh() : null;
             
+            // Get training center name if caregiver has a training center
+            $trainingCenterName = null;
+            if ($caregiver && $caregiver->training_center_id) {
+                $trainingCenter = \App\Models\User::find($caregiver->training_center_id);
+                if ($trainingCenter) {
+                    $trainingCenterName = $trainingCenter->name;
+                }
+            }
+            
             \Log::info('Returning response with caregiver data:', [
                 'has_caregiver' => $caregiver !== null,
-                'training_certificate' => $caregiver ? $caregiver->training_certificate : null
+                'training_certificate' => $caregiver ? $caregiver->training_certificate : null,
+                'training_center_name' => $trainingCenterName
             ]);
             
             return response()->json([
@@ -266,7 +329,10 @@ class ProfileController extends Controller
                     'id' => $caregiver->id,
                     'years_experience' => $caregiver->years_experience,
                     'bio' => $caregiver->bio,
-                    'training_certificate' => $caregiver->training_certificate
+                    'training_certificate' => $caregiver->training_certificate,
+                    'training_center_id' => $caregiver->training_center_id,
+                    'training_center_name' => $trainingCenterName,
+                    'training_center_approval_status' => $caregiver->training_center_approval_status
                 ] : null
             ]);
         } catch (\Illuminate\Validation\ValidationException $e) {
@@ -294,9 +360,32 @@ class ProfileController extends Controller
         $caregiver = $user->caregiver;
         $client = $user->client;
         
+        // Get training center name if caregiver has a training center
+        $trainingCenterName = null;
+        if ($caregiver && $caregiver->training_center_id) {
+            $trainingCenter = \App\Models\User::find($caregiver->training_center_id);
+            if ($trainingCenter) {
+                $trainingCenterName = $trainingCenter->name;
+            }
+        }
+        
+        $caregiverData = null;
+        if ($caregiver) {
+            $caregiverData = [
+                'id' => $caregiver->id,
+                'years_experience' => $caregiver->years_experience,
+                'bio' => $caregiver->bio,
+                'specializations' => $caregiver->specializations,
+                'training_certificate' => $caregiver->training_certificate,
+                'training_center_id' => $caregiver->training_center_id,
+                'training_center_name' => $trainingCenterName,
+                'training_center_approval_status' => $caregiver->training_center_approval_status
+            ];
+        }
+        
         return response()->json([
             'user' => $user,
-            'caregiver' => $caregiver,
+            'caregiver' => $caregiverData,
             'client' => $client
         ]);
     }

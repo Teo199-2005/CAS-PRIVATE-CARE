@@ -152,6 +152,40 @@
       </v-card>
     </div>
 
+    <!-- Pending Caregiver Requests Section -->
+    <div v-if="currentSection === 'pending-requests'">
+      <v-card elevation="0">
+        <v-card-title class="card-header pa-8 d-flex justify-space-between align-center">
+          <span class="section-title grey--text text--darken-2">Pending Caregiver Requests</span>
+          <v-chip color="warning" size="small">{{ pendingCaregivers.length }} Pending</v-chip>
+        </v-card-title>
+        <v-card-text class="pa-0">
+          <v-data-table :headers="pendingHeaders" :items="pendingCaregivers" :items-per-page="10" class="elevation-0">
+            <template v-slot:item.years_experience="{ item }">
+              <span>{{ item.years_experience }} years</span>
+            </template>
+            <template v-slot:item.specializations="{ item }">
+              <v-chip v-for="(spec, idx) in (item.specializations || []).slice(0, 2)" :key="idx" size="x-small" class="mr-1">{{ spec }}</v-chip>
+              <span v-if="(item.specializations || []).length > 2" class="text-caption">+{{ (item.specializations || []).length - 2 }} more</span>
+            </template>
+            <template v-slot:item.actions="{ item }">
+              <div class="action-buttons">
+                <v-btn color="success" size="small" prepend-icon="mdi-check" @click="approveCaregiverRequest(item)">Approve</v-btn>
+                <v-btn color="error" size="small" prepend-icon="mdi-close" @click="rejectCaregiverRequest(item)">Reject</v-btn>
+              </div>
+            </template>
+            <template v-slot:no-data>
+              <div class="text-center pa-8">
+                <v-icon size="64" color="grey-lighten-1">mdi-check-circle-outline</v-icon>
+                <div class="text-h6 mt-4 grey--text">No Pending Requests</div>
+                <div class="text-body-2 grey--text">All caregiver requests have been processed.</div>
+              </div>
+            </template>
+          </v-data-table>
+        </v-card-text>
+      </v-card>
+    </div>
+
     <!-- My Contractors Section -->
     <div v-if="currentSection === 'contractors'">
       <div class="mb-6">
@@ -577,7 +611,7 @@ import NotificationCenter from './shared/NotificationCenter.vue';
 import { useNotification } from '../composables/useNotification';
 import { useNYLocationData } from '../composables/useNYLocationData.js';
 
-const { notification, success, error, info } = useNotification();
+const { notification, success, error, warning, info } = useNotification();
 const { counties, getCitiesForCounty, loadNYLocationData } = useNYLocationData();
 
 const currentSection = ref('dashboard');
@@ -785,6 +819,7 @@ const uploadAvatar = async (event) => {
 const navItems = ref([
   { icon: 'mdi-view-dashboard', title: 'Dashboard', value: 'dashboard' },
   { icon: 'mdi-bell', title: 'Notifications', value: 'notifications' },
+  { icon: 'mdi-account-clock', title: 'Pending Requests', value: 'pending-requests', category: 'MANAGEMENT', badge: true },
   { icon: 'mdi-account-group', title: 'Caregivers', value: 'contractors', category: 'MANAGEMENT' },
   { icon: 'mdi-chart-line', title: 'Analytics', value: 'analytics', category: 'REPORTS' },
   { icon: 'mdi-credit-card', title: 'Payments', value: 'payments', category: 'FINANCIAL' },
@@ -805,12 +840,95 @@ const weeklySummary = ref({
 });
 
 const trainedCaregivers = ref([]);
+const pendingCaregivers = ref([]);
 
 const courses = ref([
   { id: 1, name: 'Basic Caregiver Training', duration: '40 hours', price: '299', enrolled: 0, completed: 0 },
   { id: 2, name: 'Advanced Care Techniques', duration: '60 hours', price: '499', enrolled: 0, completed: 0 },
   { id: 3, name: 'Specialized Medical Care', duration: '80 hours', price: '699', enrolled: 0, completed: 0 },
 ]);
+
+const loadPendingCaregivers = async () => {
+  try {
+    const response = await fetch('/api/training/pending-caregivers', {
+      headers: {
+        'Accept': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest'
+      },
+      credentials: 'same-origin'
+    });
+    
+    if (response.ok) {
+      const data = await response.json();
+      pendingCaregivers.value = data.pendingCaregivers || [];
+      
+      // Update badge count in navigation
+      const pendingItem = navItems.value.find(item => item.value === 'pending-requests');
+      if (pendingItem) {
+        pendingItem.badge = pendingCaregivers.value.length > 0;
+      }
+    }
+  } catch (error) {
+    console.error('Failed to load pending caregivers:', error);
+  }
+};
+
+const approveCaregiverRequest = async (caregiver) => {
+  try {
+    const response = await fetch(`/api/training/caregivers/${caregiver.id}/approve`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+        'Accept': 'application/json'
+      },
+      credentials: 'same-origin'
+    });
+    
+    if (response.ok) {
+      const data = await response.json();
+      success('Caregiver approved successfully!', 'Approved');
+      await loadPendingCaregivers();
+      await loadTrainingStats(); // Refresh the approved caregivers list
+    } else {
+      const errorData = await response.json();
+      error('Failed to approve caregiver', 'Error');
+    }
+  } catch (err) {
+    console.error('Error approving caregiver:', err);
+    error('Failed to approve caregiver', 'Error');
+  }
+};
+
+const rejectCaregiverRequest = async (caregiver) => {
+  if (!confirm(`Are you sure you want to reject ${caregiver.name}'s request?`)) {
+    return;
+  }
+  
+  try {
+    const response = await fetch(`/api/training/caregivers/${caregiver.id}/reject`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+        'Accept': 'application/json'
+      },
+      credentials: 'same-origin'
+    });
+    
+    if (response.ok) {
+      const data = await response.json();
+      warning('Caregiver request rejected', 'Rejected');
+      await loadPendingCaregivers();
+    } else {
+      const errorData = await response.json();
+      error('Failed to reject caregiver', 'Error');
+    }
+  } catch (err) {
+    console.error('Error rejecting caregiver:', err);
+    error('Failed to reject caregiver', 'Error');
+  }
+};
 
 const loadTrainingStats = async () => {
   try {
@@ -875,6 +993,16 @@ const contractorHeaders = [
   { title: 'Certification', key: 'certification' },
   { title: 'Status', key: 'status' },
   { title: 'Revenue Generated', key: 'earnings' },
+  { title: 'Actions', key: 'actions', sortable: false },
+];
+
+const pendingHeaders = [
+  { title: 'Name', key: 'name' },
+  { title: 'Email', key: 'email' },
+  { title: 'Phone', key: 'phone' },
+  { title: 'Experience', key: 'years_experience' },
+  { title: 'Specializations', key: 'specializations' },
+  { title: 'Requested', key: 'requested_at' },
   { title: 'Actions', key: 'actions', sortable: false },
 ];
 
@@ -1158,9 +1286,20 @@ watch(() => profile.value.county, (newCounty, oldCounty) => {
   }
 });
 
+// Watch for section changes
+watch(currentSection, (newVal) => {
+  if (newVal === 'analytics') {
+    setTimeout(initCharts, 300);
+  }
+  if (newVal === 'pending-requests') {
+    loadPendingCaregivers();
+  }
+});
+
 onMounted(() => {
   loadNYLocationData();
   loadProfile(); // This will also call loadTrainingStats after getting user ID
+  loadPendingCaregivers(); // Load pending requests on mount
   if (currentSection.value === 'analytics') {
     setTimeout(initCharts, 500);
   }

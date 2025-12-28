@@ -97,28 +97,28 @@
                             </div>
                           </v-alert>
                         </div>
+
                         <div v-else class="text-center mb-3">
                           <v-chip color="grey" size="large" class="mb-3">
                             <v-icon start size="small" style="color: #000000;">mdi-clock-outline</v-icon>
                             <span style="color: #000000;">Not Clocked In</span>
                           </v-chip>
                           <div class="text-body-1 text-grey mb-3">{{ bookingStatusMessage }}</div>
-                          <div v-if="currentClient !== 'N/A'" class="d-flex justify-space-between text-caption mb-3">
-                            <span>Today's Goal:</span>
-                            <span class="font-weight-bold">8 hrs</span>
-                          </div>
+
                           <v-alert v-if="currentClient !== 'N/A' && canClockIn" type="warning" variant="tonal" density="compact" class="mb-3">
                             <div class="text-caption" style="color: #000000;">
                               <v-icon size="small" class="mr-1" style="color: #000000;">mdi-clock-alert</v-icon>
                               Please clock in 5 minutes before your scheduled shift time
                             </div>
                           </v-alert>
-                          <v-alert v-else-if="currentClient !== 'N/A' && !canClockIn && !isTimedIn" type="info" variant="tonal" density="compact" class="mb-3">
+
+                          <v-alert v-else-if="currentClient !== 'N/A' && !canClockIn" type="info" variant="tonal" density="compact" class="mb-3">
                             <div class="text-caption" style="color: #000000;">
                               <v-icon size="small" class="mr-1" style="color: #000000;">mdi-clock-outline</v-icon>
                               {{ bookingStatusMessage }}
                             </div>
                           </v-alert>
+
                           <v-alert v-else type="info" variant="tonal" density="compact" class="mb-3">
                             <div class="text-caption" style="color: #000000;">
                               <v-icon size="small" class="mr-1" style="color: #000000;">mdi-information</v-icon>
@@ -472,6 +472,71 @@
                     <span class="summary-label">Next Payout</span>
                     <span class="summary-value font-weight-bold">Dec 20, 2024</span>
                   </div>
+                  <v-divider class="my-4" />
+                  <div v-if="applicationStatus === 'pending'" class="mt-4">
+                    <v-alert type="info" variant="tonal" class="mb-4" density="compact" style="background-color: #f5f5f5;">
+                      <div class="text-body-2" style="color: #000000;">
+                        <strong>Action Required:</strong> Please view and print the W9 form, then submit it to the office to complete your application approval.
+                      </div>
+                    </v-alert>
+                    <v-btn 
+                      color="primary" 
+                      block 
+                      size="large" 
+                      prepend-icon="mdi-file-document"
+                      @click="viewW9Form"
+                      class="mb-3"
+                      elevation="2"
+                    >
+                      View W9 Form
+                    </v-btn>
+                    <v-btn 
+                      color="grey" 
+                      block 
+                      size="large" 
+                      prepend-icon="mdi-cash-multiple"
+                      disabled
+                      class="mb-3"
+                      elevation="0"
+                    >
+                      Payout
+                    </v-btn>
+                    <v-btn 
+                      color="grey" 
+                      variant="text" 
+                      size="small" 
+                      prepend-icon="mdi-cash-fast"
+                      disabled
+                      block
+                      class="text-lowercase"
+                    >
+                      Request Payout
+                    </v-btn>
+                  </div>
+                  <div v-else class="mt-4">
+                    <v-btn 
+                      color="success" 
+                      block 
+                      size="large" 
+                      prepend-icon="mdi-cash-multiple"
+                      @click="handleRequestPayout"
+                      class="mb-3"
+                      elevation="2"
+                    >
+                      Payout
+                    </v-btn>
+                    <v-btn 
+                      color="success" 
+                      variant="text" 
+                      size="small" 
+                      prepend-icon="mdi-cash-fast"
+                      @click="handleRequestPayout"
+                      block
+                      class="text-lowercase"
+                    >
+                      Request Payout
+                    </v-btn>
+                  </div>
                 </v-card-text>
               </v-card>
 
@@ -480,8 +545,9 @@
                   <span class="section-title success--text">Payment Settings</span>
                 </v-card-title>
                 <v-card-text class="pa-8">
-                  <v-select :items="['Weekly', 'Bi-weekly', 'Monthly']" label="Payout Frequency" variant="outlined" density="comfortable" model-value="Bi-weekly" class="mb-4" />
-                  <v-select :items="['Bank Transfer', 'PayPal', 'Check']" label="Payout Method" variant="outlined" density="comfortable" model-value="Bank Transfer" />
+                  <!-- payout frequency restricted to Weekly per v1.2.0 -->
+                  <v-select v-model="payoutFrequency" :items="['Weekly']" label="Payout Frequency" variant="outlined" density="comfortable" class="mb-4" />
+                  <v-select v-model="payoutMethod" :items="['Bank Transfer', 'PayPal', 'Check']" label="Payout Method" variant="outlined" density="comfortable" />
                 </v-card-text>
               </v-card>
             </v-col>
@@ -1224,6 +1290,52 @@ const earningsChart = ref(null);
 const servicesChart = ref(null);
 const clientsChart = ref(null);
 
+// Payout settings (v1.2.0: frequency only Weekly)
+const payoutFrequency = ref('Weekly');
+const payoutMethod = ref('Bank Transfer');
+const applicationStatus = ref('pending'); // 'pending' or 'approved'
+
+const handleRequestPayout = async () => {
+  // Minimal local handler - show notification and (optionally) call API
+  success('Payout request sent', 'Your payout request has been submitted and will be processed shortly.');
+  // Example API call (commented out):
+  // await fetch(`/api/caregiver/${caregiverId.value}/request-payout`, { method: 'POST' });
+};
+
+const viewW9Form = () => {
+  // Open W9 form PDF in new tab
+  window.open('/pdfs/form-w-9.pdf', '_blank');
+};
+
+const checkApplicationStatus = async () => {
+  try {
+    const response = await fetch('/api/caregiver/application-status');
+    const data = await response.json();
+    // Set application status: 'pending' or 'approved'
+    if (data.status) {
+      applicationStatus.value = data.status.toLowerCase();
+    } else if (data.application) {
+      // Check if application exists and is approved
+      applicationStatus.value = (data.application.status && data.application.status.toLowerCase() === 'approved') ? 'approved' : 'pending';
+    } else {
+      // Default to pending if no application found
+      applicationStatus.value = 'pending';
+    }
+  } catch (error) {
+    console.error('Failed to check application status:', error);
+    // Default to pending on error
+    applicationStatus.value = 'pending';
+  }
+};
+
+const handlePayout = async () => {
+  // Minimal handler for Payout action - in real app this would be restricted/admin action
+  notification.type = 'info';
+  notification.title = 'Payout initiated';
+  notification.message = 'Payout is being processed.';
+  notification.show = true;
+};
+
 const availableClientSearch = ref('');
 const availableCountyFilter = ref('All');
 const availableCityFilter = ref('All');
@@ -1755,6 +1867,11 @@ const trainingCertificateUrl = ref(null);
 
 const loadProfile = async () => {
   try {
+    // Load training centers first to ensure dropdown has the options
+    if (trainingCenters.value.length === 0) {
+      await loadTrainingCenters();
+    }
+    
     const response = await fetch('/api/profile?user_type=caregiver');
     const data = await response.json();
     console.log('Profile API response:', data);
@@ -1786,7 +1903,7 @@ const loadProfile = async () => {
         zip: data.user.zip_code || '',
         birthdate: data.user.date_of_birth || '',
         experience: data.caregiver?.years_experience || '',
-        trainingCenter: 'NYC Healthcare Training Institute',
+        trainingCenter: data.caregiver?.training_center_name || '',
         customTrainingCenter: '',
         trainingCertificate: null,
         specializations: data.caregiver?.specializations || [],
@@ -1808,6 +1925,9 @@ const loadProfile = async () => {
         caregiverId.value = data.caregiver.id;
         console.log('Caregiver ID set to:', caregiverId.value);
       }
+      
+      // Check application status
+      await checkApplicationStatus();
     } else if (data.error === 'User not authenticated') {
       // Fallback for demo purposes - use Demo Caregiver ID
       console.log('No authenticated user, using demo caregiver ID 25');
@@ -2720,19 +2840,52 @@ const nyZipCodes = [
   '13201', '13202', '13203', '13204', '13205', '13206', '13207', '13208', '13209', '13210'
 ];
 
-const trainingCenters = [
-  'NYC Healthcare Training Institute',
-  'American Red Cross',
-  'National Association for Home Care & Hospice',
-  'Certified Nursing Assistant Training Center',
-  'Home Health Aide Training Academy',
-  'Metropolitan Healthcare Training',
-  'Brooklyn Healthcare Institute',
-  'Queens Medical Training Center',
-  'Bronx Community Health Training'
-];
-
+const trainingCenters = ref([]);
 const isCustomTrainingCenter = ref(false);
+
+const loadTrainingCenters = async () => {
+  try {
+    const response = await fetch('/api/training-centers', {
+      headers: {
+        'Accept': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest'
+      },
+      credentials: 'same-origin'
+    });
+    
+    if (response.ok) {
+      const data = await response.json();
+      trainingCenters.value = data.trainingCenters || [];
+    } else {
+      // Fallback to default list if API fails
+      trainingCenters.value = [
+        'NYC Healthcare Training Institute',
+        'American Red Cross',
+        'National Association for Home Care & Hospice',
+        'Certified Nursing Assistant Training Center',
+        'Home Health Aide Training Academy',
+        'Metropolitan Healthcare Training',
+        'Brooklyn Healthcare Institute',
+        'Queens Medical Training Center',
+        'Bronx Community Health Training'
+      ];
+    }
+  } catch (err) {
+    console.error('Failed to load training centers:', err);
+    // Fallback to default list
+    trainingCenters.value = [
+      'NYC Healthcare Training Institute',
+      'American Red Cross',
+      'National Association for Home Care & Hospice',
+      'Certified Nursing Assistant Training Center',
+      'Home Health Aide Training Academy',
+      'Metropolitan Healthcare Training',
+      'Brooklyn Healthcare Institute',
+      'Queens Medical Training Center',
+      'Bronx Community Health Training'
+    ];
+  }
+};
 
 // Avatar upload
 const avatarInput = ref(null);
@@ -3151,10 +3304,14 @@ watch(currentSection, (newVal) => {
   if (newVal === 'analytics') {
     setTimeout(initCharts, 300);
   }
+  if (newVal === 'profile') {
+    loadTrainingCenters(); // Load training centers when profile section is accessed
+  }
 });
 
 onMounted(async () => {
   loadNYLocationData();
+  loadTrainingCenters(); // Load training centers on mount
   await loadProfile(); // Load profile first to get caregiver ID
   if (caregiverId.value) {
     await loadCaregiverStats(); // Then load stats with the caregiver ID
