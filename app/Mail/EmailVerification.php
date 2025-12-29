@@ -33,3 +33,4 @@ class EmailVerification extends Mailable
     }
 }
 
+

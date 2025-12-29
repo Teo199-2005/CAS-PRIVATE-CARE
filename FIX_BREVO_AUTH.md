@@ -109,3 +109,4 @@ Once your sender email is verified:
 
 **The verification step is MANDATORY - Brevo will not send emails from unverified addresses!**
 
+

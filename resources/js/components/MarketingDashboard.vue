@@ -21,6 +21,9 @@
     @section-change="currentSection = $event"
     @logout="logout"
   >
+    <!-- Email Verification Banner -->
+    <email-verification-banner />
+
     <!-- Dashboard Section -->
     <div v-if="currentSection === 'dashboard'">
       <v-row class="mb-2">
@@ -273,70 +276,36 @@
       <v-row>
         <v-col cols="12" md="8">
           <v-card elevation="0" class="mb-6">
-            <v-card-title class="card-header pa-6">
-              <span class="section-title grey--text text--darken-2">Payment Information</span>
+            <v-card-title class="card-header pa-8 d-flex justify-space-between align-center">
+              <span class="section-title grey--text text--darken-2">Payment Methods</span>
+              <v-btn color="grey-darken-2" prepend-icon="mdi-plus" @click="addPaymentDialog = true">Add Payment Method</v-btn>
             </v-card-title>
-            <v-card-text class="pa-6">
+            <v-card-text class="pa-8">
               <v-row>
-                <v-col cols="12" md="6">
-                  <v-text-field v-model="paymentInfo.bankName" label="Bank Name" variant="outlined" />
-                </v-col>
-                <v-col cols="12" md="6">
-                  <v-text-field v-model="paymentInfo.accountNumber" label="Account Number" variant="outlined" type="password" />
-                </v-col>
-                <v-col cols="12" md="6">
-                  <v-text-field v-model="paymentInfo.routingNumber" label="Routing Number" variant="outlined" />
-                </v-col>
-                <v-col cols="12" md="6">
-                  <v-text-field v-model="paymentInfo.accountHolder" label="Account Holder Name" variant="outlined" />
-                </v-col>
-              </v-row>
-              <v-btn color="grey-darken-2" class="mt-4">Update Payment Info</v-btn>
-            </v-card-text>
-          </v-card>
-
-          <v-card elevation="0" class="mb-6">
-            <v-card-title class="card-header pa-6">
-              <div class="d-flex justify-space-between align-center">
-                <span class="section-title grey--text text--darken-2">Payment Methods</span>
-                <v-btn color="grey-darken-2" prepend-icon="mdi-plus">Add Payment Method</v-btn>
-              </div>
-            </v-card-title>
-            <v-card-text class="pa-6">
-              <v-row>
-                <v-col cols="12" md="6">
-                  <div class="payment-card visa-card">
-                    <div class="card-chip"></div>
-                    <div class="card-number">•••• •••• •••• 4242</div>
-                    <div class="card-info">
-                      <div class="card-holder">
+                <v-col v-for="card in marketingPaymentMethods" :key="card.id" cols="12" md="6">
+                  <div class="payment-card" :class="card.type">
+                    <div class="d-flex justify-space-between align-center">
+                      <div class="card-chip"></div>
+                      <v-chip v-if="card.isDefault" color="rgba(255,255,255,0.3)" size="small" class="font-weight-bold" style="color: white;">DEFAULT</v-chip>
+                    </div>
+                    <div class="card-number">••••  ••••  ••••  {{ card.last4 }}</div>
+                    <div class="d-flex justify-space-between align-center" style="margin-top: 24px;">
+                      <div>
                         <div class="card-label">CARD HOLDER</div>
-                        <div class="card-value">MARKETING STAFF</div>
+                        <div class="card-value">{{ card.holder.toUpperCase() }}</div>
                       </div>
-                      <div class="card-expires">
+                      <div>
                         <div class="card-label">EXPIRES</div>
-                        <div class="card-value">12/25</div>
+                        <div class="card-value">{{ card.expiry }}</div>
                       </div>
                     </div>
-                    <div class="card-brand">VISA</div>
-                    <div class="card-default">DEFAULT</div>
-                  </div>
-                </v-col>
-                <v-col cols="12" md="6">
-                  <div class="payment-card mastercard-card">
-                    <div class="card-chip"></div>
-                    <div class="card-number">•••• •••• •••• 8888</div>
-                    <div class="card-info">
-                      <div class="card-holder">
-                        <div class="card-label">CARD HOLDER</div>
-                        <div class="card-value">MARKETING STAFF</div>
-                      </div>
-                      <div class="card-expires">
-                        <div class="card-label">EXPIRES</div>
-                        <div class="card-value">06/26</div>
+                    <div class="d-flex justify-space-between align-center" style="margin-top: 16px;">
+                      <div class="card-brand-logo">{{ card.brandName }}</div>
+                      <div class="card-actions">
+                        <v-btn size="x-small" variant="text" color="white" icon="mdi-pencil" @click="editCard(card)" />
+                        <v-btn size="x-small" variant="text" color="white" icon="mdi-delete" @click="deleteCard(card)" />
                       </div>
                     </div>
-                    <div class="card-brand">Mastercard</div>
                   </div>
                 </v-col>
               </v-row>
@@ -344,65 +313,131 @@
           </v-card>
 
           <v-card elevation="0">
-            <v-card-title class="card-header pa-6">
-              <span class="section-title grey--text text--darken-2">Payment History</span>
+            <v-card-title class="card-header pa-8">
+              <span class="section-title grey--text text--darken-2">Bank Account</span>
             </v-card-title>
-            <v-card-text class="pa-6">
-              <v-data-table :headers="paymentHeaders" :items="paymentHistory" :items-per-page="10" class="elevation-0">
-                <template v-slot:item.status="{ item }">
-                  <v-chip :color="getPaymentStatusColor(item.status)" size="small" class="font-weight-bold">{{ item.status }}</v-chip>
-                </template>
-                <template v-slot:item.amount="{ item }">
-                  <span class="font-weight-bold grey--text text--darken-2">${{ item.amount }}</span>
-                </template>
-              </v-data-table>
+            <v-card-text class="pa-8">
+              <div class="bank-account-card">
+                <div class="d-flex align-center mb-4">
+                  <v-icon size="40" color="grey-darken-2" class="mr-4">mdi-bank</v-icon>
+                  <div>
+                    <div class="bank-name">{{ paymentInfo.bankName || 'Chase Bank' }}</div>
+                    <div class="account-type">Checking Account</div>
+                  </div>
+                </div>
+                <div class="account-number">Account: {{ paymentInfo.accountNumber ? '••••••••' + paymentInfo.accountNumber.slice(-4) : '••••••••1234' }}</div>
+                <div class="routing-number">Routing: {{ paymentInfo.routingNumber ? '••••••' + paymentInfo.routingNumber.slice(-4) : '••••••5678' }}</div>
+                <div class="mt-4">
+                  <v-btn color="grey-darken-2" variant="outlined" size="small" class="mr-2">Edit</v-btn>
+                  <v-btn color="error" variant="outlined" size="small">Remove</v-btn>
+                </div>
+              </div>
             </v-card-text>
           </v-card>
         </v-col>
 
         <v-col cols="12" md="4">
           <v-card elevation="0" class="mb-6">
-            <v-card-title class="card-header pa-6">
-              <span class="section-title grey--text text--darken-2">Commission Overview</span>
+            <v-card-title class="card-header pa-8">
+              <span class="section-title grey--text text--darken-2">Payment Summary</span>
             </v-card-title>
-            <v-card-text class="pa-6">
-              <div class="earning-overview">
-                <div class="earning-stat mb-4">
-                  <div class="earning-amount grey--text text--darken-2">${{ totalCommission }}</div>
-                  <div class="earning-desc">Total Commission</div>
-                </div>
-                <div class="earning-stat mb-4">
-                  <div class="earning-amount">${{ monthlyCommission }}</div>
-                  <div class="earning-desc">This Month</div>
-                </div>
-                <div class="earning-stat mb-4">
-                  <div class="earning-amount">$180.00</div>
-                  <div class="earning-desc">Pending Payment</div>
-                </div>
+            <v-card-text class="pa-8">
+              <div class="summary-item">
+                <span class="summary-label">Total Earnings</span>
+                <span class="summary-value grey--text text--darken-2">${{ totalCommission }}</span>
               </div>
-              <v-btn color="grey-darken-2" block class="mt-4">Request Payout</v-btn>
+              <div class="summary-item">
+                <span class="summary-label">Pending</span>
+                <span class="summary-value">$180.00</span>
+              </div>
+              <div class="summary-item">
+                <span class="summary-label">Last Payment</span>
+                <span class="summary-value">${{ monthlyCommission }}</span>
+              </div>
+              <v-divider class="my-4" />
+              <div class="summary-item">
+                <span class="summary-label">Next Payout</span>
+                <span class="summary-value font-weight-bold">Dec 31, 2024</span>
+              </div>
+              <v-divider class="my-4" />
+              <div v-if="marketingApplicationStatus === 'pending'" class="mt-4">
+                <v-alert type="info" variant="tonal" class="mb-4" density="compact" style="background-color: #f5f5f5;">
+                  <div class="text-body-2" style="color: #000000;">
+                    <strong>Action Required:</strong> Please view and print the W9 form, then submit it to the office to complete your application approval.
+                  </div>
+                  <div class="text-body-2" style="color: #000000;">
+                    <strong>Automatic Payout:</strong> Pending W9 form submission please submit it to the office
+                  </div>
+                </v-alert>
+                <v-btn 
+                  color="grey-darken-2" 
+                  block 
+                  size="large" 
+                  prepend-icon="mdi-file-document"
+                  @click="viewW9Form"
+                  class="mb-3"
+                  elevation="2"
+                >
+                  View W9 Form
+                </v-btn>
+                <v-btn 
+                  color="grey" 
+                  block 
+                  size="large" 
+                  prepend-icon="mdi-cash-multiple"
+                  disabled
+                  class="mb-3"
+                  elevation="0"
+                >
+                  Payout
+                </v-btn>
+                <v-btn 
+                  color="grey" 
+                  variant="text" 
+                  size="small" 
+                  prepend-icon="mdi-cash-fast"
+                  disabled
+                  block
+                  class="text-lowercase"
+                >
+                  Request Payout
+                </v-btn>
+              </div>
+              <div v-else class="mt-4">
+                <v-btn 
+                  color="grey-darken-2" 
+                  block 
+                  size="large" 
+                  prepend-icon="mdi-cash-multiple"
+                  @click="handleRequestPayout"
+                  class="mb-3"
+                  elevation="2"
+                >
+                  Payout
+                </v-btn>
+                <v-btn 
+                  color="grey-darken-2" 
+                  variant="text" 
+                  size="small" 
+                  prepend-icon="mdi-cash-fast"
+                  @click="handleRequestPayout"
+                  block
+                  class="text-lowercase"
+                >
+                  Request Payout
+                </v-btn>
+              </div>
             </v-card-text>
           </v-card>
 
           <v-card elevation="0">
-            <v-card-title class="card-header pa-6">
-              <span class="section-title grey--text text--darken-2">Payment Schedule</span>
+            <v-card-title class="card-header pa-8">
+              <span class="section-title grey--text text--darken-2">Payment Settings</span>
             </v-card-title>
-            <v-card-text class="pa-6">
-              <div class="payment-schedule">
-                <div class="schedule-item mb-3">
-                  <div class="schedule-date">Next Payment</div>
-                  <div class="schedule-value">Dec 31, 2024</div>
-                </div>
-                <div class="schedule-item mb-3">
-                  <div class="schedule-date">Payment Method</div>
-                  <div class="schedule-value">Bank Transfer</div>
-                </div>
-                <div class="schedule-item">
-                  <div class="schedule-date">Processing Time</div>
-                  <div class="schedule-value">2-3 Business Days</div>
-                </div>
-              </div>
+            <v-card-text class="pa-8">
+              <!-- payout frequency restricted to Weekly per v1.2.0 -->
+              <v-select v-model="marketingPayoutFrequency" :items="['Weekly']" label="Payout Frequency" variant="outlined" density="comfortable" class="mb-4" />
+              <v-select v-model="marketingPayoutMethod" :items="['Bank Transfer', 'PayPal', 'Check']" label="Payout Method" variant="outlined" density="comfortable" />
             </v-card-text>
           </v-card>
         </v-col>
@@ -437,7 +472,21 @@
                   </div>
                 </v-col>
                 <v-col cols="12" md="6">
-                  <v-text-field v-model="profile.email" label="Email" variant="outlined" type="email" />
+                  <v-text-field v-model="profile.email" label="Email" variant="outlined" type="email">
+                    <template v-slot:append-inner>
+                      <v-tooltip :text="userEmailVerified ? 'Email Verified' : 'Email Not Verified'" location="top">
+                        <template v-slot:activator="{ props }">
+                          <v-icon 
+                            v-bind="props"
+                            :color="userEmailVerified ? 'success' : 'error'"
+                            size="20"
+                          >
+                            {{ userEmailVerified ? 'mdi-check-circle' : 'mdi-close-circle' }}
+                          </v-icon>
+                        </template>
+                      </v-tooltip>
+                    </template>
+                  </v-text-field>
                 </v-col>
                 <v-col cols="12" md="6">
                   <v-text-field v-model="profile.phone" label="Phone" variant="outlined" />
@@ -587,6 +636,7 @@ import DashboardTemplate from './DashboardTemplate.vue';
 import StatCard from './shared/StatCard.vue';
 import NotificationToast from './shared/NotificationToast.vue';
 import NotificationCenter from './shared/NotificationCenter.vue';
+import EmailVerificationBanner from './EmailVerificationBanner.vue';
 import { useNotification } from '../composables/useNotification';
 import { useNYLocationData } from '../composables/useNYLocationData.js';
 
@@ -594,12 +644,24 @@ const { notification, success, error, info } = useNotification();
 const { counties, getCitiesForCounty, loadNYLocationData } = useNYLocationData();
 
 const currentSection = ref(localStorage.getItem('marketingSection') || 'dashboard');
+const userEmailVerified = ref(false);
 const addClientDialog = ref(false);
+const addPaymentDialog = ref(false);
 const clientForm = ref({ name: '', email: '', phone: '', borough: 'Manhattan', contractDate: '' });
 const paymentInfo = ref({ bankName: '', accountNumber: '', routingNumber: '', accountHolder: 'Marketing Staff' });
 const clientSearch = ref('');
 const statusFilter = ref('');
 const boroughFilter = ref('');
+
+// Payment settings
+const marketingPayoutFrequency = ref('Weekly');
+const marketingPayoutMethod = ref('Bank Transfer');
+const marketingApplicationStatus = ref('pending'); // 'pending' or 'approved'
+
+const marketingPaymentMethods = ref([
+  { id: 1, type: 'visa', icon: 'mdi-credit-card', last4: '4242', holder: 'Marketing Staff', expiry: '12/25', isDefault: true, brandName: 'VISA' },
+  { id: 2, type: 'mastercard', icon: 'mdi-credit-card', last4: '8888', holder: 'Marketing Staff', expiry: '06/26', isDefault: false, brandName: 'Mastercard' },
+]);
 
 const statusOptions = ['Active', 'Inactive', 'Suspended'];
 
@@ -833,6 +895,10 @@ const loadProfile = async () => {
     console.log('Profile data received:', data);
     if (data.user) {
       const nameParts = (data.user.name || '').split(' ');
+      
+      // Set email verification status
+      userEmailVerified.value = data.user.email_verified_at !== null && data.user.email_verified_at !== undefined;
+      
       profile.value = {
         firstName: nameParts[0] || '',
         lastName: nameParts.slice(1).join(' ') || '',
@@ -921,6 +987,63 @@ const saveProfile = async () => {
 
 const logout = () => {
   window.location.href = '/login';
+};
+
+const loadPaymentMethods = async () => {
+  try {
+    const response = await fetch('/api/payment-methods');
+    const data = await response.json();
+    
+    if (data.success && data.payment_methods) {
+      // Filter cards from payment methods
+      const cards = data.payment_methods.filter(pm => pm.type !== 'bank_account');
+      if (cards.length > 0) {
+        marketingPaymentMethods.value = cards;
+      }
+      
+      // Find bank account if exists
+      const bankAccount = data.payment_methods.find(pm => pm.type === 'bank_account');
+      if (bankAccount) {
+        console.log('Bank account loaded for marketing:', bankAccount);
+      }
+    }
+  } catch (error) {
+    console.error('Failed to load payment methods:', error);
+  }
+};
+
+const viewW9Form = () => {
+  // Open W9 form PDF in new tab
+  window.open('/pdfs/form-w-9.pdf', '_blank');
+};
+
+const handleRequestPayout = () => {
+  success('Payout request sent', 'Your payout request has been submitted and will be processed shortly.');
+};
+
+const editCard = (card) => {
+  console.log('Edit card:', card);
+  info('Edit payment method', 'This feature is coming soon');
+};
+
+const deleteCard = (card) => {
+  console.log('Delete card:', card);
+  info('Delete payment method', 'This feature is coming soon');
+};
+
+const checkMarketingApplicationStatus = async () => {
+  try {
+    const response = await fetch('/api/marketing/application-status');
+    const data = await response.json();
+    if (data.status) {
+      marketingApplicationStatus.value = data.status.toLowerCase();
+    } else {
+      marketingApplicationStatus.value = 'pending';
+    }
+  } catch (error) {
+    console.error('Failed to check application status:', error);
+    marketingApplicationStatus.value = 'pending';
+  }
 };
 
 const viewClient = (client) => {
@@ -1210,12 +1333,16 @@ watch(() => profile.value.county, (newCounty, oldCounty) => {
 
 watch(currentSection, (newVal) => {
   localStorage.setItem('marketingSection', newVal);
+  if (newVal === 'payment') {
+    loadPaymentMethods();
+  }
 });
 
 onMounted(() => {
   loadNYLocationData();
   loadProfile(); // This will also call loadMarketingStats after getting user ID
   loadReferralCode();
+  checkMarketingApplicationStatus();
   setTimeout(initCharts, 500);
 });
 </script>
@@ -1364,70 +1491,142 @@ onMounted(() => {
 }
 
 .payment-card {
-  background: linear-gradient(135deg, #4285f4 0%, #1a73e8 100%);
-  border-radius: 16px;
-  padding: 24px;
+  background: linear-gradient(135deg, #1a1f36 0%, #2d3561 100%);
+  border-radius: 20px;
+  padding: 28px;
   color: white;
+  min-height: 220px;
   position: relative;
+  overflow: hidden;
+  border: 1px solid #c5c5c5ff;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+  transition: all 0.3s ease;
+}
+
+.payment-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 15px 50px rgba(0, 0, 0, 0.4);
+}
+
+.payment-card::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -20%;
+  width: 200px;
   height: 200px;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
 }
 
-.mastercard-card {
-  background: linear-gradient(135deg, #eb4335 0%, #ea4335 50%, #fbbc04 100%);
+.payment-card.visa {
+  background: linear-gradient(135deg, #1434CB 0%, #2952E8 100%);
 }
 
-.card-chip {
-  width: 32px;
-  height: 24px;
-  background: linear-gradient(135deg, #ffd700, #ffed4e);
-  border-radius: 4px;
-  margin-bottom: 16px;
+.payment-card.mastercard {
+  background: linear-gradient(135deg, #EB001B 0%, #F79E1B 100%);
+}
+
+.payment-card.amex {
+  background: linear-gradient(135deg, #006FCF 0%, #00A3E0 100%);
 }
 
 .card-number {
-  font-size: 1.2rem;
-  font-weight: 600;
-  letter-spacing: 2px;
-  margin-bottom: 16px;
-}
-
-.card-info {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 16px;
+  font-size: 1.5rem;
+  font-weight: 500;
+  letter-spacing: 4px;
+  margin: 20px 0;
+  font-family: 'Courier New', monospace;
 }
 
 .card-label {
-  font-size: 0.7rem;
-  opacity: 0.8;
+  font-size: 0.65rem;
+  opacity: 0.7;
+  text-transform: uppercase;
+  letter-spacing: 1px;
   margin-bottom: 4px;
 }
 
 .card-value {
-  font-size: 0.9rem;
+  font-size: 1rem;
   font-weight: 600;
+  letter-spacing: 0.5px;
 }
 
-.card-brand {
+.card-actions {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.card-chip {
+  width: 50px;
+  height: 40px;
+  background: linear-gradient(135deg, #d4af37 0%, #f4e5a1 50%, #d4af37 100%);
+  border-radius: 8px;
+  position: relative;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.card-chip::before {
+  content: '';
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  right: 8px;
+  bottom: 8px;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+}
+
+.card-brand-logo {
+  font-size: 1.25rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  opacity: 0.9;
+}
+
+.bank-account-card {
+  background: #f9fafb;
+  border: 1px solid #c5c5c5ff;
+  border-radius: 12px;
+  padding: 20px;
+}
+
+.bank-name {
   font-size: 1.1rem;
   font-weight: 700;
-  position: absolute;
-  bottom: 24px;
-  left: 24px;
+  color: #1f2937;
 }
 
-.card-default {
-  position: absolute;
-  top: 16px;
-  right: 16px;
-  background: rgba(255, 255, 255, 0.2);
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-size: 0.7rem;
-  font-weight: 600;
+.account-type {
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+.account-number, .routing-number {
+  font-size: 0.95rem;
+  color: #4b5563;
+  margin-top: 8px;
+  font-weight: 500;
+}
+
+.summary-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.summary-label {
+  font-size: 0.95rem;
+  color: #6b7280;
+}
+
+.summary-value {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #1f2937;
 }
 
 .referral-code-section {

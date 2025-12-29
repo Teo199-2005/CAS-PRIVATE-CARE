@@ -31,3 +31,4 @@ class ContractorApplicationApprovedEmail extends Mailable
     }
 }
 
+

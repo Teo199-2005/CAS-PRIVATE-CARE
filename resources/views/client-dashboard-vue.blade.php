@@ -19,7 +19,7 @@
         
         // Fallback to Demo Client if no user specified
         if (!$user) {
-            $user = \App\Models\User::where('name', 'Demo Client')->first();
+            $user = \App\Models\User::where('email', 'client@demo.com')->first();
         }
     @endphp
     <div id="client-dashboard-app">

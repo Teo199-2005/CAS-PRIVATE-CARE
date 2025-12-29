@@ -33,3 +33,4 @@ class WelcomeEmail extends Mailable
     }
 }
 
+

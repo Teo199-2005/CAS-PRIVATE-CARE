@@ -16,13 +16,21 @@ class BookingAssignment extends Model
         'start_time',
         'end_time',
         'status',
-        'notes'
+        'notes',
+        'assignment_order',
+        'is_active',
+        'start_date',
+        'end_date',
+        'expected_days'
     ];
 
     protected $casts = [
         'assigned_at' => 'datetime',
         'start_time' => 'datetime',
-        'end_time' => 'datetime'
+        'end_time' => 'datetime',
+        'start_date' => 'date',
+        'end_date' => 'date',
+        'is_active' => 'boolean'
     ];
 
     public function booking()

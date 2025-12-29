@@ -123,6 +123,7 @@ Route::get('/profile', function (Request $request) {
             'id' => $user->id,
             'name' => $user->name,
             'email' => $user->email,
+            'email_verified_at' => $user->email_verified_at,
             'phone' => $user->phone,
             'address' => $user->address,
             'city' => $user->city,
@@ -746,4 +747,24 @@ Route::get('/time-tracking/history', function () {
     } catch (\Exception $e) {
         return response()->json(['error' => 'Failed to load time tracking history: ' . $e->getMessage()], 500);
     }
+});
+
+// Payment Methods API Routes
+Route::prefix('payment-methods')->group(function () {
+    Route::get('/', [App\Http\Controllers\Api\PaymentMethodController::class, 'index']);
+    Route::post('/', [App\Http\Controllers\Api\PaymentMethodController::class, 'store']);
+    Route::put('/{id}', [App\Http\Controllers\Api\PaymentMethodController::class, 'update']);
+    Route::delete('/{id}', [App\Http\Controllers\Api\PaymentMethodController::class, 'destroy']);
+    Route::post('/{id}/set-default', [App\Http\Controllers\Api\PaymentMethodController::class, 'setDefault']);
+});
+
+// Reviews & Ratings API Routes
+Route::prefix('reviews')->group(function () {
+    Route::get('/', [App\Http\Controllers\ReviewController::class, 'index']); // Admin only
+    Route::get('/my-reviews', [App\Http\Controllers\ReviewController::class, 'getClientReviews']);
+    Route::get('/caregiver/{caregiverId}', [App\Http\Controllers\ReviewController::class, 'getCaregiverReviews']);
+    Route::get('/booking/{bookingId}/can-review', [App\Http\Controllers\ReviewController::class, 'canReview']);
+    Route::post('/', [App\Http\Controllers\ReviewController::class, 'store']);
+    Route::put('/{id}', [App\Http\Controllers\ReviewController::class, 'update']);
+    Route::delete('/{id}', [App\Http\Controllers\ReviewController::class, 'destroy']);
 });

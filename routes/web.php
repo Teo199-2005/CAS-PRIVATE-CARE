@@ -58,6 +58,12 @@ Route::get('/register', function () {
     return view('register');
 })->name('register');
 Route::post('/register', [\App\Http\Controllers\AuthController::class, 'register'])->name('register');
+Route::get('/reset-password/{token}', [\App\Http\Controllers\AuthController::class, 'showResetPasswordForm'])->name('password.reset');
+Route::post('/reset-password', [\App\Http\Controllers\AuthController::class, 'resetPassword'])->name('password.update');
+
+// Email Verification Routes
+Route::post('/email/verification-notification', [\App\Http\Controllers\AuthController::class, 'sendVerificationEmail'])->middleware('auth')->name('verification.send');
+Route::get('/verify-email/{token}', [\App\Http\Controllers\AuthController::class, 'verifyEmail'])->name('verification.verify');
 
 // Public API Routes (no authentication required)
 Route::prefix('api')->middleware(['web'])->group(function () {
@@ -152,6 +158,33 @@ Route::get('/client/dashboard', function () {
         }
         return view('client-dashboard-vue');
     })->name('client.dashboard');
+    
+    // Payment Page - accessible by authenticated clients
+    Route::get('/payment', function () {
+        $bookingId = request()->query('booking_id');
+        
+        if (!$bookingId) {
+            return redirect('/client-dashboard')->with('error', 'No booking specified');
+        }
+        
+        // Load booking data
+        $booking = \App\Models\Booking::with(['client', 'assignments.caregiver.user', 'referralCode'])
+            ->where('id', $bookingId)
+            ->first();
+            
+        if (!$booking) {
+            return redirect('/client-dashboard')->with('error', 'Booking not found');
+        }
+        
+        // Verify ownership (if authenticated)
+        if (auth()->check() && auth()->user()->user_type === 'client') {
+            if ($booking->client_id !== auth()->id()) {
+                return redirect('/client-dashboard')->with('error', 'Unauthorized access');
+            }
+        }
+        
+        return view('payment', compact('booking', 'bookingId'));
+    })->name('payment');
     
     // Caregiver Dashboard - accessible by caregivers
 Route::get('/caregiver/dashboard', function () {

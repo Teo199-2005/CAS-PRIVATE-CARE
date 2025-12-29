@@ -33,3 +33,4 @@ class ContractorApplicationRejectedEmail extends Mailable
     }
 }
 
+

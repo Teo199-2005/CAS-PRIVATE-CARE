@@ -17,6 +17,9 @@
       <div style="flex: 1;"></div>
     </template>
 
+    <!-- Email Verification Banner -->
+    <email-verification-banner />
+
         <!-- Dashboard Section -->
         <div v-if="currentSection === 'dashboard'">
           <v-row class="mb-2">
@@ -477,6 +480,11 @@
                     <v-alert type="info" variant="tonal" class="mb-4" density="compact" style="background-color: #f5f5f5;">
                       <div class="text-body-2" style="color: #000000;">
                         <strong>Action Required:</strong> Please view and print the W9 form, then submit it to the office to complete your application approval.
+                        
+                      </div>
+                                            <div class="text-body-2" style="color: #000000;">
+                        <strong>Automatic Payout:</strong> Pending W9 form submission please submit it to the office
+                        
                       </div>
                     </v-alert>
                     <v-btn 
@@ -939,7 +947,21 @@
                       </div>
                     </v-col>
                     <v-col cols="12" md="6">
-                      <v-text-field v-model="profile.email" label="Email" variant="outlined" type="email" />
+                      <v-text-field v-model="profile.email" label="Email" variant="outlined" type="email">
+                        <template v-slot:append-inner>
+                          <v-tooltip :text="userEmailVerified ? 'Email Verified' : 'Email Not Verified'" location="top">
+                            <template v-slot:activator="{ props }">
+                              <v-icon 
+                                v-bind="props"
+                                :color="userEmailVerified ? 'success' : 'error'"
+                                size="20"
+                              >
+                                {{ userEmailVerified ? 'mdi-check-circle' : 'mdi-close-circle' }}
+                              </v-icon>
+                            </template>
+                          </v-tooltip>
+                        </template>
+                      </v-text-field>
                     </v-col>
                     <v-col cols="12" md="6">
                       <v-text-field v-model="profile.phone" label="Phone" variant="outlined" />
@@ -1262,6 +1284,7 @@ import ClientProfileModal from './shared/ClientProfileModal.vue';
 import NotificationCenter from './shared/NotificationCenter.vue';
 import AlertModal from './shared/AlertModal.vue';
 import NotificationToast from './shared/NotificationToast.vue';
+import EmailVerificationBanner from './EmailVerificationBanner.vue';
 import { useNotification } from '../composables/useNotification.js';
 import { useNYLocationData } from '../composables/useNYLocationData.js';
 
@@ -1269,6 +1292,7 @@ const { notification, success } = useNotification();
 const { counties, getCitiesForCounty, loadNYLocationData } = useNYLocationData();
 
 const caregiverId = ref(null);
+const userEmailVerified = ref(false);
 
 const currentSection = ref(localStorage.getItem('caregiverSection') || 'dashboard');
 const contactDialog = ref(false);
@@ -1879,6 +1903,9 @@ const loadProfile = async () => {
       // Set user ID for avatar upload
       caregiverUserId.value = data.user.id;
       console.log('Caregiver User ID set to:', caregiverUserId.value);
+      
+      // Set email verification status
+      userEmailVerified.value = data.user.email_verified_at !== null && data.user.email_verified_at !== undefined;
       
       // Set avatar if exists
       if (data.user.avatar) {
@@ -2772,6 +2799,30 @@ const viewReceipt = (item) => {
   console.log('View receipt:', item);
 };
 
+const loadPaymentMethods = async () => {
+  try {
+    const response = await fetch('/api/payment-methods');
+    const data = await response.json();
+    
+    if (data.success && data.payment_methods) {
+      // Filter cards only
+      const cards = data.payment_methods.filter(pm => pm.type !== 'bank_account');
+      if (cards.length > 0) {
+        paymentMethods.value = cards;
+      }
+      
+      // Find bank account
+      const bankAccount = data.payment_methods.find(pm => pm.type === 'bank_account');
+      if (bankAccount) {
+        // Update paymentInfo if needed
+        console.log('Bank account loaded:', bankAccount);
+      }
+    }
+  } catch (error) {
+    console.error('Failed to load payment methods:', error);
+  }
+};
+
 const downloadReceipt = (item) => {
   console.log('Download receipt:', item);
 };
@@ -3306,6 +3357,9 @@ watch(currentSection, (newVal) => {
   }
   if (newVal === 'profile') {
     loadTrainingCenters(); // Load training centers when profile section is accessed
+  }
+  if (newVal === 'payment') {
+    loadPaymentMethods(); // Load payment methods when payment section is accessed
   }
 });
 

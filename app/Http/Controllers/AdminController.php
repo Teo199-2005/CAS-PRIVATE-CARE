@@ -701,12 +701,30 @@ class AdminController extends Controller
 
         // Create new assignments only if caregiver_ids is not empty
         if (!empty($validated['caregiver_ids'])) {
-            foreach ($validated['caregiver_ids'] as $caregiverId) {
+            // Calculate days per caregiver (typically 15 days each)
+            $daysPerCaregiver = 15;
+            $serviceDate = \Carbon\Carbon::parse($booking->service_date);
+            
+            foreach ($validated['caregiver_ids'] as $index => $caregiverId) {
+                $order = $index + 1; // 1-based ordering
+                
+                // Calculate start and end dates for this caregiver
+                $startDate = $serviceDate->copy()->addDays(($order - 1) * $daysPerCaregiver);
+                $endDate = $startDate->copy()->addDays($daysPerCaregiver - 1);
+                
+                // First caregiver is active, others are pending
+                $isActive = ($order === 1);
+                
                 DB::table('booking_assignments')->insert([
                     'booking_id' => $bookingId,
                     'caregiver_id' => $caregiverId,
                     'status' => 'assigned',
                     'assigned_at' => now(),
+                    'assignment_order' => $order,
+                    'is_active' => $isActive,
+                    'start_date' => $startDate->format('Y-m-d'),
+                    'end_date' => $endDate->format('Y-m-d'),
+                    'expected_days' => $daysPerCaregiver,
                     'created_at' => now(),
                     'updated_at' => now()
                 ]);

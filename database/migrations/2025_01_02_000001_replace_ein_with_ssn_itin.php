@@ -12,12 +12,18 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            // Remove EIN column
-            $table->dropColumn('ein');
+            // Check if EIN column exists before dropping
+            if (Schema::hasColumn('users', 'ein')) {
+                $table->dropColumn('ein');
+            }
             
-            // Add SSN and ITIN columns
-            $table->string('ssn')->nullable();
-            $table->string('itin')->nullable();
+            // Add SSN and ITIN columns if they don't exist
+            if (!Schema::hasColumn('users', 'ssn')) {
+                $table->string('ssn')->nullable();
+            }
+            if (!Schema::hasColumn('users', 'itin')) {
+                $table->string('itin')->nullable();
+            }
         });
     }
 

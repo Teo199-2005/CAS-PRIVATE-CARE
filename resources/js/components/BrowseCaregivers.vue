@@ -134,9 +134,22 @@
           <!-- Caregiver Info -->
           <v-card-text class="pa-4">
             <h3 class="caregiver-name mb-1">{{ caregiver.name }}</h3>
-            <p class="caregiver-specialty mb-3">{{ caregiver.specialty }}</p>
-
-
+            <p class="caregiver-specialty mb-2">{{ caregiver.specialty }}</p>
+            
+            <!-- Rating Display -->
+            <div class="d-flex align-center mb-3">
+              <v-rating
+                :model-value="parseFloat(caregiver.rating || 0)"
+                :length="5"
+                :size="18"
+                color="amber"
+                active-color="amber"
+                half-increments
+                readonly
+                density="compact"
+              ></v-rating>
+              <span class="ml-2 text-caption text-grey">{{ parseFloat(caregiver.rating || 0).toFixed(1) }} ({{ caregiver.total_reviews || 0 }})</span>
+            </div>
 
             <!-- Experience & Certifications -->
             <div class="info-grid mb-3">
@@ -195,6 +208,25 @@
             </v-avatar>
             <h2 class="modal-name mb-2">{{ selectedCaregiver.name }}</h2>
             <p class="modal-specialty mb-3">{{ selectedCaregiver.specialty }}</p>
+            
+            <!-- Rating Display -->
+            <div class="d-flex align-center justify-center mb-3">
+              <v-rating
+                :model-value="parseFloat(selectedCaregiver.rating || 0)"
+                :length="5"
+                :size="28"
+                color="amber"
+                active-color="amber"
+                half-increments
+                readonly
+                density="compact"
+              ></v-rating>
+              <span class="ml-2 text-h6">{{ parseFloat(selectedCaregiver.rating || 0).toFixed(1) }}</span>
+            </div>
+            <div class="text-caption text-grey mb-3">
+              Based on {{ selectedCaregiver.total_reviews || 0 }} {{ (selectedCaregiver.total_reviews || 0) === 1 ? 'review' : 'reviews' }}
+            </div>
+            
             <v-chip
               :color="selectedCaregiver.availability === 'available' ? 'success' : 'warning'"
               size="large"
@@ -229,6 +261,63 @@
               </div>
             </div>
           </div>
+          
+          <!-- Reviews Section -->
+          <div v-if="caregiverReviews.length > 0" class="reviews-section mb-6">
+            <v-divider class="mb-4" />
+            <h3 class="section-title mb-4">
+              <v-icon class="mr-2">mdi-star</v-icon>
+              Client Reviews
+            </h3>
+            
+            <!-- Loading State -->
+            <div v-if="loadingReviews" class="text-center py-4">
+              <v-progress-circular indeterminate color="primary" size="32"></v-progress-circular>
+            </div>
+            
+            <!-- Reviews List (Show top 3) -->
+            <div v-else class="reviews-list">
+              <v-card
+                v-for="review in caregiverReviews.slice(0, 3)"
+                :key="review.id"
+                class="review-card mb-3 pa-4"
+                elevation="1"
+                variant="outlined"
+              >
+                <div class="d-flex justify-space-between align-start mb-2">
+                  <div>
+                    <div class="font-weight-bold text-body-2">{{ review.client_name }}</div>
+                    <div class="text-caption text-grey">{{ review.service_type }} • {{ review.created_at }}</div>
+                  </div>
+                  <v-chip 
+                    v-if="review.recommend" 
+                    color="success" 
+                    size="x-small"
+                    prepend-icon="mdi-thumb-up"
+                  >
+                    Recommended
+                  </v-chip>
+                </div>
+                
+                <v-rating
+                  :model-value="review.rating"
+                  :length="5"
+                  :size="16"
+                  color="amber"
+                  active-color="amber"
+                  readonly
+                  density="compact"
+                  class="mb-2"
+                ></v-rating>
+                
+                <p v-if="review.comment" class="text-body-2 text-grey-darken-2 mb-0">{{ review.comment }}</p>
+              </v-card>
+              
+              <div v-if="caregiverReviews.length > 3" class="text-center mt-3">
+                <span class="text-caption text-grey">+{{ caregiverReviews.length - 3 }} more reviews</span>
+              </div>
+            </div>
+          </div>
 
 
         </v-card-text>
@@ -250,6 +339,8 @@ const filterAvailability = ref('All');
 const detailsDialog = ref(false);
 const selectedCaregiver = ref(null);
 const loading = ref(true);
+const caregiverReviews = ref([]);
+const loadingReviews = ref(false);
 
 const specialties = ['All', 'Elderly Care', 'House Cleaning', 'Personal Care', 'Physical Therapy', 'Childcare', 'Companion Care'];
 const locationOptions = ['All', 'Manhattan', 'Brooklyn', 'Queens', 'Bronx', 'Staten Island', 'Nassau County', 'Suffolk County', 'Westchester County'];
@@ -306,9 +397,30 @@ const resetFilters = () => {
   filterAvailability.value = 'All';
 };
 
-const viewDetails = (caregiver) => {
+const viewDetails = async (caregiver) => {
   selectedCaregiver.value = caregiver;
   detailsDialog.value = true;
+  
+  // Load reviews for this caregiver
+  await loadCaregiverReviews(caregiver.id);
+};
+
+const loadCaregiverReviews = async (caregiverId) => {
+  if (!caregiverId) return;
+  
+  loadingReviews.value = true;
+  caregiverReviews.value = [];
+  
+  try {
+    const response = await axios.get(`/api/reviews/caregiver/${caregiverId}`);
+    if (response.data.success) {
+      caregiverReviews.value = response.data.reviews || [];
+    }
+  } catch (error) {
+    console.error('Error loading caregiver reviews:', error);
+  } finally {
+    loadingReviews.value = false;
+  }
 };
 
 const requestBooking = (caregiver) => {

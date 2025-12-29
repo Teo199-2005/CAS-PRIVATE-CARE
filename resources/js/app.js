@@ -15,6 +15,7 @@ import AdminDashboard from './components/AdminDashboard.vue';
 import AdminSettings from './components/AdminSettings.vue';
 import MarketingDashboard from './components/MarketingDashboard.vue';
 import TrainingDashboard from './components/TrainingDashboard.vue';
+import PaymentPage from './components/PaymentPage.vue';
 
 const vuetify = createVuetify({
     components,
@@ -96,4 +97,14 @@ if (document.getElementById('training-dashboard-app')) {
     });
     app.use(vuetify);
     app.mount('#training-dashboard-app');
+}
+
+if (document.getElementById('payment-page-app')) {
+    const app = createApp({
+        components: {
+            PaymentPage,
+        },
+    });
+    app.use(vuetify);
+    app.mount('#payment-page-app');
 }

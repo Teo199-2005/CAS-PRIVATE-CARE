@@ -11,6 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // Check if table exists first
+        if (!Schema::hasTable('password_resets_custom')) {
+            return;
+        }
+        
         Schema::table('password_resets_custom', function (Blueprint $table) {
             if (!Schema::hasColumn('password_resets_custom', 'token')) {
                 $table->string('token', 64)->nullable()->after('email');
@@ -30,4 +35,5 @@ return new class extends Migration
         });
     }
 };
+
 

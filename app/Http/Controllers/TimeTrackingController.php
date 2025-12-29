@@ -88,12 +88,94 @@ class TimeTrackingController extends Controller
             'status' => 'completed'
         ]);
 
+        // Calculate hours worked
         $activeSession->calculateHours();
+        
+        // Calculate earnings and commissions based on hourly rate
+        $this->calculateEarnings($activeSession);
 
         return response()->json([
             'success' => true,
             'message' => 'Clocked out successfully',
             'data' => $activeSession->fresh()
+        ]);
+    }
+
+    /**
+     * Calculate earnings and commissions for a time tracking entry
+     * Based on actual hours worked × hourly rates
+     */
+    private function calculateEarnings(TimeTracking $timeTracking)
+    {
+        $hoursWorked = $timeTracking->hours_worked ?? 0;
+        
+        if ($hoursWorked <= 0) {
+            return;
+        }
+
+        // Get caregiver info
+        $caregiver = \App\Models\Caregiver::with(['user', 'trainingCenter'])->find($timeTracking->caregiver_id);
+        if (!$caregiver) {
+            return;
+        }
+
+        // Get active booking assignment for this caregiver
+        $assignment = \App\Models\BookingAssignment::with('booking.referralCode')
+            ->where('caregiver_id', $timeTracking->caregiver_id)
+            ->where('status', 'assigned')
+            ->where('is_active', true)
+            ->first();
+
+        $booking = $assignment ? $assignment->booking : null;
+
+        // Base rates per hour
+        $caregiverRate = 28.00; // Caregiver earns $28/hr
+        $marketingRate = 1.00;  // Marketing partner earns $1/hr (if referral used)
+        $trainingRate = 0.50;   // Training center earns $0.50/hr (if caregiver has one)
+
+        // Calculate caregiver earnings
+        $caregiverEarnings = $hoursWorked * $caregiverRate;
+
+        // Check if booking has referral code (marketing partner commission)
+        $marketingPartnerId = null;
+        $marketingCommission = 0;
+        $clientChargeRate = 45.00; // Default rate without referral
+
+        if ($booking && $booking->referral_code_id) {
+            $referralCode = $booking->referralCode;
+            if ($referralCode && $referralCode->user_id) {
+                $marketingPartnerId = $referralCode->user_id;
+                $marketingCommission = $hoursWorked * $marketingRate;
+                $clientChargeRate = 40.00; // Discounted rate with referral
+            }
+        }
+
+        // Check if caregiver has training center
+        $trainingCenterId = null;
+        $trainingCommission = 0;
+        
+        if ($caregiver->has_training_center && $caregiver->training_center_id) {
+            $trainingCenterId = $caregiver->training_center_id;
+            $trainingCommission = $hoursWorked * $trainingRate;
+        }
+
+        // Calculate total client charge
+        $totalClientCharge = $hoursWorked * $clientChargeRate;
+
+        // Calculate agency commission (remainder)
+        $agencyCommission = $totalClientCharge - $caregiverEarnings - $marketingCommission - $trainingCommission;
+
+        // Update time tracking record with all earnings
+        $timeTracking->update([
+            'caregiver_earnings' => $caregiverEarnings,
+            'marketing_partner_id' => $marketingPartnerId,
+            'marketing_partner_commission' => $marketingCommission > 0 ? $marketingCommission : null,
+            'training_center_user_id' => $trainingCenterId,
+            'training_center_commission' => $trainingCommission > 0 ? $trainingCommission : null,
+            'agency_commission' => $agencyCommission,
+            'total_client_charge' => $totalClientCharge,
+            'booking_id' => $booking ? $booking->id : null,
+            'payment_status' => 'pending'
         ]);
     }
 

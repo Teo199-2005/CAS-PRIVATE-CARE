@@ -14,8 +14,11 @@
     @logout="logout"
   >
     <template #header-left>
-      <v-btn color="success" size="x-large" prepend-icon="mdi-calendar-check" class="book-now-btn" @click="currentSection = 'book-form'">Book Now</v-btn>
+      <v-btn color="success" size="x-large" prepend-icon="mdi-calendar-check" class="book-now-btn" @click="attemptBooking">Book Now</v-btn>
     </template>
+
+    <!-- Email Verification Banner -->
+    <email-verification-banner :user-data="userData" />
 
         <!-- Dashboard Section -->
         <div v-if="currentSection === 'dashboard'">
@@ -26,94 +29,207 @@
           </v-row>
 
           <v-row class="mt-2">
-            <v-col cols="12" md="8">
-              <v-card elevation="0" class="modern-activity-card">
-                <v-card-title class="modern-card-header pa-6">
-                  <div class="d-flex align-center justify-between">
-                    <div class="d-flex align-center">
-                      <v-icon color="primary" size="20" class="mr-3">mdi-history</v-icon>
-                      <span class="modern-title primary--text">Transaction History</span>
-                    </div>
-                    <v-chip color="grey-lighten-2" size="small" class="activity-count">{{ recentTransactions.length }} items</v-chip>
-                  </div>
-                </v-card-title>
-                <v-divider></v-divider>
-                <v-data-table 
-                  :headers="transactionHeaders" 
-                  :items="recentTransactions" 
-                  :items-per-page="5" 
-                  class="elevation-0 modern-activity-table"
-                  height="300"
-                  hide-default-header
-                >
-                  <template v-slot:headers>
-                    <tr class="modern-header-row">
-                      <th class="modern-header-cell date-col">DATE</th>
-                      <th class="modern-header-cell service-col">SERVICE</th>
-                      <th class="modern-header-cell caregiver-col">CAREGIVER</th>
-                      <th class="modern-header-cell amount-col">AMOUNT</th>
-                      <th class="modern-header-cell status-col">STATUS</th>
-                    </tr>
-                  </template>
-                  <template v-slot:item="{ item }">
-                    <tr class="modern-row">
-                      <td class="modern-cell date-cell" data-label="Date">{{ item.date }}</td>
-                      <td class="modern-cell service-cell" data-label="Service">{{ item.service }}</td>
-                      <td class="modern-cell caregiver-cell" data-label="Caregiver">{{ item.caregiver }}</td>
-                      <td class="modern-cell amount-cell" data-label="Amount">
-                        <span class="transaction-amount">${{ item.amount }}</span>
-                      </td>
-                      <td class="modern-cell status-cell" data-label="Status">
-                        <v-chip :color="getStatusColor(item.status)" size="small" class="modern-type-chip">{{ item.status }}</v-chip>
-                      </td>
-                    </tr>
-                  </template>
-                </v-data-table>
-              </v-card>
-            </v-col>
-            <v-col cols="12" md="4">
+            <v-col cols="12">
               <v-card class="mb-6" elevation="0">
                 <v-card-title class="card-header pa-6">
-                  <div class="d-flex align-center justify-between">
-                    <span class="section-title primary--text">Ongoing Contracts</span>
-                    <v-chip color="primary" size="small">{{ ongoingContracts.length }}</v-chip>
+                  <div class="d-flex align-center justify-space-between">
+                    <span class="section-title primary--text">My Bookings</span>
+                    <v-chip color="primary" size="small">{{ allClientBookings.length }}</v-chip>
                   </div>
+                  <p class="text-caption text-grey ma-0 mt-1">Review and manage your care service requests</p>
                 </v-card-title>
+                
+                <!-- Tabs -->
+                <v-tabs v-model="bookingTab" color="primary" density="compact" class="px-4">
+                  <v-tab value="pending">
+                    <v-icon start size="small">mdi-clock-outline</v-icon>
+                    Pending
+                    <v-chip v-if="pendingBookings.length > 0" size="x-small" color="warning" class="ml-2">{{ pendingBookings.length }}</v-chip>
+                  </v-tab>
+                  <v-tab value="approved">
+                    <v-icon start size="small">mdi-check-circle</v-icon>
+                    Approved
+                    <v-chip v-if="confirmedBookings.length > 0" size="x-small" color="success" class="ml-2">{{ confirmedBookings.length }}</v-chip>
+                  </v-tab>
+                  <v-tab value="completed">
+                    <v-icon start size="small">mdi-checkbox-marked-circle</v-icon>
+                    Completed
+                    <v-chip v-if="completedBookings.length > 0" size="x-small" color="grey" class="ml-2">{{ completedBookings.length }}</v-chip>
+                  </v-tab>
+                </v-tabs>
+
                 <v-card-text class="pa-0">
-                  <div v-if="ongoingContracts.length === 0" class="text-center pa-8">
-                    <v-icon size="48" color="grey-lighten-2" class="mb-3">mdi-calendar-outline</v-icon>
-                    <p class="text-grey mb-4">No ongoing contracts</p>
-                    <v-btn color="primary" variant="outlined" size="small" @click="currentSection = 'book'">Book Service</v-btn>
-                  </div>
-                  <div v-else>
-                    <div v-for="contract in displayedContracts" :key="contract.id" class="contract-item pa-4">
-                      <div class="d-flex align-center">
-                        <v-avatar size="40" class="mr-3" color="primary">
-                          <img v-if="contract.caregiverImage" :src="contract.caregiverImage" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;" />
-                          <span v-else class="text-white font-weight-bold">{{ contract.caregiverInitials }}</span>
-                        </v-avatar>
-                        <div class="flex-grow-1">
-                          <div class="contract-caregiver">{{ contract.caregiverName }}</div>
-                          <div class="contract-service">{{ contract.serviceType }}</div>
-                          <div class="contract-dates">{{ contract.startDate }} - {{ contract.endDate }}</div>
-                        </div>
-                        <v-chip :color="contract.status === 'active' ? 'success' : 'warning'" size="small">
-                          {{ contract.status }}
-                        </v-chip>
+                  <v-window v-model="bookingTab">
+                    <!-- Pending Tab -->
+                    <v-window-item value="pending">
+                      <div v-if="pendingBookings.length === 0" class="text-center pa-8">
+                        <v-icon size="48" color="grey-lighten-2" class="mb-3">mdi-clock-outline</v-icon>
+                        <p class="text-grey mb-0">No pending bookings</p>
                       </div>
-                    </div>
-                    <!-- View More Button -->
-                    <div v-if="ongoingContracts.length > 5" class="pa-4 text-center">
-                      <v-btn 
-                        color="primary" 
-                        variant="text" 
-                        size="small" 
-                        @click="goToApprovedBookings"
-                        append-icon="mdi-arrow-right"
-                      >
-                        View All {{ ongoingContracts.length }} Contracts
-                      </v-btn>
-                    </div>
+                      <div v-else>
+                        <div v-for="booking in pendingBookings.slice(0, 3)" :key="booking.id" class="contract-item pa-4 border-b">
+                          <div class="d-flex align-center mb-2">
+                            <v-avatar size="40" class="mr-3" color="warning">
+                              <v-icon color="white">mdi-clock-outline</v-icon>
+                            </v-avatar>
+                            <div class="flex-grow-1">
+                              <div class="contract-service font-weight-bold">{{ booking.service || booking.serviceType }}</div>
+                              <div class="contract-dates text-caption">{{ booking.date }}</div>
+                              <div class="text-caption text-grey">{{ booking.dutyType }}</div>
+                            </div>
+                            <div class="text-right">
+                              <div class="text-h6 warning--text font-weight-bold">${{ getBookingPrice(booking) }}</div>
+                              <v-chip color="warning" size="x-small">Pending Review</v-chip>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </v-window-item>
+
+                    <!-- Approved Tab -->
+                    <v-window-item value="approved">
+                      <div v-if="confirmedBookings.length === 0" class="text-center pa-8">
+                        <v-icon size="48" color="grey-lighten-2" class="mb-3">mdi-check-circle</v-icon>
+                        <p class="text-grey mb-4">No approved bookings</p>
+                        <v-btn color="primary" variant="outlined" size="small" @click="attemptBooking">Book Service</v-btn>
+                      </div>
+                      <div v-else>
+                        <div v-for="booking in confirmedBookings.slice(0, 3)" :key="booking.id" class="contract-item pa-4 border-b">
+                          <div class="mb-3">
+                            <!-- Header with Service and Price -->
+                            <div class="d-flex align-center justify-space-between mb-3">
+                              <div class="d-flex align-center flex-grow-1">
+                                <v-avatar size="40" class="mr-3" color="success">
+                                  <v-icon color="white">mdi-check-circle</v-icon>
+                                </v-avatar>
+                                <div>
+                                  <div class="contract-service font-weight-bold">{{ booking.service || booking.serviceType }}</div>
+                                  <div class="contract-dates text-caption">{{ booking.date }}</div>
+                                  <div class="text-caption text-grey">{{ booking.location }}</div>
+                                </div>
+                              </div>
+                              <div class="text-right">
+                                <div class="text-h6 success--text font-weight-bold">${{ getBookingPrice(booking) }}</div>
+                                <v-chip color="success" size="x-small">Approved</v-chip>
+                              </div>
+                            </div>
+
+                            <!-- Caregiver & Assignment Info -->
+                            <div class="mb-3 pa-2" style="background: #f8fafc; border-radius: 8px;">
+                              <div class="d-flex justify-space-between align-center mb-2">
+                                <div class="text-caption font-weight-medium">
+                                  <v-icon size="16" color="info" class="mr-1">mdi-account-heart</v-icon>
+                                  {{ booking.caregiver || 'Pending Assignment' }}
+                                </div>
+                                <v-chip 
+                                  :color="(booking.assignedCount || 0) >= (booking.requiredCount || 1) ? 'success' : 'warning'" 
+                                  size="x-small"
+                                >
+                                  {{ booking.assignedCount || 0 }}/{{ booking.requiredCount || 1 }} Assigned
+                                </v-chip>
+                              </div>
+                              <v-progress-linear
+                                :model-value="((booking.assignedCount || 0) / (booking.requiredCount || 1)) * 100"
+                                :color="(booking.assignedCount || 0) >= (booking.requiredCount || 1) ? 'success' : 'warning'"
+                                height="4"
+                                rounded
+                              ></v-progress-linear>
+                            </div>
+
+                            <!-- Action Buttons -->
+                            <div class="d-flex gap-2">
+                              <v-btn 
+                                color="info" 
+                                size="small" 
+                                variant="outlined"
+                                prepend-icon="mdi-eye"
+                                @click="viewBookingDetails(booking)"
+                                style="flex: 1;"
+                              >
+                                Details
+                              </v-btn>
+                              <v-btn 
+                                color="primary" 
+                                size="small" 
+                                prepend-icon="mdi-credit-card"
+                                @click="goToPayment(booking)"
+                                style="flex: 1;"
+                              >
+                                Pay Now
+                              </v-btn>
+                            </div>
+                            
+                            <!-- Contact Buttons (Secondary Row) -->
+                            <div class="d-flex gap-2 mt-2">
+                              <v-btn 
+                                color="success" 
+                                size="x-small" 
+                                variant="text"
+                                prepend-icon="mdi-phone"
+                                @click="openContactDialog(booking)"
+                                style="flex: 1;"
+                              >
+                                Contact Caregiver
+                              </v-btn>
+                              <v-btn 
+                                color="grey-darken-1" 
+                                size="x-small" 
+                                variant="text"
+                                prepend-icon="mdi-account-tie"
+                                @click="openAdminContactDialog()"
+                                style="flex: 1;"
+                              >
+                                Admin
+                              </v-btn>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </v-window-item>
+
+                    <!-- Completed Tab -->
+                    <v-window-item value="completed">
+                      <div v-if="completedBookings.length === 0" class="text-center pa-8">
+                        <v-icon size="48" color="grey-lighten-2" class="mb-3">mdi-checkbox-marked-circle</v-icon>
+                        <p class="text-grey mb-0">No completed bookings</p>
+                      </div>
+                      <div v-else>
+                        <div v-for="booking in completedBookings.slice(0, 3)" :key="booking.id" class="contract-item pa-4">
+                          <div class="mb-2">
+                            <div class="d-flex align-center justify-space-between mb-2">
+                              <div class="d-flex align-center flex-grow-1">
+                                <v-avatar size="40" class="mr-3" color="grey">
+                                  <v-icon color="white">mdi-checkbox-marked-circle</v-icon>
+                                </v-avatar>
+                                <div>
+                                  <div class="contract-service font-weight-bold">{{ booking.service || booking.serviceType }}</div>
+                                  <div class="contract-dates text-caption">{{ booking.date }}</div>
+                                  <div class="text-caption text-grey">{{ booking.location }}</div>
+                                </div>
+                              </div>
+                              <div class="text-right">
+                                <div class="text-h6 grey--text font-weight-bold">${{ getBookingPrice(booking) }}</div>
+                                <v-chip color="grey" size="x-small">Completed</v-chip>
+                              </div>
+                            </div>
+                            <v-btn block variant="outlined" size="small" prepend-icon="mdi-star" @click="rateBooking(booking.id)">Rate Service</v-btn>
+                          </div>
+                        </div>
+                      </div>
+                    </v-window-item>
+                  </v-window>
+
+                  <!-- View All Button -->
+                  <div v-if="allClientBookings.length > 3" class="pa-4 text-center border-t">
+                    <v-btn 
+                      color="primary" 
+                      variant="text" 
+                      size="small" 
+                      @click="currentSection = 'my-bookings'"
+                      append-icon="mdi-arrow-right"
+                    >
+                      View All {{ allClientBookings.length }} Bookings
+                    </v-btn>
                   </div>
                 </v-card-text>
               </v-card>
@@ -635,7 +751,7 @@
                       </div>
                       
                       <v-row>
-                        <v-col cols="12" md="6">
+                        <v-col cols="12" md="5">
                           <div class="booking-details">
                             <div class="detail-row">
                               <v-icon size="18" color="primary">mdi-calendar</v-icon>
@@ -653,13 +769,19 @@
                               <v-icon size="18" color="primary">mdi-account-clock</v-icon>
                               <span class="detail-text">{{ booking.dutyType }}</span>
                             </div>
+                            <div class="detail-row mt-3">
+                              <v-chip color="warning" size="small" variant="flat">
+                                <v-icon start size="small">mdi-currency-usd</v-icon>
+                                Estimated: ${{ getBookingPrice(booking) }}
+                              </v-chip>
+                            </div>
                           </div>
                         </v-col>
-                        <v-col cols="12" md="6">
+                        <v-col cols="12" md="7">
                           <div class="booking-actions">
                             <v-btn color="info" variant="outlined" size="small" class="mr-2 mb-2" @click="viewBookingDetails(booking)">
                               <v-icon start>mdi-eye</v-icon>
-                              View
+                              View Details
                             </v-btn>
                             <v-btn color="primary" variant="outlined" size="small" class="mr-2 mb-2" @click="editBooking(booking.id)">
                               <v-icon start>mdi-pencil</v-icon>
@@ -670,6 +792,14 @@
                               Cancel
                             </v-btn>
                           </div>
+                          
+                          <!-- Pending Status Info -->
+                          <v-alert type="info" density="compact" class="mt-3" variant="tonal">
+                            <div class="d-flex align-center">
+                              <v-icon start>mdi-information</v-icon>
+                              <span class="text-caption">Your booking is under review by our admin team. We'll notify you once it's approved.</span>
+                            </div>
+                          </v-alert>
                         </v-col>
                       </v-row>
                     </v-card-text>
@@ -678,7 +808,7 @@
               </v-row>
               <v-alert v-if="pendingBookings.length === 0 && !loadingBookings" type="info" class="mt-4">
                 <v-icon start>mdi-information</v-icon>
-                No pending requests. <a href="#" @click="currentSection = 'book-form'" class="text-primary">Submit a new request</a>
+                No pending requests. <a href="#" @click.prevent="attemptBooking" class="text-primary">Submit a new request</a>
               </v-alert>
               <div v-if="loadingBookings" class="text-center pa-8">
                 <v-progress-circular indeterminate color="primary" size="48"></v-progress-circular>
@@ -703,7 +833,7 @@
                       </div>
                       
                       <v-row>
-                        <v-col cols="12" md="5">
+                        <v-col cols="12" md="4">
                           <div class="booking-details">
                             <div class="detail-row">
                               <v-icon size="18" color="primary">mdi-account</v-icon>
@@ -721,14 +851,42 @@
                               <v-icon size="18" color="primary">mdi-map-marker</v-icon>
                               <span class="detail-text">{{ booking.location }}</span>
                             </div>
+                            <div class="detail-row">
+                              <v-icon size="18" color="primary">mdi-clock-outline</v-icon>
+                              <span class="detail-text">{{ booking.durationDays || 15 }} days</span>
+                            </div>
                           </div>
                         </v-col>
+                        
+                        <!-- Pricing Summary Card -->
                         <v-col cols="12" md="3">
+                          <div class="pricing-summary-card pa-3 rounded-lg" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+                            <div class="text-caption mb-2 opacity-90">Total Amount</div>
+                            <div class="text-h5 font-weight-bold mb-2">${{ getBookingPrice(booking) }}</div>
+                            <v-divider class="my-2" style="border-color: rgba(255,255,255,0.3);"></v-divider>
+                            <div class="d-flex justify-space-between text-caption opacity-90">
+                              <span>Rate/Hour:</span>
+                              <span>${{ booking.hourlyRate || 45 }}</span>
+                            </div>
+                            <div class="d-flex justify-space-between text-caption opacity-90">
+                              <span>Hours/Day:</span>
+                              <span>{{ extractHoursFromDuty(booking.dutyType || booking.duty_type) }}</span>
+                            </div>
+                            <div v-if="booking.hasDiscount" class="mt-2">
+                              <v-chip color="success" size="x-small" class="mt-1">
+                                <v-icon start size="x-small">mdi-tag-check</v-icon>
+                                Discount Applied
+                              </v-chip>
+                            </div>
+                          </div>
+                        </v-col>
+                        
+                        <v-col cols="12" md="2">
                           <!-- Caregiver Assignment Progress -->
                           <div class="assignment-progress-card pa-3 rounded-lg" style="background: #f8fafc; border: 1px solid #e2e8f0;">
                             <div class="d-flex align-center mb-2">
                               <v-icon size="18" color="info" class="mr-2">mdi-account-group</v-icon>
-                              <span class="text-caption font-weight-medium">Caregiver Assignment</span>
+                              <span class="text-caption font-weight-medium">Assignment</span>
                             </div>
                             <div class="d-flex align-center justify-between mb-2">
                               <span class="text-body-2">{{ booking.assignedCount || 0 }} / {{ booking.requiredCount || 1 }}</span>
@@ -748,7 +906,8 @@
                             ></v-progress-linear>
                           </div>
                         </v-col>
-                        <v-col cols="12" md="4">
+                        
+                        <v-col cols="12" md="3">
                           <div class="d-flex flex-column gap-2">
                             <v-btn color="info" variant="outlined" size="small" @click="viewBookingDetails(booking)" block>
                               <v-icon start>mdi-eye</v-icon>
@@ -1029,6 +1188,157 @@
           </v-row>
         </div>
 
+        <!-- Payment Section -->
+        <div v-if="currentSection === 'payment' && selectedBooking">
+          <v-card elevation="0" class="mb-6">
+            <v-card-title class="card-header pa-8 d-flex align-center">
+              <v-btn icon="mdi-arrow-left" variant="text" @click="currentSection = 'dashboard'" class="mr-3"></v-btn>
+              <span class="section-title primary--text">Complete Payment</span>
+            </v-card-title>
+            <v-card-text class="pa-8">
+              <!-- Booking Summary -->
+              <v-card class="mb-6" elevation="1">
+                <v-card-title class="bg-primary text-white">
+                  <v-icon start>mdi-file-document-outline</v-icon>
+                  Booking Summary
+                </v-card-title>
+                <v-card-text class="pa-6">
+                  <v-row>
+                    <v-col cols="12" md="6">
+                      <div class="mb-4">
+                        <div class="text-caption text-grey mb-1">Service Type</div>
+                        <div class="font-weight-bold">{{ selectedBooking.service || selectedBooking.serviceType }}</div>
+                      </div>
+                      <div class="mb-4">
+                        <div class="text-caption text-grey mb-1">Service Date</div>
+                        <div class="font-weight-bold">{{ selectedBooking.date }}</div>
+                      </div>
+                      <div class="mb-4">
+                        <div class="text-caption text-grey mb-1">Location</div>
+                        <div class="font-weight-bold">{{ selectedBooking.location }}</div>
+                      </div>
+                    </v-col>
+                    <v-col cols="12" md="6">
+                      <div class="mb-4">
+                        <div class="text-caption text-grey mb-1">Duration</div>
+                        <div class="font-weight-bold">{{ selectedBooking.duration_days }} days</div>
+                      </div>
+                      <div class="mb-4">
+                        <div class="text-caption text-grey mb-1">Hours per Day</div>
+                        <div class="font-weight-bold">{{ selectedBooking.hours_per_day }} hours</div>
+                      </div>
+                      <div class="mb-4">
+                        <div class="text-caption text-grey mb-1">Status</div>
+                        <v-chip color="success" size="small">Approved</v-chip>
+                      </div>
+                    </v-col>
+                  </v-row>
+                </v-card-text>
+              </v-card>
+
+              <!-- Price Breakdown -->
+              <v-card class="mb-6" elevation="1">
+                <v-card-title class="bg-primary text-white">
+                  <v-icon start>mdi-cash-multiple</v-icon>
+                  Price Breakdown
+                </v-card-title>
+                <v-card-text class="pa-6">
+                  <div class="d-flex justify-space-between mb-3">
+                    <span>Base Rate ({{ selectedBooking.duration_days }} days × {{ selectedBooking.hours_per_day }} hrs × ${{ selectedBooking.hourly_rate }}/hr)</span>
+                    <span class="font-weight-bold">${{ getBookingPrice(selectedBooking) }}</span>
+                  </div>
+                  <div class="d-flex justify-space-between mb-3">
+                    <span>Service Fee</span>
+                    <span class="font-weight-bold">$0.00</span>
+                  </div>
+                  <v-divider class="my-4"></v-divider>
+                  <div class="d-flex justify-space-between">
+                    <span class="text-h6 font-weight-bold">Total Amount</span>
+                    <span class="text-h5 primary--text font-weight-bold">${{ getBookingPrice(selectedBooking) }}</span>
+                  </div>
+                </v-card-text>
+              </v-card>
+
+              <!-- Payment Form (Prototype) -->
+              <v-card elevation="1">
+                <v-card-title class="bg-primary text-white">
+                  <v-icon start>mdi-credit-card</v-icon>
+                  Payment Information
+                </v-card-title>
+                <v-card-text class="pa-6">
+                  <v-alert type="info" variant="tonal" class="mb-6">
+                    <div class="d-flex align-center">
+                      <v-icon start>mdi-information</v-icon>
+                      <div>
+                        <strong>Prototype Mode:</strong> This is a demo payment interface. Stripe integration will be added in production.
+                      </div>
+                    </div>
+                  </v-alert>
+
+                  <v-text-field
+                    label="Card Number"
+                    placeholder="1234 5678 9012 3456"
+                    prepend-inner-icon="mdi-credit-card"
+                    variant="outlined"
+                    class="mb-4"
+                    hint="Enter 16-digit card number"
+                  ></v-text-field>
+
+                  <v-row>
+                    <v-col cols="12" md="6">
+                      <v-text-field
+                        label="Expiry Date"
+                        placeholder="MM/YY"
+                        prepend-inner-icon="mdi-calendar"
+                        variant="outlined"
+                      ></v-text-field>
+                    </v-col>
+                    <v-col cols="12" md="6">
+                      <v-text-field
+                        label="CVC"
+                        placeholder="123"
+                        prepend-inner-icon="mdi-lock"
+                        variant="outlined"
+                      ></v-text-field>
+                    </v-col>
+                  </v-row>
+
+                  <v-text-field
+                    label="ZIP Code"
+                    placeholder="10001"
+                    prepend-inner-icon="mdi-map-marker"
+                    variant="outlined"
+                    class="mb-4"
+                  ></v-text-field>
+
+                  <v-divider class="my-6"></v-divider>
+
+                  <div class="d-flex gap-3">
+                    <v-btn
+                      color="grey"
+                      variant="outlined"
+                      size="large"
+                      @click="currentSection = 'dashboard'"
+                      class="flex-grow-1"
+                    >
+                      Cancel
+                    </v-btn>
+                    <v-btn
+                      color="primary"
+                      size="large"
+                      prepend-icon="mdi-lock-check"
+                      @click="processPayment"
+                      class="flex-grow-1"
+                    >
+                      Process Payment - ${{ getBookingPrice(selectedBooking) }}
+                    </v-btn>
+                  </div>
+                </v-card-text>
+              </v-card>
+            </v-card-text>
+          </v-card>
+        </div>
+
         <!-- Profile Section -->
         <div v-if="currentSection === 'profile'">
           <v-row>
@@ -1046,7 +1356,21 @@
                       <v-text-field v-model="profileData.lastName" label="Last Name" variant="outlined" @update:model-value="profileData.lastName = filterLettersOnly(profileData.lastName)" />
                     </v-col>
                     <v-col cols="12" md="6">
-                      <v-text-field v-model="profileData.email" label="Email" variant="outlined" type="email" />
+                      <v-text-field v-model="profileData.email" label="Email" variant="outlined" type="email" readonly>
+                        <template v-slot:append-inner>
+                          <v-tooltip :text="userData?.email_verified_at ? 'Email Verified' : 'Email Not Verified'" location="top">
+                            <template v-slot:activator="{ props }">
+                              <v-icon 
+                                v-bind="props"
+                                :color="userData?.email_verified_at ? 'success' : 'error'"
+                                size="20"
+                              >
+                                {{ userData?.email_verified_at ? 'mdi-check-circle' : 'mdi-close-circle' }}
+                              </v-icon>
+                            </template>
+                          </v-tooltip>
+                        </template>
+                      </v-text-field>
                     </v-col>
                     <v-col cols="12" md="6">
                       <v-text-field v-model="profileData.phone" label="Phone" variant="outlined" />
@@ -1596,6 +1920,14 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
+
+    <!-- Rating Modal -->
+    <rating-modal
+      v-model="ratingDialog"
+      :booking="selectedBookingForRating"
+      :caregivers="caregiversToRate"
+      @submitted="handleRatingSubmitted"
+    />
   </dashboard-template>
 </template>
 
@@ -1606,6 +1938,8 @@ import StatCard from './shared/StatCard.vue';
 import BrowseCaregivers from './BrowseCaregivers.vue';
 import NotificationCenter from './shared/NotificationCenter.vue';
 import NotificationToast from './shared/NotificationToast.vue';
+import EmailVerificationBanner from './EmailVerificationBanner.vue';
+import RatingModal from './shared/RatingModal.vue';
 import { useNotification } from '../composables/useNotification.js';
 import { useNYLocationData } from '../composables/useNYLocationData.js';
 
@@ -2152,6 +2486,16 @@ const currentServiceStartDate = ref('');
 const currentServiceEndDate = ref('');
 
 const ongoingContracts = ref([]);
+// Use existing booking variables that are already declared
+
+// Computed property for all bookings combined
+const allClientBookings = computed(() => {
+  const all = [];
+  all.push(...(pendingBookings.value || []));
+  all.push(...(confirmedBookings.value || []));
+  all.push(...(completedBookings.value || []));
+  return all;
+});
 
 // Computed property to display only first 3 contracts
 const displayedContracts = computed(() => {
@@ -2423,17 +2767,18 @@ const loadCaregivers = async () => {
     const data = await response.json();
     caregivers.value = data.caregivers.map(c => ({
       id: c.id,
-      name: c.user.name,
+      name: c.user?.name || 'Caregiver',
       specialty: c.specializations?.[0] || 'General Care',
-      rating: c.rating,
-      reviews: c.total_reviews,
-      experience: c.years_experience,
-      rate: c.hourly_rate,
-      availability: c.availability_status,
-      image: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=300&h=200&fit=crop'
+      rating: c.rating || 4.5,
+      reviews: c.total_reviews || 0,
+      experience: c.years_experience || 0,
+      rate: c.hourly_rate || 28,
+      availability: c.availability_status || 'available',
+      image: c.user?.avatar || 'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=300&h=200&fit=crop'
     }));
   } catch (error) {
     console.error('Failed to load caregivers:', error);
+    // Keep the default caregivers if API fails
   }
 };
 
@@ -2596,6 +2941,26 @@ const paymentMethods = ref([
 
 const submitBooking = async () => {
   try {
+    // CHECK BOOKING LIMITS: Only allow 1 pending OR 1 approved booking at a time
+    const hasPending = pendingBookings.value.length > 0;
+    const hasApproved = confirmedBookings.value.length > 0;
+    
+    if (hasPending) {
+      error(
+        'You have a pending booking that needs to be reviewed by our admin team first. You can submit a new booking once the current one is approved or rejected.',
+        'Cannot Submit Booking'
+      );
+      return;
+    }
+    
+    if (hasApproved) {
+      error(
+        'You have an active approved booking. To avoid scheduling conflicts, please wait until your current service is completed before booking a new one.',
+        'Cannot Submit Booking'
+      );
+      return;
+    }
+    
     // Calculate the hourly rate (with or without referral discount)
     const baseRate = 45; // Base rate: Caregiver $28 + Agency $16.50 + Training $0.50
     const finalRate = referralDiscount.value > 0 ? (baseRate - referralDiscount.value) : baseRate;
@@ -2726,8 +3091,85 @@ const cancelBooking = async (id) => {
   }
 };
 
-const rateBooking = (id) => {
-  success('Thank you for your feedback! Rating feature coming soon.');
+const ratingDialog = ref(false);
+const selectedBookingForRating = ref(null);
+const caregiversToRate = ref([]);
+
+// Check if client can book (only 1 pending OR 1 approved allowed)
+const attemptBooking = () => {
+  const hasPending = pendingBookings.value.length > 0;
+  const hasApproved = confirmedBookings.value.length > 0;
+  
+  if (hasPending) {
+    error(
+      'You have a pending booking awaiting approval. Please wait for our admin team to review your request before submitting a new booking.',
+      'Booking Limit Reached'
+    );
+    // Navigate to My Bookings to show pending booking
+    currentSection.value = 'my-bookings';
+    return;
+  }
+  
+  if (hasApproved) {
+    error(
+      'You have an active booking in progress. To prevent scheduling conflicts and ensure quality service, we only allow one active booking at a time. Your current booking will be completed soon.',
+      'Active Booking in Progress'
+    );
+    // Navigate to My Bookings to show approved booking
+    currentSection.value = 'my-bookings';
+    bookingTab.value = 'approved';
+    return;
+  }
+  
+  // All clear, proceed to booking form
+  currentSection.value = 'book-form';
+};
+
+const goToPayment = (booking) => {
+  // Navigate to separate payment page
+  window.location.href = `/payment?booking_id=${booking.id}`;
+};
+
+const processPayment = () => {
+  // Prototype: Show success message
+  success('Payment processed successfully! This is a prototype - Stripe integration coming soon.', 'Payment Successful');
+  selectedBooking.value = null;
+  currentSection.value = 'dashboard';
+  // Reload bookings to reflect any status changes
+  loadPendingBookings();
+  loadConfirmedBookings();
+  loadCompletedBookings();
+};
+
+const rateBooking = async (id) => {
+  try {
+    // Check if client can review this booking
+    const response = await fetch(`/api/reviews/booking/${id}/can-review`);
+    const data = await response.json();
+
+    if (data.success && data.can_review) {
+      // Find the booking details
+      const booking = completedBookings.value.find(b => b.id === id);
+      selectedBookingForRating.value = booking;
+      caregiversToRate.value = data.caregivers;
+      ratingDialog.value = true;
+    } else {
+      if (data.caregivers && data.caregivers.length === 0) {
+        success('You have already reviewed all caregivers for this booking!', 'Already Reviewed');
+      } else {
+        success(data.message || 'Unable to review this booking at this time.', 'Info');
+      }
+    }
+  } catch (error) {
+    console.error('Error checking review status:', error);
+    success('Unable to load review form. Please try again.', 'Error');
+  }
+};
+
+const handleRatingSubmitted = (data) => {
+  success('Thank you for your feedback!', 'Review Submitted');
+  // Reload completed bookings to update any UI changes
+  loadCompletedBookings();
 };
 
 const downloadReceipt = (bookingId) => {
@@ -2913,6 +3355,38 @@ const getTotalCost = () => {
   return total > 0 ? `$${total.toLocaleString()}` : '';
 };
 
+// Calculate price for a booking object (used in dashboard widgets)
+const getBookingPrice = (booking) => {
+  if (!booking) return '0';
+  
+  // Extract hours from duty type (e.g., "8 Hours Duty" -> 8)
+  const hoursMatch = booking.dutyType?.match(/(\d+)/) || booking.duty_type?.match(/(\d+)/);
+  const hoursPerDay = hoursMatch ? parseInt(hoursMatch[1]) : 8;
+  
+  // Get duration days
+  const days = booking.durationDays || booking.duration_days || 15;
+  
+  // Get service type
+  const serviceType = booking.service || booking.serviceType || booking.service_type || 'Elderly Care';
+  
+  // Get rate based on service type
+  const rates = {
+    'Caregiver': 45,
+    'Elderly Care': 45,
+    'Personal Care': 45,
+    'Companion Care': 45,
+    'Childcare': 45,
+    'Housekeeping': 25,
+    'House Cleaning': 25,
+    'Personal Assistant': 30
+  };
+  
+  const rate = rates[serviceType] || 45;
+  const total = hoursPerDay * days * rate;
+  
+  return total.toLocaleString();
+};
+
 const updateBooking = async () => {
   try {
     const response = await fetch(`/api/bookings/${editingBookingId.value}`, {
@@ -3095,6 +3569,11 @@ const extractHours = (dutyType) => {
     return match ? parseInt(match[1]) : 8;
   }
   return 8;
+};
+
+// Helper for template usage
+const extractHoursFromDuty = (dutyType) => {
+  return extractHours(dutyType);
 };
 
 const formatTime = (timeStr) => {

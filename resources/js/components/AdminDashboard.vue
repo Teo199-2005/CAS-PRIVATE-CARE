@@ -27,6 +27,9 @@
       <v-btn color="success" size="x-large" prepend-icon="mdi-email-send" class="admin-btn ml-2" @click="testEmailDialog = true">Test Email</v-btn>
     </template>
 
+    <!-- Email Verification Banner -->
+    <email-verification-banner />
+
     <!-- Dashboard Section -->
     <div v-if="currentSection === 'dashboard'">
       <v-row class="mb-4">
@@ -439,6 +442,21 @@
           <template v-slot:item.status="{ item }">
             <v-chip :color="getUserStatusColor(item.status)" size="small" class="font-weight-bold" :prepend-icon="getStatusIcon(item.status)">{{ item.status }}</v-chip>
           </template>
+          <template v-slot:item.rating="{ item }">
+            <div class="d-flex align-center">
+              <v-rating
+                :model-value="parseFloat(item.rating || 0)"
+                :length="5"
+                :size="18"
+                color="amber"
+                active-color="amber"
+                half-increments
+                readonly
+                density="compact"
+              ></v-rating>
+              <span class="ml-1 text-caption">{{ parseFloat(item.rating || 0).toFixed(1) }}</span>
+            </div>
+          </template>
           <template v-slot:item.actions="{ item }">
             <div class="action-buttons">
               <v-btn class="action-btn-view" icon="mdi-eye" size="small" @click="viewCaregiverDetails(item)"></v-btn>
@@ -470,6 +488,26 @@
                 <v-icon size="16" class="mr-1">mdi-account-group</v-icon>
                 {{ viewingCaregiver.clients }} Clients
               </v-chip>
+              
+              <!-- Rating Display -->
+              <div class="mt-4">
+                <div class="d-flex align-center justify-center">
+                  <v-rating
+                    :model-value="parseFloat(viewingCaregiver.rating || 0)"
+                    :length="5"
+                    :size="32"
+                    color="amber"
+                    active-color="amber"
+                    half-increments
+                    readonly
+                    density="compact"
+                  ></v-rating>
+                  <span class="ml-2 text-h6">{{ parseFloat(viewingCaregiver.rating || 0).toFixed(1) }}</span>
+                </div>
+                <div class="text-caption text-grey mt-1">
+                  {{ caregiverReviews.length || 0 }} {{ caregiverReviews.length === 1 ? 'Review' : 'Reviews' }}
+                </div>
+              </div>
             </v-col>
           </v-row>
           
@@ -514,6 +552,80 @@
                     {{ viewingCaregiver.verified ? 'Verified' : 'Pending' }}
                   </v-chip>
                 </div>
+              </div>
+            </v-col>
+          </v-row>
+          
+          <v-divider class="my-4"></v-divider>
+          
+          <!-- Ratings & Reviews Section -->
+          <v-row>
+            <v-col cols="12">
+              <div class="detail-section">
+                <div class="detail-label mb-3">
+                  <v-icon class="mr-2">mdi-star</v-icon>
+                  Ratings & Reviews
+                </div>
+                
+                <!-- Loading State -->
+                <div v-if="loadingCaregiverReviews" class="text-center py-8">
+                  <v-progress-circular indeterminate color="primary"></v-progress-circular>
+                  <p class="text-caption mt-2">Loading reviews...</p>
+                </div>
+                
+                <!-- Reviews List -->
+                <div v-else-if="caregiverReviews.length > 0">
+                  <v-card
+                    v-for="review in caregiverReviews.slice(0, 5)"
+                    :key="review.id"
+                    class="mb-3 pa-4"
+                    elevation="1"
+                  >
+                    <div class="d-flex justify-space-between align-start mb-2">
+                      <div>
+                        <div class="font-weight-bold">{{ review.client_name }}</div>
+                        <div class="text-caption text-grey">{{ review.service_type }} - {{ review.service_date }}</div>
+                      </div>
+                      <v-chip 
+                        :color="review.recommend ? 'success' : 'grey'" 
+                        size="x-small"
+                      >
+                        <v-icon size="14" start>{{ review.recommend ? 'mdi-thumb-up' : 'mdi-thumb-down' }}</v-icon>
+                        {{ review.recommend ? 'Recommended' : 'Not Recommended' }}
+                      </v-chip>
+                    </div>
+                    
+                    <v-rating
+                      :model-value="review.rating"
+                      :length="5"
+                      :size="20"
+                      color="amber"
+                      active-color="amber"
+                      readonly
+                      density="compact"
+                      class="mb-2"
+                    ></v-rating>
+                    
+                    <p v-if="review.comment" class="text-body-2 mb-1">{{ review.comment }}</p>
+                    <div class="text-caption text-grey">{{ review.created_at }}</div>
+                  </v-card>
+                  
+                  <v-btn
+                    v-if="caregiverReviews.length > 5"
+                    variant="text"
+                    color="primary"
+                    block
+                    @click="viewAllReviews(viewingCaregiver)"
+                  >
+                    View All {{ caregiverReviews.length }} Reviews
+                  </v-btn>
+                </div>
+                
+                <!-- No Reviews -->
+                <v-alert v-else type="info" variant="tonal" density="compact">
+                  <v-icon>mdi-information</v-icon>
+                  No reviews yet for this caregiver
+                </v-alert>
               </div>
             </v-col>
           </v-row>
@@ -1559,9 +1671,74 @@
       </v-card>
     </div>
 
-
-
-
+    <!-- Reviews & Ratings Section -->
+    <div v-if="currentSection === 'reviews'">
+      <v-card elevation="0">
+        <v-card-title class="card-header pa-8 d-flex justify-space-between align-center">
+          <div>
+            <span class="section-title error--text">Reviews & Ratings</span>
+            <div class="text-caption text-grey mt-1">Manage client feedback and caregiver ratings</div>
+          </div>
+          <v-chip color="info" variant="flat" size="large">
+            <v-icon start>mdi-star</v-icon>
+            {{ allReviews.length }} Total Reviews
+          </v-chip>
+        </v-card-title>
+        
+        <v-card-text class="pa-0">
+          <v-data-table
+            :headers="reviewHeaders"
+            :items="allReviews"
+            :items-per-page="10"
+            :loading="loadingReviews"
+            class="admin-table"
+            item-value="id"
+          >
+            <template v-slot:item.rating="{ item }">
+              <div class="d-flex align-center">
+                <v-rating
+                  :model-value="item.rating"
+                  readonly
+                  density="compact"
+                  size="small"
+                  color="amber"
+                  active-color="amber"
+                ></v-rating>
+                <span class="ml-2 font-weight-bold">{{ item.rating }}.0</span>
+              </div>
+            </template>
+            
+            <template v-slot:item.recommend="{ item }">
+              <v-chip
+                :color="item.recommend ? 'success' : 'error'"
+                size="small"
+                variant="flat"
+              >
+                <v-icon start>{{ item.recommend ? 'mdi-thumb-up' : 'mdi-thumb-down' }}</v-icon>
+                {{ item.recommend ? 'Yes' : 'No' }}
+              </v-chip>
+            </template>
+            
+            <template v-slot:item.comment="{ item }">
+              <div class="text-truncate" style="max-width: 200px;">
+                {{ item.comment || 'No comment' }}
+              </div>
+            </template>
+            
+            <template v-slot:item.created_at="{ item }">
+              <span class="text-grey">{{ item.created_at }}</span>
+            </template>
+            
+            <template v-slot:item.actions="{ item }">
+              <div class="d-flex gap-2">
+                <v-btn color="info" variant="outlined" size="small" icon="mdi-eye" @click="viewReviewDetails(item)"></v-btn>
+                <v-btn color="error" variant="outlined" size="small" icon="mdi-delete" @click="deleteReview(item.id)"></v-btn>
+              </div>
+            </template>
+          </v-data-table>
+        </v-card-text>
+      </v-card>
+    </div>
 
     <!-- Announcements Section -->
     <div v-if="currentSection === 'announcements'">
@@ -1828,7 +2005,21 @@
                   <v-text-field v-model="profileData.lastName" label="Last Name" variant="outlined" @update:model-value="profileData.lastName = filterLettersOnly(profileData.lastName)" />
                 </v-col>
                 <v-col cols="12" md="6">
-                  <v-text-field v-model="profileData.email" label="Email" variant="outlined" type="email" />
+                  <v-text-field v-model="profileData.email" label="Email" variant="outlined" type="email">
+                    <template v-slot:append-inner>
+                      <v-tooltip :text="userEmailVerified ? 'Email Verified' : 'Email Not Verified'" location="top">
+                        <template v-slot:activator="{ props }">
+                          <v-icon 
+                            v-bind="props"
+                            :color="userEmailVerified ? 'success' : 'error'"
+                            size="20"
+                          >
+                            {{ userEmailVerified ? 'mdi-check-circle' : 'mdi-close-circle' }}
+                          </v-icon>
+                        </template>
+                      </v-tooltip>
+                    </template>
+                  </v-text-field>
                 </v-col>
                 <v-col cols="12" md="6">
                   <v-text-field v-model="profileData.phone" label="Phone" variant="outlined" />
@@ -3345,15 +3536,19 @@ import DashboardTemplate from './DashboardTemplate.vue';
 import StatCard from './shared/StatCard.vue';
 import NotificationToast from './shared/NotificationToast.vue';
 import NotificationCenter from './shared/NotificationCenter.vue';
+import EmailVerificationBanner from './EmailVerificationBanner.vue';
 import { useNotification } from '../composables/useNotification';
 
 const { notification, success, error, warning, info } = useNotification();
 
 const currentSection = ref(localStorage.getItem('adminSection') || 'dashboard');
+const userEmailVerified = ref(false);
 const settingsTab = ref('system');
 const addUserDialog = ref(false);
 const viewCaregiverDialog = ref(false);
 const viewingCaregiver = ref(null);
+const caregiverReviews = ref([]);
+const loadingCaregiverReviews = ref(false);
 const announceDialog = ref(false);
 const testEmailDialog = ref(false);
 const testEmailAddress = ref('teofiloharry69@gmail.com');
@@ -3640,6 +3835,10 @@ const loadProfile = async () => {
       profile.value.firstName = data.first_name || data.name?.split(' ')[0] || 'Admin';
       profile.value.lastName = data.last_name || data.name?.split(' ').slice(1).join(' ') || 'User';
       adminUserId.value = data.id;
+      
+      // Set email verification status
+      userEmailVerified.value = data.email_verified_at !== null && data.email_verified_at !== undefined;
+      
       profileData.value.firstName = profile.value.firstName;
       profileData.value.lastName = profile.value.lastName;
       profileData.value.email = data.email || 'admin@casprivatecare.com';
@@ -3677,6 +3876,7 @@ const navItems = ref([
   { icon: 'mdi-lock-reset', title: 'Password Resets', value: 'password-resets', category: 'APPLICATIONS' },
   { icon: 'mdi-calendar-account', title: 'Client Bookings', value: 'client-bookings', category: 'BOOKINGS' },
   { icon: 'mdi-clock-time-four', title: 'Time Tracking', value: 'time-tracking', category: 'BOOKINGS' },
+  { icon: 'mdi-star', title: 'Reviews & Ratings', value: 'reviews', category: 'FEEDBACK' },
   { icon: 'mdi-bullhorn', title: 'Announcements', value: 'announcements', category: 'COMMUNICATIONS' },
   { icon: 'mdi-credit-card', title: 'Payments', value: 'payments', category: 'FINANCIAL' },
   { icon: 'mdi-chart-line', title: 'Analytics', value: 'analytics', category: 'REPORTS' },
@@ -4098,6 +4298,82 @@ const timeTrackingHeaders = [
 ];
 
 const timeTrackingData = ref([]);
+
+// Reviews & Ratings Data
+const allReviews = ref([]);
+const loadingReviews = ref(false);
+const reviewHeaders = [
+  { title: 'Client', key: 'client_name' },
+  { title: 'Caregiver', key: 'caregiver_name' },
+  { title: 'Service', key: 'service_type' },
+  { title: 'Rating', key: 'rating' },
+  { title: 'Recommend', key: 'recommend' },
+  { title: 'Comment', key: 'comment' },
+  { title: 'Date', key: 'created_at' },
+  { title: 'Actions', key: 'actions', sortable: false },
+];
+
+const loadAllReviews = async () => {
+  loadingReviews.value = true;
+  console.log('Loading all reviews...');
+  try {
+    const response = await fetch('/api/reviews', {
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include'
+    });
+    
+    console.log('Reviews API response status:', response.status);
+    const data = await response.json();
+    console.log('Reviews API response data:', data);
+    
+    if (data.success) {
+      allReviews.value = data.reviews || [];
+      console.log(`✅ Loaded ${allReviews.value.length} reviews`);
+    } else {
+      console.error('❌ Reviews API returned success:false', data.message);
+      error(data.message || 'Failed to load reviews');
+    }
+  } catch (err) {
+    console.error('❌ Failed to load reviews:', err);
+    error('Failed to load reviews. Please try again.');
+  } finally {
+    loadingReviews.value = false;
+  }
+};
+
+const viewReviewDetails = (review) => {
+  alert(`Review Details:\n\nClient: ${review.client_name}\nCaregiver: ${review.caregiver_name}\nRating: ${review.rating}/5\nRecommend: ${review.recommend ? 'Yes' : 'No'}\n\nComment: ${review.comment || 'No comment'}`);
+};
+
+const deleteReview = async (reviewId) => {
+  if (!confirm('Are you sure you want to delete this review? This action cannot be undone.')) {
+    return;
+  }
+
+  try {
+    const response = await fetch(`/api/reviews/${reviewId}`, {
+      method: 'DELETE',
+      headers: {
+        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+      }
+    });
+
+    const data = await response.json();
+
+    if (data.success) {
+      success('Review deleted successfully');
+      loadAllReviews();
+    } else {
+      error(data.message || 'Failed to delete review');
+    }
+  } catch (err) {
+    console.error('Error deleting review:', err);
+    error('Failed to delete review');
+  }
+};
 
 const loadTimeTrackingData = async () => {
   try {
@@ -6387,9 +6663,42 @@ const deleteSelectedBookings = async () => {
   );
 };
 
-const viewCaregiverDetails = (caregiver) => {
+const viewCaregiverDetails = async (caregiver) => {
   viewingCaregiver.value = caregiver;
   viewCaregiverDialog.value = true;
+  
+  // Load caregiver reviews
+  await loadCaregiverReviews(caregiver.caregiverId);
+};
+
+const loadCaregiverReviews = async (caregiverId) => {
+  if (!caregiverId) return;
+  
+  loadingCaregiverReviews.value = true;
+  caregiverReviews.value = [];
+  
+  try {
+    const response = await axios.get(`/api/reviews/caregiver/${caregiverId}`);
+    if (response.data.success) {
+      caregiverReviews.value = response.data.reviews || [];
+    }
+  } catch (error) {
+    console.error('Error loading caregiver reviews:', error);
+    error('Failed to load reviews');
+  } finally {
+    loadingCaregiverReviews.value = false;
+  }
+};
+
+const viewAllReviews = (caregiver) => {
+  // Close the caregiver details dialog
+  viewCaregiverDialog.value = false;
+  
+  // Navigate to reviews section (if needed, add filter for specific caregiver)
+  currentSection.value = 'reviews';
+  
+  // Optional: Add a filter to show only this caregiver's reviews
+  info(`Showing all reviews for ${caregiver.name}`, 'Reviews');
 };
 
 const getPaymentStatusColor = (status) => {
@@ -6925,6 +7234,9 @@ watch(currentSection, (newVal) => {
     if (userMgmtItem) {
       userMgmtItem.expanded = true;
     }
+  }
+  if (newVal === 'reviews') {
+    loadAllReviews();
   }
 });
 

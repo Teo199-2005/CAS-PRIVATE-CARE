@@ -512,6 +512,13 @@
             @endif
         </div>
 
+        <!-- Client-side popup banner (used for showing messages after actions like sending reset link) -->
+        <div id="globalBanner" style="display:none; margin-bottom:1rem;
+            padding:0.75rem; border-radius:8px; font-weight:600; font-size:0.95rem;">
+            <i id="globalBannerIcon" class="bi bi-check-circle" style="margin-right:0.5rem;"></i>
+            <span id="globalBannerMessage"></span>
+        </div>
+
         <form method="POST" action="{{ route('login') }}">
             @csrf
             @if($errors->any())
@@ -659,6 +666,35 @@
             container.style.display = 'block';
         }
 
+        function showBanner(message, type = 'success', duration = 5000) {
+            const banner = document.getElementById('globalBanner');
+            const icon = document.getElementById('globalBannerIcon');
+            const msg = document.getElementById('globalBannerMessage');
+            banner.style.display = 'flex';
+            banner.style.alignItems = 'center';
+            banner.style.justifyContent = 'center';
+            msg.textContent = message;
+            if (type === 'success') {
+                banner.style.background = '#dcfce7';
+                banner.style.border = '1px solid #bbf7d0';
+                banner.style.color = '#166534';
+                icon.className = 'bi bi-check-circle';
+            } else if (type === 'error') {
+                banner.style.background = '#fee2e2';
+                banner.style.border = '1px solid #fecaca';
+                banner.style.color = '#dc2626';
+                icon.className = 'bi bi-x-circle';
+            } else {
+                banner.style.background = '#dbeafe';
+                banner.style.border = '1px solid #93c5fd';
+                banner.style.color = '#1e40af';
+                icon.className = 'bi bi-info-circle';
+            }
+            setTimeout(() => {
+                banner.style.display = 'none';
+            }, duration);
+        }
+
         function submitForgotPassword(event) {
             event.preventDefault();
             const email = document.getElementById('resetEmail').value;
@@ -684,8 +720,9 @@
                 }
             })
             .then(data => {
-                showMessage('Password reset link sent to your email!', 'success');
                 closeForgotPasswordModal();
+                // show a top banner confirming the reset link was sent
+                showBanner('Password reset link sent. Please check your email.', 'success');
             })
             .catch(error => {
                 console.error('Error:', error);

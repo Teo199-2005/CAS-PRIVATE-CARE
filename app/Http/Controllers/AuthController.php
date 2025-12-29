@@ -16,6 +16,7 @@ use App\Rules\ValidNYPhoneNumber;
 use App\Services\NotificationService;
 use App\Services\EmailService;
 use Illuminate\Support\Str;
+use Carbon\Carbon;
 
 class AuthController extends Controller
 {
@@ -113,7 +114,7 @@ class AuthController extends Controller
         
         // Set status based on user type - all partner types need approval
         $partnerTypes = ['caregiver', 'marketing', 'training_center'];
-        $status = in_array($validated['user_type'], $partnerTypes) ? 'pending' : null;
+        $status = in_array($validated['user_type'], $partnerTypes) ? 'pending' : 'Active';
         
         $user = User::create([
             'name' => $validated['first_name'] . ' ' . $validated['last_name'],
@@ -199,17 +200,24 @@ class AuthController extends Controller
         
         // Generate token
         $token = Str::random(64);
+        $hashedToken = hash('sha256', $token);
         
-        // Create password reset record
-        PasswordReset::updateOrCreate(
-            ['email' => $request->email],
-            [
-                'user_id' => $user->id,
-                'token' => hash('sha256', $token),
-                'status' => 'pending',
-                'requested_at' => now()
-            ]
-        );
+        // Mark any existing pending resets for this email as completed (to invalidate old tokens)
+        PasswordReset::where('email', $request->email)
+            ->where('status', 'pending')
+            ->update([
+                'status' => 'completed',
+                'completed_at' => now()
+            ]);
+        
+        // Create new password reset record
+        PasswordReset::create([
+            'user_id' => $user->id,
+            'email' => $request->email,
+            'token' => $hashedToken,
+            'status' => 'pending',
+            'requested_at' => now()
+        ]);
         
         // Send password reset email
         try {
@@ -232,6 +240,206 @@ class AuthController extends Controller
         }
         
         return response()->json(['status' => 'If that email exists, a password reset link has been sent.']);
+    }
+
+    public function showResetPasswordForm($token)
+    {
+        $email = trim(request()->query('email', ''));
+        
+        // Verify token is valid
+        $hashedToken = hash('sha256', $token);
+        
+        // First try to find by token and email (case-insensitive)
+        $reset = null;
+        if ($email) {
+            $reset = PasswordReset::where('token', $hashedToken)
+                ->whereRaw('LOWER(email) = ?', [strtolower(trim($email))])
+                ->where('status', 'pending')
+                ->first();
+        }
+        
+        // If not found with email, try just by token (in case email doesn't match exactly)
+        if (!$reset) {
+            $reset = PasswordReset::where('token', $hashedToken)
+                ->where('status', 'pending')
+                ->first();
+        }
+        
+        // Check if token is expired (60 minutes)
+        $valid = false;
+        $resetEmail = $email;
+        
+        if ($reset && $reset->requested_at) {
+            $expiresAt = Carbon::parse($reset->requested_at)->addMinutes(60);
+            $valid = now()->isBefore($expiresAt);
+            
+            // Always use email from database if we found the reset record
+            if ($reset->email) {
+                $resetEmail = $reset->email;
+            }
+            
+            // If expired, log for debugging
+            if (!$valid) {
+                \Log::info('Password reset token expired', [
+                    'email' => $reset->email,
+                    'requested_at' => $reset->requested_at,
+                    'expires_at' => $expiresAt,
+                    'now' => now()
+                ]);
+            }
+        } else {
+            // Log when token is not found
+            \Log::warning('Password reset token not found', [
+                'hashed_token' => substr($hashedToken, 0, 10) . '...',
+                'email_param' => $email,
+                'token_length' => strlen($token),
+                'all_pending_resets' => PasswordReset::where('status', 'pending')->count()
+            ]);
+        }
+        
+        return view('reset-password', [
+            'token' => $token,
+            'email' => $resetEmail,
+            'valid' => $valid
+        ]);
+    }
+
+    public function resetPassword(Request $request)
+    {
+        $validated = $request->validate([
+            'token' => 'required',
+            'email' => 'required|email',
+            'password' => 'required|min:8|confirmed',
+        ]);
+        
+        // Verify token
+        $hashedToken = hash('sha256', $validated['token']);
+        
+        // Try to find by token and email (case-insensitive)
+        $reset = PasswordReset::where('token', $hashedToken)
+            ->whereRaw('LOWER(email) = ?', [strtolower($validated['email'])])
+            ->where('status', 'pending')
+            ->first();
+        
+        // If not found, try just by token
+        if (!$reset) {
+            $reset = PasswordReset::where('token', $hashedToken)
+                ->where('status', 'pending')
+                ->first();
+        }
+        
+        if (!$reset) {
+            \Log::warning('Password reset token validation failed', [
+                'email' => $validated['email'],
+                'hashed_token' => substr($hashedToken, 0, 10) . '...'
+            ]);
+            return redirect()->back()->with('error', 'Invalid or expired reset token. Please request a new password reset link.');
+        }
+        
+        // Check if token is expired (60 minutes)
+        if ($reset->requested_at) {
+            $expiresAt = Carbon::parse($reset->requested_at)->addMinutes(60);
+            if (now()->isAfter($expiresAt)) {
+                return redirect()->back()->with('error', 'This password reset link has expired. Please request a new one.');
+            }
+        }
+        
+        // Find user
+        $user = User::where('email', $validated['email'])->first();
+        if (!$user) {
+            return redirect()->back()->with('error', 'User not found.');
+        }
+        
+        // Update password
+        $user->password = Hash::make($validated['password']);
+        $user->save();
+        
+        // Mark reset as completed
+        $reset->update([
+            'status' => 'completed',
+            'completed_at' => now()
+        ]);
+        
+        return redirect('/login')->with('success', 'Your password has been reset successfully. You can now login with your new password.');
+    }
+
+    public function sendVerificationEmail(Request $request)
+    {
+        $user = Auth::user();
+        
+        if ($user->email_verified_at) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Email is already verified.'
+            ], 400);
+        }
+        
+        try {
+            EmailService::sendVerificationEmail($user);
+            return response()->json([
+                'success' => true,
+                'message' => 'Verification email sent successfully. Please check your inbox.'
+            ]);
+        } catch (\Exception $e) {
+            \Log::error("Failed to send verification email: " . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to send verification email. Please try again later.'
+            ], 500);
+        }
+    }
+
+    public function verifyEmail($token)
+    {
+        $hashedToken = hash('sha256', $token);
+        
+        // Find the verification token
+        $verification = DB::table('email_verification_tokens')
+            ->where('token', $hashedToken)
+            ->first();
+        
+        if (!$verification) {
+            return redirect('/login')->with('error', 'Invalid verification link.');
+        }
+        
+        // Check if token is expired (24 hours)
+        $createdAt = Carbon::parse($verification->created_at);
+        $expiresAt = $createdAt->addHours(24);
+        
+        if (now()->isAfter($expiresAt)) {
+            DB::table('email_verification_tokens')->where('token', $hashedToken)->delete();
+            return redirect('/login')->with('error', 'Verification link has expired. Please request a new one.');
+        }
+        
+        // Find user by email
+        $user = User::where('email', $verification->email)->first();
+        
+        if (!$user) {
+            return redirect('/login')->with('error', 'User not found.');
+        }
+        
+        // Verify email
+        $user->email_verified_at = now();
+        $user->save();
+        
+        // Delete the verification token
+        DB::table('email_verification_tokens')->where('token', $hashedToken)->delete();
+        
+        // Auto-login if not already logged in
+        if (!Auth::check()) {
+            Auth::login($user);
+        }
+        
+        // Redirect based on user type
+        $redirectRoute = match($user->user_type) {
+            'admin' => '/admin/dashboard-vue',
+            'caregiver' => '/caregiver/dashboard-vue',
+            'marketing' => '/marketing/dashboard-vue',
+            'training', 'training_center' => '/training/dashboard-vue',
+            default => '/client/dashboard-vue',
+        };
+        
+        return redirect($redirectRoute)->with('success', 'Your email has been verified successfully!');
     }
 
     public function redirectToProvider($provider)
@@ -386,6 +594,7 @@ class AuthController extends Controller
                         'email' => $socialUser->getEmail(),
                         'password' => Hash::make(\Illuminate\Support\Str::random(16)),
                         'user_type' => 'client',
+                        'status' => 'Active',
                         'email_verified_at' => now()
                     ]);
                     

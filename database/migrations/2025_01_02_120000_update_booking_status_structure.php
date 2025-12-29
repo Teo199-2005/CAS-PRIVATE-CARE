@@ -9,6 +9,11 @@ return new class extends Migration
 {
     public function up(): void
     {
+        // Check if bookings table exists
+        if (!Schema::hasTable('bookings')) {
+            return;
+        }
+        
         // First, change status to varchar to allow updates
         Schema::table('bookings', function (Blueprint $table) {
             $table->string('status', 20)->default('pending')->change();
@@ -23,8 +28,10 @@ return new class extends Migration
             // Change status back to enum with new values including completed
             $table->enum('status', ['pending', 'approved', 'rejected', 'completed'])->default('pending')->change();
             
-            // Add assignment_status column for partial/assigned tracking
-            $table->enum('assignment_status', ['unassigned', 'partial', 'assigned'])->default('unassigned')->after('status');
+            // Add assignment_status column for partial/assigned tracking if it doesn't exist
+            if (!Schema::hasColumn('bookings', 'assignment_status')) {
+                $table->enum('assignment_status', ['unassigned', 'partial', 'assigned'])->default('unassigned')->after('status');
+            }
         });
     }
 
