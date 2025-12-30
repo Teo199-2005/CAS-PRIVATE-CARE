@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" type="image/png" href="<?php echo e(asset('logo flower.png')); ?>">
+    <link rel="icon" type="image/png" href="{{ asset('logo flower.png') }}">
     
     <!-- Primary Meta Tags -->
     <title>Caregiver New York | Verified & Trusted | CAS Private Care</title>
@@ -11,7 +11,7 @@
     <meta name="description" content="Find verified caregivers in New York. Background-checked professionals for elderly care, personal care & housekeeping. Book online. Available 24/7.">
     <meta name="keywords" content="caregiver new york, private caregiver new york, nyc caregiver, hire caregiver new york">
     <meta name="robots" content="index, follow">
-    <link rel="canonical" href="<?php echo e(url('/caregiver-new-york')); ?>">
+    <link rel="canonical" href="{{ url('/caregiver-new-york') }}">
     
     <!-- Bootstrap Icons -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
@@ -19,7 +19,7 @@
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
     
-    <?php echo $__env->make('partials.nav-footer-styles', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
+    @include('partials.nav-footer-styles')
     
     <style>
         * {
@@ -560,7 +560,7 @@
     </style>
 </head>
 <body>
-    <?php echo $__env->make('partials.navigation', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
+    @include('partials.navigation')
 
     <!-- Hero Section -->
     <section class="hero">
@@ -570,7 +570,7 @@
             <p>Find experienced, background-checked caregivers in New York for elderly care, personal assistance, and housekeeping services. Available 24/7 across all NYC boroughs including Manhattan, Brooklyn, Queens, Bronx, and Staten Island.</p>
             
             <div class="hero-buttons">
-                <a href="<?php echo e(url('/register')); ?>" class="btn-primary">Find Your Caregiver in New York</a>
+                <a href="{{ url('/register') }}" class="btn-primary">Find Your Caregiver in New York</a>
                 <a href="#services" class="btn-secondary">View Our Services</a>
             </div>
 
@@ -612,7 +612,7 @@
                         <p class="subtitle">Upper East Side to Lower Manhattan</p>
                         <span class="location-badge"><i class="bi bi-clock"></i> 24/7 Available</span>
                         <p>Professional caregiver services throughout Manhattan. Available 24/7 for immediate care needs.</p>
-                        <a href="<?php echo e(url('/caregiver-manhattan')); ?>" class="location-link">Learn More <i class="bi bi-arrow-right"></i></a>
+                        <a href="{{ url('/caregiver-manhattan') }}" class="location-link">Learn More <i class="bi bi-arrow-right"></i></a>
                     </div>
                 </div>
 
@@ -623,7 +623,7 @@
                         <p class="subtitle">Park Slope to Brighton Beach</p>
                         <span class="location-badge"><i class="bi bi-geo-alt"></i> All Neighborhoods</span>
                         <p>Trusted caregivers serving all Brooklyn neighborhoods. We're here for your care needs.</p>
-                        <a href="<?php echo e(url('/caregiver-brooklyn')); ?>" class="location-link">Learn More <i class="bi bi-arrow-right"></i></a>
+                        <a href="{{ url('/caregiver-brooklyn') }}" class="location-link">Learn More <i class="bi bi-arrow-right"></i></a>
                     </div>
                 </div>
 
@@ -634,7 +634,29 @@
                         <p class="subtitle">Astoria, Flushing, Jamaica & More</p>
                         <span class="location-badge"><i class="bi bi-house-heart"></i> In-Home Care</span>
                         <p>Reliable caregiver services across Queens. Comprehensive in-home care support.</p>
-                        <a href="<?php echo e(url('/caregiver-queens')); ?>" class="location-link">Learn More <i class="bi bi-arrow-right"></i></a>
+                        <a href="{{ url('/caregiver-queens') }}" class="location-link">Learn More <i class="bi bi-arrow-right"></i></a>
+                    </div>
+                </div>
+
+                <div class="location-card">
+                    <img src="https://images.unsplash.com/photo-1609220136736-443140cffec6?w=600" alt="Bronx" class="location-image">
+                    <div class="location-content">
+                        <h3>Bronx</h3>
+                        <p class="subtitle">All Bronx Communities</p>
+                        <span class="location-badge"><i class="bi bi-heart-pulse"></i> Specialized Care</span>
+                        <p>Professional caregivers serving the Bronx. Specialized care for elderly, personal care, and housekeeping.</p>
+                        <a href="{{ url('/caregiver-bronx') }}" class="location-link">Learn More <i class="bi bi-arrow-right"></i></a>
+                    </div>
+                </div>
+
+                <div class="location-card">
+                    <img src="https://images.unsplash.com/photo-1511632765486-a01980e01a18?w=600" alt="Staten Island" class="location-image">
+                    <div class="location-content">
+                        <h3>Staten Island</h3>
+                        <p class="subtitle">All Staten Island Areas</p>
+                        <span class="location-badge"><i class="bi bi-person-hearts"></i> Personalized Plans</span>
+                        <p>Dedicated caregiver services for Staten Island residents. Personalized care plans tailored to your family's needs.</p>
+                        <a href="{{ url('/caregiver-staten-island') }}" class="location-link">Learn More <i class="bi bi-arrow-right"></i></a>
                     </div>
                 </div>
             </div>
@@ -677,6 +699,21 @@
                         <li><i class="bi bi-check-circle-fill"></i> Toileting care</li>
                         <li><i class="bi bi-check-circle-fill"></i> Skin care & hygiene</li>
                         <li><i class="bi bi-check-circle-fill"></i> Oral care</li>
+                    </ul>
+                </div>
+
+                <div class="service-card">
+                    <div class="service-icon">
+                        <i class="bi bi-house-heart"></i>
+                    </div>
+                    <h3>Housekeeping & Home Care</h3>
+                    <p>Reliable housekeeping and home care services to keep your home clean, organized, and safe.</p>
+                    <ul class="service-features">
+                        <li><i class="bi bi-check-circle-fill"></i> Light housekeeping</li>
+                        <li><i class="bi bi-check-circle-fill"></i> Laundry and ironing</li>
+                        <li><i class="bi bi-check-circle-fill"></i> Meal preparation</li>
+                        <li><i class="bi bi-check-circle-fill"></i> Grocery shopping</li>
+                        <li><i class="bi bi-check-circle-fill"></i> Pet care assistance</li>
                     </ul>
                 </div>
 
@@ -735,121 +772,112 @@
                     <div class="feature-icon">
                         <i class="bi bi-cash-coin"></i>
                     </div>
-                    <h3>Transparent Pricing</h3>
-                    <p>Competitive rates with no hidden fees. Flexible hourly, daily, and monthly packages available. Get a personalized quote based on your specific care needs.</p>
+                    <h3>Competitive Rates</h3>
+                    <p>Transparent pricing starting at $22/hour with no hidden fees. Daily and monthly packages available for significant cost savings.</p>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- Featured Caregivers by Borough Section -->
+    <!-- Pricing Section -->
     <section class="section-dark">
         <div class="container">
             <div class="section-header">
-                <h2>Top-Rated <span style="color: #f97316;">Caregivers</span> in Your Borough</h2>
-                <p>Meet experienced, verified caregivers trusted by families throughout New York City.</p>
+                <h2>Caregiver Rates & <span style="color: #f97316;">Pricing</span> in New York</h2>
+                <p>Transparent, competitive pricing with no hidden fees or surprise charges.</p>
             </div>
 
             <div class="pricing-grid">
                 <div class="pricing-card">
-                    <div style="text-align: center; margin-bottom: 1.5rem;">
-                        <div style="width: 100px; height: 100px; margin: 0 auto 1rem; border-radius: 50%; background: linear-gradient(135deg, #3b82f6, #1e40af); display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 25px rgba(59, 130, 246, 0.3);">
-                            <i class="bi bi-person-circle" style="font-size: 4rem; color: white;"></i>
-                        </div>
-                        <span style="display: inline-block; background: linear-gradient(135deg, #3b82f6, #1e40af); color: white; padding: 0.4rem 1rem; border-radius: 50px; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.5rem;">Manhattan Caregiver</span>
-                    </div>
-                    <h3>Maria Rodriguez</h3>
-                    <div class="price" style="font-size: 1.5rem; margin-bottom: 0.5rem;">
-                        <span style="color: #fbbf24;"><i class="bi bi-star-fill"></i> 4.9/5</span>
-                    </div>
-                    <p style="color: #64748b; font-size: 0.95rem; margin-bottom: 1rem;">8+ Years Experience • Licensed HHA</p>
+                    <h3>Companion Care</h3>
+                    <div class="price">$22-$25<span>/hr</span></div>
+                    <p>Companionship, light housekeeping, meal prep, transportation</p>
                     <ul class="pricing-features">
-                        <li><i class="bi bi-check-circle-fill"></i> Dementia & Alzheimer's care</li>
-                        <li><i class="bi bi-check-circle-fill"></i> Medication management</li>
-                        <li><i class="bi bi-check-circle-fill"></i> Bilingual (English/Spanish)</li>
+                        <li><i class="bi bi-check-circle-fill"></i> Companionship</li>
+                        <li><i class="bi bi-check-circle-fill"></i> Light housekeeping</li>
+                        <li><i class="bi bi-check-circle-fill"></i> Meal preparation</li>
+                        <li><i class="bi bi-check-circle-fill"></i> Transportation</li>
                     </ul>
-                    <div style="background: #f8fafc; padding: 1rem; border-radius: 12px; margin: 1rem 0; border-left: 4px solid #3b82f6;">
-                        <p style="font-size: 0.9rem; color: #475569; font-style: italic; margin: 0;">
-                            "Maria is wonderful! She treats my mother with such kindness and respect."
-                        </p>
-                        <p style="font-size: 0.85rem; color: #94a3b8; margin: 0.5rem 0 0 0;">- Robert L., Manhattan</p>
-                    </div>
+                    <a href="{{ url('/register') }}" class="btn-primary" style="width: 100%;">Get Started</a>
                 </div>
 
                 <div class="pricing-card popular">
-                    <div style="text-align: center; margin-bottom: 1.5rem;">
-                        <div style="width: 100px; height: 100px; margin: 0 auto 1rem; border-radius: 50%; background: linear-gradient(135deg, #f97316, #ea580c); display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 25px rgba(249, 115, 22, 0.3);">
-                            <i class="bi bi-person-circle" style="font-size: 4rem; color: white;"></i>
-                        </div>
-                        <span style="display: inline-block; background: linear-gradient(135deg, #f97316, #ea580c); color: white; padding: 0.4rem 1rem; border-radius: 50px; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.5rem;">Brooklyn Caregiver</span>
-                    </div>
-                    <h3>James Chen</h3>
-                    <div class="price" style="font-size: 1.5rem; margin-bottom: 0.5rem;">
-                        <span style="color: #fbbf24;"><i class="bi bi-star-fill"></i> 5.0/5</span>
-                    </div>
-                    <p style="color: #64748b; font-size: 0.95rem; margin-bottom: 1rem;">6+ Years Experience • CPR Certified</p>
+                    <h3>Personal Care</h3>
+                    <div class="price">$25-$28<span>/hr</span></div>
+                    <p>All companion care plus personal hygiene, dressing, mobility assistance</p>
                     <ul class="pricing-features">
-                        <li><i class="bi bi-check-circle-fill"></i> Post-surgical recovery care</li>
-                        <li><i class="bi bi-check-circle-fill"></i> Mobility & transfer assistance</li>
-                        <li><i class="bi bi-check-circle-fill"></i> Personal hygiene support</li>
+                        <li><i class="bi bi-check-circle-fill"></i> All companion care</li>
+                        <li><i class="bi bi-check-circle-fill"></i> Personal hygiene</li>
+                        <li><i class="bi bi-check-circle-fill"></i> Dressing assistance</li>
+                        <li><i class="bi bi-check-circle-fill"></i> Mobility support</li>
                     </ul>
-                    <div style="background: #f8fafc; padding: 1rem; border-radius: 12px; margin: 1rem 0; border-left: 4px solid #f97316;">
-                        <p style="font-size: 0.9rem; color: #475569; font-style: italic; margin: 0;">
-                            "James helped me recover after surgery with patience and professionalism."
-                        </p>
-                        <p style="font-size: 0.85rem; color: #94a3b8; margin: 0.5rem 0 0 0;">- Amanda M., Brooklyn</p>
-                    </div>
+                    <a href="{{ url('/register') }}" class="btn-primary" style="width: 100%;">Get Started</a>
                 </div>
 
                 <div class="pricing-card">
-                    <div style="text-align: center; margin-bottom: 1.5rem;">
-                        <div style="width: 100px; height: 100px; margin: 0 auto 1rem; border-radius: 50%; background: linear-gradient(135deg, #10b981, #059669); display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 25px rgba(16, 185, 129, 0.3);">
-                            <i class="bi bi-person-circle" style="font-size: 4rem; color: white;"></i>
-                        </div>
-                        <span style="display: inline-block; background: linear-gradient(135deg, #10b981, #059669); color: white; padding: 0.4rem 1rem; border-radius: 50px; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.5rem;">Queens Caregiver</span>
-                    </div>
-                    <h3>Sarah Johnson</h3>
-                    <div class="price" style="font-size: 1.5rem; margin-bottom: 0.5rem;">
-                        <span style="color: #fbbf24;"><i class="bi bi-star-fill"></i> 4.8/5</span>
-                    </div>
-                    <p style="color: #64748b; font-size: 0.95rem; margin-bottom: 1rem;">5+ Years Experience • Certified Aide</p>
+                    <h3>Specialized Care</h3>
+                    <div class="price">$28-$32<span>/hr</span></div>
+                    <p>All personal care plus medication management, specialized condition care</p>
                     <ul class="pricing-features">
-                        <li><i class="bi bi-check-circle-fill"></i> Companion & housekeeping</li>
-                        <li><i class="bi bi-check-circle-fill"></i> Meal preparation specialist</li>
-                        <li><i class="bi bi-check-circle-fill"></i> Reliable & detail-oriented</li>
+                        <li><i class="bi bi-check-circle-fill"></i> All personal care</li>
+                        <li><i class="bi bi-check-circle-fill"></i> Medication management</li>
+                        <li><i class="bi bi-check-circle-fill"></i> Specialized conditions</li>
+                        <li><i class="bi bi-check-circle-fill"></i> Medical equipment</li>
                     </ul>
-                    <div style="background: #f8fafc; padding: 1rem; border-radius: 12px; margin: 1rem 0; border-left: 4px solid #10b981;">
-                        <p style="font-size: 0.9rem; color: #475569; font-style: italic; margin: 0;">
-                            "Sarah keeps my father's home spotless and makes delicious meals!"
-                        </p>
-                        <p style="font-size: 0.85rem; color: #94a3b8; margin: 0.5rem 0 0 0;">- David W., Queens</p>
-                    </div>
+                    <a href="{{ url('/register') }}" class="btn-primary" style="width: 100%;">Get Started</a>
                 </div>
             </div>
+        </div>
+    </section>
 
-            <div style="text-align: center; margin-top: 3rem; padding: 2.5rem; background: white; border-radius: 20px; box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);">
-                <h3 style="font-size: 1.8rem; color: #1e40af; margin-bottom: 1rem;">
-                    <i class="bi bi-people-fill" style="color: #3b82f6;"></i> 
-                    500+ Verified Caregivers Across NYC
-                </h3>
-                <p style="font-size: 1.1rem; color: #64748b; margin-bottom: 1.5rem;">
-                    Browse caregivers in Manhattan, Brooklyn, Queens, Bronx, and Staten Island
-                </p>
-                <div style="display: flex; gap: 1.5rem; justify-content: center; align-items: center; flex-wrap: wrap; margin-top: 1.5rem;">
-                    <div style="text-align: center;">
-                        <div style="font-size: 2.5rem; font-weight: 800; color: #3b82f6;">100%</div>
-                        <div style="color: #64748b; font-size: 0.95rem;">Background Checked</div>
+    <!-- FAQ Section -->
+    <section class="section-light">
+        <div class="container">
+            <div class="section-header">
+                <h2>Frequently Asked <span style="color: #f97316;">Questions</span></h2>
+                <p>Common questions about hiring caregivers in New York</p>
+            </div>
+
+            <div class="faq-container">
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <i class="bi bi-question-circle"></i>
+                        How much does a caregiver cost in New York?
                     </div>
-                    <div style="text-align: center;">
-                        <div style="font-size: 2.5rem; font-weight: 800; color: #f97316;">4.9/5</div>
-                        <div style="color: #64748b; font-size: 0.95rem;">Average Rating</div>
-                    </div>
-                    <div style="text-align: center;">
-                        <div style="font-size: 2.5rem; font-weight: 800; color: #10b981;">24/7</div>
-                        <div style="color: #64748b; font-size: 0.95rem;">Available Support</div>
+                    <div class="faq-answer">
+                        Caregiver rates in New York typically range from $22-$32 per hour depending on the type of care needed. Companion care starts at $22/hour, personal care at $25/hour, and specialized care at $28/hour. We also offer daily and monthly packages with significant savings.
                     </div>
                 </div>
-                <a href="<?php echo e(url('/register')); ?>" class="btn-secondary" style="margin-top: 2rem; display: inline-block;">Browse All Caregivers</a>
+
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <i class="bi bi-question-circle"></i>
+                        Are all caregivers background checked?
+                    </div>
+                    <div class="faq-answer">
+                        Yes, 100% of our caregivers undergo comprehensive background checks through New York State Division of Criminal Justice Services, including criminal history, license verification, professional references, and work history confirmation.
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <i class="bi bi-question-circle"></i>
+                        How quickly can I get a caregiver?
+                    </div>
+                    <div class="faq-answer">
+                        For emergency needs, we can connect you with a qualified caregiver within 4-6 hours. For the best match, we recommend booking 24-48 hours in advance. Our platform is available 24/7 for your convenience.
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <i class="bi bi-question-circle"></i>
+                        What areas of New York do you serve?
+                    </div>
+                    <div class="faq-answer">
+                        We serve all five boroughs of New York City: Manhattan, Brooklyn, Queens, the Bronx, and Staten Island. Our extensive network of verified caregivers ensures coverage throughout the entire New York metropolitan area.
+                    </div>
+                </div>
             </div>
         </div>
     </section>
@@ -860,14 +888,13 @@
             <h2>Ready to Find Your Caregiver in New York?</h2>
             <p>Join 1,000+ families who trust CAS Private Care for their caregiver needs</p>
             <div class="hero-buttons">
-                <a href="<?php echo e(url('/register')); ?>" class="btn-primary">Get Started Today</a>
+                <a href="{{ url('/register') }}" class="btn-primary">Get Started Today</a>
                 <a href="tel:+16462828282" class="btn-secondary"><i class="bi bi-telephone"></i> Call: (646) 282-8282</a>
             </div>
         </div>
     </section>
 
-    <?php echo $__env->make('partials.footer', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
-    <?php echo $__env->make('partials.mobile-footer', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
+    @include('partials.footer')
+    @include('partials.mobile-footer')
 </body>
 </html>
-<?php /**PATH C:\Users\Cocotantan\Downloads\--CAS WEBSITE-- - Copy (4)\resources\views/caregiver-new-york.blade.php ENDPATH**/ ?>

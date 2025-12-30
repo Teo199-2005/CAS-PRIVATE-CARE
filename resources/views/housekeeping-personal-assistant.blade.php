@@ -3,15 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" type="image/png" href="<?php echo e(asset('logo flower.png')); ?>">
+    <link rel="icon" type="image/png" href="{{ asset('logo flower.png') }}">
     
     <!-- Primary Meta Tags -->
-    <title>Caregiver New York | Verified & Trusted | CAS Private Care</title>
-    <meta name="title" content="Caregiver New York | Verified & Trusted | CAS Private Care">
-    <meta name="description" content="Find verified caregivers in New York. Background-checked professionals for elderly care, personal care & housekeeping. Book online. Available 24/7.">
-    <meta name="keywords" content="caregiver new york, private caregiver new york, nyc caregiver, hire caregiver new york">
+    <title>Housekeeping & Personal Assistant New York | CAS Private Care</title>
+    <meta name="title" content="Housekeeping & Personal Assistant New York | CAS Private Care">
+    <meta name="description" content="Find verified housekeepers and personal assistants in New York. Background-checked professionals for home cleaning, organization, errands & personal support. Available 24/7.">
+    <meta name="keywords" content="housekeeper new york, personal assistant nyc, home cleaning service, house cleaner manhattan, personal helper brooklyn">
     <meta name="robots" content="index, follow">
-    <link rel="canonical" href="<?php echo e(url('/caregiver-new-york')); ?>">
+    <link rel="canonical" href="{{ url('/housekeeping-personal-assistant') }}">
     
     <!-- Bootstrap Icons -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
@@ -19,7 +19,7 @@
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
     
-    <?php echo $__env->make('partials.nav-footer-styles', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
+    @include('partials.nav-footer-styles')
     
     <style>
         * {
@@ -39,7 +39,7 @@
         .hero {
             margin-top: 80px;
             padding: 6rem 2rem;
-            background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
             color: white;
             text-align: center;
             position: relative;
@@ -105,7 +105,7 @@
 
         .btn-primary {
             background: white;
-            color: #1e40af;
+            color: #059669;
             box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
         }
 
@@ -173,7 +173,7 @@
             font-size: 3rem;
             font-weight: 700;
             margin-bottom: 1rem;
-            background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
@@ -219,7 +219,7 @@
             font-size: 1.5rem;
             font-weight: 700;
             margin-bottom: 0.5rem;
-            color: #1e40af;
+            color: #059669;
         }
 
         .location-content .subtitle {
@@ -229,7 +229,7 @@
 
         .location-badge {
             display: inline-block;
-            background: linear-gradient(135deg, #3b82f6, #1e40af);
+            background: linear-gradient(135deg, #10b981, #059669);
             color: white;
             padding: 0.5rem 1rem;
             border-radius: 50px;
@@ -239,14 +239,14 @@
         }
 
         .location-link {
-            color: #3b82f6;
+            color: #10b981;
             text-decoration: none;
             font-weight: 600;
             transition: color 0.3s;
         }
 
         .location-link:hover {
-            color: #1e40af;
+            color: #059669;
         }
 
         /* Services Grid */
@@ -274,12 +274,12 @@
             width: 80px;
             height: 80px;
             margin: 0 auto 1.5rem;
-            background: linear-gradient(135deg, #3b82f6, #1e40af);
+            background: linear-gradient(135deg, #10b981, #059669);
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 8px 25px rgba(59, 130, 246, 0.3);
+            box-shadow: 0 8px 25px rgba(16, 185, 129, 0.3);
         }
 
         .service-card:nth-child(2) .service-icon {
@@ -288,11 +288,6 @@
         }
 
         .service-card:nth-child(3) .service-icon {
-            background: linear-gradient(135deg, #10b981, #059669);
-            box-shadow: 0 8px 25px rgba(16, 185, 129, 0.3);
-        }
-
-        .service-card:nth-child(4) .service-icon {
             background: linear-gradient(135deg, #8b5cf6, #7c3aed);
             box-shadow: 0 8px 25px rgba(139, 92, 246, 0.3);
         }
@@ -306,7 +301,7 @@
             font-size: 1.5rem;
             font-weight: 700;
             margin-bottom: 1rem;
-            color: #1e40af;
+            color: #059669;
         }
 
         .service-card p {
@@ -359,7 +354,7 @@
             width: 70px;
             height: 70px;
             margin: 0 auto 1.5rem;
-            background: linear-gradient(135deg, #3b82f6, #1e40af);
+            background: linear-gradient(135deg, #10b981, #059669);
             border-radius: 50%;
             display: flex;
             align-items: center;
@@ -375,7 +370,7 @@
             font-size: 1.3rem;
             font-weight: 700;
             margin-bottom: 1rem;
-            color: #1e40af;
+            color: #059669;
         }
 
         .feature-card p {
@@ -383,7 +378,7 @@
             line-height: 1.7;
         }
 
-        /* Pricing Section */
+        /* Pricing Cards */
         .pricing-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -401,7 +396,7 @@
         }
 
         .pricing-card.popular {
-            border: 3px solid #3b82f6;
+            border: 3px solid #10b981;
             transform: scale(1.05);
         }
 
@@ -411,7 +406,7 @@
             top: -15px;
             left: 50%;
             transform: translateX(-50%);
-            background: linear-gradient(135deg, #3b82f6, #1e40af);
+            background: linear-gradient(135deg, #10b981, #059669);
             color: white;
             padding: 0.5rem 1.5rem;
             border-radius: 50px;
@@ -432,13 +427,13 @@
             font-size: 1.5rem;
             font-weight: 700;
             margin-bottom: 1rem;
-            color: #1e40af;
+            color: #059669;
         }
 
         .price {
             font-size: 3rem;
             font-weight: 800;
-            color: #3b82f6;
+            color: #10b981;
             margin-bottom: 0.5rem;
         }
 
@@ -468,7 +463,7 @@
 
         /* CTA Section */
         .cta-section {
-            background: linear-gradient(135deg, #3b82f6, #1e40af);
+            background: linear-gradient(135deg, #10b981, #059669);
             color: white;
             text-align: center;
             padding: 6rem 2rem;
@@ -485,45 +480,6 @@
             font-size: 1.3rem;
             margin-bottom: 2.5rem;
             color: rgba(255, 255, 255, 0.95);
-        }
-
-        /* FAQ Section */
-        .faq-container {
-            max-width: 900px;
-            margin: 0 auto;
-        }
-
-        .faq-item {
-            background: white;
-            border-radius: 15px;
-            padding: 2rem;
-            margin-bottom: 1.5rem;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
-            transition: all 0.3s;
-        }
-
-        .faq-item:hover {
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
-        }
-
-        .faq-question {
-            font-size: 1.3rem;
-            font-weight: 700;
-            color: #1e40af;
-            margin-bottom: 1rem;
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
-
-        .faq-question i {
-            color: #3b82f6;
-        }
-
-        .faq-answer {
-            color: #64748b;
-            line-height: 1.8;
-            font-size: 1.05rem;
         }
 
         /* Responsive Design */
@@ -560,17 +516,17 @@
     </style>
 </head>
 <body>
-    <?php echo $__env->make('partials.navigation', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
+    @include('partials.navigation')
 
     <!-- Hero Section -->
     <section class="hero">
         <div class="hero-content">
-            <h1>Verified Caregivers in <span style="color: #fbbf24;">New York</span></h1>
-            <p class="tagline">Trusted In-Home Care Services</p>
-            <p>Find experienced, background-checked caregivers in New York for elderly care, personal assistance, and housekeeping services. Available 24/7 across all NYC boroughs including Manhattan, Brooklyn, Queens, Bronx, and Staten Island.</p>
+            <h1>Housekeeping & Personal Assistants in <span style="color: #fbbf24;">New York</span></h1>
+            <p class="tagline">Professional Home Care & Personal Support Services</p>
+            <p>Find experienced, background-checked housekeepers and personal assistants in New York for home cleaning, organization, errands, and personal support. Available 24/7 across all NYC boroughs.</p>
             
             <div class="hero-buttons">
-                <a href="<?php echo e(url('/register')); ?>" class="btn-primary">Find Your Caregiver in New York</a>
+                <a href="{{ url('/register') }}" class="btn-primary">Find Your Helper in New York</a>
                 <a href="#services" class="btn-secondary">View Our Services</a>
             </div>
 
@@ -590,7 +546,7 @@
     <!-- Trust Banner -->
     <section class="section-dark" style="padding: 3rem 2rem; text-align: center; background: #dbeafe;">
         <div class="container">
-            <h3 style="font-size: 2rem; font-weight: 700; color: #1e40af; margin-bottom: 0.5rem;">
+            <h3 style="font-size: 2rem; font-weight: 700; color: #059669; margin-bottom: 0.5rem;">
                 TRUSTED BY <span style="color: #f97316;">1,000+ FAMILIES</span> IN NEW YORK
             </h3>
         </div>
@@ -600,41 +556,38 @@
     <section class="section-light">
         <div class="container">
             <div class="section-header">
-                <h2>Professional Caregivers Available Throughout <span style="color: #f97316;">New York</span></h2>
-                <p>CAS Private Care provides verified, professional caregiver services across all five boroughs of New York City.</p>
+                <h2>Professional Housekeepers Throughout <span style="color: #f97316;">New York</span></h2>
+                <p>Find verified housekeepers and personal assistants across all NYC boroughs.</p>
             </div>
 
             <div class="location-grid">
                 <div class="location-card">
-                    <img src="https://images.unsplash.com/photo-1546436836-07a91091f160?w=600" alt="Manhattan" class="location-image">
+                    <img src="https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=600" alt="Manhattan Housekeeping" class="location-image">
                     <div class="location-content">
                         <h3>Manhattan</h3>
-                        <p class="subtitle">Upper East Side to Lower Manhattan</p>
-                        <span class="location-badge"><i class="bi bi-clock"></i> 24/7 Available</span>
-                        <p>Professional caregiver services throughout Manhattan. Available 24/7 for immediate care needs.</p>
-                        <a href="<?php echo e(url('/caregiver-manhattan')); ?>" class="location-link">Learn More <i class="bi bi-arrow-right"></i></a>
+                        <p class="subtitle">Professional Home Services</p>
+                        <span class="location-badge"><i class="bi bi-house-check"></i> Verified Professionals</span>
+                        <p>Expert housekeepers and personal assistants serving Manhattan. Detailed cleaning and organization services.</p>
                     </div>
                 </div>
 
                 <div class="location-card">
-                    <img src="https://images.unsplash.com/photo-1490644658840-3f2e3f8c5625?w=600" alt="Brooklyn" class="location-image">
+                    <img src="https://images.unsplash.com/photo-1527515637462-cff94eecc1ac?w=600" alt="Brooklyn Housekeeping" class="location-image">
                     <div class="location-content">
                         <h3>Brooklyn</h3>
-                        <p class="subtitle">Park Slope to Brighton Beach</p>
-                        <span class="location-badge"><i class="bi bi-geo-alt"></i> All Neighborhoods</span>
-                        <p>Trusted caregivers serving all Brooklyn neighborhoods. We're here for your care needs.</p>
-                        <a href="<?php echo e(url('/caregiver-brooklyn')); ?>" class="location-link">Learn More <i class="bi bi-arrow-right"></i></a>
+                        <p class="subtitle">Home Care Excellence</p>
+                        <span class="location-badge"><i class="bi bi-star-fill"></i> Top Rated</span>
+                        <p>Trusted housekeeping professionals in Brooklyn. Comprehensive home care and personal assistance.</p>
                     </div>
                 </div>
 
                 <div class="location-card">
-                    <img src="https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=600" alt="Queens" class="location-image">
+                    <img src="https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=600" alt="Queens Housekeeping" class="location-image">
                     <div class="location-content">
                         <h3>Queens</h3>
-                        <p class="subtitle">Astoria, Flushing, Jamaica & More</p>
-                        <span class="location-badge"><i class="bi bi-house-heart"></i> In-Home Care</span>
-                        <p>Reliable caregiver services across Queens. Comprehensive in-home care support.</p>
-                        <a href="<?php echo e(url('/caregiver-queens')); ?>" class="location-link">Learn More <i class="bi bi-arrow-right"></i></a>
+                        <p class="subtitle">Reliable Home Services</p>
+                        <span class="location-badge"><i class="bi bi-clock-history"></i> 24/7 Available</span>
+                        <p>Dependable housekeepers across Queens. Complete home management and personal support services.</p>
                     </div>
                 </div>
             </div>
@@ -645,53 +598,53 @@
     <section id="services" class="section-dark">
         <div class="container">
             <div class="section-header">
-                <h2>Our Caregiver <span style="color: #f97316;">Services</span> in New York</h2>
-                <p>CAS Private Care offers comprehensive caregiver services throughout New York, providing professional support for all your care needs.</p>
+                <h2>Our Housekeeping & Personal Assistant <span style="color: #f97316;">Services</span></h2>
+                <p>Comprehensive home care and personal support services tailored to your needs.</p>
             </div>
 
             <div class="services-grid">
                 <div class="service-card">
                     <div class="service-icon">
-                        <i class="bi bi-heart-pulse"></i>
+                        <i class="bi bi-house-heart"></i>
                     </div>
-                    <h3>Elderly Care Services</h3>
-                    <p>Comprehensive elderly care services designed to help seniors maintain independence and quality of life.</p>
+                    <h3>Home Cleaning Services</h3>
+                    <p>Professional housekeeping to keep your home spotless, organized, and comfortable.</p>
                     <ul class="service-features">
-                        <li><i class="bi bi-check-circle-fill"></i> Personal care assistance</li>
-                        <li><i class="bi bi-check-circle-fill"></i> Medication management</li>
+                        <li><i class="bi bi-check-circle-fill"></i> Deep cleaning & sanitization</li>
+                        <li><i class="bi bi-check-circle-fill"></i> Regular maintenance cleaning</li>
+                        <li><i class="bi bi-check-circle-fill"></i> Kitchen & bathroom cleaning</li>
+                        <li><i class="bi bi-check-circle-fill"></i> Floor care & vacuuming</li>
+                        <li><i class="bi bi-check-circle-fill"></i> Window cleaning</li>
+                    </ul>
+                </div>
+
+                <div class="service-card">
+                    <div class="service-icon">
+                        <i class="bi bi-basket3"></i>
+                    </div>
+                    <h3>Laundry & Organization</h3>
+                    <p>Complete laundry services and home organization to simplify your daily life.</p>
+                    <ul class="service-features">
+                        <li><i class="bi bi-check-circle-fill"></i> Washing & drying</li>
+                        <li><i class="bi bi-check-circle-fill"></i> Ironing & folding</li>
+                        <li><i class="bi bi-check-circle-fill"></i> Closet organization</li>
+                        <li><i class="bi bi-check-circle-fill"></i> Decluttering services</li>
+                        <li><i class="bi bi-check-circle-fill"></i> Storage solutions</li>
+                    </ul>
+                </div>
+
+                <div class="service-card">
+                    <div class="service-icon">
+                        <i class="bi bi-person-workspace"></i>
+                    </div>
+                    <h3>Personal Assistant Services</h3>
+                    <p>Professional support for errands, appointments, and daily task management.</p>
+                    <ul class="service-features">
+                        <li><i class="bi bi-check-circle-fill"></i> Grocery shopping</li>
+                        <li><i class="bi bi-check-circle-fill"></i> Errand running</li>
                         <li><i class="bi bi-check-circle-fill"></i> Meal preparation</li>
-                        <li><i class="bi bi-check-circle-fill"></i> Companionship</li>
-                        <li><i class="bi bi-check-circle-fill"></i> Specialized dementia care</li>
-                    </ul>
-                </div>
-
-                <div class="service-card">
-                    <div class="service-icon">
-                        <i class="bi bi-person-heart"></i>
-                    </div>
-                    <h3>Personal Care Assistance</h3>
-                    <p>Professional personal care services for individuals of all ages with respectful, dignified assistance.</p>
-                    <ul class="service-features">
-                        <li><i class="bi bi-check-circle-fill"></i> Bathing assistance</li>
-                        <li><i class="bi bi-check-circle-fill"></i> Dressing and grooming</li>
-                        <li><i class="bi bi-check-circle-fill"></i> Toileting care</li>
-                        <li><i class="bi bi-check-circle-fill"></i> Skin care & hygiene</li>
-                        <li><i class="bi bi-check-circle-fill"></i> Oral care</li>
-                    </ul>
-                </div>
-
-                <div class="service-card">
-                    <div class="service-icon">
-                        <i class="bi bi-bandaid"></i>
-                    </div>
-                    <h3>Special Needs Care</h3>
-                    <p>Specialized caregiver services for individuals with unique care requirements and chronic conditions.</p>
-                    <ul class="service-features">
-                        <li><i class="bi bi-check-circle-fill"></i> Disability support</li>
-                        <li><i class="bi bi-check-circle-fill"></i> Chronic illness care</li>
-                        <li><i class="bi bi-check-circle-fill"></i> Post-surgical care</li>
-                        <li><i class="bi bi-check-circle-fill"></i> Mobility assistance</li>
-                        <li><i class="bi bi-check-circle-fill"></i> Respite care</li>
+                        <li><i class="bi bi-check-circle-fill"></i> Appointment coordination</li>
+                        <li><i class="bi bi-check-circle-fill"></i> Pet care support</li>
                     </ul>
                 </div>
             </div>
@@ -703,7 +656,7 @@
         <div class="container">
             <div class="section-header">
                 <h2>Why Choose <span style="color: #f97316;">CAS Private Care</span></h2>
-                <p>When searching for a caregiver in New York, you want assurance that you're choosing a trusted, reliable service.</p>
+                <p>The most trusted platform for housekeeping and personal assistant services in New York.</p>
             </div>
 
             <div class="features-grid">
@@ -712,23 +665,23 @@
                         <i class="bi bi-shield-check"></i>
                     </div>
                     <h3>Fully Verified</h3>
-                    <p>Every caregiver undergoes comprehensive verification including criminal background checks, license verification, and professional reference checks.</p>
+                    <p>Every professional undergoes comprehensive background checks, reference verification, and identity confirmation for your peace of mind.</p>
                 </div>
 
                 <div class="feature-card">
                     <div class="feature-icon">
-                        <i class="bi bi-award"></i>
+                        <i class="bi bi-star-fill"></i>
                     </div>
-                    <h3>Licensed & Insured</h3>
-                    <p>All caregivers providing medical services are licensed by New York State Department of Health with full insurance coverage.</p>
+                    <h3>Highly Rated</h3>
+                    <p>Browse verified reviews from real families. Our professionals maintain high ratings and consistently deliver exceptional service.</p>
                 </div>
 
                 <div class="feature-card">
                     <div class="feature-icon">
-                        <i class="bi bi-clock-history"></i>
+                        <i class="bi bi-calendar-check"></i>
                     </div>
-                    <h3>Available 24/7</h3>
-                    <p>Emergency caregivers available within 4-6 hours. Our extensive network ensures we can match you with a qualified professional anytime.</p>
+                    <h3>Flexible Scheduling</h3>
+                    <p>Book services on your schedule. One-time cleaning, regular visits, or ongoing support - we adapt to your needs.</p>
                 </div>
 
                 <div class="feature-card">
@@ -736,43 +689,43 @@
                         <i class="bi bi-cash-coin"></i>
                     </div>
                     <h3>Transparent Pricing</h3>
-                    <p>Competitive rates with no hidden fees. Flexible hourly, daily, and monthly packages available. Get a personalized quote based on your specific care needs.</p>
+                    <p>Clear, competitive rates with no hidden fees. Know exactly what you're paying for before booking.</p>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- Featured Caregivers by Borough Section -->
+    <!-- Featured Professionals Section -->
     <section class="section-dark">
         <div class="container">
             <div class="section-header">
-                <h2>Top-Rated <span style="color: #f97316;">Caregivers</span> in Your Borough</h2>
-                <p>Meet experienced, verified caregivers trusted by families throughout New York City.</p>
+                <h2>Top-Rated <span style="color: #f97316;">Professionals</span> in Your Borough</h2>
+                <p>Meet experienced housekeepers and personal assistants trusted by families throughout NYC.</p>
             </div>
 
             <div class="pricing-grid">
                 <div class="pricing-card">
                     <div style="text-align: center; margin-bottom: 1.5rem;">
-                        <div style="width: 100px; height: 100px; margin: 0 auto 1rem; border-radius: 50%; background: linear-gradient(135deg, #3b82f6, #1e40af); display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 25px rgba(59, 130, 246, 0.3);">
+                        <div style="width: 100px; height: 100px; margin: 0 auto 1rem; border-radius: 50%; background: linear-gradient(135deg, #10b981, #059669); display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 25px rgba(16, 185, 129, 0.3);">
                             <i class="bi bi-person-circle" style="font-size: 4rem; color: white;"></i>
                         </div>
-                        <span style="display: inline-block; background: linear-gradient(135deg, #3b82f6, #1e40af); color: white; padding: 0.4rem 1rem; border-radius: 50px; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.5rem;">Manhattan Caregiver</span>
+                        <span style="display: inline-block; background: linear-gradient(135deg, #10b981, #059669); color: white; padding: 0.4rem 1rem; border-radius: 50px; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.5rem;">Manhattan Housekeeper</span>
                     </div>
-                    <h3>Maria Rodriguez</h3>
+                    <h3>Lisa Anderson</h3>
                     <div class="price" style="font-size: 1.5rem; margin-bottom: 0.5rem;">
-                        <span style="color: #fbbf24;"><i class="bi bi-star-fill"></i> 4.9/5</span>
+                        <span style="color: #fbbf24;"><i class="bi bi-star-fill"></i> 5.0/5</span>
                     </div>
-                    <p style="color: #64748b; font-size: 0.95rem; margin-bottom: 1rem;">8+ Years Experience • Licensed HHA</p>
+                    <p style="color: #64748b; font-size: 0.95rem; margin-bottom: 1rem;">10+ Years Experience • Detail-Oriented</p>
                     <ul class="pricing-features">
-                        <li><i class="bi bi-check-circle-fill"></i> Dementia & Alzheimer's care</li>
-                        <li><i class="bi bi-check-circle-fill"></i> Medication management</li>
-                        <li><i class="bi bi-check-circle-fill"></i> Bilingual (English/Spanish)</li>
+                        <li><i class="bi bi-check-circle-fill"></i> Deep cleaning specialist</li>
+                        <li><i class="bi bi-check-circle-fill"></i> Home organization expert</li>
+                        <li><i class="bi bi-check-circle-fill"></i> Eco-friendly products</li>
                     </ul>
-                    <div style="background: #f8fafc; padding: 1rem; border-radius: 12px; margin: 1rem 0; border-left: 4px solid #3b82f6;">
+                    <div style="background: #f8fafc; padding: 1rem; border-radius: 12px; margin: 1rem 0; border-left: 4px solid #10b981;">
                         <p style="font-size: 0.9rem; color: #475569; font-style: italic; margin: 0;">
-                            "Maria is wonderful! She treats my mother with such kindness and respect."
+                            "Lisa is amazing! My apartment has never looked better."
                         </p>
-                        <p style="font-size: 0.85rem; color: #94a3b8; margin: 0.5rem 0 0 0;">- Robert L., Manhattan</p>
+                        <p style="font-size: 0.85rem; color: #94a3b8; margin: 0.5rem 0 0 0;">- Jennifer K., Manhattan</p>
                     </div>
                 </div>
 
@@ -781,63 +734,63 @@
                         <div style="width: 100px; height: 100px; margin: 0 auto 1rem; border-radius: 50%; background: linear-gradient(135deg, #f97316, #ea580c); display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 25px rgba(249, 115, 22, 0.3);">
                             <i class="bi bi-person-circle" style="font-size: 4rem; color: white;"></i>
                         </div>
-                        <span style="display: inline-block; background: linear-gradient(135deg, #f97316, #ea580c); color: white; padding: 0.4rem 1rem; border-radius: 50px; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.5rem;">Brooklyn Caregiver</span>
+                        <span style="display: inline-block; background: linear-gradient(135deg, #f97316, #ea580c); color: white; padding: 0.4rem 1rem; border-radius: 50px; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.5rem;">Brooklyn Personal Assistant</span>
                     </div>
-                    <h3>James Chen</h3>
+                    <h3>Michael Torres</h3>
                     <div class="price" style="font-size: 1.5rem; margin-bottom: 0.5rem;">
-                        <span style="color: #fbbf24;"><i class="bi bi-star-fill"></i> 5.0/5</span>
+                        <span style="color: #fbbf24;"><i class="bi bi-star-fill"></i> 4.9/5</span>
                     </div>
-                    <p style="color: #64748b; font-size: 0.95rem; margin-bottom: 1rem;">6+ Years Experience • CPR Certified</p>
+                    <p style="color: #64748b; font-size: 0.95rem; margin-bottom: 1rem;">7+ Years Experience • Multitasker</p>
                     <ul class="pricing-features">
-                        <li><i class="bi bi-check-circle-fill"></i> Post-surgical recovery care</li>
-                        <li><i class="bi bi-check-circle-fill"></i> Mobility & transfer assistance</li>
-                        <li><i class="bi bi-check-circle-fill"></i> Personal hygiene support</li>
+                        <li><i class="bi bi-check-circle-fill"></i> Errand & shopping services</li>
+                        <li><i class="bi bi-check-circle-fill"></i> Appointment coordination</li>
+                        <li><i class="bi bi-check-circle-fill"></i> Pet care assistance</li>
                     </ul>
                     <div style="background: #f8fafc; padding: 1rem; border-radius: 12px; margin: 1rem 0; border-left: 4px solid #f97316;">
                         <p style="font-size: 0.9rem; color: #475569; font-style: italic; margin: 0;">
-                            "James helped me recover after surgery with patience and professionalism."
+                            "Michael handles everything so efficiently. He's a lifesaver!"
                         </p>
-                        <p style="font-size: 0.85rem; color: #94a3b8; margin: 0.5rem 0 0 0;">- Amanda M., Brooklyn</p>
+                        <p style="font-size: 0.85rem; color: #94a3b8; margin: 0.5rem 0 0 0;">- Rachel M., Brooklyn</p>
                     </div>
                 </div>
 
                 <div class="pricing-card">
                     <div style="text-align: center; margin-bottom: 1.5rem;">
-                        <div style="width: 100px; height: 100px; margin: 0 auto 1rem; border-radius: 50%; background: linear-gradient(135deg, #10b981, #059669); display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 25px rgba(16, 185, 129, 0.3);">
+                        <div style="width: 100px; height: 100px; margin: 0 auto 1rem; border-radius: 50%; background: linear-gradient(135deg, #8b5cf6, #7c3aed); display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 25px rgba(139, 92, 246, 0.3);">
                             <i class="bi bi-person-circle" style="font-size: 4rem; color: white;"></i>
                         </div>
-                        <span style="display: inline-block; background: linear-gradient(135deg, #10b981, #059669); color: white; padding: 0.4rem 1rem; border-radius: 50px; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.5rem;">Queens Caregiver</span>
+                        <span style="display: inline-block; background: linear-gradient(135deg, #8b5cf6, #7c3aed); color: white; padding: 0.4rem 1rem; border-radius: 50px; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.5rem;">Queens Housekeeper</span>
                     </div>
-                    <h3>Sarah Johnson</h3>
+                    <h3>Elena Vasquez</h3>
                     <div class="price" style="font-size: 1.5rem; margin-bottom: 0.5rem;">
                         <span style="color: #fbbf24;"><i class="bi bi-star-fill"></i> 4.8/5</span>
                     </div>
-                    <p style="color: #64748b; font-size: 0.95rem; margin-bottom: 1rem;">5+ Years Experience • Certified Aide</p>
+                    <p style="color: #64748b; font-size: 0.95rem; margin-bottom: 1rem;">9+ Years Experience • Reliable</p>
                     <ul class="pricing-features">
-                        <li><i class="bi bi-check-circle-fill"></i> Companion & housekeeping</li>
-                        <li><i class="bi bi-check-circle-fill"></i> Meal preparation specialist</li>
-                        <li><i class="bi bi-check-circle-fill"></i> Reliable & detail-oriented</li>
+                        <li><i class="bi bi-check-circle-fill"></i> Thorough cleaning services</li>
+                        <li><i class="bi bi-check-circle-fill"></i> Laundry & ironing</li>
+                        <li><i class="bi bi-check-circle-fill"></i> Meal preparation</li>
                     </ul>
-                    <div style="background: #f8fafc; padding: 1rem; border-radius: 12px; margin: 1rem 0; border-left: 4px solid #10b981;">
+                    <div style="background: #f8fafc; padding: 1rem; border-radius: 12px; margin: 1rem 0; border-left: 4px solid #8b5cf6;">
                         <p style="font-size: 0.9rem; color: #475569; font-style: italic; margin: 0;">
-                            "Sarah keeps my father's home spotless and makes delicious meals!"
+                            "Elena is wonderful. Always on time and does excellent work!"
                         </p>
-                        <p style="font-size: 0.85rem; color: #94a3b8; margin: 0.5rem 0 0 0;">- David W., Queens</p>
+                        <p style="font-size: 0.85rem; color: #94a3b8; margin: 0.5rem 0 0 0;">- Tom H., Queens</p>
                     </div>
                 </div>
             </div>
 
             <div style="text-align: center; margin-top: 3rem; padding: 2.5rem; background: white; border-radius: 20px; box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);">
-                <h3 style="font-size: 1.8rem; color: #1e40af; margin-bottom: 1rem;">
-                    <i class="bi bi-people-fill" style="color: #3b82f6;"></i> 
-                    500+ Verified Caregivers Across NYC
+                <h3 style="font-size: 1.8rem; color: #059669; margin-bottom: 1rem;">
+                    <i class="bi bi-people-fill" style="color: #10b981;"></i> 
+                    300+ Verified Professionals Across NYC
                 </h3>
                 <p style="font-size: 1.1rem; color: #64748b; margin-bottom: 1.5rem;">
-                    Browse caregivers in Manhattan, Brooklyn, Queens, Bronx, and Staten Island
+                    Browse housekeepers and personal assistants in Manhattan, Brooklyn, Queens, and more
                 </p>
                 <div style="display: flex; gap: 1.5rem; justify-content: center; align-items: center; flex-wrap: wrap; margin-top: 1.5rem;">
                     <div style="text-align: center;">
-                        <div style="font-size: 2.5rem; font-weight: 800; color: #3b82f6;">100%</div>
+                        <div style="font-size: 2.5rem; font-weight: 800; color: #10b981;">100%</div>
                         <div style="color: #64748b; font-size: 0.95rem;">Background Checked</div>
                     </div>
                     <div style="text-align: center;">
@@ -845,11 +798,11 @@
                         <div style="color: #64748b; font-size: 0.95rem;">Average Rating</div>
                     </div>
                     <div style="text-align: center;">
-                        <div style="font-size: 2.5rem; font-weight: 800; color: #10b981;">24/7</div>
+                        <div style="font-size: 2.5rem; font-weight: 800; color: #8b5cf6;">24/7</div>
                         <div style="color: #64748b; font-size: 0.95rem;">Available Support</div>
                     </div>
                 </div>
-                <a href="<?php echo e(url('/register')); ?>" class="btn-secondary" style="margin-top: 2rem; display: inline-block;">Browse All Caregivers</a>
+                <a href="{{ url('/register') }}" class="btn-secondary" style="margin-top: 2rem; display: inline-block;">Browse All Professionals</a>
             </div>
         </div>
     </section>
@@ -857,17 +810,16 @@
     <!-- CTA Section -->
     <section class="cta-section">
         <div class="container">
-            <h2>Ready to Find Your Caregiver in New York?</h2>
-            <p>Join 1,000+ families who trust CAS Private Care for their caregiver needs</p>
+            <h2>Ready to Find Your Housekeeper or Personal Assistant?</h2>
+            <p>Join 1,000+ families who trust CAS Private Care for their home care needs</p>
             <div class="hero-buttons">
-                <a href="<?php echo e(url('/register')); ?>" class="btn-primary">Get Started Today</a>
+                <a href="{{ url('/register') }}" class="btn-primary">Get Started Today</a>
                 <a href="tel:+16462828282" class="btn-secondary"><i class="bi bi-telephone"></i> Call: (646) 282-8282</a>
             </div>
         </div>
     </section>
 
-    <?php echo $__env->make('partials.footer', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
-    <?php echo $__env->make('partials.mobile-footer', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
+    @include('partials.footer')
+    @include('partials.mobile-footer')
 </body>
 </html>
-<?php /**PATH C:\Users\Cocotantan\Downloads\--CAS WEBSITE-- - Copy (4)\resources\views/caregiver-new-york.blade.php ENDPATH**/ ?>

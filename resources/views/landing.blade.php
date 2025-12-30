@@ -2581,10 +2581,9 @@ font-size: 1.1rem !important;
                 <div class="hero-social-container">
                     <p class="hero-social-text">CONNECT WITH US</p>
                     <div class="hero-social-icons">
-                        <a href="#" class="hero-social-icon" aria-label="Follow us on Facebook"><i class="bi bi-facebook"></i></a>
-                        <a href="#" class="hero-social-icon" aria-label="Follow us on Twitter"><i class="bi bi-twitter"></i></a>
-                        <a href="#" class="hero-social-icon" aria-label="Follow us on Instagram"><i class="bi bi-instagram"></i></a>
-                        <a href="#" class="hero-social-icon" aria-label="Follow us on LinkedIn"><i class="bi bi-linkedin"></i></a>
+                        <a href="https://www.facebook.com/profile.php?id=61584831099232" target="_blank" rel="noopener noreferrer" class="hero-social-icon" aria-label="Follow us on Facebook" onclick="window.open(this.href, '_blank'); return false;"><i class="bi bi-facebook"></i></a>
+                        <a href="https://www.linkedin.com/in/CASprivatecare" target="_blank" rel="noopener noreferrer" class="hero-social-icon" aria-label="Follow us on LinkedIn" onclick="window.open(this.href, '_blank'); return false;"><i class="bi bi-linkedin"></i></a>
+                        <a href="https://www.instagram.com/casprivatecare" target="_blank" rel="noopener noreferrer" class="hero-social-icon" aria-label="Follow us on Instagram"><i class="bi bi-instagram"></i></a>
                     </div>
                 </div>
             </div>
@@ -3047,10 +3046,9 @@ font-size: 1.1rem !important;
                 <p>Connection that cares. Your trusted marketplace for professional caregiving services connecting families with verified care professionals.</p>
                 <p style="margin-top: 1rem;">We provide a safe, reliable platform where quality care meets convenience. From elderly care to childcare, our verified professionals are ready to support your family's unique needs with compassion and expertise.</p>
                 <div class="footer-social">
-                    <a href="https://www.facebook.com/casprivatecare" target="_blank" rel="noopener noreferrer" class="social-icon" aria-label="Follow us on Facebook"><i class="bi bi-facebook"></i></a>
-                    <a href="https://www.twitter.com/casprivatecare" target="_blank" rel="noopener noreferrer" class="social-icon" aria-label="Follow us on Twitter"><i class="bi bi-twitter"></i></a>
+                    <a href="https://www.facebook.com/profile.php?id=61584831099232" target="_blank" rel="noopener noreferrer" class="social-icon" aria-label="Follow us on Facebook" onclick="window.open(this.href, '_blank'); return false;"><i class="bi bi-facebook"></i></a>
+                    <a href="https://www.linkedin.com/in/CASprivatecare" target="_blank" rel="noopener noreferrer" class="social-icon" aria-label="Follow us on LinkedIn" onclick="window.open(this.href, '_blank'); return false;"><i class="bi bi-linkedin"></i></a>
                     <a href="https://www.instagram.com/casprivatecare" target="_blank" rel="noopener noreferrer" class="social-icon" aria-label="Follow us on Instagram"><i class="bi bi-instagram"></i></a>
-                    <a href="https://www.linkedin.com/company/casprivatecare" target="_blank" rel="noopener noreferrer" class="social-icon" aria-label="Follow us on LinkedIn"><i class="bi bi-linkedin"></i></a>
                 </div>
             </div>
             <div class="footer-section">

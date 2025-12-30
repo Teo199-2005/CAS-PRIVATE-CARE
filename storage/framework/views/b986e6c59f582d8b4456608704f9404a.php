@@ -52,17 +52,14 @@
         <div class="mobile-footer-social">
             <h4>Follow Us</h4>
             <div class="mobile-social-icons">
-                <a href="https://www.facebook.com/casprivatecare" target="_blank" rel="noopener noreferrer" aria-label="Facebook">
+                <a href="https://www.facebook.com/profile.php?id=61584831099232" target="_blank" rel="noopener noreferrer" aria-label="Facebook" onclick="window.open(this.href, '_blank'); return false;">
                     <i class="bi bi-facebook"></i>
                 </a>
-                <a href="https://www.twitter.com/casprivatecare" target="_blank" rel="noopener noreferrer" aria-label="Twitter">
-                    <i class="bi bi-twitter"></i>
+                <a href="https://www.linkedin.com/in/CASprivatecare" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" onclick="window.open(this.href, '_blank'); return false;">
+                    <i class="bi bi-linkedin"></i>
                 </a>
                 <a href="https://www.instagram.com/casprivatecare" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
                     <i class="bi bi-instagram"></i>
-                </a>
-                <a href="https://www.linkedin.com/company/casprivatecare" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn">
-                    <i class="bi bi-linkedin"></i>
                 </a>
             </div>
         </div>

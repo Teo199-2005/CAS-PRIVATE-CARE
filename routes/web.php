@@ -46,6 +46,18 @@ Route::get('/faq', function () {
 Route::get('/about', function () {
     return view('about');
 })->name('about');
+Route::get('/housekeeping-personal-assistant', function () {
+    return view('housekeeping-personal-assistant');
+})->name('housekeeping-personal-assistant');
+Route::get('/housekeeping-new-york', function () {
+    return view('housekeeping-new-york');
+})->name('housekeeping-new-york');
+Route::get('/personal-assistant-new-york', function () {
+    return view('personal-assistant-new-york');
+})->name('personal-assistant-new-york');
+Route::get('/training-center', function () {
+    return view('training-center');
+})->name('training-center');
 
 // Blog routes
 Route::get('/blog', [BlogController::class, 'index'])->name('blog.index');

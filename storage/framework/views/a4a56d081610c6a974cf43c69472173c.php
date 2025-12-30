@@ -16,12 +16,12 @@
                 </a>
                 <div class="dropdown-menu" id="servicesMenu">
                     <a href="<?php echo e(url('/caregiver-new-york')); ?>">Caregiver</a>
-                    <a href="<?php echo e(url('/')); ?>#services">Housekeeping</a>
-                    <a href="<?php echo e(url('/')); ?>#services">Personal Assistant</a>
+                    <a href="<?php echo e(url('/housekeeping-new-york')); ?>">Housekeeping</a>
+                    <a href="<?php echo e(url('/personal-assistant-new-york')); ?>">Personal Assistant</a>
                 </div>
             </li>
             <li><a href="<?php echo e(url('/contractor-partner')); ?>">1099 Contractors</a></li>
-            <li><a href="<?php echo e(url('/')); ?>#training">Training</a></li>
+            <li><a href="<?php echo e(url('/training-center')); ?>">Accredited Training Center</a></li>
             <li><a href="<?php echo e(url('/about')); ?>">About</a></li>
             <li><a href="<?php echo e(url('/blog')); ?>">Blog</a></li>
             <li><a href="<?php echo e(url('/contact')); ?>">Contact Us</a></li>

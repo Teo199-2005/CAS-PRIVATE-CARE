@@ -16,12 +16,12 @@
                 </a>
                 <div class="dropdown-menu" id="servicesMenu">
                     <a href="{{ url('/caregiver-new-york') }}">Caregiver</a>
-                    <a href="{{ url('/') }}#services">Housekeeping</a>
-                    <a href="{{ url('/') }}#services">Personal Assistant</a>
+                    <a href="{{ url('/housekeeping-new-york') }}">Housekeeping</a>
+                    <a href="{{ url('/personal-assistant-new-york') }}">Personal Assistant</a>
                 </div>
             </li>
             <li><a href="{{ url('/contractor-partner') }}">1099 Contractors</a></li>
-            <li><a href="{{ url('/') }}#training">Training</a></li>
+            <li><a href="{{ url('/training-center') }}">Accredited Training Center</a></li>
             <li><a href="{{ url('/about') }}">About</a></li>
             <li><a href="{{ url('/blog') }}">Blog</a></li>
             <li><a href="{{ url('/contact') }}">Contact Us</a></li>
