@@ -36,13 +36,19 @@
     @include('partials.nav-footer-styles')
     
     <style>
-        body {
-            font-family: 'Sora', sans-serif;
+        * {
             margin: 0;
             padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             line-height: 1.6;
-            color: #1e293b;
-            background-color: #ffffff;
+            color: #0B4FA2;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
         }
 
         .section-light {
@@ -714,6 +720,9 @@
     </main>
 
     @include('partials.footer')
+    
+    <!-- Mobile-Only Footer -->
+    @include('partials.mobile-footer')
 </body>
 </html>
 

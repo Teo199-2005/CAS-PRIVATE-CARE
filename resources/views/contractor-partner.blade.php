@@ -239,10 +239,9 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&family=Sora:wght@600;700&family=Montserrat:wght@700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;600;700&family=Montserrat:wght@700;800&display=swap" rel="stylesheet">
     
     <!-- Preload critical images for LCP -->
-    <link rel="preload" as="image" href="{{ asset('cover.jpg') }}">
     <link rel="preload" as="image" href="{{ asset('logo flower.png') }}">
     
     @include('partials.nav-footer-styles')
@@ -254,11 +253,24 @@
             box-sizing: border-box;
         }
 
+        * {
+            max-width: 100%;
+            box-sizing: border-box;
+        }
+
+        html {
+            overflow-x: hidden;
+            width: 100%;
+        }
+
         body {
             font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             line-height: 1.6;
             color: #0B4FA2;
             overflow-x: hidden;
+            width: 100%;
+            margin: 0;
+            padding: 0;
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
         }
@@ -336,6 +348,7 @@
 
         .hero-content {
             max-width: 1400px;
+            width: 100%;
             margin: 0 auto;
             position: relative;
             z-index: 1;
@@ -737,6 +750,8 @@
         .container {
             max-width: 1200px;
             margin: 0 auto;
+            padding: 0 1rem;
+            width: 100%;
         }
 
         /* Unique Container Widths */
@@ -1472,82 +1487,27 @@
 
         /* Mobile First - Base styles for mobile devices */
         @media (max-width: 480px) {
+            * {
+                max-width: 100%;
+            }
+            
+            html, body {
+                overflow-x: hidden !important;
+                width: 100% !important;
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+            
             body {
                 font-size: 14px;
-            }
-
-            nav {
-                padding: 0.5rem 0;
-                height: 70px;
-            }
-
-            .nav-container {
-                padding: 0 1rem;
-            }
-
-            .logo-section img {
-                height: 60px;
-            }
-
-            .brand-name {
-                font-size: 1rem;
-            }
-
-            .mobile-menu-btn {
-                display: block;
-                font-size: 1.5rem;
-                padding: 0.5rem;
-                color: #1e40af;
-            }
-
-            .nav-links {
-                display: none;
-                position: fixed;
-                top: 70px;
-                left: 0;
-                right: 0;
-                background: white;
-                flex-direction: column;
-                padding: 1.5rem;
-                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
-                max-height: calc(100vh - 70px);
-                overflow-y: auto;
-                z-index: 999;
-            }
-
-            .nav-links.active {
-                display: flex;
-            }
-
-            .nav-links li {
-                width: 100%;
-                margin-bottom: 0.5rem;
-            }
-
-            .nav-links a {
-                display: block;
-                padding: 1rem;
-                width: 100%;
-                text-align: center;
-                border-radius: 8px;
-            }
-
-            .dropdown-menu {
-                position: static;
-                opacity: 1;
-                visibility: visible;
-                transform: none;
-                box-shadow: none;
-                padding: 0.5rem 0;
-                margin-top: 0.5rem;
-                background: #f8fafc;
-                border-radius: 8px;
             }
 
             .hero {
                 margin-top: 70px;
                 padding: 2rem 1rem;
                 min-height: auto;
+                width: 100%;
+                overflow-x: hidden;
             }
 
             .hero-bg-images {
@@ -1560,64 +1520,123 @@
 
             .hero-content {
                 grid-template-columns: 1fr;
-                gap: 2rem;
-                padding: 1.5rem;
-                border-radius: 20px;
+                gap: 1.5rem;
+                padding: 1.25rem;
+                border-radius: 16px;
+                width: 100%;
+                max-width: 100%;
+                background: rgba(255, 255, 255, 0.08);
             }
 
             .hero-left {
                 text-align: center;
+                padding: 0.5rem;
             }
 
             .hero h1 {
-                font-size: 2rem;
-                line-height: 1.2;
-                margin-bottom: 0.75rem;
+                font-size: 1.75rem !important;
+                line-height: 1.3 !important;
+                margin-bottom: 1rem !important;
+                font-weight: 700 !important;
+                color: white !important;
+                text-shadow: 0 2px 10px rgba(0,0,0,0.2);
             }
 
             .hero .tagline {
-                font-size: 1.1rem;
+                font-size: 1rem;
                 margin-bottom: 1rem;
             }
 
             .hero p {
-                font-size: 0.9rem;
-                margin-bottom: 1.5rem;
-                line-height: 1.6;
+                font-size: 0.95rem !important;
+                margin-bottom: 1.25rem !important;
+                line-height: 1.6 !important;
+                color: rgba(255,255,255,0.95) !important;
+            }
+
+            /* Mobile: Stats Grid - 2x2 on very small, 3 column on slightly larger */
+            .hero-left > div[style*="grid-template-columns"] {
+                display: grid !important;
+                grid-template-columns: 1fr 1fr !important;
+                gap: 0.75rem !important;
+                margin: 1.25rem 0 !important;
+            }
+
+            /* Make the 3rd stat span full width on 2-column layout */
+            .hero-left > div[style*="grid-template-columns"] > div:nth-child(3) {
+                grid-column: 1 / -1;
+                max-width: 50%;
+                margin: 0 auto;
+            }
+
+            .hero-left > div[style*="grid-template-columns"] > div {
+                padding: 1rem 0.75rem !important;
+                border-radius: 12px !important;
+            }
+
+            .hero-left > div[style*="grid-template-columns"] > div > div:first-child {
+                font-size: 2rem !important;
+                margin-bottom: 0.25rem !important;
+            }
+
+            .hero-left > div[style*="grid-template-columns"] > div > div:last-child {
+                font-size: 0.8rem !important;
             }
 
             .hero-buttons {
                 flex-direction: column;
-                gap: 1rem;
+                gap: 0.75rem;
                 width: 100%;
+                margin-top: 1.25rem;
             }
 
             .btn-primary, .btn-secondary {
                 width: 100%;
-                padding: 1rem 2rem;
-                font-size: 0.95rem;
+                padding: 0.95rem 1.5rem !important;
+                font-size: 0.95rem !important;
                 text-align: center;
+                border-radius: 12px !important;
             }
 
             .hero-trust-badges {
                 grid-template-columns: 1fr;
-                gap: 1rem;
+                gap: 0.75rem;
             }
 
             .trust-badge {
                 padding: 0.75rem 1rem;
-                font-size: 0.9rem;
+                font-size: 0.85rem;
             }
 
             .hero-right {
-                display: flex;
-                gap: 1.5rem;
+                display: block;
+                width: 100%;
             }
 
             .hero-image-container {
-                height: 220px !important;
+                height: 280px !important;
                 border-radius: 16px;
                 box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+                position: relative;
+                overflow: hidden;
+            }
+
+            /* Rate badge on image - mobile optimized */
+            .hero-image-container > div[style*="position: absolute"] {
+                bottom: 12px !important;
+                right: 12px !important;
+                padding: 1rem !important;
+                border-radius: 12px !important;
+                max-width: calc(100% - 24px);
+            }
+
+            .hero-image-container > div[style*="position: absolute"] > div:first-child {
+                font-size: 1.5rem !important;
+                margin-bottom: 0.25rem !important;
+            }
+
+            .hero-image-container > div[style*="position: absolute"] > div {
+                font-size: 0.75rem !important;
             }
 
             .hero-cover-image {
@@ -1646,10 +1665,25 @@
 
             section {
                 padding: 2.5rem 1rem;
+                width: 100%;
+                overflow-x: hidden;
             }
 
             .container {
                 padding: 0 1rem;
+                width: 100%;
+                max-width: 100%;
+            }
+
+            /* Fix all grids for mobile */
+            .features-grid,
+            .steps-container,
+            .services-grid,
+            .locations-grid,
+            .requirements-grid {
+                width: 100%;
+                max-width: 100%;
+                overflow-x: hidden;
             }
 
             .section-header {
@@ -2227,71 +2261,46 @@ font-size: 1.1rem !important;
 
         /* Small tablets and large phones */
         @media (min-width: 481px) and (max-width: 768px) {
-            nav {
-                padding: 0.6rem 0;
-                height: 75px;
-            }
-
-            .nav-container {
-                padding: 0 1.5rem;
-            }
-
-            .logo-section img {
-                height: 70px;
-            }
-
-            .brand-name {
-                font-size: 1.15rem;
-            }
-
-            .mobile-menu-btn {
-                display: block;
-                font-size: 1.5rem;
-            }
-
-            .nav-links {
-                display: none;
-                position: fixed;
-                top: 75px;
-                left: 0;
-                right: 0;
-                background: white;
-                flex-direction: column;
-                padding: 2rem;
-                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
-                max-height: calc(100vh - 75px);
-                overflow-y: auto;
-                z-index: 999;
-            }
-
-            .nav-links.active {
-                display: flex;
-            }
-
-            .nav-links li {
-                width: 100%;
-                margin-bottom: 0.75rem;
-            }
-
-            .nav-links a {
-                display: block;
-                padding: 1rem;
-                width: 100%;
-                text-align: center;
-            }
-
             .hero {
                 margin-top: 75px;
                 padding: 3rem 1.5rem;
             }
 
+            .hero h1 {
+                font-size: 2.25rem !important;
+                line-height: 1.3 !important;
+            }
+
+            .hero p {
+                font-size: 1.05rem !important;
+            }
+
+            /* Stats: 3 columns on larger phones */
+            .hero-left > div[style*="grid-template-columns"] {
+                grid-template-columns: repeat(3, 1fr) !important;
+                gap: 1rem !important;
+            }
+
+            .hero-left > div[style*="grid-template-columns"] > div:nth-child(3) {
+                grid-column: auto;
+                max-width: 100%;
+            }
+
+            .hero-left > div[style*="grid-template-columns"] > div {
+                padding: 1.25rem 1rem !important;
+            }
+
+            .hero-left > div[style*="grid-template-columns"] > div > div:first-child {
+                font-size: 2.25rem !important;
+            }
+
             .hero-right {
-                display: flex;
-                gap: 1.75rem;
+                display: block;
+                width: 100%;
             }
 
             .hero-image-container {
-                height: 280px !important;
+                height: 320px !important;
                 border-radius: 18px;
             }
 
@@ -2443,18 +2452,6 @@ font-size: 1.1rem !important;
 
         /* Standard mobile breakpoint (kept for backward compatibility) */
         @media (max-width: 768px) {
-            .nav-links {
-                display: none;
-            }
-
-            .nav-links.active {
-                display: flex;
-            }
-
-            .mobile-menu-btn {
-                display: block;
-            }
-
             .hero {
                 padding: 3rem 1.5rem;
             }
@@ -2656,10 +2653,6 @@ font-size: 1.1rem !important;
 
         /* Tablets (iPad, etc.) */
         @media (min-width: 769px) and (max-width: 1024px) {
-            .nav-container {
-                padding: 0 2rem;
-            }
-
             .hero {
                 padding: 5rem 2rem;
             }
@@ -2936,99 +2929,218 @@ font-size: 1.1rem !important;
         <div class="container" style="max-width: 1200px; margin: 0 auto;">
             <div class="section-header fade-in" style="text-align: center; margin-bottom: 4rem;">
                 <h2 style="font-size: 3rem; font-weight: 700; margin-bottom: 1rem;">
-                    <span style="color: #f97316;">How Much</span> <span style="background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">You Earn</span>
+                    <span style="color: #f97316;">Why Our 1099 Contractors Are</span> <span style="background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Reliable & Caring</span>
                 </h2>
-                <p style="font-size: 1.2rem; color: #64748b;">Transparent income breakdown - know exactly what you'll earn before you start</p>
+                <p style="font-size: 1.2rem; color: #64748b;">Verified caregivers, housekeepers, and personal assistants serving New York City boroughs with excellent ratings</p>
             </div>
             
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin-bottom: 3rem;">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; margin-bottom: 3rem;">
                 <div class="fade-in" style="background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); border: 1px solid #e5e7eb;">
-                    <div style="font-size: 2.5rem; font-weight: 800; color: #10b981; margin-bottom: 0.5rem; letter-spacing: -0.02em;">$28.00/hr</div>
-                    <h3 style="font-size: 1.1rem; font-weight: 600; color: #374151; margin-bottom: 0.75rem; letter-spacing: -0.01em;">Caregiver Rate</h3>
-                    <p style="color: #6b7280; line-height: 1.6; font-size: 0.9rem;">Your base hourly rate as a caregiver contractor. This is what you earn for every hour of service provided to clients.</p>
+                    <div style="font-size: 2.5rem; font-weight: 800; color: #10b981; margin-bottom: 0.5rem; letter-spacing: -0.02em;">Caregivers NYC</div>
+                    <h3 style="font-size: 1.1rem; font-weight: 600; color: #374151; margin-bottom: 0.75rem; letter-spacing: -0.01em;">Professional Caregivers in New York</h3>
+                    <p style="color: #6b7280; line-height: 1.6; font-size: 0.9rem;">Certified and experienced caregivers in Manhattan, Brooklyn, Queens, Bronx, and Staten Island. Specialized in elderly care, companion care, and medical support.</p>
                 </div>
                 
                 <div class="fade-in" style="background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); border: 1px solid #e5e7eb;">
-                    <div style="font-size: 2.5rem; font-weight: 800; color: #111827; margin-bottom: 0.5rem; letter-spacing: -0.02em;">24/7</div>
-                    <h3 style="font-size: 1.1rem; font-weight: 600; color: #374151; margin-bottom: 0.75rem; letter-spacing: -0.01em;">Flexible Schedule</h3>
-                    <p style="color: #6b7280; line-height: 1.6; font-size: 0.9rem;">Work when it suits you. Choose your own hours and accept bookings that fit your schedule. Build your income around your life.</p>
+                    <div style="font-size: 2.5rem; font-weight: 800; color: #3b82f6; margin-bottom: 0.5rem; letter-spacing: -0.02em;">Housekeepers NY</div>
+                    <h3 style="font-size: 1.1rem; font-weight: 600; color: #374151; margin-bottom: 0.75rem; letter-spacing: -0.01em;">Trusted Housekeepers in New York</h3>
+                    <p style="color: #6b7280; line-height: 1.6; font-size: 0.9rem;">Reliable housekeepers across all NYC boroughs. Deep cleaning, regular maintenance, organizing, and household management services available 24/7.</p>
                 </div>
                 
                 <div class="fade-in" style="background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); border: 1px solid #e5e7eb;">
-                    <div style="font-size: 2.5rem; font-weight: 800; color: #111827; margin-bottom: 0.5rem; letter-spacing: -0.02em;">100%</div>
-                    <h3 style="font-size: 1.1rem; font-weight: 600; color: #374151; margin-bottom: 0.75rem; letter-spacing: -0.01em;">Transparent</h3>
-                    <p style="color: #6b7280; line-height: 1.6; font-size: 0.9rem;">All rates are clear and agreed upon before you accept any booking. No hidden fees or surprises.</p>
+                    <div style="font-size: 2.5rem; font-weight: 800; color: #f97316; margin-bottom: 0.5rem; letter-spacing: -0.02em;">Personal Assistants</div>
+                    <h3 style="font-size: 1.1rem; font-weight: 600; color: #374151; margin-bottom: 0.75rem; letter-spacing: -0.01em;">Personal Assistants in NYC</h3>
+                    <p style="color: #6b7280; line-height: 1.6; font-size: 0.9rem;">Skilled personal assistants throughout New York City. Errands, scheduling, companionship, transportation, and daily living assistance.</p>
                 </div>
             </div>
             
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 2rem; margin-bottom: 3rem;">
-                <div class="fade-in" style="background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); border: 1px solid #e5e7eb;">
-                    <h3 style="font-size: 1.25rem; font-weight: 700; color: #111827; margin-bottom: 1.5rem; letter-spacing: -0.01em;">With Referral Code</h3>
-                    <div style="display: flex; flex-direction: column; gap: 0.75rem;">
-                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 1rem 0; border-bottom: 1px solid #f3f4f6;">
-                            <span style="font-weight: 500; color: #6b7280; font-size: 0.95rem;">Caregiver</span>
-                            <span style="font-size: 1.5rem; font-weight: 800; color: #10b981; letter-spacing: -0.02em;">$28.00/hr</span>
+            <!-- Featured Caregivers with 5-Star Ratings -->
+            <div style="margin-bottom: 3rem;">
+                <h3 style="font-size: 2rem; font-weight: 700; color: #111827; margin-bottom: 2rem; text-align: center;">
+                    <span style="color: #f97316;">Top-Rated</span> <span style="color: #3b82f6;">Professionals</span> in New York City
+                </h3>
+                
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 2rem;">
+                    <!-- Caregiver 1 -->
+                    <div class="fade-in" style="background: white; padding: 2rem; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); border: 2px solid #10b981;">
+                        <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+                            <div style="width: 60px; height: 60px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 1.5rem;">MC</div>
+                            <div style="flex: 1;">
+                                <h4 style="font-size: 1.25rem; font-weight: 700; color: #111827; margin: 0;">Maria C.</h4>
+                                <p style="color: #6b7280; margin: 0; font-size: 0.9rem;">Certified Caregiver - Manhattan</p>
+                            </div>
                         </div>
-                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 1rem 0; border-bottom: 1px solid #f3f4f6;">
-                            <span style="font-weight: 500; color: #6b7280; font-size: 0.95rem;">Agency (net)</span>
-                            <span style="font-size: 1.5rem; font-weight: 800; color: #10b981; letter-spacing: -0.02em;">$10.50/hr</span>
+                        <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem;">
+                            <div style="color: #fbbf24; font-size: 1.2rem;">★★★★★</div>
+                            <span style="font-weight: 700; color: #111827;">5.0</span>
+                            <span style="color: #6b7280; font-size: 0.85rem;">(127 reviews)</span>
                         </div>
-                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 1rem 0; border-bottom: 1px solid #f3f4f6;">
-                            <span style="font-weight: 500; color: #6b7280; font-size: 0.95rem;">Marketing Associate (referral)</span>
-                            <span style="font-size: 1.5rem; font-weight: 800; color: #10b981; letter-spacing: -0.02em;">$1.00/hr</span>
+                        <div style="background: #f0fdf4; padding: 1rem; border-radius: 8px; border-left: 3px solid #10b981; margin-bottom: 0.75rem;">
+                            <p style="color: #374151; font-style: italic; margin: 0; font-size: 0.9rem; line-height: 1.6;">"Maria is exceptional! She took care of my father with such compassion. Highly recommend for elderly care in Manhattan."</p>
                         </div>
-                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 1rem 0;">
-                            <span style="font-weight: 500; color: #6b7280; font-size: 0.95rem;">Training Center</span>
-                            <span style="font-size: 1.5rem; font-weight: 800; color: #10b981; letter-spacing: -0.02em;">$0.50/hr</span>
+                        <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; color: #6b7280;">
+                            <span><i class="bi bi-geo-alt-fill" style="color: #10b981;"></i> Manhattan, NY</span>
+                            <span style="font-weight: 600;">- Sarah K., Upper East Side</span>
+                        </div>
+                    </div>
+
+                    <!-- Housekeeper 1 -->
+                    <div class="fade-in" style="background: white; padding: 2rem; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); border: 2px solid #3b82f6;">
+                        <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+                            <div style="width: 60px; height: 60px; background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 1.5rem;">LR</div>
+                            <div style="flex: 1;">
+                                <h4 style="font-size: 1.25rem; font-weight: 700; color: #111827; margin: 0;">Linda R.</h4>
+                                <p style="color: #6b7280; margin: 0; font-size: 0.9rem;">Professional Housekeeper - Brooklyn</p>
+                            </div>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem;">
+                            <div style="color: #fbbf24; font-size: 1.2rem;">★★★★★</div>
+                            <span style="font-weight: 700; color: #111827;">5.0</span>
+                            <span style="color: #6b7280; font-size: 0.85rem;">(94 reviews)</span>
+                        </div>
+                        <div style="background: #eff6ff; padding: 1rem; border-radius: 8px; border-left: 3px solid #3b82f6; margin-bottom: 0.75rem;">
+                            <p style="color: #374151; font-style: italic; margin: 0; font-size: 0.9rem; line-height: 1.6;">"Best housekeeper in Brooklyn! Linda is thorough, trustworthy, and my home has never looked better. Worth every penny!"</p>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; color: #6b7280;">
+                            <span><i class="bi bi-geo-alt-fill" style="color: #3b82f6;"></i> Brooklyn, NY</span>
+                            <span style="font-weight: 600;">- Michael T., Park Slope</span>
+                        </div>
+                    </div>
+
+                    <!-- Personal Assistant 1 -->
+                    <div class="fade-in" style="background: white; padding: 2rem; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); border: 2px solid #f97316;">
+                        <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+                            <div style="width: 60px; height: 60px; background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 1.5rem;">JW</div>
+                            <div style="flex: 1;">
+                                <h4 style="font-size: 1.25rem; font-weight: 700; color: #111827; margin: 0;">James W.</h4>
+                                <p style="color: #6b7280; margin: 0; font-size: 0.9rem;">Personal Assistant - Queens</p>
+                            </div>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem;">
+                            <div style="color: #fbbf24; font-size: 1.2rem;">★★★★★</div>
+                            <span style="font-weight: 700; color: #111827;">5.0</span>
+                            <span style="color: #6b7280; font-size: 0.85rem;">(156 reviews)</span>
+                        </div>
+                        <div style="background: #fff7ed; padding: 1rem; border-radius: 8px; border-left: 3px solid #f97316; margin-bottom: 0.75rem;">
+                            <p style="color: #374151; font-style: italic; margin: 0; font-size: 0.9rem; line-height: 1.6;">"James is incredibly organized and reliable. He manages my schedule perfectly and handles errands efficiently. A true professional!"</p>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; color: #6b7280;">
+                            <span><i class="bi bi-geo-alt-fill" style="color: #f97316;"></i> Queens, NY</span>
+                            <span style="font-weight: 600;">- Jennifer L., Astoria</span>
+                        </div>
+                    </div>
+
+                    <!-- Caregiver 2 -->
+                    <div class="fade-in" style="background: white; padding: 2rem; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); border: 2px solid #10b981;">
+                        <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+                            <div style="width: 60px; height: 60px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 1.5rem;">DP</div>
+                            <div style="flex: 1;">
+                                <h4 style="font-size: 1.25rem; font-weight: 700; color: #111827; margin: 0;">David P.</h4>
+                                <p style="color: #6b7280; margin: 0; font-size: 0.9rem;">Senior Caregiver - Bronx</p>
+                            </div>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem;">
+                            <div style="color: #fbbf24; font-size: 1.2rem;">★★★★★</div>
+                            <span style="font-weight: 700; color: #111827;">5.0</span>
+                            <span style="color: #6b7280; font-size: 0.85rem;">(203 reviews)</span>
+                        </div>
+                        <div style="background: #f0fdf4; padding: 1rem; border-radius: 8px; border-left: 3px solid #10b981; margin-bottom: 0.75rem;">
+                            <p style="color: #374151; font-style: italic; margin: 0; font-size: 0.9rem; line-height: 1.6;">"David provided excellent care for my mother. Professional, patient, and genuinely caring. Top caregiver in the Bronx!"</p>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; color: #6b7280;">
+                            <span><i class="bi bi-geo-alt-fill" style="color: #10b981;"></i> Bronx, NY</span>
+                            <span style="font-weight: 600;">- Robert M., Riverdale</span>
+                        </div>
+                    </div>
+
+                    <!-- Housekeeper 2 -->
+                    <div class="fade-in" style="background: white; padding: 2rem; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); border: 2px solid #3b82f6;">
+                        <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+                            <div style="width: 60px; height: 60px; background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 1.5rem;">AG</div>
+                            <div style="flex: 1;">
+                                <h4 style="font-size: 1.25rem; font-weight: 700; color: #111827; margin: 0;">Ana G.</h4>
+                                <p style="color: #6b7280; margin: 0; font-size: 0.9rem;">Expert Housekeeper - Staten Island</p>
+                            </div>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem;">
+                            <div style="color: #fbbf24; font-size: 1.2rem;">★★★★★</div>
+                            <span style="font-weight: 700; color: #111827;">5.0</span>
+                            <span style="color: #6b7280; font-size: 0.85rem;">(88 reviews)</span>
+                        </div>
+                        <div style="background: #eff6ff; padding: 1rem; border-radius: 8px; border-left: 3px solid #3b82f6; margin-bottom: 0.75rem;">
+                            <p style="color: #374151; font-style: italic; margin: 0; font-size: 0.9rem; line-height: 1.6;">"Ana is amazing! Detailed cleaning, always on time, and very respectful. The best housekeeper on Staten Island!"</p>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; color: #6b7280;">
+                            <span><i class="bi bi-geo-alt-fill" style="color: #3b82f6;"></i> Staten Island, NY</span>
+                            <span style="font-weight: 600;">- Patricia H., Tottenville</span>
+                        </div>
+                    </div>
+
+                    <!-- Personal Assistant 2 -->
+                    <div class="fade-in" style="background: white; padding: 2rem; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); border: 2px solid #f97316;">
+                        <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+                            <div style="width: 60px; height: 60px; background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 1.5rem;">SK</div>
+                            <div style="flex: 1;">
+                                <h4 style="font-size: 1.25rem; font-weight: 700; color: #111827; margin: 0;">Sophie K.</h4>
+                                <p style="color: #6b7280; margin: 0; font-size: 0.9rem;">Personal Assistant - Manhattan</p>
+                            </div>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem;">
+                            <div style="color: #fbbf24; font-size: 1.2rem;">★★★★★</div>
+                            <span style="font-weight: 700; color: #111827;">5.0</span>
+                            <span style="color: #6b7280; font-size: 0.85rem;">(142 reviews)</span>
+                        </div>
+                        <div style="background: #fff7ed; padding: 1rem; border-radius: 8px; border-left: 3px solid #f97316; margin-bottom: 0.75rem;">
+                            <p style="color: #374151; font-style: italic; margin: 0; font-size: 0.9rem; line-height: 1.6;">"Sophie is a lifesaver! She handles everything from grocery shopping to appointment scheduling. Highly recommend in NYC!"</p>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; color: #6b7280;">
+                            <span><i class="bi bi-geo-alt-fill" style="color: #f97316;"></i> Manhattan, NY</span>
+                            <span style="font-weight: 600;">- David W., Midtown</span>
                         </div>
                     </div>
                 </div>
-                
-                <div class="fade-in" style="background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); border: 1px solid #e5e7eb;">
-                    <h3 style="font-size: 1.25rem; font-weight: 700; color: #111827; margin-bottom: 1.5rem; letter-spacing: -0.01em;">Without Referral Code</h3>
-                    <div style="display: flex; flex-direction: column; gap: 0.75rem;">
-                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 1rem 0; border-bottom: 1px solid #f3f4f6;">
-                            <span style="font-weight: 500; color: #6b7280; font-size: 0.95rem;">Caregiver</span>
-                            <span style="font-size: 1.5rem; font-weight: 800; color: #10b981; letter-spacing: -0.02em;">$28/hr</span>
-                        </div>
-                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 1rem 0; border-bottom: 1px solid #f3f4f6;">
-                            <span style="font-weight: 500; color: #6b7280; font-size: 0.95rem;">Agency</span>
-                            <span style="font-size: 1.5rem; font-weight: 800; color: #10b981; letter-spacing: -0.02em;">$16.50/hr</span>
-                        </div>
-                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 1rem 0;">
-                            <span style="font-weight: 500; color: #6b7280; font-size: 0.95rem;">Training Center (if applicable)</span>
-                            <span style="font-size: 1.5rem; font-weight: 800; color: #10b981; letter-spacing: -0.02em;">$0.50/hr</span>
-                        </div>
-                    </div>
-                </div>
             </div>
             
-            <div class="fade-in" style="background: #f9fafb; padding: 2rem; border-radius: 12px; border: 1px solid #e5e7eb; margin-bottom: 2rem;">
+            <div class="fade-in" style="background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%); padding: 2.5rem; border-radius: 16px; border: 2px solid #10b981; margin-bottom: 2rem;">
+                <h3 style="color: #111827; margin-bottom: 1.5rem; font-weight: 700; font-size: 1.5rem; text-align: center;">
+                    <span style="color: #10b981;">Caregivers New York</span> | <span style="color: #3b82f6;">Housekeepers NYC</span> | <span style="color: #f97316;">Personal Assistants</span>
+                </h3>
+                <p style="color: #374151; line-height: 1.8; font-size: 1rem; margin: 0 0 1rem 0;">
+                    CAS Private Care connects you with <strong>verified 1099 independent contractors</strong> specializing in caregiving, housekeeping, and personal assistant services across all <strong>New York City boroughs</strong>: Manhattan, Brooklyn, Queens, Bronx, and Staten Island.
+                </p>
                 <p style="color: #374151; line-height: 1.8; font-size: 1rem; margin: 0;">
-                    Caregiver contractors on CAS Private Care earn a base rate of $28 per hour. Depending on referral and training participation, portions of the hourly rate are allocated to the platform, marketing partners, and training centers. All earnings are transparent and agreed upon before accepting any booking.
+                    Our <strong>caregivers in New York</strong> provide elderly care, companion care, and medical support. <strong>Housekeepers in NYC</strong> offer deep cleaning, organizing, and household management. <strong>Personal assistants throughout New York</strong> handle errands, scheduling, and daily tasks. All contractors are background-checked, highly rated, and trusted by hundreds of New York families.
                 </p>
             </div>
             
             <div class="fade-in" style="background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); border: 1px solid #e5e7eb;">
-                <h4 style="color: #111827; margin-bottom: 1.25rem; font-weight: 700; font-size: 1.1rem; letter-spacing: -0.01em;">Important Notes</h4>
-                <ul style="color: #6b7280; line-height: 1.8; list-style: none; padding: 0; font-size: 0.95rem;">
-                    <li style="margin-bottom: 0.875rem; display: flex; align-items: flex-start;">
-                        <span style="color: #111827; margin-right: 0.75rem; font-weight: 700; font-size: 1rem; line-height: 1.5;">•</span>
-                        <span>Your caregiver rate of $28.00/hour remains consistent regardless of referral codes</span>
-                    </li>
-                    <li style="margin-bottom: 0.875rem; display: flex; align-items: flex-start;">
-                        <span style="color: #111827; margin-right: 0.75rem; font-weight: 700; font-size: 1rem; line-height: 1.5;">•</span>
-                        <span>If the caregiver doesn't have a training center, the marketing associate's share goes to the agency instead</span>
-                    </li>
-                    <li style="margin-bottom: 0.875rem; display: flex; align-items: flex-start;">
-                        <span style="color: #111827; margin-right: 0.75rem; font-weight: 700; font-size: 1rem; line-height: 1.5;">•</span>
-                        <span>All rates are transparent and agreed upon before you accept any booking</span>
-                    </li>
-                    <li style="display: flex; align-items: flex-start;">
-                        <span style="color: #111827; margin-right: 0.75rem; font-weight: 700; font-size: 1rem; line-height: 1.5;">•</span>
-                        <span>You are an independent contractor, giving you flexibility and control over your schedule</span>
-                    </li>
-                </ul>
+                <h4 style="color: #111827; margin-bottom: 1.25rem; font-weight: 700; font-size: 1.2rem; text-align: center;">Service Areas in New York City</h4>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                        <i class="bi bi-geo-alt-fill" style="color: #10b981; font-size: 1.2rem;"></i>
+                        <span style="color: #374151; font-weight: 600;">Caregiver Manhattan NY</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                        <i class="bi bi-geo-alt-fill" style="color: #3b82f6; font-size: 1.2rem;"></i>
+                        <span style="color: #374151; font-weight: 600;">Housekeeper Brooklyn NY</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                        <i class="bi bi-geo-alt-fill" style="color: #f97316; font-size: 1.2rem;"></i>
+                        <span style="color: #374151; font-weight: 600;">Personal Assistant Queens</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                        <i class="bi bi-geo-alt-fill" style="color: #10b981; font-size: 1.2rem;"></i>
+                        <span style="color: #374151; font-weight: 600;">Caregiver Bronx NY</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                        <i class="bi bi-geo-alt-fill" style="color: #3b82f6; font-size: 1.2rem;"></i>
+                        <span style="color: #374151; font-weight: 600;">Housekeeper Staten Island</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                        <i class="bi bi-geo-alt-fill" style="color: #f97316; font-size: 1.2rem;"></i>
+                        <span style="color: #374151; font-weight: 600;">Home Care New York City</span>
+                    </div>
+                </div>
             </div>
         </div>
     </section>
@@ -3089,9 +3201,9 @@ font-size: 1.1rem !important;
         <div class="container" style="max-width: 1200px; margin: 0 auto;">
             <div class="section-header fade-in" style="text-align: center; margin-bottom: 4rem;">
                 <h2 style="font-size: 3rem; font-weight: 700; margin-bottom: 1rem;">
-                    <span style="color: #f97316;">Referral</span> <span style="background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">& Training Incentives</span>
+                    <span style="color: #f97316;">Growing Your</span> <span style="background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Success Network</span>
                 </h2>
-                <p style="font-size: 1.2rem; color: #64748b;">Additional earning opportunities through our partner network</p>
+                <p style="font-size: 1.2rem; color: #64748b;">Build connections and expand opportunities through our partner ecosystem</p>
             </div>
             
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(450px, 1fr)); gap: 2.5rem;">
@@ -3101,27 +3213,27 @@ font-size: 1.1rem !important;
                             <i class="bi bi-megaphone-fill" style="font-size: 2rem; color: #1e40af;"></i>
                         </div>
                         <div style="flex: 1;">
-                            <h3 style="font-size: 1.5rem; font-weight: 700; color: #111827; margin-bottom: 0.75rem; letter-spacing: -0.01em;">Marketing Partner Program</h3>
-                            <p style="color: #6b7280; margin: 0; line-height: 1.6; font-size: 0.95rem;">Become a marketing partner and earn <span style="color: #10b981; font-weight: 700;">$1.00/hour</span> for every hour worked by caregivers you refer. Build a network and earn passive income.</p>
+                            <h3 style="font-size: 1.5rem; font-weight: 700; color: #111827; margin-bottom: 0.75rem; letter-spacing: -0.01em;">Marketing Partner Network</h3>
+                            <p style="color: #6b7280; margin: 0; line-height: 1.6; font-size: 0.95rem;">Connect with marketing partners who help grow the caregiver community in New York. Build professional networks, share opportunities, and expand your reach across all NYC boroughs.</p>
                         </div>
                     </div>
                     <div style="border-top: 1px solid #f3f4f6; padding-top: 1.5rem;">
                         <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 1rem;">
                             <li style="display: flex; align-items: center; gap: 0.875rem;">
                                 <i class="bi bi-check-circle-fill" style="color: #10b981; font-size: 1.1rem; flex-shrink: 0;"></i>
-                                <span style="color: #374151; font-size: 0.95rem;">Get your unique referral code</span>
+                                <span style="color: #374151; font-size: 0.95rem;">Access to exclusive referral opportunities</span>
                             </li>
                             <li style="display: flex; align-items: center; gap: 0.875rem;">
                                 <i class="bi bi-check-circle-fill" style="color: #10b981; font-size: 1.1rem; flex-shrink: 0;"></i>
-                                <span style="color: #374151; font-size: 0.95rem;">Share with potential clients</span>
+                                <span style="color: #374151; font-size: 0.95rem;">Connect with verified clients across NYC</span>
                             </li>
                             <li style="display: flex; align-items: center; gap: 0.875rem;">
                                 <i class="bi bi-check-circle-fill" style="color: #10b981; font-size: 1.1rem; flex-shrink: 0;"></i>
-                                <span style="color: #374151; font-size: 0.95rem;">Earn <span style="color: #10b981; font-weight: 700;">$1.00/hr</span> for every hour worked</span>
+                                <span style="color: #374151; font-size: 0.95rem;">Build your professional network in New York</span>
                             </li>
                             <li style="display: flex; align-items: center; gap: 0.875rem;">
                                 <i class="bi bi-check-circle-fill" style="color: #10b981; font-size: 1.1rem; flex-shrink: 0;"></i>
-                                <span style="color: #374151; font-size: 0.95rem;">Track earnings in real-time</span>
+                                <span style="color: #374151; font-size: 0.95rem;">Track your referrals and connections in real-time</span>
                             </li>
                         </ul>
                     </div>
@@ -3133,27 +3245,27 @@ font-size: 1.1rem !important;
                             <i class="bi bi-mortarboard-fill" style="font-size: 2rem; color: #1e40af;"></i>
                         </div>
                         <div style="flex: 1;">
-                            <h3 style="font-size: 1.5rem; font-weight: 700; color: #111827; margin-bottom: 0.75rem; letter-spacing: -0.01em;">Training Center Partnership</h3>
-                            <p style="color: #6b7280; margin: 0; line-height: 1.6; font-size: 0.95rem;">Training centers earn <span style="color: #10b981; font-weight: 700;">$0.50/hour</span> for caregivers they train and certify. Support your graduates while earning ongoing revenue.</p>
+                            <h3 style="font-size: 1.5rem; font-weight: 700; color: #111827; margin-bottom: 0.75rem; letter-spacing: -0.01em;">Training Center Alliance</h3>
+                            <p style="color: #6b7280; margin: 0; line-height: 1.6; font-size: 0.95rem;">Partner with certified training centers in New York to enhance your skills and credentials. Access ongoing education, certification programs, and professional development opportunities.</p>
                         </div>
                     </div>
                     <div style="border-top: 1px solid #f3f4f6; padding-top: 1.5rem;">
                         <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 1rem;">
                             <li style="display: flex; align-items: center; gap: 0.875rem;">
                                 <i class="bi bi-check-circle-fill" style="color: #10b981; font-size: 1.1rem; flex-shrink: 0;"></i>
-                                <span style="color: #374151; font-size: 0.95rem;">Train and certify caregivers</span>
+                                <span style="color: #374151; font-size: 0.95rem;">Access certified training programs in NYC</span>
                             </li>
                             <li style="display: flex; align-items: center; gap: 0.875rem;">
                                 <i class="bi bi-check-circle-fill" style="color: #10b981; font-size: 1.1rem; flex-shrink: 0;"></i>
-                                <span style="color: #374151; font-size: 0.95rem;">Earn <span style="color: #10b981; font-weight: 700;">$0.50/hr</span> per trained caregiver</span>
+                                <span style="color: #374151; font-size: 0.95rem;">Enhance your professional credentials</span>
                             </li>
                             <li style="display: flex; align-items: center; gap: 0.875rem;">
                                 <i class="bi bi-check-circle-fill" style="color: #10b981; font-size: 1.1rem; flex-shrink: 0;"></i>
-                                <span style="color: #374151; font-size: 0.95rem;">Ongoing revenue from your graduates</span>
+                                <span style="color: #374151; font-size: 0.95rem;">Ongoing career development support</span>
                             </li>
                             <li style="display: flex; align-items: center; gap: 0.875rem;">
                                 <i class="bi bi-check-circle-fill" style="color: #10b981; font-size: 1.1rem; flex-shrink: 0;"></i>
-                                <span style="color: #374151; font-size: 0.95rem;">Support caregiver career development</span>
+                                <span style="color: #374151; font-size: 0.95rem;">Connect with training graduates across New York</span>
                             </li>
                         </ul>
                     </div>
@@ -3262,6 +3374,9 @@ font-size: 1.1rem !important;
     </main>
 
     @include('partials.footer')
+    
+    <!-- Mobile-Only Footer -->
+    @include('partials.mobile-footer')
 
     <script>
 
@@ -3349,13 +3464,6 @@ font-size: 1.1rem !important;
             }, { threshold: 0.3 });
 
             progressBars.forEach(bar => progressObserver.observe(bar));
-            
-            setTimeout(() => {
-                setInterval(() => {
-                    currentService = (currentService + 1) % services.length;
-                    switchService(services[currentService]);
-                }, 5000);
-            }, 5000);
         });
         
         let currentService = 0;
@@ -3367,48 +3475,60 @@ font-size: 1.1rem !important;
             const sliderBg = document.getElementById('slider-bg');
             const buttons = ['btn-caregiver', 'btn-housekeeping', 'btn-personal'];
             
+            // Safety check - only proceed if elements exist
+            if (!description || !sliderBg) {
+                return;
+            }
+            
             description.style.opacity = '0';
-            findBtn.style.opacity = '0';
+            if (findBtn) findBtn.style.opacity = '0';
             
             buttons.forEach(id => {
-                document.getElementById(id).style.color = 'white';
+                const btn = document.getElementById(id);
+                if (btn) btn.style.color = 'white';
             });
             
             if (type === 'caregiver') {
                 sliderBg.style.transform = 'translateX(0%)';
-                document.getElementById('btn-caregiver').style.color = '#1e40af';
+                const btn = document.getElementById('btn-caregiver');
+                if (btn) btn.style.color = '#1e40af';
                 currentService = 0;
             } else if (type === 'housekeeping') {
                 sliderBg.style.transform = 'translateX(100%)';
-                document.getElementById('btn-housekeeping').style.color = '#1e40af';
+                const btn = document.getElementById('btn-housekeeping');
+                if (btn) btn.style.color = '#1e40af';
                 currentService = 1;
             } else if (type === 'personal') {
                 sliderBg.style.transform = 'translateX(200%)';
-                document.getElementById('btn-personal').style.color = '#1e40af';
+                const btn = document.getElementById('btn-personal');
+                if (btn) btn.style.color = '#1e40af';
                 currentService = 2;
             }
             
             setTimeout(() => {
                 if (type === 'caregiver') {
                     description.textContent = 'A modern and trustworthy caregiving marketplace where families effortlessly connect with verified caregivers and companions.';
-                    findBtn.textContent = 'Find a Caregiver';
+                    if (findBtn) findBtn.textContent = 'Find a Caregiver';
                 } else if (type === 'housekeeping') {
                     description.textContent = 'Professional housekeeping services connecting families with reliable and trusted house helpers for all your home maintenance needs.';
-                    findBtn.textContent = 'Find a Housekeeper';
+                    if (findBtn) findBtn.textContent = 'Find a Housekeeper';
                 } else if (type === 'personal') {
                     description.textContent = 'Compassionate personal care services connecting families with qualified personal care assistants for daily living support.';
-                    findBtn.textContent = 'Find Personal Care';
+                    if (findBtn) findBtn.textContent = 'Find Personal Care';
                 }
                 
                 description.style.opacity = '1';
-                findBtn.style.opacity = '1';
+                if (findBtn) findBtn.style.opacity = '1';
             }, 250);
         }
         
-        setInterval(() => {
-            currentService = (currentService + 1) % services.length;
-            switchService(services[currentService]);
-        }, 5000);
+        // Only start the interval if the required elements exist
+        if (document.getElementById('slider-bg') && document.getElementById('hero-description')) {
+            setInterval(() => {
+                currentService = (currentService + 1) % services.length;
+                switchService(services[currentService]);
+            }, 5000);
+        }
     </script>
 
     <!-- FAQ Chatbot -->

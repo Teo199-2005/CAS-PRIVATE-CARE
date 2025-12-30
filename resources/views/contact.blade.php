@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <link rel="icon" type="image/png" href="{{ asset('logo flower.png') }}">
     
     <!-- Primary Meta Tags -->
@@ -36,13 +36,38 @@
     @include('partials.nav-footer-styles')
     
     <style>
-        body {
-            font-family: 'Sora', sans-serif;
+        /* CRITICAL: Universal viewport lock */
+        * {
             margin: 0;
             padding: 0;
+            box-sizing: border-box !important;
+        }
+
+        html {
+            overflow-x: hidden !important;
+            width: 100vw !important;
+            max-width: 100vw !important;
+            position: relative;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             line-height: 1.6;
-            color: #1e293b;
-            background-color: #ffffff;
+            color: #0B4FA2;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* CRITICAL: Force ALL block elements to respect viewport */
+        div, section, main, header, footer, article, aside {
+            max-width: 100vw !important;
+            overflow-x: hidden !important;
+        }
+
+        main {
+            width: 100%;
+            overflow-x: hidden;
         }
 
         .section-light {
@@ -220,6 +245,7 @@
             transform: translateY(0);
         }
 
+        /* Mobile Responsive Styles */
         @media (max-width: 768px) {
             .contact-hero h1 {
                 font-size: 2.5rem;
@@ -407,6 +433,56 @@
     </main>
 
     @include('partials.footer')
+
+    <script>
+        // CRITICAL: Force viewport reset and prevent horizontal scroll
+        (function() {
+            // Reset scroll position to left on load
+            window.scrollTo(0, 0);
+            document.documentElement.scrollLeft = 0;
+            document.body.scrollLeft = 0;
+            
+            // Force all elements to respect viewport
+            function constrainViewport() {
+                const html = document.documentElement;
+                const body = document.body;
+                
+                html.style.overflowX = 'hidden';
+                html.style.maxWidth = '100vw';
+                html.style.width = '100%';
+                
+                body.style.overflowX = 'hidden';
+                body.style.maxWidth = '100vw';
+                body.style.width = '100%';
+                
+                // Reset horizontal scroll
+                window.scrollTo(0, window.scrollY);
+                html.scrollLeft = 0;
+                body.scrollLeft = 0;
+            }
+            
+            // Run on load
+            constrainViewport();
+            
+            // Run after DOM is fully loaded
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', constrainViewport);
+            }
+            
+            // Run on window load
+            window.addEventListener('load', constrainViewport);
+            
+            // Prevent horizontal scrolling
+            window.addEventListener('scroll', function() {
+                if (window.scrollX !== 0) {
+                    window.scrollTo(0, window.scrollY);
+                }
+            });
+            
+            // Reset on resize
+            window.addEventListener('resize', constrainViewport);
+        })();
+    </script>
 
     <script>
         // Phone number formatting

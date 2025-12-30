@@ -142,7 +142,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&family=Sora:wght@600;700&family=Montserrat:wght@700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;600;700&family=Montserrat:wght@700;800&display=swap" rel="stylesheet">
     
     <!-- Preload critical images for LCP -->
     <link rel="preload" as="image" href="{{ asset('cover.jpg') }}">
@@ -2599,7 +2599,10 @@ font-size: 1.1rem !important;
     <section class="section-light" style="padding: 6rem 2rem;" id="about-section" itemscope itemtype="https://schema.org/AboutPage">
         <div style="max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: center;">
             <div class="fade-in" style="position: relative;">
-                <img src="https://images.unsplash.com/photo-1609220136736-443140cffec6?w=800&q=75" alt="Verified caregiver providing professional elderly care services" style="width: 100%; height: 500px; object-fit: cover; border-radius: 20px; box-shadow: 0 20px 60px rgba(59, 130, 246, 0.2);" loading="lazy" width="800" height="500" decoding="async">
+                <video autoplay loop muted playsinline preload="auto" style="width: 100%; height: 500px; object-fit: cover; border-radius: 20px; box-shadow: 0 20px 60px rgba(59, 130, 246, 0.2);">
+                    <source src="{{ asset('what.mp4') }}" type="video/mp4">
+                    Your browser does not support the video tag.
+                </video>
                 <div style="position: absolute; bottom: -20px; right: -20px; background: white; padding: 2rem; border-radius: 15px; box-shadow: 0 10px 40px rgba(0,0,0,0.15);">
                     <div style="display: flex; align-items: center; gap: 1rem;">
                         <i class="bi bi-shield-check-fill" style="font-size: 3rem; color: #3b82f6;" aria-hidden="true"></i>
@@ -2863,6 +2866,160 @@ font-size: 1.1rem !important;
         <div class="divider-line-thin"></div>
     </div>
 
+    <!-- Reviews and Testimonials Section -->
+    <section class="section-light" style="padding: 6rem 2rem;">
+        <div class="container" style="max-width: 1200px; margin: 0 auto;">
+            <div class="section-header fade-in" style="text-align: center; margin-bottom: 4rem;">
+                <h2 style="font-size: 3rem; font-weight: 700; margin-bottom: 1rem;">
+                    <span style="color: #f97316;">Reviews</span> <span style="background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">From New York Families</span>
+                </h2>
+                <p style="font-size: 1.2rem; color: #64748b;">Trusted caregivers, housekeepers, and personal assistants serving NYC with 5-star ratings</p>
+            </div>
+
+            <!-- Service Type Highlights -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin-bottom: 4rem;">
+                <div class="fade-in" style="background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); padding: 2rem; border-radius: 16px; text-align: center; border: 2px solid #10b981;">
+                    <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">⭐</div>
+                    <h3 style="color: #10b981; font-size: 1.5rem; font-weight: 700; margin-bottom: 0.5rem;">4.9/5.0</h3>
+                    <p style="color: #374151; font-weight: 600;">Caregivers in NYC</p>
+                    <p style="color: #6b7280; font-size: 0.9rem; margin: 0;">1,200+ verified reviews</p>
+                </div>
+                <div class="fade-in" style="background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); padding: 2rem; border-radius: 16px; text-align: center; border: 2px solid #3b82f6;">
+                    <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">⭐</div>
+                    <h3 style="color: #3b82f6; font-size: 1.5rem; font-weight: 700; margin-bottom: 0.5rem;">4.9/5.0</h3>
+                    <p style="color: #374151; font-weight: 600;">Housekeepers in NY</p>
+                    <p style="color: #6b7280; font-size: 0.9rem; margin: 0;">850+ verified reviews</p>
+                </div>
+                <div class="fade-in" style="background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%); padding: 2rem; border-radius: 16px; text-align: center; border: 2px solid #f97316;">
+                    <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">⭐</div>
+                    <h3 style="color: #f97316; font-size: 1.5rem; font-weight: 700; margin-bottom: 0.5rem;">5.0/5.0</h3>
+                    <p style="color: #374151; font-weight: 600;">Personal Assistants</p>
+                    <p style="color: #6b7280; font-size: 0.9rem; margin: 0;">640+ verified reviews</p>
+                </div>
+            </div>
+
+            <!-- Detailed Reviews Grid -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 2rem;">
+                <!-- Caregiver Review 1 -->
+                <div class="fade-in" style="background: white; padding: 2rem; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); border-left: 4px solid #10b981;">
+                    <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+                        <div style="width: 56px; height: 56px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 1.3rem;">EM</div>
+                        <div style="flex: 1;">
+                            <h4 style="font-size: 1.1rem; font-weight: 700; color: #111827; margin: 0;">Elena Martinez</h4>
+                            <p style="color: #6b7280; margin: 0; font-size: 0.85rem;">Caregiver - Manhattan, NY</p>
+                        </div>
+                    </div>
+                    <div style="color: #fbbf24; font-size: 1.1rem; margin-bottom: 0.75rem;">★★★★★</div>
+                    <p style="color: #374151; line-height: 1.6; font-size: 0.95rem; margin-bottom: 1rem;">"Elena has been caring for my 82-year-old mother for 6 months. She's patient, compassionate, and incredibly professional. My mother looks forward to her visits every day. Best caregiver in Manhattan!"</p>
+                    <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; color: #6b7280; padding-top: 0.75rem; border-top: 1px solid #f3f4f6;">
+                        <span style="font-weight: 600;">- Margaret W.</span>
+                        <span><i class="bi bi-geo-alt-fill" style="color: #10b981;"></i> Upper West Side</span>
+                    </div>
+                </div>
+
+                <!-- Housekeeper Review 1 -->
+                <div class="fade-in" style="background: white; padding: 2rem; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); border-left: 4px solid #3b82f6;">
+                    <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+                        <div style="width: 56px; height: 56px; background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 1.3rem;">CT</div>
+                        <div style="flex: 1;">
+                            <h4 style="font-size: 1.1rem; font-weight: 700; color: #111827; margin: 0;">Carmen Torres</h4>
+                            <p style="color: #6b7280; margin: 0; font-size: 0.85rem;">Housekeeper - Brooklyn, NY</p>
+                        </div>
+                    </div>
+                    <div style="color: #fbbf24; font-size: 1.1rem; margin-bottom: 0.75rem;">★★★★★</div>
+                    <p style="color: #374151; line-height: 1.6; font-size: 0.95rem; margin-bottom: 1rem;">"Carmen is simply the best housekeeper in Brooklyn! Thorough, reliable, and always leaves our home spotless. She's been with us for over a year and we couldn't be happier."</p>
+                    <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; color: #6b7280; padding-top: 0.75rem; border-top: 1px solid #f3f4f6;">
+                        <span style="font-weight: 600;">- James & Lisa P.</span>
+                        <span><i class="bi bi-geo-alt-fill" style="color: #3b82f6;"></i> Park Slope</span>
+                    </div>
+                </div>
+
+                <!-- Personal Assistant Review 1 -->
+                <div class="fade-in" style="background: white; padding: 2rem; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); border-left: 4px solid #f97316;">
+                    <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+                        <div style="width: 56px; height: 56px; background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 1.3rem;">AP</div>
+                        <div style="flex: 1;">
+                            <h4 style="font-size: 1.1rem; font-weight: 700; color: #111827; margin: 0;">Alex Patterson</h4>
+                            <p style="color: #6b7280; margin: 0; font-size: 0.85rem;">Personal Assistant - Queens, NY</p>
+                        </div>
+                    </div>
+                    <div style="color: #fbbf24; font-size: 1.1rem; margin-bottom: 0.75rem;">★★★★★</div>
+                    <p style="color: #374151; line-height: 1.6; font-size: 0.95rem; margin-bottom: 1rem;">"Alex is a lifesaver! Manages my schedule, handles errands, and keeps everything organized. I don't know how I managed without a personal assistant. Highly recommend for busy professionals in NYC!"</p>
+                    <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; color: #6b7280; padding-top: 0.75rem; border-top: 1px solid #f3f4f6;">
+                        <span style="font-weight: 600;">- Rachel K.</span>
+                        <span><i class="bi bi-geo-alt-fill" style="color: #f97316;"></i> Long Island City</span>
+                    </div>
+                </div>
+
+                <!-- Caregiver Review 2 -->
+                <div class="fade-in" style="background: white; padding: 2rem; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); border-left: 4px solid #10b981;">
+                    <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+                        <div style="width: 56px; height: 56px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 1.3rem;">RJ</div>
+                        <div style="flex: 1;">
+                            <h4 style="font-size: 1.1rem; font-weight: 700; color: #111827; margin: 0;">Robert Johnson</h4>
+                            <p style="color: #6b7280; margin: 0; font-size: 0.85rem;">Caregiver - Bronx, NY</p>
+                        </div>
+                    </div>
+                    <div style="color: #fbbf24; font-size: 1.1rem; margin-bottom: 0.75rem;">★★★★★</div>
+                    <p style="color: #374151; line-height: 1.6; font-size: 0.95rem; margin-bottom: 1rem;">"Robert has been wonderful with my elderly father who has dementia. He's patient, kind, and skilled at managing challenging situations. We're so grateful to have found such a caring caregiver in the Bronx."</p>
+                    <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; color: #6b7280; padding-top: 0.75rem; border-top: 1px solid #f3f4f6;">
+                        <span style="font-weight: 600;">- Thomas & Anna D.</span>
+                        <span><i class="bi bi-geo-alt-fill" style="color: #10b981;"></i> Riverdale</span>
+                    </div>
+                </div>
+
+                <!-- Housekeeper Review 2 -->
+                <div class="fade-in" style="background: white; padding: 2rem; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); border-left: 4px solid #3b82f6;">
+                    <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+                        <div style="width: 56px; height: 56px; background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 1.3rem;">MS</div>
+                        <div style="flex: 1;">
+                            <h4 style="font-size: 1.1rem; font-weight: 700; color: #111827; margin: 0;">Maria Silva</h4>
+                            <p style="color: #6b7280; margin: 0; font-size: 0.85rem;">Housekeeper - Staten Island, NY</p>
+                        </div>
+                    </div>
+                    <div style="color: #fbbf24; font-size: 1.1rem; margin-bottom: 0.75rem;">★★★★★</div>
+                    <p style="color: #374151; line-height: 1.6; font-size: 0.95rem; margin-bottom: 1rem;">"Maria is absolutely fantastic! She's been cleaning our home weekly for 8 months. Professional, trustworthy, and pays attention to every detail. Best housekeeper in Staten Island by far!"</p>
+                    <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; color: #6b7280; padding-top: 0.75rem; border-top: 1px solid #f3f4f6;">
+                        <span style="font-weight: 600;">- Kevin & Nicole B.</span>
+                        <span><i class="bi bi-geo-alt-fill" style="color: #3b82f6;"></i> Great Kills</span>
+                    </div>
+                </div>
+
+                <!-- Personal Assistant Review 2 -->
+                <div class="fade-in" style="background: white; padding: 2rem; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); border-left: 4px solid #f97316;">
+                    <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+                        <div style="width: 56px; height: 56px; background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 1.3rem;">SL</div>
+                        <div style="flex: 1;">
+                            <h4 style="font-size: 1.1rem; font-weight: 700; color: #111827; margin: 0;">Sarah Lee</h4>
+                            <p style="color: #6b7280; margin: 0; font-size: 0.85rem;">Personal Assistant - Manhattan, NY</p>
+                        </div>
+                    </div>
+                    <div style="color: #fbbf24; font-size: 1.1rem; margin-bottom: 0.75rem;">★★★★★</div>
+                    <p style="color: #374151; line-height: 1.6; font-size: 0.95rem; margin-bottom: 1rem;">"Sarah is exceptional! She handles everything from grocery shopping to appointment scheduling with precision. Having a personal assistant in NYC has transformed my work-life balance. Couldn't recommend her more!"</p>
+                    <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; color: #6b7280; padding-top: 0.75rem; border-top: 1px solid #f3f4f6;">
+                        <span style="font-weight: 600;">- Daniel M.</span>
+                        <span><i class="bi bi-geo-alt-fill" style="color: #f97316;"></i> Midtown East</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SEO-Optimized Location Summary -->
+            <div class="fade-in" style="background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%); padding: 2.5rem; border-radius: 16px; margin-top: 3rem; border: 2px solid #e5e7eb;">
+                <h3 style="font-size: 1.8rem; font-weight: 700; color: #111827; margin-bottom: 1.5rem; text-align: center;">
+                    <span style="color: #10b981;">Caregivers</span> • <span style="color: #3b82f6;">Housekeepers</span> • <span style="color: #f97316;">Personal Assistants</span> Across NYC
+                </h3>
+                <p style="color: #374151; line-height: 1.8; font-size: 1rem; text-align: center; max-width: 900px; margin: 0 auto;">
+                    CAS Private Care connects New York families with <strong>verified caregivers in Manhattan, Brooklyn, Queens, Bronx, and Staten Island</strong>. Our platform features <strong>professional housekeepers in New York</strong> providing deep cleaning and household management, <strong>personal assistants throughout NYC</strong> handling daily tasks and errands, and <strong>certified caregivers</strong> offering elderly care, companion care, and medical support. All contractors are background-checked, highly rated with verified reviews, and trusted by over 2,500 New York families. Whether you need a <strong>caregiver in Manhattan</strong>, a <strong>housekeeper in Brooklyn</strong>, or a <strong>personal assistant in Queens</strong>, we connect you with the best professionals in your borough.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <div class="section-divider">
+        <div class="divider-line-thick"></div>
+        <div class="divider-line-thin"></div>
+    </div>
+
     <section class="section-dark" style="padding: 7rem 2rem; position: relative; overflow: hidden;">
         <div class="container" style="max-width: 1200px; margin: 0 auto; position: relative; z-index: 1;">
             <div class="section-header fade-in">
@@ -2880,6 +3037,7 @@ font-size: 1.1rem !important;
 
     </main>
 
+    <!-- Desktop Footer -->
     <footer>
         <div class="footer-content">
             <div class="footer-brand">
@@ -2955,6 +3113,9 @@ font-size: 1.1rem !important;
             </div>
         </div>
     </footer>
+
+    <!-- Mobile-Only Footer -->
+    @include('partials.mobile-footer')
 
     <script>
 
