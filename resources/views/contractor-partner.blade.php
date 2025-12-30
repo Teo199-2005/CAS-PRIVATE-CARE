@@ -2884,20 +2884,6 @@ font-size: 1.1rem !important;
                 <h1>1099 Caregiver Contractor Jobs in New York</h1>
                 <p id="hero-description" style="font-size: 1.2rem; color: white; margin: 1.5rem 0;">Join CAS Private Care as an independent contractor partner. Earn competitive rates with transparent income breakdown, flexible scheduling, and ongoing support.</p>
                 
-                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; margin: 2rem 0;">
-                    <div style="text-align: center; background: rgba(255,255,255,0.95); padding: 1.5rem; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
-                        <div style="font-size: 2.5rem; font-weight: 700; color: #3b82f6; margin-bottom: 0.5rem;">$28</div>
-                        <div style="color: #64748b; font-size: 0.9rem;">Per Hour Rate</div>
-                    </div>
-                    <div style="text-align: center; background: rgba(255,255,255,0.95); padding: 1.5rem; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
-                        <div style="font-size: 2.5rem; font-weight: 700; color: #3b82f6; margin-bottom: 0.5rem;">24/7</div>
-                        <div style="color: #64748b; font-size: 0.9rem;">Flexible Schedule</div>
-                    </div>
-                    <div style="text-align: center; background: rgba(255,255,255,0.95); padding: 1.5rem; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
-                        <div style="font-size: 2.5rem; font-weight: 700; color: #3b82f6; margin-bottom: 0.5rem;">100%</div>
-                        <div style="color: #64748b; font-size: 0.9rem;">Transparent</div>
-                    </div>
-                </div>
                 
                 <div class="hero-buttons">
                     <a href="{{ url('/register?show_partner_types=true') }}" class="btn-primary">Join as Partner Today</a>
@@ -2906,15 +2892,6 @@ font-size: 1.1rem !important;
             <div class="hero-right">
                 <div class="hero-image-container">
                     <img src="https://images.unsplash.com/photo-1581579438747-1dc8d17bbce4?w=800&q=75" alt="Professional caregiver providing care services" class="hero-cover-image" style="object-fit: cover;">
-                    <div style="position: absolute; bottom: 20px; right: 20px; background: white; padding: 1.5rem; border-radius: 15px; box-shadow: 0 10px 40px rgba(0,0,0,0.2);">
-                        <div style="font-size: 2rem; font-weight: 700; color: #10b981; margin-bottom: 0.5rem;">$28/hr</div>
-                        <div style="font-size: 0.9rem; color: #64748b; margin-bottom: 0.5rem;">Base Rate</div>
-                        <div style="display: flex; align-items: center; gap: 0.5rem; color: #10b981; font-weight: 600;">
-                            <i class="bi bi-shield-check-fill"></i>
-                            <span>VERIFIED</span>
-                        </div>
-                        <div style="font-size: 0.8rem; color: #64748b; margin-top: 0.5rem;">Platform</div>
-                    </div>
                 </div>
             </div>
         </div>
