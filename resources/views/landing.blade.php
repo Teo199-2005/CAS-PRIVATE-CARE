@@ -380,18 +380,23 @@
             line-height: 1.1;
             letter-spacing: -0.02em;
             text-shadow: 0 6px 30px rgba(0, 0, 0, 0.3);
-            animation: fadeInUp 0.8s ease-out;
+            animation: fadeInUp 1s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         @keyframes fadeInUp {
             from {
                 opacity: 0;
-                transform: translateY(30px);
+                transform: translateY(50px);
             }
             to {
                 opacity: 1;
                 transform: translateY(0);
             }
+        }
+
+        /* Smooth transitions for all hero elements */
+        .hero * {
+            transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .trademark {
@@ -406,7 +411,7 @@
             font-weight: 700;
             letter-spacing: 0.01em;
             text-shadow: 0 3px 15px rgba(0, 0, 0, 0.2);
-            animation: fadeInUp 0.8s ease-out 0.2s both;
+            animation: fadeInUp 1s cubic-bezier(0.4, 0, 0.2, 1) 0.2s both;
         }
 
         .hero p {
@@ -416,14 +421,14 @@
             line-height: 1.7;
             font-weight: 400;
             text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
-            animation: fadeInUp 0.8s ease-out 0.4s both;
+            animation: fadeInUp 1s cubic-bezier(0.4, 0, 0.2, 1) 0.4s both;
         }
 
         .hero-trust-badges {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 1.5rem;
-            animation: fadeInUp 0.8s ease-out 0.8s both;
+            animation: fadeInUp 1s cubic-bezier(0.4, 0, 0.2, 1) 0.8s both;
         }
 
         .trust-badge {
@@ -458,7 +463,7 @@
             display: flex;
             gap: 1.5rem;
             flex-wrap: wrap;
-            animation: fadeInUp 0.8s ease-out 0.6s both;
+            animation: fadeInUp 1s cubic-bezier(0.4, 0, 0.2, 1) 0.6s both;
         }
 
         .btn-primary, .btn-secondary {
@@ -467,7 +472,7 @@
             font-weight: 700;
             font-size: 1.15rem;
             text-decoration: none;
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
             display: inline-block;
             position: relative;
             overflow: hidden;
@@ -3201,13 +3206,6 @@ font-size: 1.1rem !important;
             }, { threshold: 0.3 });
 
             progressBars.forEach(bar => progressObserver.observe(bar));
-            
-            setTimeout(() => {
-                setInterval(() => {
-                    currentService = (currentService + 1) % services.length;
-                    switchService(services[currentService]);
-                }, 5000);
-            }, 5000);
         });
         
         let currentService = 0;
@@ -3219,6 +3217,9 @@ font-size: 1.1rem !important;
             const sliderBg = document.getElementById('slider-bg');
             const buttons = ['btn-caregiver', 'btn-housekeeping', 'btn-personal'];
             
+            // Fade out
+            description.style.transition = 'opacity 0.3s ease';
+            findBtn.style.transition = 'opacity 0.3s ease';
             description.style.opacity = '0';
             findBtn.style.opacity = '0';
             
@@ -3242,25 +3243,27 @@ font-size: 1.1rem !important;
             
             setTimeout(() => {
                 if (type === 'caregiver') {
-                    description.textContent = 'A modern and trustworthy caregiving marketplace where families effortlessly connect with verified caregivers and companions.';
+                    description.textContent = 'A modern and trustworthy caregiving marketplace where families effortlessly connect with verified caregivers and companions for exceptional care services.';
                     findBtn.textContent = 'Find a Caregiver';
                 } else if (type === 'housekeeping') {
-                    description.textContent = 'Professional housekeeping services connecting families with reliable and trusted house helpers for all your home maintenance needs.';
+                    description.textContent = 'Professional housekeeping services marketplace where families effortlessly connect with reliable and trusted house helpers for all your home maintenance.';
                     findBtn.textContent = 'Find a Housekeeper';
                 } else if (type === 'personal') {
-                    description.textContent = 'Compassionate personal care services connecting families with qualified personal care assistants for daily living support.';
+                    description.textContent = 'Compassionate personal care services marketplace where families effortlessly connect with qualified personal care assistants for comprehensive daily living support.';
                     findBtn.textContent = 'Find Personal Care';
                 }
                 
+                // Fade in
                 description.style.opacity = '1';
                 findBtn.style.opacity = '1';
-            }, 250);
+            }, 300);
         }
         
+        // Auto-rotate services every 6 seconds
         setInterval(() => {
             currentService = (currentService + 1) % services.length;
             switchService(services[currentService]);
-        }, 5000);
+        }, 6000);
     </script>
 
     <!-- FAQ Chatbot -->
