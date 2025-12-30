@@ -1,0 +1,48 @@
+# Ubuntu Deployment Commands - Run these on your server
+# Copy and paste these commands one by one
+
+# 1. Install/Update Composer dependencies
+cd /var/www/casprivatecare
+composer install --no-dev --optimize-autoloader
+
+# 2. Install/Update NPM dependencies and rebuild assets
+npm install
+npm run build
+
+# 3. Run database migrations (if there are new migrations)
+php artisan migrate --force
+
+# 4. Clear and rebuild cache
+php artisan config:clear
+php artisan cache:clear
+php artisan view:clear
+php artisan route:clear
+php artisan config:cache
+php artisan route:cache
+php artisan view:cache
+
+# 5. Ensure correct permissions
+sudo chown -R www-data:www-data /var/www/casprivatecare
+sudo chmod -R 775 storage bootstrap/cache
+sudo chmod -R 755 /var/www/casprivatecare
+
+# 6. Restart services
+# First, find your PHP version:
+php -v
+
+# Then restart with the correct version (common versions below):
+# sudo systemctl restart php8.1-fpm
+# sudo systemctl restart php8.2-fpm
+# sudo systemctl restart php8.3-fpm
+
+# Or just restart Apache (which will reload PHP modules):
+sudo systemctl restart apache2
+
+# 7. Check the application status
+php artisan about
+
+# Optional: If you have queue workers running
+sudo systemctl restart cas-queue-worker  # If you have a queue service
+
+# Optional: Run database seeders if needed (only for new data)
+# php artisan db:seed --class=PaymentMethodSeeder

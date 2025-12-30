@@ -1242,3 +1242,4 @@
     }
 </style>
 
+<?php /**PATH C:\Users\Cocotantan\Downloads\--CAS WEBSITE-- - Copy (4)\resources\views/partials/nav-footer-styles.blade.php ENDPATH**/ ?>

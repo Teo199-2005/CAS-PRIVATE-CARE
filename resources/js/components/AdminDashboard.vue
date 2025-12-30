@@ -2821,7 +2821,7 @@
               <div class="booking-overview-card">
                 <div class="booking-overview-header">
                   <v-icon color="error" size="24" class="mr-3">mdi-calendar-check</v-icon>
-                  <span class="booking-overview-title">Booking Overview</span>
+                  <span class="booking-overview-title">Service Information</span>
                   <v-spacer />
                   <v-chip :color="getBookingStatusColor(viewingBooking.status)" size="large" class="font-weight-bold">
                     {{ viewingBooking.status }}
@@ -2831,36 +2831,111 @@
                 <v-row>
                   <v-col cols="12" md="6">
                     <div class="booking-detail-item">
-                      <v-icon color="error" size="18" class="mr-2">mdi-account</v-icon>
-                      <span class="booking-detail-label">Client:</span>
-                      <span class="booking-detail-value">{{ viewingBooking.client }}</span>
-                    </div>
-                    <div class="booking-detail-item">
                       <v-icon color="error" size="18" class="mr-2">mdi-medical-bag</v-icon>
-                      <span class="booking-detail-label">Service:</span>
+                      <span class="booking-detail-label">Service Type:</span>
                       <span class="booking-detail-value">{{ viewingBooking.service }}</span>
                     </div>
                     <div class="booking-detail-item">
+                      <v-icon color="error" size="18" class="mr-2">mdi-clock-outline</v-icon>
+                      <span class="booking-detail-label">Hours per Day:</span>
+                      <span class="booking-detail-value">{{ viewingBooking.hoursPerDay || 8 }} hours</span>
+                    </div>
+                    <div class="booking-detail-item">
                       <v-icon color="error" size="18" class="mr-2">mdi-calendar</v-icon>
-                      <span class="booking-detail-label">Date:</span>
+                      <span class="booking-detail-label">Service Date:</span>
                       <span class="booking-detail-value">{{ viewingBooking.date }}</span>
                     </div>
                   </v-col>
                   <v-col cols="12" md="6">
                     <div class="booking-detail-item">
                       <v-icon color="error" size="18" class="mr-2">mdi-clock</v-icon>
-                      <span class="booking-detail-label">Time:</span>
-                      <span class="booking-detail-value">{{ viewingBooking.time }}</span>
+                      <span class="booking-detail-label">Starting Time:</span>
+                      <span class="booking-detail-value">{{ viewingBooking.time || viewingBooking.startingTime || 'N/A' }}</span>
                     </div>
                     <div class="booking-detail-item">
                       <v-icon color="error" size="18" class="mr-2">mdi-timer</v-icon>
                       <span class="booking-detail-label">Duration:</span>
-                      <span class="booking-detail-value">{{ viewingBooking.duration }}</span>
+                      <span class="booking-detail-value">{{ viewingBooking.duration || viewingBooking.durationDays + ' days' }}</span>
                     </div>
                     <div class="booking-detail-item">
                       <v-icon color="error" size="18" class="mr-2">mdi-account-group</v-icon>
-                      <span class="booking-detail-label">Caregivers:</span>
-                      <span class="booking-detail-value">{{ viewingBooking.assignedCount }} / {{ viewingBooking.caregiversNeeded }}</span>
+                      <span class="booking-detail-label">Caregivers Assigned:</span>
+                      <v-chip :color="(viewingBooking.assignedCount || 0) >= (viewingBooking.caregiversNeeded || 1) ? 'success' : 'warning'" size="small" class="ml-2">
+                        {{ viewingBooking.assignedCount || 0 }} / {{ viewingBooking.caregiversNeeded || 1 }} Assigned
+                      </v-chip>
+                    </div>
+                  </v-col>
+                </v-row>
+              </div>
+            </v-col>
+          </v-row>
+
+          <!-- Location Information -->
+          <v-row class="mb-4">
+            <v-col cols="12">
+              <div class="booking-overview-card">
+                <div class="booking-overview-header">
+                  <v-icon color="primary" size="24" class="mr-3">mdi-map-marker</v-icon>
+                  <span class="booking-overview-title">Location</span>
+                </div>
+                <v-divider class="my-3" />
+                <v-row>
+                  <v-col cols="12" md="6">
+                    <div class="booking-detail-item">
+                      <v-icon color="primary" size="18" class="mr-2">mdi-city</v-icon>
+                      <span class="booking-detail-label">City/Borough:</span>
+                      <span class="booking-detail-value">{{ viewingBooking.location || viewingBooking.borough || 'N/A' }}</span>
+                    </div>
+                    <div class="booking-detail-item">
+                      <v-icon color="primary" size="18" class="mr-2">mdi-road</v-icon>
+                      <span class="booking-detail-label">Street Address:</span>
+                      <span class="booking-detail-value">{{ viewingBooking.streetAddress || viewingBooking.address || 'N/A' }}</span>
+                    </div>
+                  </v-col>
+                  <v-col cols="12" md="6">
+                    <div class="booking-detail-item">
+                      <v-icon color="primary" size="18" class="mr-2">mdi-office-building</v-icon>
+                      <span class="booking-detail-label">Apartment/Unit:</span>
+                      <span class="booking-detail-value">{{ viewingBooking.apartmentUnit || viewingBooking.unit || 'N/A' }}</span>
+                    </div>
+                  </v-col>
+                </v-row>
+              </div>
+            </v-col>
+          </v-row>
+
+          <!-- Client Information -->
+          <v-row class="mb-4">
+            <v-col cols="12">
+              <div class="booking-overview-card">
+                <div class="booking-overview-header">
+                  <v-icon color="info" size="24" class="mr-3">mdi-account-circle</v-icon>
+                  <span class="booking-overview-title">Client Information</span>
+                </div>
+                <v-divider class="my-3" />
+                <v-row>
+                  <v-col cols="12" md="6">
+                    <div class="booking-detail-item">
+                      <v-icon color="info" size="18" class="mr-2">mdi-account</v-icon>
+                      <span class="booking-detail-label">Client Name:</span>
+                      <span class="booking-detail-value">{{ viewingBooking.client }}</span>
+                    </div>
+                    <div class="booking-detail-item">
+                      <v-icon color="info" size="18" class="mr-2">mdi-cake-variant</v-icon>
+                      <span class="booking-detail-label">Client Age:</span>
+                      <span class="booking-detail-value">{{ viewingBooking.clientAge || 'N/A' }}</span>
+                    </div>
+                    <div class="booking-detail-item">
+                      <v-icon color="info" size="18" class="mr-2">mdi-walk</v-icon>
+                      <span class="booking-detail-label">Mobility Level:</span>
+                      <span class="booking-detail-value">{{ viewingBooking.mobilityLevel || 'N/A' }}</span>
+                    </div>
+                  </v-col>
+                  <v-col cols="12" md="6">
+                    <div class="booking-detail-item">
+                      <v-icon color="info" size="18" class="mr-2">mdi-medical-bag</v-icon>
+                      <span class="booking-detail-label">Medical Conditions:</span>
+                      <span class="booking-detail-value">{{ viewingBooking.medicalConditions || 'None specified' }}</span>
                     </div>
                   </v-col>
                 </v-row>
@@ -4987,16 +5062,17 @@ const transactionHeaders = [
 ];
 
 const bookingHeaders = [
-  { title: 'Client', key: 'client' },
-  { title: 'Service', key: 'service' },
-  { title: 'Date', key: 'date' },
-  { title: 'Coverage End', key: 'coverageEnd' },
-  { title: 'Duration', key: 'duration' },
-  { title: 'Price', key: 'formattedPrice' },
-  { title: 'Assigned', key: 'assignedCount' },
-  { title: 'Status', key: 'status' },
-  { title: 'Assignment', key: 'assignmentStatus' },
-  { title: 'Actions', key: 'actions', sortable: false },
+  { title: 'Client', key: 'client', width: '120px' },
+  { title: 'Service', key: 'service', width: '130px' },
+  { title: 'Date', key: 'date', width: '100px' },
+  { title: 'Time', key: 'startingTime', width: '80px' },
+  { title: 'Hours/Day', key: 'hoursPerDay', width: '90px' },
+  { title: 'Duration', key: 'duration', width: '90px' },
+  { title: 'Location', key: 'location', width: '120px' },
+  { title: 'Price', key: 'formattedPrice', width: '100px' },
+  { title: 'Assigned', key: 'assignedCount', width: '100px' },
+  { title: 'Status', key: 'status', width: '100px' },
+  { title: 'Actions', key: 'actions', sortable: false, width: '180px' },
 ];
 
 const clientBookings = ref([]);

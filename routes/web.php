@@ -8,6 +8,7 @@ use App\Http\Controllers\BookingController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\CaregiverController;
 use App\Http\Controllers\ContactController;
+use App\Http\Controllers\BlogController;
 
 // Public Routes
 Route::get('/', [LandingController::class, 'index']);
@@ -45,9 +46,12 @@ Route::get('/faq', function () {
 Route::get('/about', function () {
     return view('about');
 })->name('about');
-Route::get('/blog', function () {
-    return view('blog');
-})->name('blog');
+
+// Blog routes
+Route::get('/blog', [BlogController::class, 'index'])->name('blog.index');
+Route::get('/blog/{slug}', [BlogController::class, 'show'])->name('blog.show');
+Route::get('/blog/category/{category}', [BlogController::class, 'category'])->name('blog.category');
+
 Route::get('/contact', [ContactController::class, 'show'])->name('contact');
 Route::post('/contact', [ContactController::class, 'submit'])->name('contact.submit');
 Route::get('/login', function () {

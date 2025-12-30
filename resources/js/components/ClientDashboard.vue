@@ -40,21 +40,21 @@
                 </v-card-title>
                 
                 <!-- Tabs -->
-                <v-tabs v-model="bookingTab" color="primary" density="compact" class="px-4">
-                  <v-tab value="pending">
+                <v-tabs v-model="bookingTab" color="primary" density="compact" class="px-2 my-3" show-arrows>
+                  <v-tab value="pending" class="text-caption">
                     <v-icon start size="small">mdi-clock-outline</v-icon>
-                    Pending
-                    <v-chip v-if="pendingBookings.length > 0" size="x-small" color="warning" class="ml-2">{{ pendingBookings.length }}</v-chip>
+                    <span class="text-xs">Pending</span>
+                    <v-chip v-if="pendingBookings.length > 0" size="x-small" color="warning" class="ml-1">{{ pendingBookings.length }}</v-chip>
                   </v-tab>
-                  <v-tab value="approved">
+                  <v-tab value="approved" class="text-caption">
                     <v-icon start size="small">mdi-check-circle</v-icon>
-                    Approved
-                    <v-chip v-if="confirmedBookings.length > 0" size="x-small" color="success" class="ml-2">{{ confirmedBookings.length }}</v-chip>
+                    <span class="text-xs">Approved</span>
+                    <v-chip v-if="confirmedBookings.length > 0" size="x-small" color="success" class="ml-1">{{ confirmedBookings.length }}</v-chip>
                   </v-tab>
-                  <v-tab value="completed">
+                  <v-tab value="completed" class="text-caption">
                     <v-icon start size="small">mdi-checkbox-marked-circle</v-icon>
-                    Completed
-                    <v-chip v-if="completedBookings.length > 0" size="x-small" color="grey" class="ml-2">{{ completedBookings.length }}</v-chip>
+                    <span class="text-xs">Completed</span>
+                    <v-chip v-if="completedBookings.length > 0" size="x-small" color="grey" class="ml-1">{{ completedBookings.length }}</v-chip>
                   </v-tab>
                 </v-tabs>
 
@@ -68,18 +68,116 @@
                       </div>
                       <div v-else>
                         <div v-for="booking in pendingBookings.slice(0, 3)" :key="booking.id" class="contract-item pa-4 border-b">
-                          <div class="d-flex align-center mb-2">
-                            <v-avatar size="40" class="mr-3" color="warning">
-                              <v-icon color="white">mdi-clock-outline</v-icon>
-                            </v-avatar>
-                            <div class="flex-grow-1">
-                              <div class="contract-service font-weight-bold">{{ booking.service || booking.serviceType }}</div>
-                              <div class="contract-dates text-caption">{{ booking.date }}</div>
-                              <div class="text-caption text-grey">{{ booking.dutyType }}</div>
+                          <div class="mb-3">
+                            <!-- Header -->
+                            <div class="d-flex align-center justify-space-between mb-3">
+                              <div class="d-flex align-center flex-grow-1">
+                                <v-avatar size="44" color="warning" class="mr-3">
+                                  <v-icon color="white" size="24">mdi-clock-outline</v-icon>
+                                </v-avatar>
+                                <div>
+                                  <div class="text-subtitle-1 font-weight-bold">{{ booking.service || booking.serviceType }}</div>
+                                  <div class="text-caption text-grey">{{ booking.date }} • {{ booking.startingTime }}</div>
+                                  <div class="text-caption text-grey">
+                                    <v-icon size="12" class="mr-1">mdi-map-marker</v-icon>
+                                    {{ booking.location }}
+                                  </div>
+                                </div>
+                              </div>
+                              <div class="text-right">
+                                <div class="text-h6 warning--text font-weight-bold">${{ getBookingPrice(booking) }}</div>
+                                <v-chip color="warning" size="x-small" class="font-weight-bold">
+                                  <v-icon start size="12">mdi-clock</v-icon>
+                                  Pending
+                                </v-chip>
+                              </div>
                             </div>
-                            <div class="text-right">
-                              <div class="text-h6 warning--text font-weight-bold">${{ getBookingPrice(booking) }}</div>
-                              <v-chip color="warning" size="x-small">Pending Review</v-chip>
+
+                            <!-- Unified Details Section - 2x2 Grid Layout -->
+                            <div class="mb-2 pa-3" style="background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0;">
+                              <v-row dense>
+                                <!-- Service Information -->
+                                <v-col cols="6">
+                                  <div class="pa-2" style="border-right: 1px solid #e2e8f0;">
+                                    <div class="text-caption font-weight-bold mb-2" style="color: #475569;">
+                                      <v-icon size="14" color="primary" class="mr-1">mdi-information-outline</v-icon>
+                                      Service Information
+                                    </div>
+                                    <div class="text-caption mb-1">
+                                      <span class="text-grey">Hours per Day:</span> <span class="font-weight-bold">{{ booking.hoursPerDay || 8 }} hours</span>
+                                    </div>
+                                    <div class="text-caption mb-1">
+                                      <span class="text-grey">Duration:</span> <span class="font-weight-bold">{{ booking.duration || 1 }} days</span>
+                                    </div>
+                                    <div class="text-caption">
+                                      <span class="text-grey">Starting Time:</span> <span class="font-weight-bold">{{ booking.startingTime || 'N/A' }}</span>
+                                    </div>
+                                  </div>
+                                </v-col>
+
+                                <!-- Location -->
+                                <v-col cols="6">
+                                  <div class="pa-2">
+                                    <div class="text-caption font-weight-bold mb-2" style="color: #475569;">
+                                      <v-icon size="14" color="primary" class="mr-1">mdi-map-marker-outline</v-icon>
+                                      Location
+                                    </div>
+                                    <div class="text-caption mb-1">
+                                      <span class="text-grey">City/Borough:</span> <span class="font-weight-bold">{{ booking.borough || booking.location || 'N/A' }}</span>
+                                    </div>
+                                    <div class="text-caption mb-1">
+                                      <span class="text-grey">Street Address:</span> <span class="font-weight-bold">{{ booking.streetAddress || 'N/A' }}</span>
+                                    </div>
+                                    <div class="text-caption" v-if="booking.apartmentUnit">
+                                      <span class="text-grey">Apt/Unit:</span> <span class="font-weight-bold">{{ booking.apartmentUnit }}</span>
+                                    </div>
+                                  </div>
+                                </v-col>
+
+                                <!-- Client Information -->
+                                <v-col cols="6">
+                                  <div class="pa-2 pt-2" style="border-right: 1px solid #e2e8f0; border-top: 1px solid #e2e8f0;">
+                                    <div class="text-caption font-weight-bold mb-2" style="color: #475569;">
+                                      <v-icon size="14" color="primary" class="mr-1">mdi-account-circle-outline</v-icon>
+                                      Client Information
+                                    </div>
+                                    <div class="text-caption mb-1">
+                                      <span class="text-grey">Age:</span> <span class="font-weight-bold">{{ booking.clientAge || 'N/A' }}</span>
+                                    </div>
+                                    <div class="text-caption mb-1">
+                                      <span class="text-grey">Mobility:</span> <span class="font-weight-bold">{{ booking.mobilityLevel || 'Standard' }}</span>
+                                    </div>
+                                    <div class="text-caption" v-if="booking.medicalConditions">
+                                      <span class="text-grey">Medical:</span> <span class="font-weight-bold">{{ booking.medicalConditions }}</span>
+                                    </div>
+                                  </div>
+                                </v-col>
+
+                                <!-- Special Instructions -->
+                                <v-col cols="6">
+                                  <div class="pa-2 pt-2" style="border-top: 1px solid #e2e8f0;">
+                                    <div class="text-caption font-weight-bold mb-2" style="color: #475569;">
+                                      <v-icon size="14" color="primary" class="mr-1">mdi-note-text-outline</v-icon>
+                                      Special Instructions
+                                    </div>
+                                    <div class="text-caption">{{ booking.specialInstructions || 'None specified' }}</div>
+                                  </div>
+                                </v-col>
+                              </v-row>
+                            </div>
+
+                            <!-- Divider -->
+                            <v-divider class="my-3"></v-divider>
+
+                            <!-- Pending Status -->
+                            <div class="text-center pa-2" style="background: #fffbeb; border-radius: 6px;">
+                              <v-icon color="warning" size="16" class="mb-1">mdi-clock-alert-outline</v-icon>
+                              <div class="font-weight-bold" style="color: #d97706; font-size: 0.7rem;">
+                                Pending Assignment
+                              </div>
+                              <div class="text-grey" style="font-size: 0.65rem;">
+                                We'll notify you once approved
+                              </div>
                             </div>
                           </div>
                         </div>
@@ -99,88 +197,138 @@
                             <!-- Header with Service and Price -->
                             <div class="d-flex align-center justify-space-between mb-3">
                               <div class="d-flex align-center flex-grow-1">
-                                <v-avatar size="40" class="mr-3" color="success">
-                                  <v-icon color="white">mdi-check-circle</v-icon>
+                                <v-avatar size="44" color="success" class="mr-3">
+                                  <v-icon color="white" size="24">mdi-check-circle</v-icon>
                                 </v-avatar>
                                 <div>
-                                  <div class="contract-service font-weight-bold">{{ booking.service || booking.serviceType }}</div>
-                                  <div class="contract-dates text-caption">{{ booking.date }}</div>
-                                  <div class="text-caption text-grey">{{ booking.location }}</div>
+                                  <div class="text-subtitle-1 font-weight-bold">{{ booking.service || booking.serviceType }}</div>
+                                  <div class="text-caption text-grey">{{ booking.date }} • {{ booking.startingTime }}</div>
+                                  <div class="text-caption text-grey">
+                                    <v-icon size="12" class="mr-1">mdi-map-marker</v-icon>
+                                    {{ booking.location }}
+                                  </div>
                                 </div>
                               </div>
-                              <div class="text-right">
-                                <div class="text-h6 success--text font-weight-bold">${{ getBookingPrice(booking) }}</div>
-                                <v-chip color="success" size="x-small">Approved</v-chip>
-                              </div>
-                            </div>
-
-                            <!-- Caregiver & Assignment Info -->
-                            <div class="mb-3 pa-2" style="background: #f8fafc; border-radius: 8px;">
-                              <div class="d-flex justify-space-between align-center mb-2">
-                                <div class="text-caption font-weight-medium">
-                                  <v-icon size="16" color="info" class="mr-1">mdi-account-heart</v-icon>
-                                  {{ booking.caregiver || 'Pending Assignment' }}
+                              <div class="text-right d-flex flex-column align-end" style="gap: 8px;">
+                                <div class="d-flex align-center" style="gap: 12px;">
+                                  <div class="text-h6 success--text font-weight-bold">${{ getBookingPrice(booking) }}</div>
+                                  <v-chip color="success" size="x-small" class="font-weight-bold">
+                                    <v-icon start size="12">mdi-check</v-icon>
+                                    Approved
+                                  </v-chip>
                                 </div>
-                                <v-chip 
-                                  :color="(booking.assignedCount || 0) >= (booking.requiredCount || 1) ? 'success' : 'warning'" 
-                                  size="x-small"
+                                <v-btn 
+                                  color="error" 
+                                  size="large" 
+                                  prepend-icon="mdi-credit-card"
+                                  @click="goToPayment(booking)"
+                                  elevation="3"
+                                  class="text-none font-weight-bold px-10 pay-now-glow"
+                                  style="min-width: 220px;"
                                 >
-                                  {{ booking.assignedCount || 0 }}/{{ booking.requiredCount || 1 }} Assigned
-                                </v-chip>
+                                  Pay Now
+                                </v-btn>
                               </div>
-                              <v-progress-linear
-                                :model-value="((booking.assignedCount || 0) / (booking.requiredCount || 1)) * 100"
-                                :color="(booking.assignedCount || 0) >= (booking.requiredCount || 1) ? 'success' : 'warning'"
-                                height="4"
-                                rounded
-                              ></v-progress-linear>
                             </div>
 
-                            <!-- Action Buttons -->
-                            <div class="d-flex gap-2">
-                              <v-btn 
-                                color="info" 
-                                size="small" 
-                                variant="outlined"
-                                prepend-icon="mdi-eye"
-                                @click="viewBookingDetails(booking)"
-                                style="flex: 1;"
-                              >
-                                Details
-                              </v-btn>
-                              <v-btn 
-                                color="primary" 
-                                size="small" 
-                                prepend-icon="mdi-credit-card"
-                                @click="goToPayment(booking)"
-                                style="flex: 1;"
-                              >
-                                Pay Now
-                              </v-btn>
-                            </div>
-                            
-                            <!-- Contact Buttons (Secondary Row) -->
-                            <div class="d-flex gap-2 mt-2">
-                              <v-btn 
-                                color="success" 
-                                size="x-small" 
-                                variant="text"
-                                prepend-icon="mdi-phone"
-                                @click="openContactDialog(booking)"
-                                style="flex: 1;"
-                              >
-                                Contact Caregiver
-                              </v-btn>
-                              <v-btn 
-                                color="grey-darken-1" 
-                                size="x-small" 
-                                variant="text"
-                                prepend-icon="mdi-account-tie"
-                                @click="openAdminContactDialog()"
-                                style="flex: 1;"
-                              >
-                                Admin
-                              </v-btn>
+                            <!-- Unified Details Section - 2x2 Grid Layout -->
+                            <div class="mb-3 pa-3" style="background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0;">
+                              <v-row dense>
+                                <!-- Service Information -->
+                                <v-col cols="6">
+                                  <div class="pa-2" style="border-right: 1px solid #e2e8f0;">
+                                    <div class="text-caption font-weight-bold mb-2" style="color: #475569;">
+                                      <v-icon size="14" color="primary" class="mr-1">mdi-information-outline</v-icon>
+                                      Service Information
+                                    </div>
+                                    <div class="text-caption mb-1">
+                                      <span class="text-grey">Hours per Day:</span> <span class="font-weight-bold">{{ booking.hoursPerDay || 8 }} hours</span>
+                                    </div>
+                                    <div class="text-caption mb-1">
+                                      <span class="text-grey">Duration:</span> <span class="font-weight-bold">{{ booking.duration || 1 }} days</span>
+                                    </div>
+                                    <div class="text-caption">
+                                      <span class="text-grey">Starting Time:</span> <span class="font-weight-bold">{{ booking.startingTime || 'N/A' }}</span>
+                                    </div>
+                                  </div>
+                                </v-col>
+
+                                <!-- Location -->
+                                <v-col cols="6">
+                                  <div class="pa-2">
+                                    <div class="text-caption font-weight-bold mb-2" style="color: #475569;">
+                                      <v-icon size="14" color="primary" class="mr-1">mdi-map-marker-outline</v-icon>
+                                      Location
+                                    </div>
+                                    <div class="text-caption mb-1">
+                                      <span class="text-grey">City/Borough:</span> <span class="font-weight-bold">{{ booking.borough || booking.location || 'N/A' }}</span>
+                                    </div>
+                                    <div class="text-caption mb-1">
+                                      <span class="text-grey">Street Address:</span> <span class="font-weight-bold">{{ booking.streetAddress || 'N/A' }}</span>
+                                    </div>
+                                    <div class="text-caption" v-if="booking.apartmentUnit">
+                                      <span class="text-grey">Apt/Unit:</span> <span class="font-weight-bold">{{ booking.apartmentUnit }}</span>
+                                    </div>
+                                  </div>
+                                </v-col>
+
+                                <!-- Client Information -->
+                                <v-col cols="6">
+                                  <div class="pa-2 pt-2" style="border-right: 1px solid #e2e8f0; border-top: 1px solid #e2e8f0;">
+                                    <div class="text-caption font-weight-bold mb-2" style="color: #475569;">
+                                      <v-icon size="14" color="primary" class="mr-1">mdi-account-circle-outline</v-icon>
+                                      Client Information
+                                    </div>
+                                    <div class="text-caption mb-1">
+                                      <span class="text-grey">Age:</span> <span class="font-weight-bold">{{ booking.clientAge || 'N/A' }}</span>
+                                    </div>
+                                    <div class="text-caption mb-1">
+                                      <span class="text-grey">Mobility:</span> <span class="font-weight-bold">{{ booking.mobilityLevel || 'Standard' }}</span>
+                                    </div>
+                                    <div class="text-caption" v-if="booking.medicalConditions">
+                                      <span class="text-grey">Medical:</span> <span class="font-weight-bold">{{ booking.medicalConditions }}</span>
+                                    </div>
+                                  </div>
+                                </v-col>
+
+                                <!-- Special Instructions -->
+                                <v-col cols="6">
+                                  <div class="pa-2 pt-2" style="border-top: 1px solid #e2e8f0;">
+                                    <div class="text-caption font-weight-bold mb-2" style="color: #475569;">
+                                      <v-icon size="14" color="primary" class="mr-1">mdi-note-text-outline</v-icon>
+                                      Special Instructions
+                                    </div>
+                                    <div class="text-caption">{{ booking.specialInstructions || 'None specified' }}</div>
+                                  </div>
+                                </v-col>
+                              </v-row>
+
+                              <!-- Divider -->
+                              <v-divider class="my-3"></v-divider>
+
+                              <!-- Caregiver Assignment -->
+                              <div>
+                                <div class="d-flex justify-space-between align-center mb-1">
+                                  <div class="font-weight-bold text-no-wrap" style="color: #475569; font-size: 0.55rem;">
+                                    <v-icon size="10" color="primary" class="mr-1">mdi-account-heart-outline</v-icon>
+                                    {{ booking.caregiver || 'Pending Assignment' }}
+                                  </div>
+                                  <v-chip 
+                                    :color="(booking.assignedCount || 0) >= (booking.requiredCount || 1) ? 'success' : 'warning'" 
+                                    size="x-small"
+                                    class="font-weight-bold"
+                                    style="font-size: 0.55rem;"
+                                  >
+                                    {{ booking.assignedCount || 0 }}/{{ booking.requiredCount || 1 }} Assigned
+                                  </v-chip>
+                                </div>
+                                <v-progress-linear
+                                  :model-value="((booking.assignedCount || 0) / (booking.requiredCount || 1)) * 100"
+                                  :color="(booking.assignedCount || 0) >= (booking.requiredCount || 1) ? 'success' : 'warning'"
+                                  height="3"
+                                  rounded
+                                ></v-progress-linear>
+                              </div>
                             </div>
                           </div>
                         </div>
@@ -718,18 +866,18 @@
             <p class="bookings-subtitle">Review and manage your care service requests</p>
           </div>
 
-          <v-tabs v-model="bookingTab" color="primary" class="mb-6" bg-color="transparent">
+          <v-tabs v-model="bookingTab" color="primary" class="mb-6 booking-tabs" bg-color="transparent" show-arrows density="comfortable">
             <v-tab value="pending" class="booking-tab">
-              <v-icon start>mdi-clock-outline</v-icon>
-              Pending Review
+              <v-icon start size="small">mdi-clock-outline</v-icon>
+              <span class="tab-text">Pending Review</span>
             </v-tab>
             <v-tab value="approved" class="booking-tab">
-              <v-icon start>mdi-check-circle</v-icon>
-              Approved
+              <v-icon start size="small">mdi-check-circle</v-icon>
+              <span class="tab-text">Approved</span>
             </v-tab>
             <v-tab value="completed" class="booking-tab">
-              <v-icon start>mdi-calendar-check</v-icon>
-              Completed
+              <v-icon start size="small">mdi-calendar-check</v-icon>
+              <span class="tab-text">Completed</span>
             </v-tab>
           </v-tabs>
 
@@ -2475,7 +2623,7 @@ const loadNotificationCount = async () => {
 
 const stats = ref([
   { title: 'Amount Due', value: '$0', icon: 'mdi-currency-usd', color: 'warning', change: 'No coverage', changeColor: 'text-grey', changeIcon: 'mdi-calendar' },
-  { title: 'Current Caregiver', value: 'N/A', icon: 'mdi-account-heart', color: 'grey', change: 'Status: No Active Service', changeColor: 'text-grey', changeIcon: 'mdi-close-circle' },
+  { title: 'Contract Status', value: 'N/A', icon: 'mdi-file-document-outline', color: 'grey', change: 'Status: No Active Service', changeColor: 'text-grey', changeIcon: 'mdi-close-circle' },
   { title: 'Total Hours Booked', value: '0', icon: 'mdi-clock-outline', color: 'info', change: 'Loading...', changeColor: 'text-grey', changeIcon: 'mdi-clock-outline' },
   { title: 'Total Spent', value: '$0', icon: 'mdi-cash', color: 'primary', change: 'Loading...', changeColor: 'text-grey', changeIcon: 'mdi-cash' },
 ]);
@@ -2538,18 +2686,19 @@ const loadClientStats = async () => {
     }
     
     // Update Ongoing Contracts count
-    // Update Current Caregiver stat card - find most recent active booking with caregiver
+    // Update Contract Status stat card - show "Pending" or "Ongoing Contract" based on payment status
     const activeBookings = (data.my_bookings || [])
       .filter(b => ['approved', 'confirmed', 'in_progress'].includes(b.status))
       .sort((a, b) => new Date(a.service_date) - new Date(b.service_date));
     
-    // Find the first booking with an assigned caregiver
-    const currentActiveBooking = activeBookings.find(b => b.assignments && b.assignments.length > 0) || activeBookings[0];
+    // Find the first booking
+    const currentActiveBooking = activeBookings[0];
     
     if (currentActiveBooking) {
-      const caregiverName = currentActiveBooking.assignments && currentActiveBooking.assignments.length > 0
-        ? currentActiveBooking.assignments[0].caregiver?.user?.name || 'Caregiver Assigned'
-        : 'Pending Assignment';
+      // Check if booking is paid
+      const isPaid = currentActiveBooking.payment_status === 'paid' || currentActiveBooking.payment_status === 'completed';
+      const statusText = isPaid ? 'Ongoing Contract' : 'Pending';
+      const statusColor = isPaid ? 'success' : 'warning';
       
       const startDate = new Date(currentActiveBooking.service_date);
       const endDate = new Date(startDate);
@@ -2558,24 +2707,24 @@ const loadClientStats = async () => {
       const startStr = startDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
       const endStr = endDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
       
-      currentCaregiverName.value = caregiverName;
+      currentCaregiverName.value = statusText;
       currentServiceStartDate.value = startStr;
       currentServiceEndDate.value = endStr;
       
       stats.value[1] = {
-        title: 'Current Caregiver',
-        value: caregiverName,
-        icon: 'mdi-account-heart',
-        color: currentActiveBooking.assignments && currentActiveBooking.assignments.length > 0 ? 'success' : 'warning',
+        title: 'Contract Status',
+        value: statusText,
+        icon: 'mdi-file-document-outline',
+        color: statusColor,
         change: `${startStr} - ${endStr}`,
-        changeColor: 'text-success',
+        changeColor: isPaid ? 'text-success' : 'text-warning',
         changeIcon: 'mdi-calendar-range'
       };
     } else {
       stats.value[1] = {
-        title: 'Current Caregiver',
+        title: 'Contract Status',
         value: 'N/A',
-        icon: 'mdi-account-heart',
+        icon: 'mdi-file-document-outline',
         color: 'grey',
         change: 'Status: No Active Service',
         changeColor: 'text-grey',
@@ -2838,13 +2987,33 @@ const loadMyBookings = async () => {
           console.log(`Booking ${b.id} status: ${b.status}`); // Debug log
           return b.status === 'pending';
         })
-        .map(booking => ({
-          id: booking.id,
-          service: booking.service_type || 'Care Service',
-          date: new Date(booking.service_date).toLocaleDateString(),
-          location: booking.borough || 'Manhattan',
-          dutyType: booking.duty_type || '8 Hours Duty'
-        }));
+        .map(booking => {
+          // Extract hours from duty_type
+          const hoursMatch = (booking.duty_type || '8 Hours Duty').match(/(\d+)\s*Hours?/i);
+          const hoursPerDay = hoursMatch ? parseInt(hoursMatch[1]) : 8;
+          
+          return {
+            id: booking.id,
+            service: booking.service_type || 'Care Service',
+            serviceType: booking.service_type || 'Care Service',
+            date: new Date(booking.service_date).toLocaleDateString(),
+            startingTime: booking.starting_time || 'N/A',
+            location: booking.borough || booking.city || 'Manhattan',
+            streetAddress: booking.street_address || 'N/A',
+            apartmentUnit: booking.apartment_unit || booking.unit || 'N/A',
+            borough: booking.borough || booking.city || 'Manhattan',
+            dutyType: booking.duty_type || '8 Hours Duty',
+            hoursPerDay: hoursPerDay,
+            duration: booking.duration_days || 1,
+            durationDays: booking.duration_days || 1,
+            clientAge: booking.client_age || null,
+            mobilityLevel: booking.mobility_level || 'Standard',
+            medicalConditions: booking.medical_conditions || '',
+            specialInstructions: booking.special_instructions || '',
+            hourlyRate: booking.hourly_rate || 45,
+            price: booking.total_price || (hoursPerDay * (booking.duration_days || 1) * (booking.hourly_rate || 45))
+          };
+        });
         
       confirmedBookings.value = data.my_bookings
         .filter(b => {
@@ -2868,18 +3037,36 @@ const loadMyBookings = async () => {
             avatar: assignment.caregiver?.user?.avatar || null
           }));
           
+          // Extract hours from duty_type
+          const hoursMatch = (booking.duty_type || '8 Hours Duty').match(/(\d+)\s*Hours?/i);
+          const hoursPerDay = hoursMatch ? parseInt(hoursMatch[1]) : 8;
+          
           return {
             id: booking.id,
             service: booking.service_type || 'Care Service',
+            serviceType: booking.service_type || 'Care Service',
             caregiver: booking.assignments && booking.assignments.length > 0 
               ? booking.assignments[0].caregiver?.user?.name || 'Caregiver Assigned'
-              : 'Caregiver Assigned',
+              : 'Pending Assignment',
             date: new Date(booking.service_date).toLocaleDateString(),
             time: new Date(booking.service_date).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
-            location: booking.borough || 'Manhattan',
+            startingTime: booking.starting_time || 'N/A',
+            location: booking.borough || booking.city || 'Manhattan',
+            streetAddress: booking.street_address || 'N/A',
+            apartmentUnit: booking.apartment_unit || booking.unit || 'N/A',
+            borough: booking.borough || booking.city || 'Manhattan',
             assignedCount: assignedCount,
             requiredCount: requiredCount,
+            duration: durationDays,
             durationDays: durationDays,
+            dutyType: booking.duty_type || '8 Hours Duty',
+            hoursPerDay: hoursPerDay,
+            clientAge: booking.client_age || null,
+            mobilityLevel: booking.mobility_level || 'Standard',
+            medicalConditions: booking.medical_conditions || '',
+            specialInstructions: booking.special_instructions || '',
+            hourlyRate: booking.hourly_rate || 45,
+            price: booking.total_price || (hoursPerDay * durationDays * (booking.hourly_rate || 45)),
             assignedCaregivers: assignedCaregivers
           };
         });
@@ -2905,15 +3092,35 @@ const loadCompletedBookings = async () => {
     if (data.my_bookings) {
       completedBookings.value = data.my_bookings
         .filter(b => b.status === 'completed')
-        .map(booking => ({
-          id: booking.id,
-          service: booking.service_type || 'Care Service',
-          caregiver: booking.assignments && booking.assignments.length > 0 
-            ? booking.assignments[0].caregiver?.user?.name || 'Caregiver'
-            : 'Caregiver',
-          date: new Date(booking.service_date).toLocaleDateString(),
-          caregiverImage: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=100&h=100&fit=crop'
-        }));
+        .map(booking => {
+          // Extract hours from duty_type
+          const hoursMatch = (booking.duty_type || '8 Hours Duty').match(/(\d+)\s*Hours?/i);
+          const hoursPerDay = hoursMatch ? parseInt(hoursMatch[1]) : 8;
+          const durationDays = booking.duration_days || 15;
+          
+          return {
+            id: booking.id,
+            service: booking.service_type || 'Care Service',
+            serviceType: booking.service_type || 'Care Service',
+            caregiver: booking.assignments && booking.assignments.length > 0 
+              ? booking.assignments[0].caregiver?.user?.name || 'Caregiver'
+              : 'Caregiver',
+            date: new Date(booking.service_date).toLocaleDateString(),
+            startingTime: booking.starting_time || 'N/A',
+            location: booking.borough || booking.city || 'Manhattan',
+            streetAddress: booking.street_address || 'N/A',
+            apartmentUnit: booking.apartment_unit || booking.unit || 'N/A',
+            hoursPerDay: hoursPerDay,
+            duration: durationDays,
+            durationDays: durationDays,
+            clientAge: booking.client_age || null,
+            mobilityLevel: booking.mobility_level || 'Standard',
+            medicalConditions: booking.medical_conditions || '',
+            hourlyRate: booking.hourly_rate || 45,
+            price: booking.total_price || (hoursPerDay * durationDays * (booking.hourly_rate || 45)),
+            caregiverImage: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=100&h=100&fit=crop'
+          };
+        });
     }
   } catch (error) {
     console.error('Failed to load completed bookings:', error);
@@ -3469,9 +3676,9 @@ const viewBookingDetails = async (booking) => {
       
       // Format starting time
       let startingTime = 'N/A';
-      if (bookingData.start_time) {
+      if (bookingData.starting_time || bookingData.start_time) {
         try {
-          const timeStr = bookingData.start_time;
+          const timeStr = bookingData.starting_time || bookingData.start_time;
           if (timeStr.includes(':')) {
             const [hours, minutes] = timeStr.split(':');
             const hour = parseInt(hours);
@@ -3482,7 +3689,7 @@ const viewBookingDetails = async (booking) => {
             startingTime = timeStr;
           }
         } catch (e) {
-          startingTime = bookingData.start_time;
+          startingTime = bookingData.starting_time || bookingData.start_time;
         }
       }
 
@@ -3506,6 +3713,20 @@ const viewBookingDetails = async (booking) => {
         }
       }
 
+      // Parse medical conditions - handle both string and array formats
+      let medicalConditions = [];
+      if (bookingData.medical_conditions) {
+        if (Array.isArray(bookingData.medical_conditions)) {
+          medicalConditions = bookingData.medical_conditions;
+        } else if (typeof bookingData.medical_conditions === 'string') {
+          // Split by comma or newline
+          medicalConditions = bookingData.medical_conditions
+            .split(/[,\n]/)
+            .map(c => c.trim())
+            .filter(c => c.length > 0);
+        }
+      }
+
       selectedBookingDetails.value = {
         service: bookingData.service_type,
         hoursPerDay,
@@ -3517,12 +3738,13 @@ const viewBookingDetails = async (booking) => {
         selectedDays,
         city: bookingData.borough || bookingData.city || 'N/A',
         streetAddress: bookingData.street_address || 'N/A',
-        apartmentUnit: bookingData.apartment_unit || '',
+        apartmentUnit: bookingData.apartment_unit || bookingData.unit || '',
         clientAge: bookingData.client_age || '',
         mobilityLevel: bookingData.mobility_level ? bookingData.mobility_level.charAt(0).toUpperCase() + bookingData.mobility_level.slice(1) : '',
-        medicalConditions: bookingData.medical_conditions || [],
+        medicalConditions: medicalConditions,
         specialInstructions: bookingData.special_instructions || '',
         submittedAt,
+        referralCode: bookingData.referral_code?.code || '',
         hasReferralDiscount,
         referralDiscount,
         originalRate: standardRate,
@@ -3533,26 +3755,39 @@ const viewBookingDetails = async (booking) => {
     }
   } catch (error) {
     console.error('Error loading booking details:', error);
-    // Fallback with basic calculation
-    const hoursPerDay = booking.dutyType ? parseInt(booking.dutyType.split(' ')[0]) : 8;
-    const hourlyRate = 45;
-    const duration = 15;
-    const total = hoursPerDay * duration * hourlyRate;
+    // Fallback with booking data if available
+    const hoursPerDay = booking.hoursPerDay || (booking.dutyType ? parseInt(booking.dutyType.split(' ')[0]) : 8);
+    const hourlyRate = booking.hourlyRate || 45;
+    const duration = booking.duration || booking.durationDays || 15;
+    const total = booking.price || (hoursPerDay * duration * hourlyRate);
+    
+    // Parse medical conditions
+    let medicalConditions = [];
+    if (booking.medicalConditions) {
+      if (Array.isArray(booking.medicalConditions)) {
+        medicalConditions = booking.medicalConditions;
+      } else if (typeof booking.medicalConditions === 'string') {
+        medicalConditions = booking.medicalConditions.split(/[,\n]/).map(c => c.trim()).filter(c => c.length > 0);
+      }
+    }
     
     selectedBookingDetails.value = {
-      service: booking.service,
+      service: booking.service || booking.serviceType || 'Care Service',
       hoursPerDay,
       duration,
       hourlyRate,
       total,
       serviceDate: booking.date || 'N/A',
-      city: booking.location || 'N/A',
-      streetAddress: 'N/A',
-      apartmentUnit: '',
-      clientAge: '',
-      mobilityLevel: '',
-      specialInstructions: '',
+      startingTime: booking.startingTime || booking.time || 'N/A',
+      city: booking.location || booking.borough || 'N/A',
+      streetAddress: booking.streetAddress || 'N/A',
+      apartmentUnit: booking.apartmentUnit || '',
+      clientAge: booking.clientAge || '',
+      mobilityLevel: booking.mobilityLevel || '',
+      medicalConditions: medicalConditions,
+      specialInstructions: booking.specialInstructions || '',
       submittedAt: 'N/A',
+      referralCode: '',
       hasReferralDiscount: false,
       referralDiscount: 0,
       originalRate: 45,
@@ -4222,6 +4457,87 @@ const initSpendingChart = () => {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
 
+/* Glowing Pay Now Button Animation */
+@keyframes background-glow-pulse {
+  0%, 100% {
+    opacity: 0.5;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  50% {
+    opacity: 0.9;
+    transform: translate(-50%, -50%) scale(1.15);
+  }
+}
+
+.pay-now-glow {
+  position: relative !important;
+  overflow: visible !important;
+  z-index: 1 !important;
+  isolation: isolate;
+}
+
+.pay-now-glow::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 130%;
+  height: 150%;
+  background: radial-gradient(ellipse, rgba(239, 68, 68, 0.7) 0%, rgba(239, 68, 68, 0.4) 35%, rgba(239, 68, 68, 0.2) 60%, transparent 80%);
+  border-radius: 12px;
+  z-index: -1;
+  animation: background-glow-pulse 2s ease-in-out infinite;
+  pointer-events: none;
+  filter: blur(25px);
+  will-change: transform, opacity;
+}
+
+.pay-now-glow:hover::before {
+  animation: background-glow-pulse 1.5s ease-in-out infinite;
+}
+
+.pay-now-glow:hover {
+  transform: translateY(-2px) !important;
+  transition: transform 0.2s ease !important;
+}
+
+/* Booking Tabs Mobile Responsive */
+.booking-tabs {
+  overflow-x: auto;
+  flex-wrap: nowrap;
+}
+
+.booking-tab {
+  min-width: auto !important;
+  flex: 0 0 auto;
+  padding: 12px 16px !important;
+}
+
+@media (max-width: 600px) {
+  .booking-tab {
+    font-size: 0.75rem !important;
+    padding: 8px 12px !important;
+  }
+  
+  .tab-text {
+    font-size: 0.75rem;
+  }
+  
+  .booking-tabs .v-tab__slider {
+    height: 2px;
+  }
+}
+
+@media (max-width: 400px) {
+  .booking-tab {
+    padding: 6px 10px !important;
+  }
+  
+  .tab-text {
+    font-size: 0.7rem;
+  }
+}
+
 /* Caregiver Contact Dialog Responsive Styles */
 .caregiver-contact-dialog {
   border-radius: 16px;
@@ -4755,6 +5071,12 @@ const initSpendingChart = () => {
     overflow-x: auto !important;
     -webkit-overflow-scrolling: touch !important;
   }
+
+  /* Ensure tabs are visible on mobile */
+  :deep(.v-slide-group__content) {
+    display: flex !important;
+    width: 100% !important;
+  }
 }
 
 @media (max-width: 480px) {
@@ -4769,7 +5091,8 @@ const initSpendingChart = () => {
   /* Very compact tabs on small mobile */
   :deep(.v-tab) {
     font-size: 0.75rem !important;
-    padding: 0.5rem 0.5rem !important;
+    padding: 0.5rem 0.375rem !important;
+    min-width: 60px !important;
   }
 
   :deep(.v-tab .v-icon) {
@@ -4777,13 +5100,13 @@ const initSpendingChart = () => {
     margin-right: 0.25rem !important;
   }
 
-  /* Hide tab text on very small screens, show only icons */
-  :deep(.v-tab span:not(.v-icon)) {
-    display: none;
+  /* Show condensed text on very small screens */
+  :deep(.v-tab .text-xs) {
+    font-size: 0.7rem !important;
   }
 
-  :deep(.v-tab .v-icon) {
-    margin-right: 0 !important;
+  :deep(.v-chip.ml-1) {
+    margin-left: 2px !important;
   }
 }
 
