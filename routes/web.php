@@ -61,7 +61,7 @@ Route::post('/login', [\App\Http\Controllers\AuthController::class, 'login']);
 Route::get('/register', function () {
     return view('register');
 })->name('register');
-Route::post('/register', [\App\Http\Controllers\AuthController::class, 'register'])->name('register');
+Route::post('/register', [\App\Http\Controllers\AuthController::class, 'register']);
 Route::get('/reset-password/{token}', [\App\Http\Controllers\AuthController::class, 'showResetPasswordForm'])->name('password.reset');
 Route::post('/reset-password', [\App\Http\Controllers\AuthController::class, 'resetPassword'])->name('password.update');
 
