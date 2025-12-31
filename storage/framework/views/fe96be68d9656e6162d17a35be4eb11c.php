@@ -453,41 +453,6 @@
     </div>
 
     
-    <?php if(config('app.env') === 'local' || config('app.debug') === true): ?>
-    <div class="demo-credentials-panel" style="position: fixed; top: 2rem; right: 2rem; z-index: 3; background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); padding: 1rem; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.3); min-width: 220px;">
-        <h4 style="margin: 0 0 0.75rem 0; color: #1e40af; font-size: 0.9rem; font-weight: 600;">🔧 Demo Credentials (Dev Only)</h4>
-        <div style="margin-bottom: 0.75rem;">
-            <p style="margin: 0 0 0.25rem 0; font-size: 0.8rem; color: #64748b; font-weight: 500;">Client Account:</p>
-            <p style="margin: 0; font-size: 0.75rem; color: #1e40af; font-family: monospace;">client@demo.com</p>
-            <p style="margin: 0 0 0.5rem 0; font-size: 0.75rem; color: #1e40af; font-family: monospace;">password123</p>
-            <button onclick="fillDemo('client')" style="width: 100%; padding: 0.4rem; background: #3b82f6; color: white; border: none; border-radius: 8px; font-size: 0.75rem; font-weight: 600; cursor: pointer; transition: all 0.3s; margin-bottom: 0.5rem;">Fill Client Login</button>
-        </div>
-        <div style="margin-bottom: 0.5rem; padding-top: 0.75rem; border-top: 1px solid #e2e8f0;">
-            <p style="margin: 0 0 0.25rem 0; font-size: 0.8rem; color: #64748b; font-weight: 500;">Caregiver Account:</p>
-            <p style="margin: 0; font-size: 0.75rem; color: #10b981; font-family: monospace;">caregiver@demo.com</p>
-            <p style="margin: 0 0 0.5rem 0; font-size: 0.75rem; color: #10b981; font-family: monospace;">password123</p>
-            <button onclick="fillDemo('caregiver')" style="width: 100%; padding: 0.4rem; background: #10b981; color: white; border: none; border-radius: 8px; font-size: 0.75rem; font-weight: 600; cursor: pointer; transition: all 0.3s; margin-bottom: 0.5rem;">Fill Caregiver Login</button>
-        </div>
-        <div style="margin-bottom: 0.5rem; padding-top: 0.75rem; border-top: 1px solid #e2e8f0;">
-            <p style="margin: 0 0 0.25rem 0; font-size: 0.8rem; color: #64748b; font-weight: 500;">Admin Account:</p>
-            <p style="margin: 0; font-size: 0.75rem; color: #dc2626; font-family: monospace;">admin@demo.com</p>
-            <p style="margin: 0 0 0.5rem 0; font-size: 0.75rem; color: #dc2626; font-family: monospace;">password123</p>
-            <button onclick="fillDemo('admin')" style="width: 100%; padding: 0.4rem; background: #dc2626; color: white; border: none; border-radius: 8px; font-size: 0.75rem; font-weight: 600; cursor: pointer; transition: all 0.3s; margin-bottom: 0.5rem;">Fill Admin Login</button>
-        </div>
-        <div style="margin-bottom: 0.5rem; padding-top: 0.75rem; border-top: 1px solid #e2e8f0;">
-            <p style="margin: 0 0 0.25rem 0; font-size: 0.8rem; color: #64748b; font-weight: 500;">Marketing Staff:</p>
-            <p style="margin: 0; font-size: 0.75rem; color: #616161; font-family: monospace;">marketing@demo.com</p>
-            <p style="margin: 0 0 0.5rem 0; font-size: 0.75rem; color: #616161; font-family: monospace;">password123</p>
-            <button onclick="fillDemo('marketing')" style="width: 100%; padding: 0.4rem; background: #616161; color: white; border: none; border-radius: 8px; font-size: 0.75rem; font-weight: 600; cursor: pointer; transition: all 0.3s; margin-bottom: 0.5rem;">Fill Marketing Login</button>
-        </div>
-        <div style="padding-top: 0.75rem; border-top: 1px solid #e2e8f0;">
-            <p style="margin: 0 0 0.25rem 0; font-size: 0.8rem; color: #64748b; font-weight: 500;">Training Center:</p>
-            <p style="margin: 0; font-size: 0.75rem; color: #616161; font-family: monospace;">training@demo.com</p>
-            <p style="margin: 0 0 0.5rem 0; font-size: 0.75rem; color: #616161; font-family: monospace;">password123</p>
-            <button onclick="fillDemo('training')" style="width: 100%; padding: 0.4rem; background: #616161; color: white; border: none; border-radius: 8px; font-size: 0.75rem; font-weight: 600; cursor: pointer; transition: all 0.3s;">Fill Training Login</button>
-        </div>
-    </div>
-    <?php endif; ?>
 
     <div class="auth-container">
         <div class="auth-logo">

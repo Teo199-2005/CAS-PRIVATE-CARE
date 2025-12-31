@@ -15,58 +15,37 @@ class BlogController extends Controller
         return [
             // Article 1
             [
-                'slug' => 'how-cas-private-care-matches-you-with-caregivers',
-                'title' => 'How CAS Private Care Matches You with the Perfect Caregiver',
-                'excerpt' => 'Discover how our intelligent matching system connects New York families with pre-vetted, qualified caregivers based on your unique needs and preferences.',
+                'slug' => 'essential-guide-to-choosing-right-caregiver',
+                'title' => 'Essential Guide to Choosing the Right Caregiver in New York',
+                'excerpt' => 'Learn the key factors to consider when selecting a caregiver for your loved ones, including qualifications, experience, and compatibility for New York families.',
                 'content' => '
-                    <p>Finding quality care for your loved ones shouldn\'t be complicated. At CAS Private Care, we\'ve streamlined the process by creating an intelligent matching system that connects families with pre-qualified caregivers who meet their specific needs.</p>
+                    <p>Choosing the right caregiver is one of the most important decisions you\'ll make for your family. Whether you\'re looking for elderly companionship, childcare, or daily living assistance, finding a qualified and compassionate caregiver requires careful consideration and planning.</p>
                     
-                    <img src="https://images.pexels.com/photos/3768131/pexels-photo-3768131.jpeg?auto=compress&cs=tinysrgb&w=1200" alt="CAS Private Care matching system in New York" style="width: 100%; border-radius: 10px; margin: 20px 0;">
+                    <img src="https://images.pexels.com/photos/3768131/pexels-photo-3768131.jpeg?auto=compress&cs=tinysrgb&w=1200" alt="Family multigenerational care in New York" style="width: 100%; border-radius: 10px; margin: 20px 0;">
                     
-                    <h2>How Our Matching System Works</h2>
-                    <p>Unlike traditional agencies where you spend hours interviewing candidates, our marketplace model does the work for you:</p>
+                    <h2>Understanding Your Care Needs</h2>
+                    <p>Before beginning your search, assess the specific needs of your loved one. Consider the level of care required - basic companionship, assistance with daily activities like bathing, dressing, meal preparation, or household management. Document mobility considerations, dietary preferences, and daily routines.</p>
+                    
+                    <h2>Key Qualifications to Look For</h2>
+                    <p>A qualified caregiver through CAS Private Care should possess:</p>
                     <ul>
-                        <li><strong>Tell Us Your Needs:</strong> Complete a simple form describing your care requirements, schedule, and preferences</li>
-                        <li><strong>We Match You:</strong> Our system connects you with pre-vetted caregivers who match your criteria</li>
-                        <li><strong>Review Profiles:</strong> Browse qualified caregiver profiles with verified credentials and reviews</li>
-                        <li><strong>Book Instantly:</strong> Schedule services through our platform with transparent pricing</li>
-                        <li><strong>Ongoing Support:</strong> 24/7 customer support and quality monitoring</li>
+                        <li><strong>Proper Certification:</strong> CPR, First Aid, and relevant caregiving certifications</li>
+                        <li><strong>Experience:</strong> Proven track record in similar care situations</li>
+                        <li><strong>Background Check:</strong> Clean criminal record and verified references</li>
+                        <li><strong>Training:</strong> Specialized training through our Accredited Training Center</li>
+                        <li><strong>1099 Contractor Status:</strong> Proper documentation and insurance</li>
                     </ul>
                     
-                    <h2>Every Caregiver is Pre-Vetted</h2>
-                    <p>All caregivers on our platform have been thoroughly screened:</p>
-                    <img src="https://images.pexels.com/photos/6646918/pexels-photo-6646918.jpeg?auto=compress&cs=tinysrgb&w=1200" alt="Verified caregiver with client in NYC" style="width: 100%; border-radius: 10px; margin: 20px 0;">
-                    <ul>
-                        <li>✓ Background checks completed</li>
-                        <li>✓ References verified</li>
-                        <li>✓ CPR and First Aid certified</li>
-                        <li>✓ Trained through our Accredited Training Center</li>
-                        <li>✓ Licensed 1099 contractors with proper insurance</li>
-                    </ul>
+                    <img src="https://images.pexels.com/photos/6646918/pexels-photo-6646918.jpeg?auto=compress&cs=tinysrgb&w=1200" alt="Caregiver assisting elderly person in NYC" style="width: 100%; border-radius: 10px; margin: 20px 0;">
                     
-                    <h2>Matching Based on Your Priorities</h2>
-                    <p>We consider multiple factors when matching you with caregivers:</p>
-                    <ul>
-                        <li><strong>Location:</strong> Caregivers available in your NYC neighborhood</li>
-                        <li><strong>Schedule:</strong> Availability that matches your needs (hourly, daily, live-in)</li>
-                        <li><strong>Experience:</strong> Specialized skills (elderly care, childcare, special needs)</li>
-                        <li><strong>Language:</strong> Caregivers who speak your preferred language</li>
-                        <li><strong>Budget:</strong> Transparent pricing within your range</li>
-                        <li><strong>Personality:</strong> Compatible temperament and approach to care</li>
-                    </ul>
+                    <h2>The Interview Process</h2>
+                    <p>When interviewing potential caregivers, ask about their experience with similar cases, their approach to care, and how they handle daily routines. Observe their communication style and demeanor. A good caregiver should be patient, empathetic, and demonstrate genuine interest in your loved one\'s wellbeing.</p>
                     
-                    <h2>Quality You Can Trust</h2>
-                    <p>Our platform isn\'t just about matching - it\'s about peace of mind:</p>
-                    <ul>
-                        <li>Continuous quality monitoring and feedback system</li>
-                        <li>Easy replacement if needs change or issues arise</li>
-                        <li>Secure payment processing and booking management</li>
-                        <li>Real-time communication with your caregiver team</li>
-                        <li>24/7 customer support for any questions or concerns</li>
-                    </ul>
+                    <h2>Compatibility Matters</h2>
+                    <p>Beyond qualifications, personal compatibility is essential. The caregiver will spend significant time with your loved one, so personality fit, shared interests, and communication style matter greatly. Consider arranging a trial period to ensure everyone is comfortable.</p>
                     
-                    <h2>Get Started Today</h2>
-                    <p>Ready to experience the CAS Private Care difference? Create an account, tell us what you need, and let our intelligent system connect you with qualified caregivers across all New York boroughs. Quality care is just a few clicks away.</p>
+                    <h2>Trust CAS Private Care</h2>
+                    <p>At CAS Private Care, all our 1099 contractor caregivers are thoroughly vetted, certified through our Accredited Training Center, and continuously monitored to ensure the highest quality of care. We make the selection process easier by connecting you with pre-qualified professionals who match your specific needs across all New York boroughs.</p>
                 ',
                 'category' => 'Tips & Guides',
                 'author' => 'CAS Care Team',
@@ -485,7 +464,7 @@ class BlogController extends Controller
                 'content' => '
                     <p>Choosing between live-in and live-out caregivers is a significant decision that impacts your family\'s lifestyle, budget, and care quality. Understanding the differences helps you make the best choice for your unique situation.</p>
                     
-                    <img src="https://images.pexels.com/photos/6647027/pexels-photo-6647027.jpeg?auto=compress&cs=tinysrgb&w=1200" alt="Live-in caregiver in New York home" style="width: 100%; border-radius: 10px; margin: 20px 0;">
+                    <img src="https://images.pexels.com/photos/3758683/pexels-photo-3758683.jpeg?auto=compress&cs=tinysrgb&w=1200" alt="Live-in caregiver in New York home" style="width: 100%; border-radius: 10px; margin: 20px 0;">
                     
                     <h2>Live-In Caregivers</h2>
                     <p>Live-in caregivers reside in your home and provide around-the-clock presence.</p>
@@ -565,7 +544,7 @@ class BlogController extends Controller
                 ',
                 'category' => 'Elderly Care',
                 'author' => 'CAS Care Team',
-                'image' => 'https://images.pexels.com/photos/6647027/pexels-photo-6647027.jpeg?auto=compress&cs=tinysrgb&w=800',
+                'image' => 'https://images.pexels.com/photos/3758683/pexels-photo-3758683.jpeg?auto=compress&cs=tinysrgb&w=800',
                 'published_at' => '2025-12-20',
                 'reading_time' => '11 min read'
             ],
@@ -954,17 +933,11 @@ class BlogController extends Controller
             abort(404);
         }
         
-        // Convert array to object for easier access in view
-        $post = (object) $post;
-        
         // Get related posts (same category, different post)
         $relatedPosts = $posts
-            ->where('category', $post->category)
+            ->where('category', $post['category'])
             ->where('slug', '!=', $slug)
-            ->take(3)
-            ->map(function($item) {
-                return (object) $item;
-            });
+            ->take(3);
         
         return view('blog.show', compact('post', 'relatedPosts'));
     }

@@ -217,7 +217,7 @@
             width: 100%;
             height: 100%;
             background: linear-gradient(135deg, rgba(30, 64, 175, 0.65) 0%, rgba(59, 130, 246, 0.6) 50%, rgba(96, 165, 250, 0.55) 100%);
-            z-index: 1;
+            z-index: 0;
         }
 
         @keyframes float {
@@ -229,7 +229,7 @@
             max-width: 1400px;
             margin: 0 auto;
             position: relative;
-            z-index: 1;
+            z-index: 10;
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 4rem;
@@ -255,6 +255,7 @@
         .hero-image-container {
             position: relative;
             height: 350px;
+            width:610px;
             border-radius: 20px;
             overflow: hidden;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
@@ -323,52 +324,133 @@
         .about-features-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 1.5rem;
+            gap: 2rem;
+            margin-top: 2rem;
         }
 
         .about-feature-card {
             display: flex;
-            gap: 1rem;
-            align-items: flex-start;
-            background: white;
-            padding: 1.5rem;
-            border-radius: 16px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-            transition: transform 0.3s, box-shadow 0.3s;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
+            padding: 3rem 2rem;
+            border-radius: 24px;
+            box-shadow: 0 10px 40px rgba(59, 130, 246, 0.08);
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 2px solid transparent;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .about-feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(145deg, rgba(59, 130, 246, 0.05) 0%, rgba(249, 115, 22, 0.05) 100%);
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+
+        .about-feature-card:hover::before {
+            opacity: 1;
         }
 
         .about-feature-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+            transform: translateY(-12px) scale(1.03);
+            box-shadow: 0 20px 60px rgba(59, 130, 246, 0.2);
+            border-color: rgba(59, 130, 246, 0.3);
+        }
+
+        .about-feature-card:nth-child(1):hover {
+            box-shadow: 0 20px 60px rgba(59, 130, 246, 0.25);
+            border-color: #3b82f6;
+        }
+
+        .about-feature-card:nth-child(2):hover {
+            box-shadow: 0 20px 60px rgba(249, 115, 22, 0.25);
+            border-color: #f97316;
+        }
+
+        .about-feature-card:nth-child(3):hover {
+            box-shadow: 0 20px 60px rgba(16, 185, 129, 0.25);
+            border-color: #10b981;
         }
 
         .about-feature-icon {
-            width: 50px;
-            height: 50px;
-            background: linear-gradient(135deg, #f97316, #ea580c);
-            border-radius: 12px;
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
+            border-radius: 20px;
             display: flex;
             align-items: center;
             justify-content: center;
             flex-shrink: 0;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 10px 30px rgba(59, 130, 246, 0.3);
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            z-index: 1;
+        }
+
+        .about-feature-card:nth-child(1) .about-feature-icon {
+            background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
+            box-shadow: 0 10px 30px rgba(59, 130, 246, 0.3);
+        }
+
+        .about-feature-card:nth-child(2) .about-feature-icon {
+            background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+            box-shadow: 0 10px 30px rgba(249, 115, 22, 0.3);
+        }
+
+        .about-feature-card:nth-child(3) .about-feature-icon {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            box-shadow: 0 10px 30px rgba(16, 185, 129, 0.3);
+        }
+
+        .about-feature-card:hover .about-feature-icon {
+            transform: scale(1.15) rotate(5deg);
+            box-shadow: 0 15px 45px rgba(59, 130, 246, 0.4);
+        }
+
+        .about-feature-card:nth-child(1):hover .about-feature-icon {
+            box-shadow: 0 15px 45px rgba(59, 130, 246, 0.5);
+        }
+
+        .about-feature-card:nth-child(2):hover .about-feature-icon {
+            box-shadow: 0 15px 45px rgba(249, 115, 22, 0.5);
+        }
+
+        .about-feature-card:nth-child(3):hover .about-feature-icon {
+            box-shadow: 0 15px 45px rgba(16, 185, 129, 0.5);
         }
 
         .about-feature-icon i {
             color: white;
-            font-size: 1.5rem;
+            font-size: 2rem;
+        }
+
+        .about-feature-content {
+            position: relative;
+            z-index: 1;
         }
 
         .about-feature-content h3 {
-            font-size: 1.25rem;
-            margin: 0 0 0.5rem 0;
-            font-weight: 600;
+            font-size: 1.5rem;
+            margin: 0 0 1rem 0;
+            font-weight: 700;
+            letter-spacing: -0.01em;
         }
 
         .about-feature-content p {
             color: #64748b;
             margin: 0;
-            line-height: 1.6;
-            font-size: 0.95rem;
+            line-height: 1.7;
+            font-size: 1rem;
+            font-weight: 400;
         }
 
         .hero h1 {
@@ -391,6 +473,253 @@
             to {
                 opacity: 1;
                 transform: translateY(0);
+            }
+        }
+
+        /* ===== SCROLL ANIMATION CLASSES ===== */
+        /* Fade In Animation */
+        .animate-fade-in {
+            animation: fadeIn 0.8s ease-out forwards;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        /* Slide Up Animation */
+        .animate-slide-up {
+            animation: slideUp 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Slide In From Left Animation */
+        .animate-slide-left {
+            animation: slideLeft 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+
+        @keyframes slideLeft {
+            from {
+                opacity: 0;
+                transform: translateX(-50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        /* Slide In From Right Animation */
+        .animate-slide-right {
+            animation: slideRight 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+
+        @keyframes slideRight {
+            from {
+                opacity: 0;
+                transform: translateX(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        /* Scale Animation */
+        .animate-scale {
+            animation: scaleIn 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+
+        @keyframes scaleIn {
+            from {
+                opacity: 0;
+                transform: scale(0.8);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        /* Bounce Animation for hover effects */
+        .animate-bounce:hover {
+            animation: bounce 0.6s ease-in-out;
+        }
+
+        @keyframes bounce {
+            0%, 100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+
+        /* Pulse Animation */
+        .animate-pulse {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+            50% {
+                opacity: 0.8;
+                transform: scale(1.05);
+            }
+        }
+
+        /* Smooth transitions for all animated elements */
+        [class*="animate-"] {
+            transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* ===== PARTICLES & SMOKE EFFECTS ===== */
+        #particles-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 2;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        .particle {
+            position: absolute;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.8) 0%, rgba(255, 255, 255, 0.3) 50%, transparent 100%);
+            border-radius: 50%;
+            pointer-events: none;
+            animation: particleFall linear infinite;
+        }
+
+        /* Different particle types */
+        .particle.sparkle {
+            background: radial-gradient(circle, rgba(249, 115, 22, 0.9) 0%, rgba(249, 115, 22, 0.4) 40%, transparent 100%);
+            box-shadow: 0 0 10px rgba(249, 115, 22, 0.5);
+        }
+
+        .particle.blue-sparkle {
+            background: radial-gradient(circle, rgba(59, 130, 246, 0.9) 0%, rgba(59, 130, 246, 0.4) 40%, transparent 100%);
+            box-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
+        }
+
+        .particle.glow {
+            background: radial-gradient(circle, rgba(255, 255, 255, 1) 0%, rgba(255, 255, 255, 0.6) 30%, transparent 100%);
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.8);
+            animation: particleFall linear infinite, twinkle 2s ease-in-out infinite;
+        }
+
+        @keyframes twinkle {
+            0%, 100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+            50% {
+                opacity: 0.3;
+                transform: scale(0.8);
+            }
+        }
+
+        @keyframes particleFall {
+            0% {
+                transform: translateY(-10px) translateX(0) rotate(0deg);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            90% {
+                opacity: 0.6;
+            }
+            100% {
+                transform: translateY(100vh) translateX(var(--drift)) rotate(360deg);
+                opacity: 0;
+            }
+        }
+
+        /* Smoke Effect */
+        #smoke-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 3;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        .smoke {
+            position: absolute;
+            bottom: -50%;
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.04) 50%, transparent 100%);
+            border-radius: 50%;
+            filter: blur(50px);
+            animation: smokeRise linear infinite;
+        }
+
+        .smoke-1 {
+            left: 10%;
+            width: 400px;
+            height: 400px;
+            animation-duration: 25s;
+            animation-delay: 0s;
+        }
+
+        .smoke-2 {
+            left: 50%;
+            width: 350px;
+            height: 350px;
+            animation-duration: 30s;
+            animation-delay: 5s;
+        }
+
+        .smoke-3 {
+            left: 80%;
+            width: 450px;
+            height: 450px;
+            animation-duration: 28s;
+            animation-delay: 10s;
+        }
+
+        @keyframes smokeRise {
+            0% {
+                transform: translateY(0) scale(1) rotate(0deg);
+                opacity: 0;
+            }
+            10% {
+                opacity: 0.3;
+            }
+            50% {
+                opacity: 0.15;
+                transform: translateY(-50vh) scale(1.5) rotate(180deg);
+            }
+            90% {
+                opacity: 0.08;
+            }
+            100% {
+                transform: translateY(-100vh) scale(2) rotate(360deg);
+                opacity: 0;
             }
         }
 
@@ -472,10 +801,31 @@
             font-weight: 700;
             font-size: 1.15rem;
             text-decoration: none;
-            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
             display: inline-block;
             position: relative;
             overflow: hidden;
+            cursor: pointer;
+        }
+
+        .btn-primary::before,
+        .btn-secondary::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        .btn-primary:hover::before,
+        .btn-secondary:hover::before {
+            width: 300px;
+            height: 300px;
         }
 
         .btn-primary {
@@ -485,9 +835,13 @@
         }
 
         .btn-primary:hover {
-            transform: translateY(-4px);
+            transform: translateY(-4px) scale(1.02);
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
             background: #f0f9ff;
+        }
+
+        .btn-primary:active {
+            transform: translateY(-2px) scale(0.98);
         }
 
         .btn-secondary {
@@ -499,9 +853,13 @@
 
         .btn-secondary:hover {
             background: linear-gradient(135deg, #ea580c, #dc2626);
-            transform: translateY(-4px);
+            transform: translateY(-4px) scale(1.02);
             border-color: #ea580c;
             box-shadow: 0 10px 30px rgba(249, 115, 22, 0.4);
+        }
+
+        .btn-secondary:active {
+            transform: translateY(-2px) scale(0.98);
         }
 
         section {
@@ -822,16 +1180,35 @@
             background: white;
             border-radius: 15px;
             box-shadow: 0 5px 20px rgba(30, 58, 138, 0.08);
-            transition: all 0.3s ease;
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow: hidden;
+        }
+
+        .step::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.05) 0%, rgba(249, 115, 22, 0.05) 100%);
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+
+        .step:hover::before {
+            opacity: 1;
         }
 
         .step-content {
             flex: 1;
+            position: relative;
+            z-index: 1;
         }
 
         .step:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 30px rgba(59, 130, 246, 0.15);
+            transform: translateY(-10px) scale(1.02);
+            box-shadow: 0 15px 40px rgba(59, 130, 246, 0.2);
         }
 
         .step::after {
@@ -862,12 +1239,33 @@
             font-weight: 700;
             margin: 0 auto 1.25rem;
             box-shadow: 0 8px 25px rgba(249, 115, 22, 0.3);
-            transition: all 0.3s ease;
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            z-index: 1;
+        }
+
+        .step-number::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+            transform: translate(-50%, -50%) scale(0);
+            opacity: 0.5;
+            transition: transform 0.5s ease;
+        }
+
+        .step:hover .step-number::before {
+            transform: translate(-50%, -50%) scale(1.5);
+            opacity: 0;
         }
 
         .step:hover .step-number {
-            transform: scale(1.1);
-            box-shadow: 0 12px 35px rgba(249, 115, 22, 0.4);
+            transform: scale(1.15) rotate(360deg);
+            box-shadow: 0 15px 45px rgba(249, 115, 22, 0.5);
         }
 
         .step h3 {
@@ -939,7 +1337,7 @@
             padding: 2.5rem;
             border-radius: 0;
             box-shadow: 0 10px 40px rgba(30, 58, 138, 0.12);
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
             border: 2px solid transparent;
             position: relative;
             overflow: hidden;
@@ -960,11 +1358,12 @@
             bottom: 0;
             background: linear-gradient(to bottom, rgba(0, 0, 0, 0.3) 0%, rgba(0, 0, 0, 0.7) 100%);
             z-index: 0;
-            transition: opacity 0.4s ease;
+            transition: all 0.5s ease;
         }
 
         .location-card:hover::after {
             opacity: 0.85;
+            background: linear-gradient(to bottom, rgba(0, 0, 0, 0.4) 0%, rgba(0, 0, 0, 0.75) 100%);
         }
 
         .location-card::before {
@@ -977,13 +1376,13 @@
             background: linear-gradient(90deg, #3b82f6 0%, #f97316 100%);
             transform: scaleX(0);
             transform-origin: left;
-            transition: transform 0.4s ease;
+            transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
             z-index: 2;
         }
 
         .location-card:hover {
-            transform: translateY(-12px);
-            box-shadow: 0 25px 60px rgba(59, 130, 246, 0.25);
+            transform: translateY(-15px) scale(1.02);
+            box-shadow: 0 30px 70px rgba(59, 130, 246, 0.3);
             border-color: #3b82f6;
         }
 
@@ -1217,12 +1616,12 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: linear-gradient(to bottom, rgba(30, 64, 175, 0.3), rgba(30, 64, 175, 0.85));
+            background: linear-gradient(to bottom, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.7));
             transition: background 0.4s ease;
         }
 
         .service-item:hover .service-overlay {
-            background: linear-gradient(to bottom, rgba(30, 64, 175, 0.5), rgba(30, 64, 175, 0.95));
+            background: linear-gradient(to bottom, rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.8));
         }
 
         .service-content {
@@ -1532,14 +1931,22 @@
                 margin-top: 70px;
                 padding: 2rem 1rem;
                 min-height: auto;
+                position: relative;
+                background-image: url('https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=800');
+                background-size: cover;
+                background-position: center;
             }
 
             .hero-bg-images {
-                display: none;
+                display: none !important;
             }
 
             .hero::before {
-                background: linear-gradient(135deg, rgba(30, 64, 175, 0.85) 0%, rgba(59, 130, 246, 0.8) 100%);
+                background: linear-gradient(135deg, rgba(30, 64, 175, 0.35) 0%, rgba(59, 130, 246, 0.3) 50%, rgba(96, 165, 250, 0.25) 100%);
+            }
+
+            .hero::after {
+                display: none;
             }
 
             .hero-content {
@@ -1547,6 +1954,10 @@
                 gap: 2rem;
                 padding: 1.5rem;
                 border-radius: 20px;
+                position: relative;
+                z-index: 2;
+                background: rgba(255, 255, 255, 0.08);
+                backdrop-filter: blur(10px);
             }
 
             .hero-left {
@@ -1557,6 +1968,7 @@
                 font-size: 2rem;
                 line-height: 1.2;
                 margin-bottom: 0.75rem;
+                text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
             }
 
             .hero .tagline {
@@ -1593,9 +2005,9 @@
                 font-size: 0.9rem;
             }
 
+            /* Hide hero image on very small screens */
             .hero-right {
-                display: flex;
-                gap: 1.5rem;
+                display: none !important;
             }
 
             .hero-image-container {
@@ -1931,22 +2343,31 @@
                 margin-bottom: 1.5rem !important;
             }
 
-            /* Feature cards grid layout on mobile - 2x2 grid */
+            /* Feature cards grid layout on mobile - single column */
             .about-features-grid {
-                grid-template-columns: 1fr 1fr !important;
-                gap: 1rem !important;
+                grid-template-columns: 1fr !important;
+                gap: 1.5rem !important;
             }
 
             .about-feature-card {
-                flex-direction: column !important;
-                padding: 1.25rem !important;
-                text-align: center;
+                padding: 2rem 1.5rem !important;
             }
 
             .about-feature-icon {
-                width: 45px !important;
-                height: 45px !important;
-                margin: 0 auto;
+                width: 70px !important;
+                height: 70px !important;
+            }
+
+            .about-feature-icon i {
+                font-size: 1.75rem !important;
+            }
+
+            .about-feature-content h3 {
+                font-size: 1.3rem !important;
+            }
+
+            .about-feature-content p {
+                font-size: 0.95rem !important;
             }
 
             .about-feature-icon i {
@@ -1978,6 +2399,58 @@ font-size: 1.1rem !important;
 
             #about h3 {
                 font-size: 2rem !important;
+            }
+
+            /* SEO Block Mobile Styles */
+            .fade-in[style*="background: linear-gradient(135deg, #ffffff 0%, #f9fafb 100%)"] {
+                padding: 2rem 1.5rem !important;
+                margin-top: 2rem !important;
+                border-radius: 16px !important;
+            }
+
+            .fade-in[style*="background: linear-gradient(135deg, #ffffff 0%, #f9fafb 100%)"] > div:first-child {
+                flex-direction: column !important;
+                gap: 1rem !important;
+            }
+
+            .fade-in[style*="background: linear-gradient(135deg, #ffffff 0%, #f9fafb 100%)"] > div:first-child > div {
+                gap: 0.4rem !important;
+            }
+
+            .fade-in[style*="background: linear-gradient(135deg, #ffffff 0%, #f9fafb 100%)"] > div:first-child > div > div {
+                width: 32px !important;
+                height: 32px !important;
+                border-radius: 8px !important;
+            }
+
+            .fade-in[style*="background: linear-gradient(135deg, #ffffff 0%, #f9fafb 100%)"] > div:first-child > div > span {
+                font-size: 1.1rem !important;
+            }
+
+            .fade-in[style*="background: linear-gradient(135deg, #ffffff 0%, #f9fafb 100%)"] > h3 {
+                font-size: 1.5rem !important;
+                margin-bottom: 0.75rem !important;
+            }
+
+            .fade-in[style*="background: linear-gradient(135deg, #ffffff 0%, #f9fafb 100%)"] > div:nth-child(3) > p {
+                font-size: 1.1rem !important;
+            }
+
+            .fade-in[style*="background: linear-gradient(135deg, #ffffff 0%, #f9fafb 100%)"] > div:nth-child(3) > div > div {
+                width: 24px !important;
+                height: 24px !important;
+            }
+
+            .fade-in[style*="background: linear-gradient(135deg, #ffffff 0%, #f9fafb 100%)"] > div:last-child {
+                padding: 1.75rem 1.25rem !important;
+                border-radius: 12px !important;
+            }
+
+            .fade-in[style*="background: linear-gradient(135deg, #ffffff 0%, #f9fafb 100%)"] > div:last-child > p {
+                font-size: 0.95rem !important;
+                line-height: 1.8 !important;
+                text-align: left !important;
+                margin-bottom: 1.25rem !important;
             }
 
         }
@@ -2155,6 +2628,11 @@ font-size: 1.1rem !important;
 
             .hero-left {
                 text-align: center;
+            }
+
+            /* Hide hero image on mobile phones */
+            .hero-right {
+                display: none !important;
             }
 
             .hero-buttons {
@@ -2421,6 +2899,21 @@ font-size: 1.1rem !important;
                 grid-template-columns: repeat(2, 1fr);
             }
 
+            /* About features cards tablet */
+            .about-features-grid {
+                grid-template-columns: repeat(3, 1fr) !important;
+                gap: 1.5rem !important;
+            }
+
+            .about-feature-card {
+                padding: 2rem 1.5rem !important;
+            }
+
+            .about-feature-icon {
+                width: 70px !important;
+                height: 70px !important;
+            }
+
             /* About section tablet */
             #about-section > div {
                 grid-template-columns: 1fr 1fr !important;
@@ -2560,9 +3053,20 @@ font-size: 1.1rem !important;
             <div class="hero-bg-slice"></div>
             <div class="hero-bg-slice"></div>
         </div>
+        
+        <!-- Particle System -->
+        <div id="particles-container"></div>
+        
+        <!-- Smoke Effect -->
+        <div id="smoke-container">
+            <div class="smoke smoke-1"></div>
+            <div class="smoke smoke-2"></div>
+            <div class="smoke smoke-3"></div>
+        </div>
+        
         <div class="hero-content">
             <div class="hero-left">
-                <h1>CAS Private Care LLC</h1>
+                <h1 style="text-shadow: 2px 2px 4px rgba(255, 255, 255, 1), -1px -1px 0 rgba(255, 255, 255, 1), 1px -1px 0 rgba(255, 255, 255, 1), -1px 1px 0 rgba(255, 255, 255, 1), 1px 1px 0 rgba(255, 255, 255, 1);"><span style="color: #f97316;">CAS Private Care</span> <span style="color: #3b82f6;">LLC</span></h1>
                 <p class="tagline">Comfort and Support</p>
                 
                 <div style="position: relative; display: flex; justify-content: center; margin: 2rem 0; background: rgba(255,255,255,0.1); padding: 0.5rem; border-radius: 50px; backdrop-filter: blur(10px);">
@@ -2618,7 +3122,14 @@ font-size: 1.1rem !important;
                 </div>
             </div>
             <div class="fade-in" itemprop="description">
-                <h2 style="font-size: 3rem; font-weight: 700; margin-bottom: 1.5rem;"><span style="color: #f97316;">What</span> <span style="background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">is CAS Private Care LLC?</span></h2>
+                <h2 style="font-size: 3rem; font-weight: 700; margin-bottom: 1rem;"><span style="color: #f97316;">What</span> <span style="background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">is CAS Private Care LLC?</span></h2>
+                
+                <!-- Trust Badge -->
+                <div style="display: inline-flex; align-items: center; gap: 0.5rem; background: linear-gradient(135deg, #dbeafe 0%, #e0f2fe 100%); padding: 0.5rem 1.25rem; border-radius: 50px; margin-bottom: 1.5rem; border: 2px solid #93c5fd;">
+                    <i class="bi bi-shield-check-fill" style="color: #3b82f6; font-size: 1.1rem;"></i>
+                    <span style="font-weight: 700; color: #1e40af; font-size: 0.95rem;">Trusted by 2,500+ New York Families</span>
+                </div>
+                
                 <p style="font-size: 1.1rem; color: #64748b; line-height: 1.8; margin-bottom: 2rem;">Your trusted platform connecting families with verified partners and contractors for quality care services. We make finding professional partners simple, safe, and reliable.</p>
                 <div class="about-features-grid">
                     <div class="about-feature-card">
@@ -2769,9 +3280,6 @@ font-size: 1.1rem !important;
                     </div>
                     <h4>Manhattan Partners</h4>
                     <p>Professional partner services throughout Manhattan, from Upper East Side to Lower Manhattan. Available 24/7 for immediate service needs across all partner types.</p>
-                    <a href="<?php echo e(url('/register')); ?>" class="location-card-link">
-                        Join as Partner <i class="bi bi-arrow-right"></i>
-                    </a>
                 </div>
 
                 <div class="location-card fade-in" style="background-image: url('https://images.unsplash.com/photo-1505843513577-22bb7d21e455?w=800&q=80');">
@@ -2780,9 +3288,6 @@ font-size: 1.1rem !important;
                     </div>
                     <h4>Brooklyn Partners</h4>
                     <p>Trusted partners serving all Brooklyn neighborhoods. From Park Slope to Brighton Beach, we're here to connect families with quality contractors and partners.</p>
-                    <a href="<?php echo e(url('/register')); ?>" class="location-card-link">
-                        Join as Partner <i class="bi bi-arrow-right"></i>
-                    </a>
                 </div>
 
                 <div class="location-card fade-in" style="background-image: url('https://images.unsplash.com/photo-1500916434205-0c77489c6cf7?w=800&q=80');">
@@ -2791,9 +3296,6 @@ font-size: 1.1rem !important;
                     </div>
                     <h4>Queens Partners</h4>
                     <p>Reliable partner services across Queens, including Astoria, Flushing, and Jamaica. Comprehensive support for all partner types and service needs.</p>
-                    <a href="<?php echo e(url('/register')); ?>" class="location-card-link">
-                        Join as Partner <i class="bi bi-arrow-right"></i>
-                    </a>
                 </div>
 
                 <div class="location-card fade-in" style="background-image: url('https://images.unsplash.com/photo-1514565131-fce0801e5785?w=800&q=80');">
@@ -2802,9 +3304,6 @@ font-size: 1.1rem !important;
                     </div>
                     <h4>Bronx Partners</h4>
                     <p>Professional partners serving the Bronx communities. Specialized services including elderly care, personal care, housekeeping, and more.</p>
-                    <a href="<?php echo e(url('/register')); ?>" class="location-card-link">
-                        Join as Partner <i class="bi bi-arrow-right"></i>
-                    </a>
                 </div>
 
                 <div class="location-card fade-in" style="background-image: url('https://www.nyhabitat.com/blog/wp-content/uploads/2014/09/New-york-nyc-borough-staten-island-ferry-manhattan-skyline.jpg');">
@@ -2813,10 +3312,19 @@ font-size: 1.1rem !important;
                     </div>
                     <h4>Staten Island Partners</h4>
                     <p>Dedicated partner services for Staten Island residents. Personalized connections tailored to your family's unique needs and requirements.</p>
-                    <a href="<?php echo e(url('/register')); ?>" class="location-card-link">
-                        Join as Partner <i class="bi bi-arrow-right"></i>
-                    </a>
                 </div>
+            </div>
+            
+            <!-- Central Join as Partner Button -->
+            <div class="fade-in" style="text-align: center; margin-top: 4rem;">
+                <a href="<?php echo e(url('/register?show_partner_types=true')); ?>" class="btn-primary" style="padding: 1.5rem 4rem; font-size: 1.3rem; display: inline-flex; align-items: center; gap: 1rem; box-shadow: 0 10px 40px rgba(59, 130, 246, 0.3);">
+                    <i class="bi bi-person-plus-fill" style="font-size: 1.5rem;"></i>
+                    Join as Partner in New York State
+                    <i class="bi bi-arrow-right-circle-fill" style="font-size: 1.5rem;"></i>
+                </a>
+                <p style="margin-top: 1.5rem; color: #64748b; font-size: 1.1rem;">
+                    Start earning today as a caregiver, housekeeper, or personal assistant across all NYC boroughs
+                </p>
             </div>
         </div>
     </section>
@@ -2905,7 +3413,12 @@ font-size: 1.1rem !important;
             <!-- Detailed Reviews Grid -->
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 2rem;">
                 <!-- Caregiver Review 1 -->
-                <div class="fade-in" style="background: white; padding: 2rem; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); border-left: 4px solid #10b981;">
+                <div class="fade-in" style="background: white; padding: 2rem; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); border-left: 4px solid #10b981; position: relative;">
+                    <!-- Verified Badge -->
+                    <div style="position: absolute; top: 1rem; right: 1rem; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; padding: 0.35rem 0.75rem; border-radius: 50px; font-size: 0.75rem; font-weight: 700; display: flex; align-items: center; gap: 0.35rem;">
+                        <i class="bi bi-patch-check-fill"></i>
+                        Verified Review
+                    </div>
                     <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
                         <div style="width: 56px; height: 56px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 1.3rem;">EM</div>
                         <div style="flex: 1;">
@@ -2922,7 +3435,12 @@ font-size: 1.1rem !important;
                 </div>
 
                 <!-- Housekeeper Review 1 -->
-                <div class="fade-in" style="background: white; padding: 2rem; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); border-left: 4px solid #3b82f6;">
+                <div class="fade-in" style="background: white; padding: 2rem; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); border-left: 4px solid #3b82f6; position: relative;">
+                    <!-- Verified Badge -->
+                    <div style="position: absolute; top: 1rem; right: 1rem; background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); color: white; padding: 0.35rem 0.75rem; border-radius: 50px; font-size: 0.75rem; font-weight: 700; display: flex; align-items: center; gap: 0.35rem;">
+                        <i class="bi bi-patch-check-fill"></i>
+                        Verified Review
+                    </div>
                     <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
                         <div style="width: 56px; height: 56px; background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 1.3rem;">CT</div>
                         <div style="flex: 1;">
@@ -2939,7 +3457,12 @@ font-size: 1.1rem !important;
                 </div>
 
                 <!-- Personal Assistant Review 1 -->
-                <div class="fade-in" style="background: white; padding: 2rem; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); border-left: 4px solid #f97316;">
+                <div class="fade-in" style="background: white; padding: 2rem; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); border-left: 4px solid #f97316; position: relative;">
+                    <!-- Verified Badge -->
+                    <div style="position: absolute; top: 1rem; right: 1rem; background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); color: white; padding: 0.35rem 0.75rem; border-radius: 50px; font-size: 0.75rem; font-weight: 700; display: flex; align-items: center; gap: 0.35rem;">
+                        <i class="bi bi-patch-check-fill"></i>
+                        Verified Review
+                    </div>
                     <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
                         <div style="width: 56px; height: 56px; background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 1.3rem;">AP</div>
                         <div style="flex: 1;">
@@ -2956,7 +3479,12 @@ font-size: 1.1rem !important;
                 </div>
 
                 <!-- Caregiver Review 2 -->
-                <div class="fade-in" style="background: white; padding: 2rem; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); border-left: 4px solid #10b981;">
+                <div class="fade-in" style="background: white; padding: 2rem; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); border-left: 4px solid #10b981; position: relative;">
+                    <!-- Verified Badge -->
+                    <div style="position: absolute; top: 1rem; right: 1rem; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; padding: 0.35rem 0.75rem; border-radius: 50px; font-size: 0.75rem; font-weight: 700; display: flex; align-items: center; gap: 0.35rem;">
+                        <i class="bi bi-patch-check-fill"></i>
+                        Verified Review
+                    </div>
                     <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
                         <div style="width: 56px; height: 56px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 1.3rem;">RJ</div>
                         <div style="flex: 1;">
@@ -2973,7 +3501,12 @@ font-size: 1.1rem !important;
                 </div>
 
                 <!-- Housekeeper Review 2 -->
-                <div class="fade-in" style="background: white; padding: 2rem; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); border-left: 4px solid #3b82f6;">
+                <div class="fade-in" style="background: white; padding: 2rem; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); border-left: 4px solid #3b82f6; position: relative;">
+                    <!-- Verified Badge -->
+                    <div style="position: absolute; top: 1rem; right: 1rem; background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); color: white; padding: 0.35rem 0.75rem; border-radius: 50px; font-size: 0.75rem; font-weight: 700; display: flex; align-items: center; gap: 0.35rem;">
+                        <i class="bi bi-patch-check-fill"></i>
+                        Verified Review
+                    </div>
                     <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
                         <div style="width: 56px; height: 56px; background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 1.3rem;">MS</div>
                         <div style="flex: 1;">
@@ -2990,7 +3523,11 @@ font-size: 1.1rem !important;
                 </div>
 
                 <!-- Personal Assistant Review 2 -->
-                <div class="fade-in" style="background: white; padding: 2rem; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); border-left: 4px solid #f97316;">
+                <div class="fade-in" style="background: white; padding: 2rem; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); border-left: 4px solid #f97316; position: relative;">
+                    <div style="position: absolute; top: 1rem; right: 1rem; background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); color: white; padding: 0.35rem 0.75rem; border-radius: 50px; font-size: 0.75rem; font-weight: 700; display: flex; align-items: center; gap: 0.35rem;">
+                        <i class="bi bi-patch-check-fill"></i>
+                        Verified Review
+                    </div>
                     <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
                         <div style="width: 56px; height: 56px; background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 1.3rem;">SL</div>
                         <div style="flex: 1;">
@@ -3008,13 +3545,55 @@ font-size: 1.1rem !important;
             </div>
 
             <!-- SEO-Optimized Location Summary -->
-            <div class="fade-in" style="background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%); padding: 2.5rem; border-radius: 16px; margin-top: 3rem; border: 2px solid #e5e7eb;">
-                <h3 style="font-size: 1.8rem; font-weight: 700; color: #111827; margin-bottom: 1.5rem; text-align: center;">
-                    <span style="color: #10b981;">Caregivers</span> • <span style="color: #3b82f6;">Housekeepers</span> • <span style="color: #f97316;">Personal Assistants</span> Across NYC
+            <div class="fade-in" style="background: linear-gradient(135deg, #ffffff 0%, #f9fafb 100%); padding: 4rem 3rem; border-radius: 24px; margin-top: 4rem; border: 1px solid #e5e7eb; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(59, 130, 246, 0.05);">
+                <!-- Service Types Header with Icons -->
+                <div style="display: flex; justify-content: center; align-items: center; gap: 2rem; margin-bottom: 2rem; flex-wrap: wrap;">
+                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                        <div style="width: 40px; height: 40px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);">
+                            <i class="bi bi-heart-pulse-fill" style="color: white; font-size: 1.2rem;"></i>
+                        </div>
+                        <span style="font-size: 1.3rem; font-weight: 700; color: #10b981;">Caregivers</span>
+                    </div>
+                    <span style="color: #d1d5db; font-size: 1.5rem; font-weight: 300;">•</span>
+                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                        <div style="width: 40px; height: 40px; background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);">
+                            <i class="bi bi-house-heart-fill" style="color: white; font-size: 1.2rem;"></i>
+                        </div>
+                        <span style="font-size: 1.3rem; font-weight: 700; color: #3b82f6;">Housekeepers</span>
+                    </div>
+                    <span style="color: #d1d5db; font-size: 1.5rem; font-weight: 300;">•</span>
+                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                        <div style="width: 40px; height: 40px; background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(249, 115, 22, 0.3);">
+                            <i class="bi bi-briefcase-fill" style="color: white; font-size: 1.2rem;"></i>
+                        </div>
+                        <span style="font-size: 1.3rem; font-weight: 700; color: #f97316;">Personal Assistants</span>
+                    </div>
+                </div>
+                
+                <h3 style="font-size: 2rem; font-weight: 800; color: #111827; margin-bottom: 1rem; text-align: center; line-height: 1.3;">
+                    Across NYC
                 </h3>
-                <p style="color: #374151; line-height: 1.8; font-size: 1rem; text-align: center; max-width: 900px; margin: 0 auto;">
-                    CAS Private Care connects New York families with <strong>verified caregivers in Manhattan, Brooklyn, Queens, Bronx, and Staten Island</strong>. Our platform features <strong>professional housekeepers in New York</strong> providing deep cleaning and household management, <strong>personal assistants throughout NYC</strong> handling daily tasks and errands, and <strong>certified caregivers</strong> offering elderly care, companion care, and medical support. All contractors are background-checked, highly rated with verified reviews, and trusted by over 2,500 New York families. Whether you need a <strong>caregiver in Manhattan</strong>, a <strong>housekeeper in Brooklyn</strong>, or a <strong>personal assistant in Queens</strong>, we connect you with the best professionals in your borough.
-                </p>
+                
+                <!-- Subheading -->
+                <div style="display: flex; align-items: center; justify-content: center; margin-bottom: 2.5rem;">
+                    <p style="font-size: 1.3rem; font-weight: 700; background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin: 0;">
+                        Why New York Families Choose CAS Private Care
+                    </p>
+                </div>
+                
+                <!-- Content Container -->
+                <div style="max-width: 950px; margin: 0 auto; background: white; padding: 2.5rem; border-radius: 16px; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);">
+                    <p style="color: #1f2937; line-height: 2; font-size: 1.05rem; margin-bottom: 1.75rem; text-align: justify;">
+                        CAS Private Care connects New York families with <strong style="color: #10b981;">verified caregivers in Manhattan, Brooklyn, Queens, Bronx, and Staten Island</strong>. Our platform features <strong style="color: #3b82f6;">professional housekeepers in New York</strong> providing deep cleaning and household management, <strong style="color: #f97316;">personal assistants throughout NYC</strong> handling daily tasks and errands, and <strong style="color: #10b981;">certified caregivers</strong> offering elderly care, companion care, and medical support.
+                    </p>
+                    
+                    <!-- Divider -->
+                    <div style="height: 2px; background: linear-gradient(90deg, transparent 0%, #e5e7eb 50%, transparent 100%); margin: 1.5rem 0;"></div>
+                    
+                    <p style="color: #1f2937; line-height: 2; font-size: 1.05rem; margin: 0; text-align: justify;">
+                        All contractors are background-checked, highly rated with verified reviews, and trusted by over <strong style="color: #3b82f6;">2,500 New York families</strong>. Whether you need a <strong style="color: #10b981;">caregiver in Manhattan</strong>, a <strong style="color: #3b82f6;">housekeeper in Brooklyn</strong>, or a <strong style="color: #f97316;">personal assistant in Queens</strong>, we connect you with the best professionals in your borough.
+                    </p>
+                </div>
             </div>
         </div>
     </section>
@@ -3930,6 +4509,305 @@ font-size: 1.1rem !important;
                     closeChatbot();
                 }
             }
+        });
+
+        // ===== PARTICLE SYSTEM =====
+        function createParticles() {
+            const particlesContainer = document.getElementById('particles-container');
+            console.log('Particles container:', particlesContainer);
+            if (!particlesContainer) {
+                console.error('Particles container not found!');
+                return;
+            }
+
+            // Create 50 particles with variety
+            const particleCount = 50;
+            const particleTypes = ['', 'sparkle', 'blue-sparkle', 'glow'];
+            
+            console.log('Creating', particleCount, 'particles...');
+            
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                
+                // Add random particle type (70% regular, 30% special)
+                if (Math.random() > 0.7) {
+                    const randomType = particleTypes[Math.floor(Math.random() * particleTypes.length)];
+                    if (randomType) {
+                        particle.classList.add(randomType);
+                    }
+                }
+                
+                // Random size between 2-8px (larger for special particles)
+                const isSpecial = particle.classList.length > 1;
+                const size = isSpecial ? Math.random() * 4 + 4 : Math.random() * 4 + 2;
+                particle.style.width = `${size}px`;
+                particle.style.height = `${size}px`;
+                
+                // Random horizontal position
+                particle.style.left = `${Math.random() * 100}%`;
+                
+                // Random animation duration between 6-18 seconds
+                const duration = Math.random() * 12 + 6;
+                particle.style.animationDuration = `${duration}s`;
+                
+                // Random delay for staggered start
+                particle.style.animationDelay = `${Math.random() * 8}s`;
+                
+                // Random horizontal drift (-50px to 50px)
+                const drift = (Math.random() - 0.5) * 100;
+                particle.style.setProperty('--drift', `${drift}px`);
+                
+                // Random opacity
+                particle.style.opacity = Math.random() * 0.6 + 0.2;
+                
+                particlesContainer.appendChild(particle);
+            }
+            
+            console.log('Created', particleCount, 'particles successfully!');
+        }
+
+        // Add floating particles to sections
+        function addSectionParticles() {
+            const sections = document.querySelectorAll('section[id]');
+            
+            sections.forEach(section => {
+                // Skip if section already has particles
+                if (section.querySelector('.section-particles')) return;
+                
+                const particleContainer = document.createElement('div');
+                particleContainer.className = 'section-particles';
+                particleContainer.style.cssText = `
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    pointer-events: none;
+                    overflow: hidden;
+                    z-index: 0;
+                `;
+                
+                // Add 5-8 subtle particles per section
+                const count = Math.floor(Math.random() * 4) + 5;
+                for (let i = 0; i < count; i++) {
+                    const particle = document.createElement('div');
+                    particle.className = 'particle';
+                    
+                    // Smaller, more subtle particles for sections
+                    const size = Math.random() * 3 + 1;
+                    particle.style.width = `${size}px`;
+                    particle.style.height = `${size}px`;
+                    particle.style.left = `${Math.random() * 100}%`;
+                    particle.style.animationDuration = `${Math.random() * 15 + 10}s`;
+                    particle.style.animationDelay = `${Math.random() * 10}s`;
+                    particle.style.setProperty('--drift', `${(Math.random() - 0.5) * 80}px`);
+                    particle.style.opacity = Math.random() * 0.3 + 0.1;
+                    
+                    particleContainer.appendChild(particle);
+                }
+                
+                // Make sure section is positioned relative
+                if (getComputedStyle(section).position === 'static') {
+                    section.style.position = 'relative';
+                }
+                
+                section.insertBefore(particleContainer, section.firstChild);
+            });
+        }
+
+        // Initialize particles on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            createParticles();
+            // Delay section particles for better performance
+            setTimeout(() => {
+                addSectionParticles();
+            }, 1000);
+        });
+
+        // ===== SCROLL ANIMATIONS =====
+        // Initialize Intersection Observer for scroll animations
+        const observerOptions = {
+            root: null,
+            rootMargin: '0px',
+            threshold: 0.1
+        };
+
+        // Create observer for fade-in animations
+        const fadeInObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('animate-fade-in');
+                    fadeInObserver.unobserve(entry.target);
+                }
+            });
+        }, observerOptions);
+
+        // Create observer for slide-up animations
+        const slideUpObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('animate-slide-up');
+                    slideUpObserver.unobserve(entry.target);
+                }
+            });
+        }, observerOptions);
+
+        // Create observer for slide-in-left animations
+        const slideLeftObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('animate-slide-left');
+                    slideLeftObserver.unobserve(entry.target);
+                }
+            });
+        }, observerOptions);
+
+        // Create observer for slide-in-right animations
+        const slideRightObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('animate-slide-right');
+                    slideRightObserver.unobserve(entry.target);
+                }
+            });
+        }, observerOptions);
+
+        // Create observer for scale animations
+        const scaleObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('animate-scale');
+                    scaleObserver.unobserve(entry.target);
+                }
+            });
+        }, observerOptions);
+
+        // Apply animations to elements
+        document.addEventListener('DOMContentLoaded', () => {
+            // Fade in sections
+            document.querySelectorAll('section[id="about-section"], section[id="services"], section[id="how-it-works"], section[id="locations"], .ceo-section, .section-light, .section-dark').forEach(el => {
+                el.style.opacity = '0';
+                fadeInObserver.observe(el);
+            });
+
+            // Slide up cards with stagger
+            document.querySelectorAll('.location-card, .step, .about-feature-card').forEach((el, index) => {
+                el.style.opacity = '0';
+                el.style.transform = 'translateY(50px)';
+                el.style.transitionDelay = `${index * 0.15}s`;
+                slideUpObserver.observe(el);
+            });
+
+            // Slide up service items
+            document.querySelectorAll('.service-item').forEach((el, index) => {
+                el.style.opacity = '0';
+                el.style.transform = 'translateY(40px)';
+                el.style.transitionDelay = `${index * 0.1}s`;
+                slideUpObserver.observe(el);
+            });
+
+            // Slide in from left (founder/about content)
+            document.querySelectorAll('.ceo-content').forEach(el => {
+                el.style.opacity = '0';
+                el.style.transform = 'translateX(-50px)';
+                slideLeftObserver.observe(el);
+            });
+
+            // Slide in from right (images)
+            document.querySelectorAll('.ceo-image-container').forEach(el => {
+                el.style.opacity = '0';
+                el.style.transform = 'translateX(50px)';
+                slideRightObserver.observe(el);
+            });
+
+            // Scale animations for step numbers and icons
+            document.querySelectorAll('.step-number, .location-card-icon, .service-icon').forEach(el => {
+                el.style.opacity = '0';
+                el.style.transform = 'scale(0.8)';
+                scaleObserver.observe(el);
+            });
+
+            // Animate section headers
+            document.querySelectorAll('.section-header').forEach(el => {
+                el.style.opacity = '0';
+                el.style.transform = 'translateY(30px)';
+                slideUpObserver.observe(el);
+            });
+
+            // Animate review cards
+            document.querySelectorAll('.review-stat, .review-testimonial-card').forEach((el, index) => {
+                el.style.opacity = '0';
+                el.style.transform = 'translateY(40px)';
+                el.style.transitionDelay = `${index * 0.12}s`;
+                slideUpObserver.observe(el);
+            });
+        });
+
+        // Smooth scroll for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                const href = this.getAttribute('href');
+                if (href !== '#' && href !== '#!') {
+                    e.preventDefault();
+                    const target = document.querySelector(href);
+                    if (target) {
+                        target.scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'start'
+                        });
+                    }
+                }
+            });
+        });
+
+        // Parallax effect for hero section
+        let ticking = false;
+        window.addEventListener('scroll', () => {
+            if (!ticking) {
+                window.requestAnimationFrame(() => {
+                    const scrolled = window.pageYOffset;
+                    const heroSection = document.querySelector('.hero');
+                    
+                    if (heroSection && scrolled < window.innerHeight) {
+                        // Parallax effect on hero content
+                        const heroContent = document.querySelector('.hero-left');
+                        if (heroContent) {
+                            heroContent.style.transform = `translateY(${scrolled * 0.3}px)`;
+                            heroContent.style.opacity = 1 - (scrolled / 600);
+                        }
+
+                        // Parallax effect on hero image
+                        const heroImage = document.querySelector('.hero-right');
+                        if (heroImage) {
+                            heroImage.style.transform = `translateY(${scrolled * 0.2}px)`;
+                        }
+                    }
+                    
+                    ticking = false;
+                });
+                ticking = true;
+            }
+        });
+
+        // Add scroll progress indicator
+        const progressBar = document.createElement('div');
+        progressBar.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #f97316, #3b82f6);
+            width: 0%;
+            z-index: 9999;
+            transition: width 0.1s ease-out;
+        `;
+        document.body.appendChild(progressBar);
+
+        window.addEventListener('scroll', () => {
+            const windowHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+            const scrolled = (window.pageYOffset / windowHeight) * 100;
+            progressBar.style.width = scrolled + '%';
         });
     </script>
 </body>

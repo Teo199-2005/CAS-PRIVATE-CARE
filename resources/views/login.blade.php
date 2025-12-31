@@ -452,9 +452,9 @@
         </a>
     </div>
 
-    {{-- Demo credentials panel - only visible in local/development environment --}}
+    {{-- Demo credentials panel - DISABLED for production
     @if(config('app.env') === 'local' || config('app.debug') === true)
-    <div class="demo-credentials-panel" style="position: fixed; top: 2rem; right: 2rem; z-index: 3; background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); padding: 1rem; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.3); min-width: 220px;">
+    <div class="demo-credentials-panel" style="position: fixed; top: 2rem; right: 2rem; z-index: 3; background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); padding: 1rem; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.3); min-width: 220px; display: none;">
         <h4 style="margin: 0 0 0.75rem 0; color: #1e40af; font-size: 0.9rem; font-weight: 600;">🔧 Demo Credentials (Dev Only)</h4>
         <div style="margin-bottom: 0.75rem;">
             <p style="margin: 0 0 0.25rem 0; font-size: 0.8rem; color: #64748b; font-weight: 500;">Client Account:</p>
@@ -488,6 +488,7 @@
         </div>
     </div>
     @endif
+    --}}
 
     <div class="auth-container">
         <div class="auth-logo">

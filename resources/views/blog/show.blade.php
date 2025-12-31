@@ -72,17 +72,33 @@
 
         .post-featured-image {
             width: 100%;
-            max-height: 500px;
-            object-fit: cover;
+            max-height: none;
+            height: auto;
+            object-fit: contain;
+            object-position: center;
             border-radius: 15px;
             box-shadow: 0 10px 40px rgba(0,0,0,0.15);
             margin-bottom: 40px;
+            display: block;
         }
 
         .post-content {
             font-size: 1.1rem;
             line-height: 1.8;
             color: #1e293b;
+        }
+
+        .post-content img {
+            width: 100%;
+            max-width: 600px;
+            max-height: 400px;
+            height: auto;
+            object-fit: contain;
+            object-position: center;
+            border-radius: 15px;
+            margin: 30px auto;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+            display: block;
         }
 
         .post-content p {
@@ -215,8 +231,12 @@
 
         .related-card-image {
             width: 100%;
-            height: 200px;
-            object-fit: cover;
+            height: auto;
+            min-height: 180px;
+            max-height: 250px;
+            object-fit: contain;
+            object-position: center;
+            background: #f9fafb;
         }
 
         .related-card-content {
@@ -242,6 +262,11 @@
         }
 
         @media (max-width: 768px) {
+            .post-hero {
+                margin-top: 70px;
+                padding: 60px 20px 40px;
+            }
+
             .post-title {
                 font-size: 2rem;
             }
@@ -249,6 +274,19 @@
             .post-meta {
                 flex-direction: column;
                 gap: 10px;
+            }
+
+            .post-featured-image,
+            .post-content img {
+                max-width: 100%;
+                max-height: 280px;
+                border-radius: 12px;
+                margin: 20px auto;
+            }
+
+            .related-card-image {
+                min-height: 150px;
+                max-height: 200px;
             }
 
             .post-actions {

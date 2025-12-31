@@ -548,7 +548,7 @@
                 @if(request('category'))
                     <input type="hidden" name="category" value="{{ request('category') }}">
                 @endif
-                <input type="text" name="search" placeholder="Search articles..." value="{{ request('search') }}">
+                <input type="text" name="search" placeholder="Search blogs..." value="{{ request('search') }}">
                 <button type="submit"><i class="bi bi-search"></i></button>
             </form>
 
@@ -572,7 +572,7 @@
                 </a>
 
                 <!-- Recent Posts Title -->
-                <h2 class="section-title">Recent Articles</h2>
+                <h2 class="section-title">Recent blogs</h2>
 
                 <!-- Blog List (Remaining Posts) -->
                 <div class="blog-list">
@@ -599,7 +599,7 @@
             @else
                 <div class="empty-state">
                     <i class="bi bi-search"></i>
-                    <h3>No articles found</h3>
+                    <h3>No blogs found</h3>
                     <p>Try adjusting your search or filter criteria</p>
                 </div>
             @endif
@@ -614,18 +614,13 @@
                     <li>
                         <a href="{{ route('blog.index') }}" class="{{ !request('category') ? 'active' : '' }}">
                             <span>All Posts</span>
-                            <span class="category-count">{{ $posts->count() }}</span>
                         </a>
                     </li>
                     @foreach($categories as $cat)
-                        @php
-                            $count = collect($posts)->where('category', $cat)->count();
-                        @endphp
                         <li>
                             <a href="{{ route('blog.index', ['category' => $cat]) }}" 
                                class="{{ request('category') == $cat ? 'active' : '' }}">
                                 <span>{{ $cat }}</span>
-                                <span class="category-count">{{ $count }}</span>
                             </a>
                         </li>
                     @endforeach

@@ -27,31 +27,58 @@
 
         .blog-hero {
             margin-top: 88px;
-            background: linear-gradient(135deg, rgba(30, 64, 175, 0.95) 0%, rgba(59, 130, 246, 0.9) 50%, rgba(96, 165, 250, 0.85) 100%);
-            padding: 5rem 2rem 4rem;
+            padding: 8rem 2rem 6rem;
             text-align: center;
-            color: white;
             position: relative;
-            width: 100%;
+            overflow: hidden;
+            min-height: 70vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
-        .blog-hero::before {
-            content: '';
+        .blog-hero-bg-images {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: url('https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=1600') center/cover;
-            opacity: 0.1;
+            display: flex;
             z-index: 0;
+        }
+
+        .blog-hero-bg-slice {
+            flex: 1;
+            background-size: cover;
+            background-position: center;
+            position: relative;
+            transform: skewX(-5deg);
+            margin: 0 -2%;
+        }
+
+        .blog-hero-bg-slice:nth-child(1) {
+            background-image: url('https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=800');
+        }
+
+        .blog-hero-bg-slice:nth-child(2) {
+            background-image: url('https://images.unsplash.com/photo-1512820790803-83ca734da794?w=800');
+        }
+
+        .blog-hero-bg-slice:nth-child(3) {
+            background-image: url('https://images.unsplash.com/photo-1531482615713-2afd69097998?w=800');
         }
 
         .blog-hero-content {
             position: relative;
-            z-index: 1;
-            max-width: 1400px;
+            z-index: 10;
+            max-width: 1000px;
             margin: 0 auto;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border-radius: 30px;
+            padding: 4rem 3rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
         }
 
         .blog-hero h1 {
@@ -60,16 +87,64 @@
             margin-bottom: 1rem;
             font-weight: 700;
             letter-spacing: -0.02em;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
         }
 
         .blog-hero p {
             font-family: 'Plus Jakarta Sans', sans-serif;
             font-size: 1.25rem;
             max-width: 700px;
-            margin: 0 auto;
+            margin: 0 auto 2rem;
             opacity: 0.95;
             font-weight: 400;
             line-height: 1.6;
+            color: white;
+        }
+
+        .blog-trust-badges {
+            margin-top: 2rem;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .trust-badge-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 0.75rem 1.5rem;
+            border-radius: 50px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .trust-badge-item:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateY(-2px);
+        }
+
+        .trust-badge-item i {
+            font-size: 1.5rem;
+        }
+
+        .trust-badge-item span {
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: white;
+        }
+
+        .blog-watermark {
+            margin-top: 1.5rem;
+            opacity: 0.9;
+        }
+
+        .blog-watermark p {
+            margin-bottom: 0.25rem;
         }
 
         .blog-container {
@@ -544,6 +619,7 @@
 
         @media (max-width: 768px) {
             .blog-hero {
+                margin-top: 72px;
                 padding: 3rem 1.5rem 2.5rem;
             }
 
@@ -557,6 +633,20 @@
 
             .blog-container {
                 padding: 60px 1.5rem;
+                grid-template-columns: 1fr;
+                gap: 40px;
+            }
+
+            .blog-sidebar {
+                position: static;
+            }
+
+            .featured-post {
+                grid-template-columns: 1fr;
+            }
+
+            .featured-post-image {
+                min-height: 250px;
             }
 
             .featured-post-content {
@@ -578,6 +668,234 @@
                 justify-content: center;
             }
         }
+
+        /* Mobile Responsive (480px and below) */
+        @media (max-width: 480px) {
+            .blog-hero {
+                margin-top: 70px;
+                padding: 2rem 1rem;
+                min-height: auto;
+            }
+
+            .blog-hero-content {
+                padding: 1.5rem;
+                border-radius: 20px;
+                background: rgba(255, 255, 255, 0.05);
+                backdrop-filter: blur(20px);
+            }
+
+            .blog-hero h1 {
+                font-size: 2rem !important;
+                line-height: 1.2 !important;
+                margin-bottom: 0.75rem !important;
+            }
+
+            .blog-hero p {
+                font-size: 0.95rem !important;
+                line-height: 1.6 !important;
+                padding: 0 0.5rem !important;
+                margin-bottom: 1.5rem !important;
+            }
+
+            .blog-trust-badges {
+                flex-direction: column;
+                gap: 0.75rem;
+                margin-top: 1.25rem;
+            }
+
+            .trust-badge-item {
+                width: 100%;
+                justify-content: center;
+                padding: 0.6rem 1rem;
+                font-size: 0.85rem;
+            }
+
+            .trust-badge-item i {
+                font-size: 1.25rem;
+            }
+
+            .trust-badge-item span {
+                font-size: 0.85rem;
+            }
+
+            .blog-watermark {
+                margin-top: 1rem;
+            }
+
+            .blog-watermark p {
+                font-size: 0.75rem !important;
+            }
+
+            .blog-container {
+                padding: 40px 1rem;
+                grid-template-columns: 1fr;
+                gap: 30px;
+            }
+
+            .section-title {
+                font-size: 1.5rem;
+                margin-bottom: 25px;
+                padding-bottom: 10px;
+            }
+
+            .search-box {
+                margin-bottom: 30px;
+            }
+
+            .search-box input {
+                padding: 12px 45px 12px 15px;
+                font-size: 0.9rem;
+            }
+
+            .search-box button {
+                padding: 8px 15px;
+            }
+
+            .featured-post {
+                grid-template-columns: 1fr;
+                margin-bottom: 30px;
+            }
+
+            .featured-post-image {
+                min-height: 200px;
+                max-height: 250px;
+            }
+
+            .featured-post-content {
+                padding: 20px;
+            }
+
+            .featured-badge {
+                font-size: 0.75rem;
+                padding: 5px 12px;
+                margin-bottom: 12px;
+            }
+
+            .featured-post-title {
+                font-size: 1.35rem;
+                margin-bottom: 12px;
+            }
+
+            .featured-post-excerpt {
+                font-size: 0.9rem;
+                margin-bottom: 15px;
+                line-height: 1.5;
+            }
+
+            .featured-post-meta {
+                font-size: 0.8rem;
+                gap: 15px;
+                margin-bottom: 15px;
+            }
+
+            .featured-read-more {
+                padding: 10px 20px;
+                font-size: 0.9rem;
+                width: 100%;
+                justify-content: center;
+            }
+
+            .blog-list {
+                gap: 20px;
+            }
+
+            .blog-card {
+                border-radius: 12px;
+            }
+
+            .blog-card-image {
+                height: 180px;
+            }
+
+            .blog-card-content {
+                padding: 20px 15px;
+            }
+
+            .blog-card-category {
+                font-size: 0.75rem;
+                padding: 4px 10px;
+                margin-bottom: 10px;
+            }
+
+            .blog-card-title {
+                font-size: 1.1rem;
+                margin-bottom: 10px;
+            }
+
+            .blog-card-excerpt {
+                font-size: 0.85rem;
+                margin-bottom: 15px;
+                line-height: 1.5;
+            }
+
+            .blog-card-footer {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+
+            .blog-card-meta {
+                font-size: 0.8rem;
+                width: 100%;
+            }
+
+            .read-more-btn {
+                padding: 8px 16px;
+                font-size: 0.85rem;
+                width: 100%;
+                justify-content: center;
+            }
+
+            .sidebar-widget {
+                padding: 20px 15px;
+                border-radius: 12px;
+                margin-bottom: 20px;
+            }
+
+            .widget-title {
+                font-size: 1.1rem;
+                margin-bottom: 15px;
+            }
+
+            .category-list li {
+                padding: 10px 0;
+            }
+
+            .category-list a {
+                font-size: 0.9rem;
+            }
+
+            .popular-post-item {
+                padding: 15px 0;
+            }
+
+            .popular-post-image {
+                width: 70px;
+                height: 70px;
+            }
+
+            .popular-post-category {
+                font-size: 0.7rem;
+                padding: 3px 8px;
+            }
+
+            .popular-post-title a {
+                font-size: 0.9rem;
+                line-height: 1.3;
+            }
+
+            .popular-post-date {
+                font-size: 0.75rem;
+            }
+
+            .blog-sidebar {
+                order: 2;
+            }
+
+            .blog-main {
+                order: 1;
+            }
+        }
     </style>
 </head>
 <body>
@@ -586,9 +904,43 @@
 
     <!-- Hero Section -->
     <section class="blog-hero">
+        <!-- Background Sliced Images -->
+        <div class="blog-hero-bg-images">
+            <div class="blog-hero-bg-slice"></div>
+            <div class="blog-hero-bg-slice"></div>
+            <div class="blog-hero-bg-slice"></div>
+        </div>
+
         <div class="blog-hero-content">
-            <h1>Our Blog</h1>
+            <h1><i class="bi bi-book-half" style="color: #f97316;"></i> Our <span style="color: #fbbf24;">Blog</span></h1>
             <p>Helpful tips, resources, and insights about caregiving, home care services, and connecting with quality caregivers</p>
+            
+            <!-- Company Branding & Trust Badges -->
+            <div style="margin-top: 2rem; display: flex; flex-wrap: wrap; gap: 1.5rem; justify-content: center; align-items: center;">
+                <div style="display: flex; align-items: center; gap: 0.5rem; background: rgba(255, 255, 255, 0.1); padding: 0.75rem 1.5rem; border-radius: 50px; backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.2);">
+                    <i class="bi bi-shield-fill-check" style="color: #10b981; font-size: 1.5rem;"></i>
+                    <span style="font-weight: 600; font-size: 0.95rem; color: white;">Verified Professionals</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 0.5rem; background: rgba(255, 255, 255, 0.1); padding: 0.75rem 1.5rem; border-radius: 50px; backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.2);">
+                    <i class="bi bi-award-fill" style="color: #fbbf24; font-size: 1.5rem;"></i>
+                    <span style="font-weight: 600; font-size: 0.95rem; color: white;">Accredited Training</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 0.5rem; background: rgba(255, 255, 255, 0.1); padding: 0.75rem 1.5rem; border-radius: 50px; backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.2);">
+                    <i class="bi bi-clock-fill" style="color: #3b82f6; font-size: 1.5rem;"></i>
+                    <span style="font-weight: 600; font-size: 0.95rem; color: white;">24/7 Support</span>
+                </div>
+            </div>
+            
+            <!-- CAS Private Care Watermark -->
+            <div style="margin-top: 1.5rem; opacity: 0.9;">
+                <p style="font-size: 0.85rem; color: rgba(255, 255, 255, 0.8); margin-bottom: 0.25rem;">
+                    <i class="bi bi-building" style="margin-right: 0.5rem;"></i>
+                    Published by <strong>CAS Private Care LLC</strong>
+                </p>
+                <p style="font-size: 0.75rem; color: rgba(255, 255, 255, 0.6);">
+                    New York's Trusted Caregiving Marketplace | Est. 2024
+                </p>
+            </div>
         </div>
     </section>
 
@@ -596,16 +948,10 @@
     <div class="blog-container">
         <!-- Main Content -->
         <div class="blog-main">
-            <!-- Search -->
-            <form action="<?php echo e(route('blog.index')); ?>" method="GET" class="search-box">
-                <?php if(request('category')): ?>
-                    <input type="hidden" name="category" value="<?php echo e(request('category')); ?>">
-                <?php endif; ?>
-                <input type="text" name="search" placeholder="Search articles..." value="<?php echo e(request('search')); ?>">
-                <button type="submit"><i class="bi bi-search"></i></button>
-            </form>
-
             <?php if($posts->count() > 0): ?>
+                <!-- Section Title -->
+                <h2 class="section-title"><i class="bi bi-newspaper" style="color: #3b82f6;"></i> Recent Blogs</h2>
+
                 <!-- Featured Post (First Post) -->
                 <?php $featured = $posts->first(); ?>
                 <a href="<?php echo e(route('blog.show', $featured['slug'])); ?>" class="featured-post">
@@ -625,7 +971,7 @@
                 </a>
 
                 <!-- Recent Posts Title -->
-                <h2 class="section-title">Recent Articles</h2>
+                <h2 class="section-title">Recent blogs</h2>
 
                 <!-- Blog List (Remaining Posts) -->
                 <div class="blog-list">
@@ -652,7 +998,7 @@
             <?php else: ?>
                 <div class="empty-state">
                     <i class="bi bi-search"></i>
-                    <h3>No articles found</h3>
+                    <h3>No blogs found</h3>
                     <p>Try adjusting your search or filter criteria</p>
                 </div>
             <?php endif; ?>
@@ -667,18 +1013,13 @@
                     <li>
                         <a href="<?php echo e(route('blog.index')); ?>" class="<?php echo e(!request('category') ? 'active' : ''); ?>">
                             <span>All Posts</span>
-                            <span class="category-count"><?php echo e($posts->count()); ?></span>
                         </a>
                     </li>
                     <?php $__currentLoopData = $categories; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $cat): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                        <?php
-                            $count = collect($posts)->where('category', $cat)->count();
-                        ?>
                         <li>
                             <a href="<?php echo e(route('blog.index', ['category' => $cat])); ?>" 
                                class="<?php echo e(request('category') == $cat ? 'active' : ''); ?>">
                                 <span><?php echo e($cat); ?></span>
-                                <span class="category-count"><?php echo e($count); ?></span>
                             </a>
                         </li>
                     <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>

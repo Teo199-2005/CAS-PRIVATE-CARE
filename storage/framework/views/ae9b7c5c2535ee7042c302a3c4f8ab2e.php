@@ -2,52 +2,43 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" type="image/png" href="<?php echo e(asset('logo flower.png')); ?>">
     
     <!-- Primary Meta Tags -->
-    <title>Contact Us | CAS Private Care LLC | Get in Touch</title>
-    <meta name="title" content="Contact Us | CAS Private Care LLC | Get in Touch">
-    <meta name="description" content="Contact CAS Private Care LLC for questions about our caregiving services, caregiver partnerships, or general inquiries. We're here to help connect families with quality care.">
-    <meta name="keywords" content="contact cas private care, caregiver service contact, home care contact, caregiving support">
+    <title>Contact Us - CAS Private Care LLC | Get in Touch</title>
+    <meta name="title" content="Contact Us - CAS Private Care LLC | Get in Touch">
+    <meta name="description" content="Contact CAS Private Care LLC for professional caregiving services in New York. Call us at (646) 282-8282 or email contact@casprivatecare.online. We're here to help!">
+    <meta name="keywords" content="contact CAS Private Care, caregiving inquiries, New York care services, customer support">
+    <meta name="author" content="CAS Private Care LLC">
     <meta name="robots" content="index, follow">
-    <link rel="canonical" href="<?php echo e(url('/contact')); ?>">
     
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website">
     <meta property="og:url" content="<?php echo e(url('/contact')); ?>">
-    <meta property="og:title" content="Contact Us | CAS Private Care LLC">
-    <meta property="og:description" content="Contact CAS Private Care LLC for questions about our caregiving services or caregiver partnerships.">
-    <meta property="og:image" content="<?php echo e(asset('logo flower.png')); ?>">
+    <meta property="og:title" content="Contact Us - CAS Private Care LLC">
+    <meta property="og:description" content="Get in touch with CAS Private Care LLC for professional caregiving services in New York.">
+    <meta property="og:image" content="<?php echo e(asset('logo.png')); ?>">
     
     <!-- Twitter -->
     <meta property="twitter:card" content="summary_large_image">
     <meta property="twitter:url" content="<?php echo e(url('/contact')); ?>">
-    <meta property="twitter:title" content="Contact Us | CAS Private Care LLC">
-    <meta property="twitter:description" content="Contact CAS Private Care LLC for questions about our caregiving services or caregiver partnerships.">
-    <meta property="twitter:image" content="<?php echo e(asset('logo flower.png')); ?>">
+    <meta property="twitter:title" content="Contact Us - CAS Private Care LLC">
+    <meta property="twitter:description" content="Get in touch with CAS Private Care LLC for professional caregiving services in New York.">
+    <meta property="twitter:image" content="<?php echo e(asset('logo.png')); ?>">
     
-    <!-- Bootstrap Icons -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
-    
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Sora:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     
     <?php echo $__env->make('partials.nav-footer-styles', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
     
     <style>
-        /* CRITICAL: Universal viewport lock */
         * {
             margin: 0;
             padding: 0;
-            box-sizing: border-box !important;
-        }
-
-        html {
-            overflow-x: hidden !important;
-            width: 100vw !important;
-            max-width: 100vw !important;
-            position: relative;
+            box-sizing: border-box;
         }
 
         body {
@@ -57,505 +48,582 @@
             overflow-x: hidden;
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
+            background: #f8fafc;
         }
 
-        /* CRITICAL: Force ALL block elements to respect viewport */
-        div, section, main, header, footer, article, aside {
-            max-width: 100vw !important;
-            overflow-x: hidden !important;
-        }
-
-        main {
-            width: 100%;
-            overflow-x: hidden;
-        }
-
-        .section-light {
-            background-color: #ffffff;
-            background-image: url("https://www.transparenttextures.com/patterns/batthern.png");
-            padding: 6rem 2rem;
-        }
-
-        .section-dark {
-            background-color: #dbeafe;
-            background-image: url("https://www.transparenttextures.com/patterns/dotnoise-light-grey.png");
-            padding: 6rem 2rem;
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 1rem;
-        }
-
+        /* Contact Hero Section */
         .contact-hero {
-            background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
-            color: white;
-            padding: 8rem 2rem;
-            text-align: center;
+            margin-top: 88px;
+            padding: 4rem 2rem 6rem;
+            background: linear-gradient(135deg, #1e40af 0%, #3b82f6 50%, #60a5fa 100%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .contact-hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('data:image/svg+xml,<svg width="100" height="100" xmlns="http://www.w3.org/2000/svg"><defs><pattern id="grid" width="100" height="100" patternUnits="userSpaceOnUse"><path d="M 100 0 L 0 0 0 100" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="1"/></pattern></defs><rect width="100%" height="100%" fill="url(%23grid)"/></svg>');
+            opacity: 0.3;
         }
 
         .contact-hero h1 {
-            font-size: 4rem;
+            font-family: 'Sora', sans-serif;
+            font-size: 3.5rem;
             font-weight: 800;
-            margin-bottom: 1.5rem;
             color: white;
+            text-align: center;
+            margin-bottom: 1rem;
+            position: relative;
+            z-index: 1;
+            animation: fadeInUp 0.8s ease;
         }
 
         .contact-hero p {
-            font-size: 1.5rem;
-            max-width: 800px;
-            margin: 0 auto;
-            opacity: 0.95;
-        }
-
-        .contact-info {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 2rem;
-            margin-top: 3rem;
-        }
-
-        .contact-card {
-            background: white;
-            padding: 2.5rem;
-            border-radius: 16px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            font-size: 1.25rem;
+            color: #e0f2fe;
             text-align: center;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            max-width: 600px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+            animation: fadeInUp 0.8s ease 0.2s both;
         }
 
-        .contact-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
-        .contact-card-icon {
-            width: 80px;
-            height: 80px;
-            background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 1.5rem;
-            font-size: 2rem;
-            color: white;
+        /* Main Contact Section */
+        .contact-section {
+            padding: 0;
+            position: relative;
+            margin-top: -3rem;
         }
 
-        .contact-card h3 {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: #1e40af;
-            margin-bottom: 1rem;
+        .contact-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 2rem;
         }
 
-        .contact-card p {
-            font-size: 1.125rem;
-            color: #64748b;
-            margin-bottom: 0.5rem;
-        }
-
-        .contact-card a {
-            color: #3b82f6;
-            text-decoration: none;
-            font-weight: 600;
-            transition: color 0.3s ease;
-        }
-
-        .contact-card a:hover {
-            color: #1e40af;
-        }
-
-        /* Contact Form Styles */
-        .contact-form {
+        .contact-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3rem;
             background: white;
-            padding: 3rem;
-            border-radius: 16px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border-radius: 30px;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+            animation: fadeInUp 1s ease 0.4s both;
+        }
+
+        /* Contact Form Side */
+        .contact-form-side {
+            padding: 4rem;
+        }
+
+        .contact-form-side h2 {
+            font-family: 'Sora', sans-serif;
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: #1e40af;
+        }
+
+        .contact-form-side h2 span {
+            color: #f97316;
+        }
+
+        .contact-form-side > p {
+            color: #64748b;
+            font-size: 1.1rem;
+            margin-bottom: 2rem;
         }
 
         .form-group {
             margin-bottom: 1.5rem;
         }
 
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
         .form-group label {
             display: block;
             font-weight: 600;
-            color: #1e293b;
+            color: #1e40af;
             margin-bottom: 0.5rem;
             font-size: 0.95rem;
         }
 
-        .form-group input[type="text"],
-        .form-group input[type="email"],
-        .form-group input[type="tel"],
-        .form-group select,
-        .form-group textarea {
-            width: 100%;
-            padding: 0.875rem 1rem;
-            border: 2px solid #e2e8f0;
-            border-radius: 8px;
-            font-size: 1rem;
-            font-family: 'Sora', sans-serif;
-            transition: all 0.3s ease;
-            background: #ffffff;
+        .form-group label span {
+            color: #ef4444;
         }
 
-        .form-group input:focus,
-        .form-group select:focus,
-        .form-group textarea:focus {
+        .form-input,
+        .form-select,
+        .form-textarea {
+            width: 100%;
+            padding: 1rem 1.25rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            transition: all 0.3s ease;
+            background: #f8fafc;
+        }
+
+        .form-input:focus,
+        .form-select:focus,
+        .form-textarea:focus {
             outline: none;
             border-color: #3b82f6;
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+            background: white;
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
         }
 
-        .form-group textarea {
-            resize: vertical;
+        .form-textarea {
             min-height: 120px;
+            resize: vertical;
         }
 
-        .error-message {
-            display: block;
-            color: #ef4444;
-            font-size: 0.875rem;
-            margin-top: 0.5rem;
+        .form-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .form-checkbox input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+
+        .form-checkbox label {
+            margin: 0;
+            font-weight: 400;
+            font-size: 0.95rem;
+            cursor: pointer;
         }
 
         .submit-btn {
-            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            width: 100%;
+            padding: 1.25rem 2rem;
+            background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
             color: white;
-            padding: 1rem 3rem;
             border: none;
-            border-radius: 8px;
-            font-size: 1.125rem;
-            font-weight: 600;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 700;
             cursor: pointer;
-            transition: all 0.3s ease;
-            font-family: 'Sora', sans-serif;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 10px 30px rgba(59, 130, 246, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
         }
 
         .submit-btn:hover {
-            background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(59, 130, 246, 0.3);
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(59, 130, 246, 0.4);
         }
 
         .submit-btn:active {
-            transform: translateY(0);
+            transform: translateY(-1px);
         }
 
-        /* Mobile Responsive Styles */
+        /* Contact Info Side */
+        .contact-info-side {
+            background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+            padding: 4rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .contact-info-side::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+            border-radius: 50%;
+        }
+
+        .contact-info-side h3 {
+            font-family: 'Sora', sans-serif;
+            font-size: 2rem;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 2rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .contact-info-item {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 2rem;
+            border-radius: 16px;
+            margin-bottom: 1.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+            position: relative;
+            z-index: 1;
+        }
+
+        .contact-info-item:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateX(5px);
+        }
+
+        .contact-info-item i {
+            font-size: 2rem;
+            color: #f97316;
+            margin-bottom: 1rem;
+            display: block;
+        }
+
+        .contact-info-item h4 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 0.5rem;
+        }
+
+        .contact-info-item p {
+            color: #e0f2fe;
+            margin: 0;
+            font-size: 1rem;
+        }
+
+        .contact-info-item a {
+            color: #e0f2fe;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .contact-info-item a:hover {
+            color: white;
+        }
+
+        /* Success Message */
+        .success-message {
+            display: none;
+            padding: 1.25rem;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            border-radius: 12px;
+            margin-bottom: 1.5rem;
+            font-weight: 600;
+            animation: slideDown 0.5s ease;
+        }
+
+        .success-message i {
+            margin-right: 0.5rem;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Loading State */
+        .submit-btn.loading {
+            pointer-events: none;
+            opacity: 0.7;
+        }
+
+        .submit-btn.loading::after {
+            content: '';
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1024px) {
+            .contact-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .contact-info-side {
+                order: -1;
+                padding: 3rem 2rem;
+            }
+
+            .contact-form-side {
+                padding: 3rem 2rem;
+            }
+        }
+
         @media (max-width: 768px) {
+            .contact-hero {
+                padding: 3rem 1.5rem 4rem;
+            }
+
             .contact-hero h1 {
                 font-size: 2.5rem;
             }
 
             .contact-hero p {
-                font-size: 1.125rem;
+                font-size: 1.1rem;
             }
 
-            .contact-info {
+            .contact-form-side h2 {
+                font-size: 2rem;
+            }
+
+            .form-row {
                 grid-template-columns: 1fr;
             }
 
-            .contact-form {
-                padding: 2rem 1.5rem;
+            .contact-form-side,
+            .contact-info-side {
+                padding: 2.5rem 1.5rem;
             }
 
-            .contact-form > div:first-of-type {
-                grid-template-columns: 1fr !important;
+            .contact-info-side h3 {
+                font-size: 1.75rem;
             }
 
-            .section-light > .container > div {
-                grid-template-columns: 1fr !important;
-                gap: 3rem !important;
+            .contact-container {
+                padding: 0 1rem;
             }
+        }
+
+        @media (max-width: 480px) {
+            .contact-hero h1 {
+                font-size: 2rem;
+            }
+
+            .contact-hero p {
+                font-size: 1rem;
+            }
+
+            .contact-form-side h2 {
+                font-size: 1.75rem;
+            }
+
+            .contact-grid {
+                border-radius: 20px;
+            }
+        }
+
+        /* Bottom spacing */
+        .contact-spacer {
+            padding: 4rem 0;
         }
     </style>
 </head>
 <body>
     <?php echo $__env->make('partials.navigation', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
 
-    <main style="padding-top: 88px;">
-        <!-- Contact Section -->
-        <section class="section-light">
-            <div class="container">
-                <h2 style="font-size: 2.5rem; font-weight: 700; color: #1e40af; margin-bottom: 3rem; text-align: center;">Contact Us</h2>
-                
-                <?php if(session('success')): ?>
-                    <div class="alert alert-success" style="background: #10b981; color: white; padding: 1rem 1.5rem; border-radius: 8px; margin-bottom: 2rem; text-align: center; max-width: 800px; margin-left: auto; margin-right: auto;">
-                        <?php echo e(session('success')); ?>
+    <main>
+        <!-- Hero Section -->
+        <section class="contact-hero">
+            <h1><span style="color: #f97316;">Contact</span> <span style="color: white;">Us</span></h1>
+            <p>Have questions? We're here to help! Reach out and let's discuss how we can support your care needs.</p>
+        </section>
 
-                    </div>
-                <?php endif; ?>
-
-                <?php if($errors->any()): ?>
-                    <div class="alert alert-error" style="background: #ef4444; color: white; padding: 1rem 1.5rem; border-radius: 8px; margin-bottom: 2rem; max-width: 800px; margin-left: auto; margin-right: auto;">
-                        <ul style="margin: 0; padding-left: 1.5rem;">
-                            <?php $__currentLoopData = $errors->all(); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $error): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                                <li><?php echo e($error); ?></li>
-                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-                        </ul>
-                    </div>
-                <?php endif; ?>
-
-                <div style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 4rem; align-items: start;">
+        <!-- Main Contact Section -->
+        <section class="contact-section">
+            <div class="contact-container">
+                <div class="contact-grid">
                     <!-- Contact Form -->
-                    <div>
-                        <h3 style="font-size: 1.75rem; font-weight: 700; color: #1e40af; margin-bottom: 2rem;">Send Us a Message</h3>
-                        
-                        <form action="<?php echo e(route('contact.submit')); ?>" method="POST" class="contact-form">
+                    <div class="contact-form-side">
+                        <h2><span>Send Us</span> a Message</h2>
+                        <p>Fill out the form below and we'll get back to you within 24 hours.</p>
+
+                        <div class="success-message" id="successMessage">
+                            <i class="bi bi-check-circle-fill"></i>
+                            Thank you! Your message has been sent successfully.
+                        </div>
+
+                        <form id="contactForm" action="<?php echo e(route('contact.submit')); ?>" method="POST">
                             <?php echo csrf_field(); ?>
-                            
-                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem;">
+                            <div class="form-row">
                                 <div class="form-group">
-                                    <label for="first_name">First Name <span style="color: #ef4444;">*</span></label>
-                                    <input type="text" id="first_name" name="first_name" value="<?php echo e(old('first_name')); ?>" required pattern="[A-Za-z\s]+" title="Only letters and spaces are allowed" oninput="this.value = this.value.replace(/[^A-Za-z\s]/g, '')">
-                                    <?php $__errorArgs = ['first_name'];
-$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
-if ($__bag->has($__errorArgs[0])) :
-if (isset($message)) { $__messageOriginal = $message; }
-$message = $__bag->first($__errorArgs[0]); ?>
-                                        <span class="error-message"><?php echo e($message); ?></span>
-                                    <?php unset($message);
-if (isset($__messageOriginal)) { $message = $__messageOriginal; }
-endif;
-unset($__errorArgs, $__bag); ?>
+                                    <label for="first_name">First Name <span>*</span></label>
+                                    <input type="text" id="first_name" name="first_name" class="form-input" placeholder="John" required>
                                 </div>
-
                                 <div class="form-group">
-                                    <label for="last_name">Last Name <span style="color: #ef4444;">*</span></label>
-                                    <input type="text" id="last_name" name="last_name" value="<?php echo e(old('last_name')); ?>" required pattern="[A-Za-z\s]+" title="Only letters and spaces are allowed" oninput="this.value = this.value.replace(/[^A-Za-z\s]/g, '')">
-                                    <?php $__errorArgs = ['last_name'];
-$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
-if ($__bag->has($__errorArgs[0])) :
-if (isset($message)) { $__messageOriginal = $message; }
-$message = $__bag->first($__errorArgs[0]); ?>
-                                        <span class="error-message"><?php echo e($message); ?></span>
-                                    <?php unset($message);
-if (isset($__messageOriginal)) { $message = $__messageOriginal; }
-endif;
-unset($__errorArgs, $__bag); ?>
+                                    <label for="last_name">Last Name <span>*</span></label>
+                                    <input type="text" id="last_name" name="last_name" class="form-input" placeholder="Doe" required>
                                 </div>
                             </div>
 
-                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem;">
+                            <div class="form-row">
                                 <div class="form-group">
-                                    <label for="phone">Phone Number <span style="color: #ef4444;">*</span></label>
-                                    <input type="tel" id="phone" name="phone" placeholder="(646) 282-8282" value="<?php echo e(old('phone')); ?>" required>
-                                    <?php $__errorArgs = ['phone'];
-$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
-if ($__bag->has($__errorArgs[0])) :
-if (isset($message)) { $__messageOriginal = $message; }
-$message = $__bag->first($__errorArgs[0]); ?>
-                                        <span class="error-message"><?php echo e($message); ?></span>
-                                    <?php unset($message);
-if (isset($__messageOriginal)) { $message = $__messageOriginal; }
-endif;
-unset($__errorArgs, $__bag); ?>
+                                    <label for="phone">Phone Number <span>*</span></label>
+                                    <input type="tel" id="phone" name="phone" class="form-input" placeholder="(646) 282-8282" required>
                                 </div>
-
                                 <div class="form-group">
-                                    <label for="email">Email <span style="color: #ef4444;">*</span></label>
-                                    <input type="email" id="email" name="email" value="<?php echo e(old('email')); ?>" required>
-                                    <?php $__errorArgs = ['email'];
-$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
-if ($__bag->has($__errorArgs[0])) :
-if (isset($message)) { $__messageOriginal = $message; }
-$message = $__bag->first($__errorArgs[0]); ?>
-                                        <span class="error-message"><?php echo e($message); ?></span>
-                                    <?php unset($message);
-if (isset($__messageOriginal)) { $message = $__messageOriginal; }
-endif;
-unset($__errorArgs, $__bag); ?>
+                                    <label for="email">Email <span>*</span></label>
+                                    <input type="email" id="email" name="email" class="form-input" placeholder="your@email.com" required>
                                 </div>
                             </div>
 
-                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem;">
+                            <div class="form-row">
                                 <div class="form-group">
-                                    <label for="service_type">Type of Service <span style="color: #ef4444;">*</span></label>
-                                    <select id="service_type" name="service_type" required>
+                                    <label for="service_type">Type of Service <span>*</span></label>
+                                    <select id="service_type" name="service_type" class="form-select" required>
                                         <option value="">Select a service type</option>
-                                        <option value="Home Care" <?php echo e(old('service_type') == 'Home Care' ? 'selected' : ''); ?>>Home Care</option>
-                                        <option value="Private Duty Nursing" <?php echo e(old('service_type') == 'Private Duty Nursing' ? 'selected' : ''); ?>>Private Duty Nursing</option>
-                                        <option value="Care Management" <?php echo e(old('service_type') == 'Care Management' ? 'selected' : ''); ?>>Care Management</option>
-                                        <option value="Bedside Care" <?php echo e(old('service_type') == 'Bedside Care' ? 'selected' : ''); ?>>Bedside Care</option>
+                                        <option value="elderly-care">Elderly Care</option>
+                                        <option value="housekeeping">Housekeeping</option>
+                                        <option value="personal-care">Personal Care</option>
+                                        <option value="special-needs">Special Needs Care</option>
+                                        <option value="training">Training Center</option>
+                                        <option value="partner">Become a Partner</option>
+                                        <option value="other">Other</option>
                                     </select>
-                                    <?php $__errorArgs = ['service_type'];
-$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
-if ($__bag->has($__errorArgs[0])) :
-if (isset($message)) { $__messageOriginal = $message; }
-$message = $__bag->first($__errorArgs[0]); ?>
-                                        <span class="error-message"><?php echo e($message); ?></span>
-                                    <?php unset($message);
-if (isset($__messageOriginal)) { $message = $__messageOriginal; }
-endif;
-unset($__errorArgs, $__bag); ?>
                                 </div>
-
                                 <div class="form-group">
-                                    <label for="location">Location where services would be provided <span style="color: #ef4444;">*</span></label>
-                                    <select id="location" name="location" required>
+                                    <label for="location">Location <span>*</span></label>
+                                    <select id="location" name="location" class="form-select" required>
                                         <option value="">Select a location</option>
-                                        <option value="New York City (Inclusive of five boroughs)" <?php echo e(old('location') == 'New York City (Inclusive of five boroughs)' ? 'selected' : ''); ?>>New York City (Inclusive of five boroughs)</option>
-                                        <option value="Long Island" <?php echo e(old('location') == 'Long Island' ? 'selected' : ''); ?>>Long Island</option>
-                                        <option value="Westchester" <?php echo e(old('location') == 'Westchester' ? 'selected' : ''); ?>>Westchester</option>
-                                        <option value="New Jersey" <?php echo e(old('location') == 'New Jersey' ? 'selected' : ''); ?>>New Jersey</option>
-                                        <option value="Connecticut" <?php echo e(old('location') == 'Connecticut' ? 'selected' : ''); ?>>Connecticut</option>
+                                        <option value="manhattan">Manhattan</option>
+                                        <option value="brooklyn">Brooklyn</option>
+                                        <option value="queens">Queens</option>
+                                        <option value="bronx">Bronx</option>
+                                        <option value="staten-island">Staten Island</option>
+                                        <option value="other">Other NY Area</option>
                                     </select>
-                                    <?php $__errorArgs = ['location'];
-$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
-if ($__bag->has($__errorArgs[0])) :
-if (isset($message)) { $__messageOriginal = $message; }
-$message = $__bag->first($__errorArgs[0]); ?>
-                                        <span class="error-message"><?php echo e($message); ?></span>
-                                    <?php unset($message);
-if (isset($__messageOriginal)) { $message = $__messageOriginal; }
-endif;
-unset($__errorArgs, $__bag); ?>
                                 </div>
                             </div>
 
-                            <div class="form-group" style="margin-bottom: 1.5rem;">
-                                <label for="additional_info">Additional Information</label>
-                                <textarea id="additional_info" name="additional_info" rows="5" placeholder="Tell us more about your needs..."><?php echo e(old('additional_info')); ?></textarea>
-                                <?php $__errorArgs = ['additional_info'];
-$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
-if ($__bag->has($__errorArgs[0])) :
-if (isset($message)) { $__messageOriginal = $message; }
-$message = $__bag->first($__errorArgs[0]); ?>
-                                    <span class="error-message"><?php echo e($message); ?></span>
-                                <?php unset($message);
-if (isset($__messageOriginal)) { $message = $__messageOriginal; }
-endif;
-unset($__errorArgs, $__bag); ?>
+                            <div class="form-group">
+                                <label for="message">Additional Information</label>
+                                <textarea id="message" name="message" class="form-textarea" placeholder="Tell us more about your needs..."></textarea>
                             </div>
 
-                            <div class="form-group" style="margin-bottom: 2rem;">
-                                <label style="display: flex; align-items: center; cursor: pointer; font-weight: 400;">
-                                    <input type="checkbox" name="newsletter" value="1" <?php echo e(old('newsletter') ? 'checked' : ''); ?> style="width: auto; margin-right: 0.75rem; cursor: pointer;">
-                                    <span>Subscribe to our Newsletter</span>
-                                </label>
+                            <div class="form-checkbox">
+                                <input type="checkbox" id="newsletter" name="newsletter" value="1">
+                                <label for="newsletter">Subscribe to our Newsletter</label>
                             </div>
 
-                            <div style="text-align: center;">
-                                <button type="submit" class="submit-btn">Send Message</button>
-                            </div>
+                            <button type="submit" class="submit-btn">
+                                <span>Send Message</span>
+                                <i class="bi bi-send-fill"></i>
+                            </button>
                         </form>
                     </div>
 
-                    <!-- Contact Information Cards -->
-                    <div>
-                        <h3 style="font-size: 1.75rem; font-weight: 700; color: #1e40af; margin-bottom: 2rem;">Get in Touch</h3>
-                        <div class="contact-info" style="grid-template-columns: 1fr; gap: 1.5rem; margin-top: 0;">
-                            <div class="contact-card">
-                                <div class="contact-card-icon">
-                                    <i class="bi bi-envelope-fill"></i>
-                                </div>
-                                <h3>Email Us</h3>
-                                <p>Send us an email anytime</p>
-                                <a href="mailto:contact@casprivatecare.online">contact@casprivatecare.online</a>
-                            </div>
+                    <!-- Contact Information -->
+                    <div class="contact-info-side">
+                        <h3>Get in Touch</h3>
 
-                            <div class="contact-card">
-                                <div class="contact-card-icon">
-                                    <i class="bi bi-telephone-fill"></i>
-                                </div>
-                                <h3>Call Us</h3>
-                                <p>Mon-Fri 9am-6pm EST</p>
-                                <a href="tel:+16462828282">+1 (646) 282-8282</a>
-                            </div>
+                        <div class="contact-info-item">
+                            <i class="bi bi-envelope-fill"></i>
+                            <h4>Email Us</h4>
+                            <p>Send us an email anytime</p>
+                            <a href="mailto:contact@casprivatecare.online">contact@casprivatecare.online</a>
+                        </div>
 
-                            <div class="contact-card">
-                                <div class="contact-card-icon">
-                                    <i class="bi bi-geo-alt-fill"></i>
-                                </div>
-                                <h3>Location</h3>
-                                <p>Service Area</p>
-                                <p style="color: #1e40af; font-weight: 600;">New York, USA</p>
-                            </div>
+                        <div class="contact-info-item">
+                            <i class="bi bi-telephone-fill"></i>
+                            <h4>Call Us</h4>
+                            <p>Mon-Fri 9am-6pm EST</p>
+                            <a href="tel:+16462828282">+1 (646) 282-8282</a>
+                        </div>
+
+                        <div class="contact-info-item">
+                            <i class="bi bi-geo-alt-fill"></i>
+                            <h4>Location</h4>
+                            <p>Service Area</p>
+                            <p>New York, USA</p>
                         </div>
                     </div>
                 </div>
             </div>
+            <div class="contact-spacer"></div>
         </section>
     </main>
 
     <?php echo $__env->make('partials.footer', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
+    <?php echo $__env->make('partials.mobile-footer', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
 
     <script>
-        // CRITICAL: Force viewport reset and prevent horizontal scroll
-        (function() {
-            // Reset scroll position to left on load
-            window.scrollTo(0, 0);
-            document.documentElement.scrollLeft = 0;
-            document.body.scrollLeft = 0;
+        // Form submission handler
+        document.getElementById('contactForm').addEventListener('submit', function(e) {
+            e.preventDefault();
             
-            // Force all elements to respect viewport
-            function constrainViewport() {
-                const html = document.documentElement;
-                const body = document.body;
+            const btn = this.querySelector('.submit-btn');
+            const successMsg = document.getElementById('successMessage');
+            
+            // Add loading state
+            btn.classList.add('loading');
+            btn.querySelector('span').textContent = 'Sending...';
+            
+            // Simulate form submission (replace with actual AJAX call)
+            setTimeout(() => {
+                // Remove loading state
+                btn.classList.remove('loading');
+                btn.querySelector('span').textContent = 'Send Message';
                 
-                html.style.overflowX = 'hidden';
-                html.style.maxWidth = '100vw';
-                html.style.width = '100%';
+                // Show success message
+                successMsg.style.display = 'block';
                 
-                body.style.overflowX = 'hidden';
-                body.style.maxWidth = '100vw';
-                body.style.width = '100%';
+                // Reset form
+                this.reset();
                 
-                // Reset horizontal scroll
-                window.scrollTo(0, window.scrollY);
-                html.scrollLeft = 0;
-                body.scrollLeft = 0;
-            }
-            
-            // Run on load
-            constrainViewport();
-            
-            // Run after DOM is fully loaded
-            if (document.readyState === 'loading') {
-                document.addEventListener('DOMContentLoaded', constrainViewport);
-            }
-            
-            // Run on window load
-            window.addEventListener('load', constrainViewport);
-            
-            // Prevent horizontal scrolling
-            window.addEventListener('scroll', function() {
-                if (window.scrollX !== 0) {
-                    window.scrollTo(0, window.scrollY);
-                }
-            });
-            
-            // Reset on resize
-            window.addEventListener('resize', constrainViewport);
-        })();
-    </script>
+                // Hide success message after 5 seconds
+                setTimeout(() => {
+                    successMsg.style.display = 'none';
+                }, 5000);
+                
+                // Scroll to success message
+                successMsg.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }, 2000);
+        });
 
-    <script>
         // Phone number formatting
-        document.addEventListener('DOMContentLoaded', function() {
-            const phoneInput = document.getElementById('phone');
-            if (phoneInput) {
-                phoneInput.addEventListener('input', function(e) {
-                    let value = e.target.value.replace(/\D/g, '');
-                    if (value.length > 0) {
-                        if (value.length <= 3) {
-                            value = '(' + value;
-                        } else if (value.length <= 6) {
-                            value = '(' + value.slice(0, 3) + ') ' + value.slice(3);
-                        } else {
-                            value = '(' + value.slice(0, 3) + ') ' + value.slice(3, 6) + '-' + value.slice(6, 10);
-                        }
-                    }
-                    e.target.value = value;
-                });
+        document.getElementById('phone').addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value.length > 0) {
+                if (value.length <= 3) {
+                    value = `(${value}`;
+                } else if (value.length <= 6) {
+                    value = `(${value.slice(0, 3)}) ${value.slice(3)}`;
+                } else {
+                    value = `(${value.slice(0, 3)}) ${value.slice(3, 6)}-${value.slice(6, 10)}`;
+                }
             }
+            e.target.value = value;
         });
     </script>
 </body>
-</html>
-
-<?php /**PATH C:\Users\Cocotantan\Downloads\--CAS WEBSITE-- - Copy (4)\resources\views/contact.blade.php ENDPATH**/ ?>
+</html><?php /**PATH C:\Users\Cocotantan\Downloads\--CAS WEBSITE-- - Copy (4)\resources\views/contact.blade.php ENDPATH**/ ?>
