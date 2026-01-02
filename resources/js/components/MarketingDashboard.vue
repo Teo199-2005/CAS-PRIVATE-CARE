@@ -1335,6 +1335,7 @@ watch(currentSection, (newVal) => {
   localStorage.setItem('marketingSection', newVal);
   if (newVal === 'payment') {
     loadPaymentMethods();
+    checkMarketingApplicationStatus(); // Check approval status when opening payment section
   }
 });
 

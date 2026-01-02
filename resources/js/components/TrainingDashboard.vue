@@ -1441,6 +1441,7 @@ watch(currentSection, (newVal) => {
   }
   if (newVal === 'payment') {
     loadPaymentMethods();
+    checkTrainingApplicationStatus(); // Check approval status when opening payment section
   }
 });
 

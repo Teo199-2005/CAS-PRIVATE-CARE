@@ -5363,6 +5363,8 @@ const getUserStatusColor = (status) => {
     'Inactive': 'warning',
     'Suspended': 'error',
     'Assigned': 'info',
+    'pending': 'orange',
+    'Pending': 'orange',
   };
   return colors[status] || 'grey';
 };

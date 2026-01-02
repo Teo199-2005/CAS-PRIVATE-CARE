@@ -133,8 +133,19 @@ class AuthController extends Controller
                 'gender' => 'female',
                 'availability_status' => 'available'
             ]);
+        } elseif ($validated['user_type'] === 'marketing') {
+            // Create referral code for marketing partners (inactive until approved)
+            \App\Models\ReferralCode::create([
+                'user_id' => $user->id,
+                'code' => \App\Models\ReferralCode::generateCode($user->id),
+                'discount_per_hour' => 5.00,
+                'commission_per_hour' => 1.00,
+                'is_active' => false, // Will be activated when approved
+                'usage_count' => 0,
+                'total_commission_earned' => 0
+            ]);
         }
-        // For marketing and training_center, no additional model creation needed
+        // For training_center, no additional model creation needed
 
         // Clear OAuth session data
         session()->forget('oauth_user');

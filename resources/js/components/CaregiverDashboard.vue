@@ -3360,6 +3360,7 @@ watch(currentSection, (newVal) => {
   }
   if (newVal === 'payment') {
     loadPaymentMethods(); // Load payment methods when payment section is accessed
+    checkApplicationStatus(); // Check approval status when opening payment section
   }
 });
 

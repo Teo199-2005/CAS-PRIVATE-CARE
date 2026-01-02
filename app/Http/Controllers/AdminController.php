@@ -433,6 +433,26 @@ class AdminController extends Controller
         $user = User::findOrFail($id);
         $user->update(['status' => 'Active']);
         
+        // Activate referral code for marketing users
+        if ($user->user_type === 'marketing') {
+            $referralCode = \App\Models\ReferralCode::where('user_id', $user->id)->first();
+            if ($referralCode) {
+                // Activate existing referral code
+                $referralCode->update(['is_active' => true]);
+            } else {
+                // Create referral code if it doesn't exist (for legacy users)
+                \App\Models\ReferralCode::create([
+                    'user_id' => $user->id,
+                    'code' => \App\Models\ReferralCode::generateCode($user->id),
+                    'discount_per_hour' => 5.00,
+                    'commission_per_hour' => 1.00,
+                    'is_active' => true,
+                    'usage_count' => 0,
+                    'total_commission_earned' => 0
+                ]);
+            }
+        }
+        
         // Send in-app notification
         try {
             NotificationService::notifyAccountApproved($user);
