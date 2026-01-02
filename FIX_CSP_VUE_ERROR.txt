@@ -1,0 +1,137 @@
+╔═══════════════════════════════════════════════════════════════════════════╗
+║     FIX: Content Security Policy (CSP) Blocking Vue.js on Production     ║
+╚═══════════════════════════════════════════════════════════════════════════╝
+
+ERROR: Uncaught EvalError: Evaluating a string as JavaScript violates CSP
+FILE: vendor-B6sEse2x.js (Vue.js compiled file)
+CAUSE: CSP header blocking 'unsafe-eval' which Vue.js requires
+
+═══════════════════════════════════════════════════════════════════════════
+
+SOLUTION 1: Clear All Caches on Production Server (TRY THIS FIRST)
+─────────────────────────────────────────────────────────────────────────
+
+SSH into your server and run:
+
+cd /var/www/casprivatecare.online
+php artisan cache:clear
+php artisan config:clear
+php artisan route:clear
+php artisan view:clear
+php artisan optimize:clear
+
+# Restart PHP-FPM (choose based on your setup)
+sudo systemctl restart php8.4-fpm
+# OR
+sudo systemctl restart php-fpm
+# OR
+sudo service php8.4-fpm restart
+
+# Restart web server
+sudo systemctl restart nginx
+# OR
+sudo systemctl restart apache2
+
+═══════════════════════════════════════════════════════════════════════════
+
+SOLUTION 2: Check Nginx Configuration for CSP Headers
+─────────────────────────────────────────────────────────────────────────
+
+If you're using Nginx, check for CSP in these files:
+- /etc/nginx/sites-available/casprivatecare.online
+- /etc/nginx/nginx.conf
+- /etc/nginx/conf.d/*.conf
+
+Look for lines like:
+    add_header Content-Security-Policy "...";
+
+If found, COMMENT THEM OUT with # or remove them entirely:
+    # add_header Content-Security-Policy "...";
+
+Then reload Nginx:
+    sudo nginx -t
+    sudo systemctl reload nginx
+
+═══════════════════════════════════════════════════════════════════════════
+
+SOLUTION 3: Check Apache Configuration for CSP Headers
+─────────────────────────────────────────────────────────────────────────
+
+If you're using Apache, check for CSP in these files:
+- /etc/apache2/sites-available/casprivatecare.online.conf
+- /etc/apache2/apache2.conf
+- /var/www/casprivatecare.online/.htaccess
+
+Look for lines like:
+    Header set Content-Security-Policy "..."
+
+If found, COMMENT THEM OUT or remove them:
+    # Header set Content-Security-Policy "..."
+
+Then restart Apache:
+    sudo apachectl configtest
+    sudo systemctl restart apache2
+
+═══════════════════════════════════════════════════════════════════════════
+
+SOLUTION 4: Update SecurityHeaders.php with Vue.js Compatible CSP
+─────────────────────────────────────────────────────────────────────────
+
+If you want to keep CSP enabled but make it work with Vue.js, update the
+SecurityHeaders.php file to use this CSP policy:
+
+$csp = implode('; ', [
+    "default-src 'self'",
+    "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net",
+    "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com",
+    "img-src 'self' data: https: blob:",
+    "font-src 'self' data: https://fonts.gstatic.com https://cdn.jsdelivr.net",
+    "connect-src 'self' https:",
+    "frame-ancestors 'self'",
+    "base-uri 'self'",
+    "form-action 'self'"
+]);
+$response->headers->set('Content-Security-Policy', $csp);
+
+NOTE: This includes 'unsafe-eval' which Vue.js needs.
+
+═══════════════════════════════════════════════════════════════════════════
+
+SOLUTION 5: Completely Disable CSP (Simplest - Recommended for Now)
+─────────────────────────────────────────────────────────────────────────
+
+1. Ensure SecurityHeaders.php has NO CSP lines (current version is correct)
+2. Clear all server caches (see Solution 1)
+3. Check Nginx/Apache configs (see Solutions 2 & 3)
+4. Restart web server
+
+The other security headers (X-Frame-Options, X-Content-Type-Options, etc.)
+will still provide good protection without CSP.
+
+═══════════════════════════════════════════════════════════════════════════
+
+QUICK CHECK: Where is CSP Coming From?
+─────────────────────────────────────────────────────────────────────────
+
+Run this command to see all response headers:
+
+curl -I https://casprivatecare.online/caregiver/dashboard-vue
+
+Look for:
+    Content-Security-Policy: ...
+
+This will tell you if CSP is still being set by the server.
+
+═══════════════════════════════════════════════════════════════════════════
+
+WHY THIS HAPPENS:
+─────────────────
+
+Vue.js (especially with Vite in dev/prod mode) uses eval() and new Function()
+which are blocked by CSP unless 'unsafe-eval' is explicitly allowed. However,
+even with 'unsafe-eval' in the policy, CSP can still cause issues with Vue.js.
+
+The SAFEST approach for now is to disable CSP entirely and rely on other
+security headers which are already in place.
+
+═══════════════════════════════════════════════════════════════════════════
