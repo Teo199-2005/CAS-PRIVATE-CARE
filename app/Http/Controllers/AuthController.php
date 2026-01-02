@@ -31,29 +31,21 @@ class AuthController extends Controller
             $request->session()->regenerate();
             $user = Auth::user();
 
-            // Check if contractor/partner is pending approval
+            // Check if contractor/partner is rejected (ONLY block rejected accounts)
             $partnerTypes = ['caregiver', 'marketing', 'training_center'];
-            if (in_array($user->user_type, $partnerTypes) && ($user->status === 'pending' || ($user->status !== 'Active' && $user->status !== 'approved'))) {
-                // If status is null or not Active/approved, treat as pending (for existing records)
-                if ($user->status === null || ($user->status !== 'Active' && $user->status !== 'approved')) {
-                    if ($user->status === null) {
-                        $user->update(['status' => 'pending']);
-                    }
-                }
-                Auth::logout();
-                $request->session()->invalidate();
-                $request->session()->regenerateToken();
-                return back()->withErrors(['email' => 'Your account is pending approval. Please wait for an administrator to approve your application before logging in.'])->withInput();
-            }
-            
-            // Check if contractor/partner is rejected
             if (in_array($user->user_type, $partnerTypes) && $user->status === 'rejected') {
                 Auth::logout();
                 $request->session()->invalidate();
                 $request->session()->regenerateToken();
                 return back()->withErrors(['email' => 'Your application has been rejected. Please contact support for more information.'])->withInput();
             }
+            
+            // Normalize status - set null status to 'pending' for partner accounts
+            if (in_array($user->user_type, $partnerTypes) && $user->status === null) {
+                $user->update(['status' => 'pending']);
+            }
 
+            // Allow login for ALL statuses (pending, Active, approved) - restrictions are handled in dashboard
             if ($user->user_type === 'admin') {
                 return redirect('/admin/dashboard-vue');
             } elseif ($user->user_type === 'caregiver') {
@@ -508,26 +500,19 @@ class AuthController extends Controller
             $user = User::where('email', $socialUser->getEmail())->first();
             
             if ($user) {
-                // Check if contractor/partner is pending approval
+                // ONLY block rejected contractor/partner accounts
                 $partnerTypes = ['caregiver', 'marketing', 'training_center'];
-                if (in_array($user->user_type, $partnerTypes) && ($user->status === 'pending' || ($user->status !== 'Active' && $user->status !== 'approved'))) {
-                    // If status is null or not Active/approved, treat as pending (for existing records)
-                    if ($user->status === null || ($user->status !== 'Active' && $user->status !== 'approved')) {
-                        if ($user->status === null) {
-                            $user->update(['status' => 'pending']);
-                        }
-                    }
-                    session()->forget('oauth_referrer');
-                    return redirect('/login')->withErrors(['email' => 'Your account is pending approval. Please wait for an administrator to approve your application before logging in.']);
-                }
-                
-                // Check if contractor/partner is rejected
                 if (in_array($user->user_type, $partnerTypes) && $user->status === 'rejected') {
                     session()->forget('oauth_referrer');
                     return redirect('/login')->withErrors(['email' => 'Your application has been rejected. Please contact support for more information.']);
                 }
                 
-                // Existing user - just login
+                // Normalize status - set null status to 'pending' for partner accounts
+                if (in_array($user->user_type, $partnerTypes) && $user->status === null) {
+                    $user->update(['status' => 'pending']);
+                }
+                
+                // Allow login for all other statuses (pending, Active, approved)
                 Auth::login($user);
                 session()->forget('oauth_referrer');
                 

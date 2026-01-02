@@ -49,6 +49,73 @@ Route::post('/user/{id}/avatar', function ($id, Request $request) {
     }
 });
 
+// Application Status Endpoints (for checking approval status)
+Route::get('/caregiver/application-status', function (Request $request) {
+    try {
+        $user = auth()->user();
+        if (!$user) {
+            return response()->json(['error' => 'Unauthorized'], 401);
+        }
+        
+        // Return user's approval status
+        $status = $user->status ?? 'pending';
+        // Normalize: 'Active' or 'approved' = approved, otherwise pending
+        $approvalStatus = (strtolower($status) === 'active' || strtolower($status) === 'approved') ? 'approved' : 'pending';
+        
+        return response()->json([
+            'success' => true,
+            'status' => $approvalStatus,
+            'application' => [
+                'status' => $approvalStatus
+            ]
+        ]);
+    } catch (\Exception $e) {
+        return response()->json(['error' => 'Failed to check application status: ' . $e->getMessage()], 500);
+    }
+});
+
+Route::get('/marketing/application-status', function (Request $request) {
+    try {
+        $user = auth()->user();
+        if (!$user) {
+            return response()->json(['error' => 'Unauthorized'], 401);
+        }
+        
+        // Return user's approval status
+        $status = $user->status ?? 'pending';
+        // Normalize: 'Active' or 'approved' = approved, otherwise pending
+        $approvalStatus = (strtolower($status) === 'active' || strtolower($status) === 'approved') ? 'approved' : 'pending';
+        
+        return response()->json([
+            'success' => true,
+            'status' => $approvalStatus
+        ]);
+    } catch (\Exception $e) {
+        return response()->json(['error' => 'Failed to check application status: ' . $e->getMessage()], 500);
+    }
+});
+
+Route::get('/training/application-status', function (Request $request) {
+    try {
+        $user = auth()->user();
+        if (!$user) {
+            return response()->json(['error' => 'Unauthorized'], 401);
+        }
+        
+        // Return user's approval status
+        $status = $user->status ?? 'pending';
+        // Normalize: 'Active' or 'approved' = approved, otherwise pending
+        $approvalStatus = (strtolower($status) === 'active' || strtolower($status) === 'approved') ? 'approved' : 'pending';
+        
+        return response()->json([
+            'success' => true,
+            'status' => $approvalStatus
+        ]);
+    } catch (\Exception $e) {
+        return response()->json(['error' => 'Failed to check application status: ' . $e->getMessage()], 500);
+    }
+});
+
 // Update user profile
 Route::put('/user/{id}/profile', function ($id, Request $request) {
     try {

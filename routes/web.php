@@ -214,13 +214,7 @@ Route::get('/caregiver/dashboard-vue', function () {
         if ($user->user_type !== 'caregiver') {
             return redirect('/login');
         }
-        // Check if account is pending or rejected
-        if ($user->status === 'pending' || ($user->status !== 'Active' && $user->status !== 'approved' && $user->status !== null)) {
-            Auth::logout();
-            request()->session()->invalidate();
-            request()->session()->regenerateToken();
-            return redirect('/login')->withErrors(['email' => 'Your account is pending approval. Please wait for an administrator to approve your application before logging in.']);
-        }
+        // ONLY block rejected accounts - pending accounts can access dashboard but with limited features
         if ($user->status === 'rejected') {
             Auth::logout();
             request()->session()->invalidate();
@@ -246,13 +240,7 @@ Route::post('/admin/settings', [AdminController::class, 'updateSettings']);
         if ($user->user_type !== 'marketing') {
             return redirect('/login');
         }
-        // Check if account is pending or rejected
-        if ($user->status === 'pending' || ($user->status !== 'Active' && $user->status !== 'approved' && $user->status !== null)) {
-            Auth::logout();
-            request()->session()->invalidate();
-            request()->session()->regenerateToken();
-            return redirect('/login')->withErrors(['email' => 'Your account is pending approval. Please wait for an administrator to approve your application before logging in.']);
-        }
+        // ONLY block rejected accounts - pending accounts can access dashboard but with limited features
         if ($user->status === 'rejected') {
             Auth::logout();
             request()->session()->invalidate();
@@ -268,13 +256,7 @@ Route::post('/admin/settings', [AdminController::class, 'updateSettings']);
         if (!in_array($user->user_type, ['training', 'training_center'])) {
             return redirect('/login');
         }
-        // Check if account is pending or rejected
-        if ($user->status === 'pending' || ($user->status !== 'Active' && $user->status !== 'approved' && $user->status !== null)) {
-            Auth::logout();
-            request()->session()->invalidate();
-            request()->session()->regenerateToken();
-            return redirect('/login')->withErrors(['email' => 'Your account is pending approval. Please wait for an administrator to approve your application before logging in.']);
-        }
+        // ONLY block rejected accounts - pending accounts can access dashboard but with limited features
         if ($user->status === 'rejected') {
             Auth::logout();
             request()->session()->invalidate();
