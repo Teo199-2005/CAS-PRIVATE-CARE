@@ -1,0 +1,91 @@
+╔═══════════════════════════════════════════════════════════════════════════╗
+║          EMERGENCY FIX FOR SecurityHeaders.php PRODUCTION ERROR          ║
+╚═══════════════════════════════════════════════════════════════════════════╝
+
+ERROR: syntax error, unexpected identifier "Security" at line 31
+FILE: /var/www/casprivatecare.online/app/Http/Middleware/SecurityHeaders.php
+
+═══════════════════════════════════════════════════════════════════════════
+
+QUICKEST FIX - Option 1: Direct File Upload via FTP/SFTP
+─────────────────────────────────────────────────────────────────────────
+
+1. Use FileZilla, WinSCP, or your hosting file manager
+2. Navigate to: /var/www/casprivatecare.online/app/Http/Middleware/
+3. Upload the file: SecurityHeaders-FIXED.php
+4. Rename it to: SecurityHeaders.php (replace the existing one)
+5. Done! Refresh your website
+
+═══════════════════════════════════════════════════════════════════════════
+
+RECOMMENDED - Option 2: SSH Command Line Fix
+─────────────────────────────────────────────────────────────────────────
+
+Connect to your server via SSH, then run:
+
+cd /var/www/casprivatecare.online
+git fetch origin
+git reset --hard origin/master
+php artisan cache:clear
+php artisan config:clear
+php artisan route:clear
+php artisan optimize
+
+═══════════════════════════════════════════════════════════════════════════
+
+MANUAL FIX - Option 3: Edit File Directly on Server
+─────────────────────────────────────────────────────────────────────────
+
+1. SSH into server or use hosting file manager editor
+2. Open: /var/www/casprivatecare.online/app/Http/Middleware/SecurityHeaders.php
+3. Replace lines 31-38 with ONLY these 3 lines:
+
+        // Content Security Policy - DISABLED for now due to Vue.js/Vite compatibility issues
+        // TODO: Re-enable with proper CSP policy after testing in production
+        // The other security headers (X-Content-Type-Options, X-Frame-Options, etc.) are still active and provide good protection
+
+4. DELETE these lines if they exist (lines 34-38):
+        // Enable CSP for all environments
+        if (true) {
+             $csp = "default-src 'self'; script-src 'self' https: 'unsafe-inline' 'unsafe-eval'; style-src 'self' https: 'unsafe-inline'; img-src 'self' https: data:; font-src 'self' https: data:; connect-src 'self' https:; frame-ancestors 'self'; base-uri 'self'; form-action 'self'";
+             $response->headers->set('Content-Security-Policy', $csp);
+         }
+
+5. Make sure line 31 starts with //
+6. Save and clear cache
+
+═══════════════════════════════════════════════════════════════════════════
+
+CPANEL FIX - Option 4: Using cPanel File Manager
+─────────────────────────────────────────────────────────────────────────
+
+1. Login to cPanel
+2. Open File Manager
+3. Navigate to: public_html/app/Http/Middleware/
+   (or /var/www/casprivatecare.online/app/Http/Middleware/)
+4. Right-click SecurityHeaders.php → Edit
+5. Fix lines 31-33 by adding // at the start:
+   // Content Security Policy - DISABLED for now due to Vue.js/Vite compatibility issues
+   // TODO: Re-enable with proper CSP policy after testing in production
+   // The other security headers (X-Content-Type-Options, X-Frame-Objects, etc.) are still active and provide good protection
+6. DELETE lines 34-38 (the if(true) block)
+7. Save Changes
+8. Go to Terminal in cPanel and run:
+   cd /var/www/casprivatecare.online
+   php artisan cache:clear
+
+═══════════════════════════════════════════════════════════════════════════
+
+After applying any fix, verify by visiting:
+https://casprivatecare.online
+
+The site should load without errors!
+
+═══════════════════════════════════════════════════════════════════════════
+
+WHAT WENT WRONG?
+Lines 31-33 lost their // comment markers, causing PHP to interpret 
+comments as code. This happened on the production server only.
+
+The local Git repository has the correct version, so pulling from Git 
+will fix it automatically.
