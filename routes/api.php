@@ -52,7 +52,7 @@ Route::post('/user/{id}/avatar', function ($id, Request $request) {
 // Application Status Endpoints (for checking approval status)
 Route::get('/caregiver/application-status', function (Request $request) {
     try {
-        $user = auth()->user();
+        $user = auth('web')->user();
         if (!$user) {
             return response()->json(['error' => 'Unauthorized'], 401);
         }
@@ -76,7 +76,7 @@ Route::get('/caregiver/application-status', function (Request $request) {
 
 Route::get('/marketing/application-status', function (Request $request) {
     try {
-        $user = auth()->user();
+        $user = auth('web')->user();
         if (!$user) {
             return response()->json(['error' => 'Unauthorized'], 401);
         }
@@ -97,7 +97,7 @@ Route::get('/marketing/application-status', function (Request $request) {
 
 Route::get('/training/application-status', function (Request $request) {
     try {
-        $user = auth()->user();
+        $user = auth('web')->user();
         if (!$user) {
             return response()->json(['error' => 'Unauthorized'], 401);
         }
@@ -157,7 +157,7 @@ Route::get('/profile', function (Request $request) {
         $user = User::find($userId);
     } else {
         // Try to get authenticated user
-        $user = auth()->user();
+        $user = auth('web')->user();
         
         // Fallback based on user_type for demo purposes
         if (!$user) {
