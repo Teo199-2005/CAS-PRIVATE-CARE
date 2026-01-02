@@ -347,6 +347,41 @@ Route::prefix('api')->middleware(['web'])->group(function () {
 // API Routes with Authentication
 Route::prefix('api')->middleware(['web', 'auth'])->group(function () {
     
+    // Application Status Endpoints (for contractors/partners)
+    Route::get('/caregiver/application-status', function () {
+        $user = auth()->user();
+        $status = $user->status ?? 'pending';
+        $approvalStatus = (strtolower($status) === 'active' || strtolower($status) === 'approved') ? 'approved' : 'pending';
+        
+        return response()->json([
+            'success' => true,
+            'status' => $approvalStatus,
+            'application' => ['status' => $approvalStatus]
+        ]);
+    });
+    
+    Route::get('/marketing/application-status', function () {
+        $user = auth()->user();
+        $status = $user->status ?? 'pending';
+        $approvalStatus = (strtolower($status) === 'active' || strtolower($status) === 'approved') ? 'approved' : 'pending';
+        
+        return response()->json([
+            'success' => true,
+            'status' => $approvalStatus
+        ]);
+    });
+    
+    Route::get('/training/application-status', function () {
+        $user = auth()->user();
+        $status = $user->status ?? 'pending';
+        $approvalStatus = (strtolower($status) === 'active' || strtolower($status) === 'approved') ? 'approved' : 'pending';
+        
+        return response()->json([
+            'success' => true,
+            'status' => $approvalStatus
+        ]);
+    });
+    
     // Booking endpoints
     Route::post('/bookings', [\App\Http\Controllers\BookingController::class, 'store'])->middleware('throttle:10,1');
     Route::get('/bookings', [\App\Http\Controllers\BookingController::class, 'index']);
