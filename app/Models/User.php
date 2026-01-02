@@ -70,4 +70,9 @@ class User extends Authenticatable
     {
         return $this->hasOne(Caregiver::class);
     }
+
+    public function referralCode()
+    {
+        return $this->hasOne(ReferralCode::class);
+    }
 }
