@@ -1,0 +1,132 @@
+╔═══════════════════════════════════════════════════════════════════════════╗
+║          IMMEDIATE FIX FOR YOUR SPECIFIC SERVER SETUP                     ║
+╚═══════════════════════════════════════════════════════════════════════════╝
+
+Your server details:
+- Directory: /var/www/casprivatecare (NOT .online)
+- Web server: Apache (NOT Nginx)
+- PHP-FPM: Not php8.4-fpm (need to find correct version)
+
+═══════════════════════════════════════════════════════════════════════════
+
+STEP 1: Find Where CSP is Being Set
+─────────────────────────────────────────────────────────────────────────
+
+Run these commands to find CSP:
+
+# Check Apache site config
+sudo grep -r "Content-Security-Policy" /etc/apache2/
+
+# Check .htaccess
+grep -r "Content-Security-Policy" /var/www/casprivatecare/
+
+# Check Apache virtual host config
+sudo grep -r "Header.*Content-Security-Policy" /etc/apache2/sites-available/
+sudo grep -r "Header.*Content-Security-Policy" /etc/apache2/sites-enabled/
+
+═══════════════════════════════════════════════════════════════════════════
+
+STEP 2: Remove CSP from Apache Config (MOST LIKELY SOURCE)
+─────────────────────────────────────────────────────────────────────────
+
+Find your Apache virtual host config file:
+
+sudo nano /etc/apache2/sites-available/casprivatecare.online.conf
+
+OR
+
+sudo nano /etc/apache2/sites-enabled/000-default.conf
+
+Look for lines like:
+    Header set Content-Security-Policy "..."
+    Header always set Content-Security-Policy "..."
+
+COMMENT THEM OUT by adding # at the start:
+    # Header set Content-Security-Policy "..."
+
+Save the file (Ctrl+O, Enter, Ctrl+X)
+
+Then test and restart Apache:
+    sudo apachectl configtest
+    sudo systemctl restart apache2
+
+═══════════════════════════════════════════════════════════════════════════
+
+STEP 3: Find Correct PHP-FPM Service
+─────────────────────────────────────────────────────────────────────────
+
+List all PHP services:
+    systemctl list-units --type=service | grep php
+
+You'll see something like:
+    php8.1-fpm.service
+    php8.2-fpm.service
+    php8.3-fpm.service
+
+Restart the active one:
+    sudo systemctl restart php8.X-fpm
+
+Replace X with your version (e.g., php8.1-fpm, php8.2-fpm, etc.)
+
+═══════════════════════════════════════════════════════════════════════════
+
+STEP 4: Complete Cache Clear (You Already Did This ✅)
+─────────────────────────────────────────────────────────────────────────
+
+You already ran:
+    php artisan cache:clear
+    php artisan config:clear
+    php artisan optimize:clear
+
+This part is DONE ✅
+
+═══════════════════════════════════════════════════════════════════════════
+
+STEP 5: Quick All-in-One Fix
+─────────────────────────────────────────────────────────────────────────
+
+Run these commands in order:
+
+cd /var/www/casprivatecare
+
+# Clear Laravel caches (already done, but do again)
+php artisan optimize:clear
+
+# Find PHP-FPM service
+systemctl list-units --type=service | grep php
+
+# Restart it (replace 8.X with your version)
+sudo systemctl restart php8.X-fpm
+
+# Check Apache config for CSP
+sudo grep -r "Content-Security-Policy" /etc/apache2/
+
+# If CSP found, edit the config file and comment it out
+# Then restart Apache
+sudo systemctl restart apache2
+
+═══════════════════════════════════════════════════════════════════════════
+
+MOST LIKELY CAUSE:
+─────────────────
+
+Based on the error message showing CSP is active, it's being set by:
+
+1. Apache virtual host configuration file (MOST LIKELY)
+   Location: /etc/apache2/sites-available/ or /etc/apache2/sites-enabled/
+
+2. .htaccess file in your project
+   Location: /var/www/casprivatecare/public/.htaccess
+
+3. Apache main config
+   Location: /etc/apache2/apache2.conf
+
+═══════════════════════════════════════════════════════════════════════════
+
+AFTER THE FIX:
+─────────────
+
+The CSP error should disappear and Vue.js will work properly.
+Test at: https://casprivatecare.online/caregiver/dashboard-vue
+
+═══════════════════════════════════════════════════════════════════════════
