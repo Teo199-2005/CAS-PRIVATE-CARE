@@ -31,10 +31,6 @@ class SecurityHeaders
         // Content Security Policy - DISABLED for now due to Vue.js/Vite compatibility issues
         // TODO: Re-enable with proper CSP policy after testing in production
         // The other security headers (X-Content-Type-Options, X-Frame-Options, etc.) are still active and provide good protection
-        // if (config('app.env') === 'production') {
-        //     $csp = "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; connect-src 'self';";
-        //     $response->headers->set('Content-Security-Policy', $csp);
-        // }
 
         return $response;
     }
