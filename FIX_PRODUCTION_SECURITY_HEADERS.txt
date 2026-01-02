@@ -1,0 +1,52 @@
+INSTRUCTIONS TO FIX SecurityHeaders.php ON PRODUCTION SERVER
+============================================================
+
+The error shows lines 31-33 are missing the // comment markers.
+
+OPTION 1: SSH and pull from Git (RECOMMENDED)
+-----------------------------------------------
+1. SSH into your production server
+2. Run these commands:
+
+cd /var/www/casprivatecare.online
+git pull origin master
+php artisan cache:clear
+php artisan config:clear
+php artisan route:clear
+php artisan optimize
+
+OR run the provided script:
+bash fix-security-headers-production.sh
+
+
+OPTION 2: Manually edit the file on server
+-------------------------------------------
+1. SSH into your production server
+2. Edit the file:
+
+nano /var/www/casprivatecare.online/app/Http/Middleware/SecurityHeaders.php
+
+3. Find lines 31-33 and make sure they have // at the start:
+
+// Content Security Policy - DISABLED for now due to Vue.js/Vite compatibility issues
+// TODO: Re-enable with proper CSP policy after testing in production
+// The other security headers (X-Content-Type-Options, X-Frame-Options, etc.) are still active and provide good protection
+
+4. Remove any extra code blocks (lines 34-38 in the error) that shouldn't be there
+
+5. Save the file (Ctrl+O, Enter, Ctrl+X)
+
+6. Clear caches:
+php artisan cache:clear
+php artisan config:clear
+
+
+OPTION 3: Replace entire file content
+--------------------------------------
+Replace the entire file content with the corrected version from:
+app/Http/Middleware/SecurityHeaders.php
+
+The correct file should have 40 lines total and end with just:
+        return $response;
+    }
+}
