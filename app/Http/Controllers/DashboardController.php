@@ -28,15 +28,23 @@ class DashboardController extends Controller
         $allBookings = Booking::where('client_id', $clientId)
             ->with([
                 'assignments.caregiver.user:id,name,email,phone',
-                'assignments.caregiver:id,user_id'
+                'assignments.caregiver:id,user_id',
+                'payments' // Load payment relationship
             ])
             ->get();
         $confirmedBookings = $allBookings->where('status', 'confirmed');
         $completedBookings = $allBookings->where('status', 'completed');
         $approvedBookings = $allBookings->where('status', 'approved');
         
-        // Calculate total spent from completed bookings
-        $totalSpent = $completedBookings->sum(function($booking) {
+        // Calculate total spent from completed bookings AND bookings with successful payments
+        // Check both Payment model records AND booking payment_status field
+        $paidBookings = $allBookings->filter(function($booking) {
+            return $booking->payments->where('status', 'completed')->isNotEmpty()
+                || $booking->payment_status === 'paid';
+        });
+        $spendingBookings = $completedBookings->merge($paidBookings)->unique('id');
+        
+        $totalSpent = $spendingBookings->sum(function($booking) {
             $hours = $this->extractHours($booking->duty_type);
             $rate = $booking->hourly_rate ?: $this->getDefaultRate($booking->service_type);
             $calculatedSpent = $hours * $booking->duration_days * $rate;
@@ -51,14 +59,16 @@ class DashboardController extends Controller
                 'hourly_rate' => $booking->hourly_rate,
                 'default_rate' => $this->getDefaultRate($booking->service_type),
                 'final_rate' => $rate,
-                'calculated_spent' => $calculatedSpent
+                'calculated_spent' => $calculatedSpent,
+                'has_payment_record' => $booking->payments->where('status', 'completed')->isNotEmpty(),
+                'booking_payment_status' => $booking->payment_status
             ]);
             
             return $calculatedSpent;
         });
         
         // Calculate this month's spending
-        $thisMonthBookings = $completedBookings->filter(function($booking) {
+        $thisMonthBookings = $spendingBookings->filter(function($booking) {
             return $booking->service_date >= now()->startOfMonth();
         });
         
@@ -71,36 +81,51 @@ class DashboardController extends Controller
         // Calculate average monthly spending
         $avgMonthlySpent = $totalSpent > 0 ? $totalSpent / max(1, now()->diffInMonths($allBookings->min('created_at')) + 1) : 0;
         
-        // Calculate total hours from completed bookings
-        $totalHours = $completedBookings->sum(function($booking) {
+        // Calculate total hours from completed bookings AND paid bookings
+        $totalHours = $spendingBookings->sum(function($booking) {
             $hours = $this->extractHours($booking->duty_type);
             return $hours * $booking->duration_days;
         });
         
-        // Count active bookings (confirmed + approved)
-        $activeBookings = $confirmedBookings->count() + $approvedBookings->count();
+        // Count active bookings (approved/confirmed/in_progress AND has completed payment)
+        $activeBookings = $allBookings->filter(function($booking) {
+            $hasCompletedPayment = $booking->payments->where('status', 'completed')->isNotEmpty() 
+                || $booking->payment_status === 'paid';
+            return in_array($booking->status, ['approved', 'confirmed', 'in_progress']) 
+                && $hasCompletedPayment;
+        })->count();
         
-        // Calculate amount due from approved/confirmed (active) bookings
+        // Calculate amount due from approved/confirmed (active) bookings that are NOT yet paid
         $activeBookingsList = $allBookings->filter(function($booking) {
             return in_array($booking->status, ['approved', 'confirmed', 'in_progress']);
         });
         
-        $amountDue = $activeBookingsList->sum(function($booking) {
-            $hours = $this->extractHours($booking->duty_type);
-            $rate = $booking->hourly_rate ?: $this->getDefaultRate($booking->service_type, !empty($booking->referral_code));
-            return $hours * $booking->duration_days * $rate;
-        });
+        $amountDue = $activeBookingsList->filter(function($booking) {
+            // Only include bookings that don't have a completed payment (check both sources)
+            return $booking->payments->where('status', 'completed')->isEmpty() 
+                && $booking->payment_status !== 'paid';
+        })
+            ->sum(function($booking) {
+                $hours = $this->extractHours($booking->duty_type);
+                $rate = $booking->hourly_rate ?: $this->getDefaultRate($booking->service_type, !empty($booking->referral_code));
+                return $hours * $booking->duration_days * $rate;
+            });
         
-        // Calculate this month's amount due
+        // Calculate this month's amount due (also exclude paid bookings)
         $thisMonthAmountDue = $activeBookingsList->filter(function($booking) {
-            $serviceDate = \Carbon\Carbon::parse($booking->service_date);
-            $endDate = $serviceDate->copy()->addDays($booking->duration_days);
-            return $serviceDate->month === now()->month || $endDate->month === now()->month;
-        })->sum(function($booking) {
-            $hours = $this->extractHours($booking->duty_type);
-            $rate = $booking->hourly_rate ?: $this->getDefaultRate($booking->service_type, !empty($booking->referral_code));
-            return $hours * $booking->duration_days * $rate;
-        });
+            // Only include bookings that don't have a completed payment (check both sources)
+            return $booking->payments->where('status', 'completed')->isEmpty()
+                && $booking->payment_status !== 'paid';
+        })
+            ->filter(function($booking) {
+                $serviceDate = \Carbon\Carbon::parse($booking->service_date);
+                $endDate = $serviceDate->copy()->addDays($booking->duration_days);
+                return $serviceDate->month === now()->month || $endDate->month === now()->month;
+            })->sum(function($booking) {
+                $hours = $this->extractHours($booking->duty_type);
+                $rate = $booking->hourly_rate ?: $this->getDefaultRate($booking->service_type, !empty($booking->referral_code));
+                return $hours * $booking->duration_days * $rate;
+            });
         
         // Get coverage date range from active bookings
         $coverageStart = null;
@@ -332,8 +357,15 @@ class DashboardController extends Controller
         $totalMarketing = \App\Models\User::where('user_type', 'marketing')->count();
         $totalTraining = \App\Models\User::where('user_type', 'training')->count();
         
-        // Get active bookings (pending, confirmed, in_progress, approved)
-        $activeBookings = Booking::whereIn('status', ['pending', 'confirmed', 'in_progress', 'approved'])->count();
+        // Get active bookings (approved/confirmed/in_progress AND has completed payment)
+        $activeBookings = Booking::with('payments')
+            ->get()
+            ->filter(function($booking) {
+                $hasCompletedPayment = $booking->payments->where('status', 'completed')->isNotEmpty();
+                return in_array($booking->status, ['approved', 'confirmed', 'in_progress']) 
+                    && $hasCompletedPayment;
+            })
+            ->count();
         
         // Get total revenue from payments
         $totalRevenue = Payment::where('status', 'completed')->sum('amount');
@@ -359,8 +391,17 @@ class DashboardController extends Controller
         $lastMonthUsers = \App\Models\User::where('created_at', '<', now()->startOfMonth())->count();
         $userGrowth = $lastMonthUsers > 0 ? round((($totalUsers - $lastMonthUsers) / $lastMonthUsers) * 100, 1) : 0;
         
-        $lastWeekBookings = Booking::where('created_at', '<', now()->startOfWeek())->whereIn('status', ['pending', 'confirmed', 'in_progress', 'approved'])->count();
-        $bookingGrowth = $lastWeekBookings > 0 ? round((($activeBookings - $lastWeekBookings) / $lastWeekBookings) * 100, 1) : 0;
+        // Calculate booking growth (only count paid active bookings from last week)
+        $lastWeekActiveBookings = Booking::with('payments')
+            ->where('created_at', '<', now()->startOfWeek())
+            ->get()
+            ->filter(function($booking) {
+                $hasCompletedPayment = $booking->payments->where('status', 'completed')->isNotEmpty();
+                return in_array($booking->status, ['approved', 'confirmed', 'in_progress']) 
+                    && $hasCompletedPayment;
+            })
+            ->count();
+        $bookingGrowth = $lastWeekActiveBookings > 0 ? round((($activeBookings - $lastWeekActiveBookings) / $lastWeekActiveBookings) * 100, 1) : 0;
         
         return response()->json([
             'total_users' => $totalUsers,
@@ -508,7 +549,9 @@ class DashboardController extends Controller
                         'service_date' => $serviceDate,
                         'start_time' => $formattedStartTime,
                         'duration_days' => $durationDays,
-                        'end_date' => $endDate
+                        'end_date' => $endDate,
+                        'day_schedules' => $booking->day_schedules,
+                        'status' => $booking->status
                     ]
                 ];
             })->toArray(),

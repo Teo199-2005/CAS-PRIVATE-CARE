@@ -19,6 +19,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'user.type' => \App\Http\Middleware\EnsureUserType::class,
             'admin' => \App\Http\Middleware\EnsureAdmin::class,
+            'cache.api' => \App\Http\Middleware\CacheApiResponse::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

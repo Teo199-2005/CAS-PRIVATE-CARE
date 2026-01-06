@@ -10,7 +10,7 @@ $clientName = $_GET['client'] ?? 'John Doe';
 
 // Calculate totals
 $subtotal = floatval($amount);
-$tax = $subtotal * 0.0825;
+$tax = 0; // Healthcare services are tax-exempt in NY
 $total = $subtotal + $tax;
 $rate = $hours > 0 ? $subtotal / floatval($hours) : 0;
 ?>
@@ -132,8 +132,8 @@ $rate = $hours > 0 ? $subtotal / floatval($hours) : 0;
                         <td style="text-align: right;">$<?php echo number_format($subtotal, 2); ?></td>
                     </tr>
                     <tr>
-                        <td>Sales Tax (8.25%):</td>
-                        <td style="text-align: right;">$<?php echo number_format($tax, 2); ?></td>
+                        <td>Sales Tax:</td>
+                        <td style="text-align: right;">$0.00</td>
                     </tr>
                     <tr class="total">
                         <td><strong>TOTAL PAID:</strong></td>

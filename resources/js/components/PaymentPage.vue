@@ -7,6 +7,118 @@
     :timeout="notification.timeout"
   />
 
+  <!-- Password Confirmation Modal -->
+  <div v-if="showPasswordModal" class="modal-overlay" @click.self="showPasswordModal = false">
+    <div class="modal-content password-modal">
+      <div class="modal-header">
+        <h3><i class="bi bi-shield-lock"></i> Confirm Payment</h3>
+        <button class="close-btn" @click="showPasswordModal = false">
+          <i class="bi bi-x-lg"></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p class="password-prompt">Please enter your password to authorize this payment of <strong>${{ totalAmount.toLocaleString() }}</strong></p>
+        
+        <div class="form-group">
+          <label>Password</label>
+          <input 
+            type="password" 
+            v-model="confirmPassword"
+            placeholder="Enter your password"
+            class="form-input"
+            @keyup.enter="confirmPaymentWithPassword"
+            ref="passwordInput"
+          >
+        </div>
+        
+        <div class="modal-actions">
+          <button class="btn-cancel" @click="showPasswordModal = false">Cancel</button>
+          <button class="btn-confirm" @click="confirmPaymentWithPassword" :disabled="!confirmPassword || processing">
+            <i class="bi bi-lock-fill"></i>
+            {{ processing ? 'Processing...' : 'Authorize Payment' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add Payment Method Modal -->
+  <div v-if="showAddCardModal" class="modal-overlay" @click.self="showAddCardModal = false">
+    <div class="modal-content add-card-modal">
+      <div class="modal-header">
+        <h3><i class="bi bi-credit-card"></i> Add Payment Method</h3>
+        <button class="close-btn" @click="closeAddCardModal">
+          <i class="bi bi-x-lg"></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form @submit.prevent="saveNewPaymentMethod">
+          <!-- Cardholder Name -->
+          <div class="form-group">
+            <label>Cardholder Name</label>
+            <input 
+              type="text" 
+              v-model="newCardData.name"
+              placeholder="John Doe"
+              class="form-input"
+              required
+            >
+          </div>
+
+          <!-- Stripe Card Element in Modal -->
+          <div class="form-group">
+            <label>Card Information</label>
+            <div id="card-element-modal" class="stripe-element">
+              <!-- Stripe Card Element will be mounted here -->
+            </div>
+            <div id="card-errors-modal" class="card-errors"></div>
+          </div>
+
+          <!-- Billing Address -->
+          <div class="form-group">
+            <label>Billing Address</label>
+            <input 
+              type="text" 
+              v-model="newCardData.address"
+              placeholder="123 Main Street"
+              class="form-input"
+              required
+            >
+          </div>
+
+          <!-- ZIP Code -->
+          <div class="form-group">
+            <label>ZIP Code</label>
+            <input 
+              type="text" 
+              v-model="newCardData.zipCode"
+              placeholder="10001"
+              maxlength="5"
+              class="form-input"
+              required
+            >
+          </div>
+
+          <!-- Save for Future Use -->
+          <div class="form-group">
+            <label class="checkbox-label">
+              <input type="checkbox" v-model="newCardData.saveForFuture" checked>
+              <span>Save this card for future payments</span>
+            </label>
+          </div>
+
+          <div class="modal-actions">
+            <button type="button" class="btn-cancel" @click="closeAddCardModal">Cancel</button>
+            <button type="submit" class="btn-confirm" :disabled="savingCard">
+              <i class="bi bi-plus-circle"></i>
+              {{ savingCard ? 'Saving...' : 'Add Card' }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
   <div class="payment-container">
     <!-- Left Side: Payment Form -->
     <div class="payment-form-section">
@@ -23,105 +135,59 @@
         <div class="company-tagline">Professional Caregiving Services</div>
       </div>
 
-      <h1 class="form-title">Payment method</h1>
+      <h1 class="form-title">Payment Method</h1>
 
-      <form class="payment-form" @submit.prevent="processPayment">
-        <!-- Name on Card -->
-        <div class="form-group">
-          <label>Name on card</label>
-          <input 
-            type="text" 
-            v-model="paymentData.cardName"
-            placeholder="Enter cardholder name"
-            class="form-input"
-            required
+      <!-- Saved Payment Methods Section -->
+      <div v-if="savedPaymentMethods.length > 0" class="saved-methods-section">
+        <h3 class="section-subtitle">
+          <i class="bi bi-credit-card-2-front"></i> Saved Payment Methods
+        </h3>
+        
+        <div class="payment-methods-list">
+          <div 
+            v-for="method in savedPaymentMethods" 
+            :key="method.id"
+            class="payment-method-card"
+            :class="{ 'selected': selectedPaymentMethod?.id === method.id }"
+            @click="selectPaymentMethod(method)"
           >
-        </div>
-
-        <!-- Credit Card Number -->
-        <div class="form-group">
-          <label>Credit card number</label>
-          <div class="input-wrapper">
-            <input 
-              type="text" 
-              v-model="paymentData.cardNumber"
-              placeholder="1234 5678 9012 3456"
-              maxlength="19"
-              class="form-input"
-              required
-            >
-            <i class="bi bi-credit-card card-icon"></i>
+            <div class="method-icon">
+              <i :class="getCardIcon(method.card.brand)"></i>
+            </div>
+            <div class="method-details">
+              <div class="method-brand">{{ method.card.brand.toUpperCase() }} •••• {{ method.card.last4 }}</div>
+              <div class="method-expiry">Expires {{ method.card.exp_month }}/{{ method.card.exp_year }}</div>
+            </div>
+            <div class="method-check">
+              <i v-if="selectedPaymentMethod?.id === method.id" class="bi bi-check-circle-fill"></i>
+              <i v-else class="bi bi-circle"></i>
+            </div>
           </div>
         </div>
 
-        <!-- Exp Date and CVV -->
-        <div class="form-row-2">
-          <div class="form-group">
-            <label>Exp date (mm/yy)</label>
-            <input 
-              type="text" 
-              v-model="paymentData.expiryDate"
-              placeholder="MM/YY"
-              maxlength="5"
-              class="form-input"
-              required
-            >
-          </div>
+        <button class="add-method-btn" @click="openAddCardModal">
+          <i class="bi bi-plus-circle"></i> Add New Payment Method
+        </button>
+      </div>
 
-          <div class="form-group">
-            <label>CVV</label>
-            <input 
-              type="password" 
-              v-model="paymentData.cvc"
-              placeholder="•••"
-              maxlength="4"
-              class="form-input"
-              required
-            >
-          </div>
+      <!-- No Saved Methods - Show Add Card Button -->
+      <div v-else class="no-saved-methods">
+        <div class="empty-state">
+          <i class="bi bi-credit-card-2-back"></i>
+          <p>No saved payment methods</p>
+          <button class="add-method-btn-primary" @click="openAddCardModal">
+            <i class="bi bi-plus-circle"></i> Add Payment Method
+          </button>
         </div>
+      </div>
 
-        <!-- Billing Address -->
-        <div class="form-group">
-          <label>Billing street address</label>
-          <input 
-            type="text" 
-            v-model="paymentData.streetAddress"
-            placeholder="Enter address"
-            class="form-input"
-            required
-          >
+      <!-- Selected Method Summary -->
+      <div v-if="selectedPaymentMethod" class="selected-summary">
+        <div class="summary-box">
+          <i class="bi bi-check-circle-fill text-success"></i>
+          <span>Payment will be charged to {{ selectedPaymentMethod.card.brand.toUpperCase() }} ending in {{ selectedPaymentMethod.card.last4 }}</span>
         </div>
-
-        <!-- ZIP Code -->
-        <div class="form-group">
-          <label>Billing ZIP code</label>
-          <input 
-            type="text" 
-            v-model="paymentData.zipCode"
-            placeholder="10001"
-            maxlength="5"
-            class="form-input"
-            required
-          >
-        </div>
-
-        <!-- Additional Verification -->
-        <div class="verification-section">
-          <h2 class="subsection-title">Additional verification</h2>
-          <div class="form-group">
-            <label>Your birth date (mm/dd/yyyy)</label>
-            <input 
-              type="text" 
-              v-model="paymentData.birthDate"
-              placeholder="MM/DD/YYYY"
-              maxlength="10"
-              class="form-input"
-              required
-            >
-          </div>
-        </div>
-      </form>
+      </div>
     </div>
 
     <!-- Right Side: Order Summary -->
@@ -141,7 +207,7 @@
         <div class="divider"></div>
 
         <!-- Sales Tax -->
-        <div class="summary-item">
+        <div class="summary-item" v-if="salesTax > 0">
           <div class="item-label">
             <span class="item-name">Estimated Sales Tax (8.875%):</span>
           </div>
@@ -210,6 +276,10 @@ const props = defineProps({
   bookingId: {
     type: String,
     required: true
+  },
+  stripeKey: {
+    type: String,
+    required: true
   }
 });
 
@@ -217,11 +287,12 @@ const booking = ref(props.bookingData || {});
 const processing = ref(false);
 const promoCode = ref('');
 
+// Stripe instances
+let stripe = null;
+let cardElement = null;
+
 const paymentData = ref({
   cardName: '',
-  cardNumber: '',
-  expiryDate: '',
-  cvc: '',
   streetAddress: '',
   zipCode: '',
   birthDate: ''
@@ -234,24 +305,6 @@ const notification = ref({
   message: '',
   timeout: 3000
 });
-
-const rules = {
-  required: value => !!value || 'This field is required',
-  cardNumber: value => {
-    const cleaned = value.replace(/\s/g, '');
-    return cleaned.length === 16 || 'Card number must be 16 digits';
-  },
-  expiry: value => {
-    const regex = /^(0[1-9]|1[0-2])\/\d{2}$/;
-    return regex.test(value) || 'Format must be MM/YY';
-  },
-  cvc: value => {
-    return (value.length === 3 || value.length === 4) || 'CVC must be 3 or 4 digits';
-  },
-  zipCode: value => {
-    return value.length === 5 || 'ZIP code must be 5 digits';
-  }
-};
 
 const extractHours = (dutyType) => {
   if (dutyType && typeof dutyType === 'string') {
@@ -279,8 +332,9 @@ const subtotal = computed(() => {
 });
 
 const salesTax = computed(() => {
-  const taxRate = 8.875; // NYC tax rate
-  return Math.round(subtotal.value * (taxRate / 100) * 100) / 100;
+  // Healthcare/home care services are tax-exempt in New York
+  // No sales tax is charged for personal care services
+  return 0;
 });
 
 const totalAmount = computed(() => {
@@ -304,11 +358,11 @@ const finalAmount = computed(() => {
 });
 
 const taxRate = computed(() => {
-  return 8.875; // NYC tax rate
+  return 0; // Healthcare/home care services are tax-exempt in New York
 });
 
 const taxAmount = computed(() => {
-  return Math.round(finalAmount.value * (taxRate.value / 100) * 100) / 100;
+  return 0; // No tax on healthcare services
 });
 
 const finalAmountWithTax = computed(() => {
@@ -339,22 +393,164 @@ const goBack = () => {
   window.location.href = '/client-dashboard';
 };
 
+// Initialize Stripe Elements
+const initializeStripe = () => {
+  try {
+    
+    // Check if Stripe.js is loaded
+    if (typeof window.Stripe === 'undefined') {
+      error('Payment system not loaded. Please refresh the page.');
+      return;
+    }
+    
+    // Check if we have a Stripe key
+    if (!props.stripeKey || props.stripeKey.trim() === '') {
+      error('Payment configuration error. Please contact support.');
+      return;
+    }
+    
+    // Initialize Stripe with your publishable key
+    stripe = window.Stripe(props.stripeKey);
+    
+    // Create an instance of Elements
+    const elements = stripe.elements();
+    
+    // Custom styling to match your design
+    const style = {
+      base: {
+        color: '#1f2937',
+        fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+        fontSmoothing: 'antialiased',
+        fontSize: '15px',
+        '::placeholder': {
+          color: '#9ca3af'
+        },
+        lineHeight: '48px',
+        padding: '12px 16px'
+      },
+      invalid: {
+        color: '#ef4444',
+        iconColor: '#ef4444'
+      }
+    };
+    
+    // Create and mount the Card Element
+    cardElement = elements.create('card', { 
+      style: style,
+      hidePostalCode: true // We'll use our own ZIP code field
+    });
+    
+    cardElement.mount('#card-element');
+    
+    // Handle real-time validation errors from the Card Element
+    cardElement.on('change', (event) => {
+      const displayError = document.getElementById('card-errors');
+      if (event.error) {
+        displayError.textContent = event.error.message;
+      } else {
+        displayError.textContent = '';
+      }
+    });
+    
+  } catch (err) {
+    error('Failed to load payment form. Please refresh the page.');
+  }
+};
+
+// Process Payment with Stripe
 const processPayment = async () => {
+  if (processing.value) return;
+  
+  // Validate form
+  if (!paymentData.value.cardName) {
+    error('Please enter cardholder name');
+    return;
+  }
+  
+  if (!paymentData.value.streetAddress) {
+    error('Please enter billing address');
+    return;
+  }
+  
+  if (!paymentData.value.zipCode || paymentData.value.zipCode.length !== 5) {
+    error('Please enter a valid 5-digit ZIP code');
+    return;
+  }
+  
   processing.value = true;
   
-  // Simulate payment processing
-  setTimeout(() => {
-    processing.value = false;
-    success('Payment processed successfully! This is a prototype - Stripe integration coming soon.', 'Payment Successful');
+  try {
     
-    // Redirect back to dashboard after 2 seconds
-    setTimeout(() => {
-      goBack();
-    }, 2000);
-  }, 1500);
+    // Create Payment Method with Stripe
+    const { paymentMethod, error: stripeError } = await stripe.createPaymentMethod({
+      type: 'card',
+      card: cardElement,
+      billing_details: {
+        name: paymentData.value.cardName,
+        address: {
+          line1: paymentData.value.streetAddress,
+          postal_code: paymentData.value.zipCode
+        }
+      }
+    });
+    
+    if (stripeError) {
+      error(stripeError.message || 'Payment failed. Please check your card details.');
+      processing.value = false;
+      return;
+    }
+
+// Send payment method to your backend
+    const response = await fetch('/api/stripe/setup-intent', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+      },
+      body: JSON.stringify({
+        payment_method_id: paymentMethod.id,
+        booking_id: props.bookingId,
+        amount: Math.round(totalAmount.value * 100), // Amount in cents
+        cardholder_name: paymentData.value.cardName,
+        billing_address: paymentData.value.streetAddress,
+        zip_code: paymentData.value.zipCode
+      })
+    });
+    
+    const data = await response.json();
+    
+    if (data.success) {
+      success('Payment processed successfully! Redirecting...', 'Payment Successful');
+      
+      // Redirect to success page or dashboard
+      setTimeout(() => {
+        window.location.href = `/booking-confirmation/${props.bookingId}`;
+      }, 2000);
+    } else {
+      error(data.message || 'Payment failed. Please try again.');
+    }
+    
+  } catch (err) {
+    error('An error occurred while processing your payment. Please try again.');
+  } finally {
+    processing.value = false;
+  }
 };
 
 onMounted(() => {
+  // Wait for Stripe.js to load (it's loaded from CDN)
+  const initStripeWhenReady = () => {
+    if (typeof window.Stripe !== 'undefined') {
+      // Stripe.js is loaded, initialize it
+      initializeStripe();
+    } else {
+      // Wait a bit longer and try again
+      setTimeout(initStripeWhenReady, 100);
+    }
+  };
+  
+  initStripeWhenReady();
+  
   // Load booking data if not provided
   if (!booking.value || Object.keys(booking.value).length === 0) {
     // Fetch booking data
@@ -366,7 +562,6 @@ onMounted(() => {
         }
       })
       .catch(err => {
-        console.error('Error loading booking:', err);
         error('Failed to load booking details');
       });
   }
@@ -510,6 +705,30 @@ onMounted(() => {
 
 .form-input::placeholder {
   color: #94a3b8;
+}
+
+/* Stripe Element Styling */
+.stripe-element {
+  width: 100%;
+  padding: 0.75rem 0.875rem;
+  border: 2px solid #e2e8f0;
+  border-radius: 10px;
+  background: white;
+  transition: all 0.2s;
+  min-height: 48px;
+}
+
+.stripe-element:focus-within {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.card-errors {
+  color: #ef4444;
+  font-size: 0.875rem;
+  margin-top: 0.5rem;
+  min-height: 20px;
+  font-weight: 500;
 }
 
 .input-wrapper {

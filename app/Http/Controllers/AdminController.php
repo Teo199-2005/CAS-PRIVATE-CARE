@@ -24,7 +24,7 @@ class AdminController extends Controller
     public function getAllBookings()
     {
         try {
-            $bookings = Booking::with(['client', 'assignments.caregiver.user', 'referralCode.user'])
+            $bookings = Booking::with(['client', 'assignments.caregiver.user', 'referralCode.user', 'payments'])
                 ->orderBy('created_at', 'desc')
                 ->get();
 
@@ -32,6 +32,20 @@ class AdminController extends Controller
             $data = $bookings->map(function($b) use ($controller) {
                 // Calculate caregivers needed based on hours per day
                 $caregiversNeeded = $controller->calculateCaregiversNeeded($b->duty_type);
+                
+                // Calculate assignment status based on actual assignments count
+                $assignedCount = $b->assignments ? $b->assignments->count() : 0;
+                if ($assignedCount === 0) {
+                    $assignmentStatus = 'unassigned';
+                } elseif ($assignedCount >= $caregiversNeeded) {
+                    $assignmentStatus = 'assigned';
+                } else {
+                    $assignmentStatus = 'partial';
+                }
+                
+                // Get payment status from payments table
+                $hasCompletedPayment = $b->payments && $b->payments->where('status', 'completed')->isNotEmpty();
+                $paymentStatus = $hasCompletedPayment ? 'paid' : 'unpaid';
                 
                 return [
                     'id' => $b->id,
@@ -57,12 +71,16 @@ class AdminController extends Controller
                     'transportation_needed' => $b->transportation_needed,
                     'recurring_service' => $b->recurring_service,
                     'recurring_schedule' => $b->recurring_schedule,
+                    'day_schedules' => $b->day_schedules,
                     'urgency_level' => $b->urgency_level,
                     'street_address' => $b->street_address,
                     'apartment_unit' => $b->apartment_unit,
                     'special_instructions' => $b->special_instructions,
                     'status' => $b->status,
-                    'assignment_status' => $b->assignment_status,
+                    'assignment_status' => $assignmentStatus,
+                    'payment_status' => $paymentStatus,
+                    'stripe_payment_intent_id' => $b->stripe_payment_intent_id,
+                    'payment_date' => $b->payment_date,
                     'submitted_at' => $b->submitted_at ? (is_string($b->submitted_at) ? $b->submitted_at : $b->submitted_at->toIso8601String()) : null,
                     'created_at' => $b->created_at ? (is_string($b->created_at) ? $b->created_at : $b->created_at->toIso8601String()) : null,
                     'updated_at' => $b->updated_at ? (is_string($b->updated_at) ? $b->updated_at : $b->updated_at->toIso8601String()) : null,
@@ -751,21 +769,9 @@ class AdminController extends Controller
             }
         }
 
-        // Update the booking's assignment_status
-        // Calculate caregivers needed based on hours per day
-        $caregiversNeeded = $this->calculateCaregiversNeeded($booking->duty_type);
-        $assignedCount = count($validated['caregiver_ids']);
+        // Assignment status is tracked via the booking_assignments table
+        // No need to update a separate assignment_status column
         
-        if ($assignedCount === 0) {
-            $assignmentStatus = 'unassigned';
-        } elseif ($assignedCount >= $caregiversNeeded) {
-            $assignmentStatus = 'assigned';
-        } else {
-            $assignmentStatus = 'partial';
-        }
-        
-        $booking->update(['assignment_status' => $assignmentStatus]);
-
         return response()->json(['success' => true]);
     }
 
@@ -807,23 +813,8 @@ class AdminController extends Controller
         ]);
 
         if ($deleted) {
-            // Update the booking's assignment_status
-            $booking = \App\Models\Booking::find($bookingId);
-            if ($booking) {
-                $remainingCount = DB::table('booking_assignments')->where('booking_id', $bookingId)->count();
-                // Calculate caregivers needed based on hours per day
-                $caregiversNeeded = $this->calculateCaregiversNeeded($booking->duty_type);
-                
-                if ($remainingCount === 0) {
-                    $assignmentStatus = 'unassigned';
-                } elseif ($remainingCount >= $caregiversNeeded) {
-                    $assignmentStatus = 'assigned';
-                } else {
-                    $assignmentStatus = 'partial';
-                }
-                
-                $booking->update(['assignment_status' => $assignmentStatus]);
-            }
+            // Assignment status is tracked via the booking_assignments table count
+            // No need to update a separate assignment_status column
             
             return response()->json(['success' => true, 'message' => 'Caregiver unassigned successfully']);
         } else {
@@ -1452,36 +1443,410 @@ class AdminController extends Controller
     {
         $caregivers = Caregiver::with('user')->get();
         
-        $salaries = $caregivers->map(function($caregiver) {
+        $payments = $caregivers->map(function($caregiver) {
             // Get time trackings for this caregiver this month
-            $timeTrackings = DB::table('time_trackings')
-                ->where('caregiver_id', $caregiver->id)
+            $timeTrackings = \App\Models\TimeTracking::where('caregiver_id', $caregiver->id)
                 ->whereMonth('work_date', now()->month)
                 ->whereYear('work_date', now()->year)
+                ->orderBy('work_date', 'desc')
                 ->get();
             
             $totalHours = $timeTrackings->sum('hours_worked');
-            $rate = 28; // Caregiver rate $28/hr
-            $amount = $totalHours * $rate;
+            $totalEarnings = $timeTrackings->sum('caregiver_earnings');
+            $rate = $totalHours > 0 ? ($totalEarnings / $totalHours) : 28;
             
-            // Check if paid
-            $unpaidHours = $timeTrackings->whereNull('paid_at')->sum('hours_worked');
-            $status = $unpaidHours > 0 ? ($unpaidHours == $totalHours ? 'Pending' : 'Processing') : 'Paid';
+            // Check payment status
+            $unpaidRecords = $timeTrackings->whereNull('paid_at');
+            $unpaidHours = $unpaidRecords->sum('hours_worked');
+            $unpaidAmount = $unpaidRecords->sum('caregiver_earnings');
+            
+            if ($totalHours == 0) {
+                $status = 'No Hours';
+            } elseif ($unpaidHours == 0) {
+                $status = 'Paid';
+            } elseif ($unpaidHours == $totalHours) {
+                $status = 'Pending';
+            } else {
+                $status = 'Partial';
+            }
+            
+            // Get bank account status
+            $bankConnected = !empty($caregiver->user->stripe_connect_id);
             
             return [
                 'id' => $caregiver->id,
                 'caregiver' => $caregiver->user->name ?? 'Unknown',
-                'hours' => number_format($totalHours, 1),
-                'rate' => '$' . $rate . '/hr',
-                'amount' => '$' . number_format($amount, 0),
+                'caregiver_email' => $caregiver->user->email ?? '',
+                'total_hours' => round($totalHours, 2),
+                'hours_display' => number_format($totalHours, 1) . ' hrs',
+                'rate' => '$' . number_format($rate, 2) . '/hr',
+                'total_amount' => $totalEarnings,
+                'amount_display' => '$' . number_format($totalEarnings, 2),
+                'unpaid_hours' => round($unpaidHours, 2),
+                'unpaid_amount' => $unpaidAmount,
+                'unpaid_display' => '$' . number_format($unpaidAmount, 2),
                 'period' => now()->format('M Y'),
-                'status' => $totalHours > 0 ? $status : 'No Hours'
+                'status' => $status,
+                'bank_connected' => $bankConnected,
+                'bank_status' => $bankConnected ? 'Connected' : 'Not Connected',
+                'days_worked' => $timeTrackings->count(),
+                'stripe_connect_id' => $caregiver->user->stripe_connect_id,
+                'can_pay' => $bankConnected && $unpaidAmount > 0
             ];
-        })->filter(function($s) {
-            return $s['hours'] > 0;
+        })->filter(function($payment) {
+            return $payment['total_hours'] > 0;
         })->values();
         
-        return response()->json(['salaries' => $salaries]);
+        return response()->json(['payments' => $payments]);
+    }
+
+    /**
+     * Process payment to caregiver
+     */
+    public function payCaregiver(Request $request)
+    {
+        try {
+            $validated = $request->validate([
+                'caregiver_id' => 'required|exists:caregivers,id',
+                'amount' => 'required|numeric|min:0'
+            ]);
+
+            $caregiver = Caregiver::with('user')->findOrFail($validated['caregiver_id']);
+            
+            // Check if caregiver has bank account connected
+            if (empty($caregiver->user->stripe_connect_id)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Caregiver has not connected their bank account'
+                ], 400);
+            }
+
+            // Get unpaid time tracking records for this caregiver
+            $unpaidRecords = \App\Models\TimeTracking::where('caregiver_id', $caregiver->id)
+                ->whereNull('paid_at')
+                ->get();
+
+            if ($unpaidRecords->isEmpty()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'No unpaid hours found for this caregiver'
+                ], 400);
+            }
+
+            $unpaidAmount = $unpaidRecords->sum('caregiver_earnings');
+            
+            // Validate amount matches
+            if (abs($unpaidAmount - $validated['amount']) > 0.01) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Payment amount does not match unpaid earnings'
+                ], 400);
+            }
+
+            // Create Stripe payout
+            try {
+                $stripe = new \Stripe\StripeClient(config('services.stripe.secret'));
+                $payout = $stripe->transfers->create([
+                    'amount' => intval($validated['amount'] * 100), // Convert to cents
+                    'currency' => 'usd',
+                    'destination' => $caregiver->user->stripe_connect_id,
+                    'description' => "Payment for " . $unpaidRecords->count() . " work sessions"
+                ]);
+                
+                Log::info('Stripe transfer created', [
+                    'transfer_id' => $payout->id,
+                    'amount' => $validated['amount'],
+                    'destination' => $caregiver->user->stripe_connect_id
+                ]);
+            } catch (\Exception $e) {
+                Log::error('Stripe payout failed', ['error' => $e->getMessage()]);
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Stripe payout failed: ' . $e->getMessage()
+                ], 500);
+            }
+
+            // Mark all unpaid records as paid
+            $unpaidRecords->each(function($record) {
+                $record->update([
+                    'paid_at' => now(),
+                    'payment_status' => 'paid'
+                ]);
+            });
+
+            Log::info('Caregiver payment processed', [
+                'caregiver_id' => $caregiver->id,
+                'caregiver_name' => $caregiver->user->name,
+                'amount' => $validated['amount'],
+                'records_paid' => $unpaidRecords->count(),
+                'stripe_connect_id' => $caregiver->user->stripe_connect_id
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Payment processed successfully',
+                'amount' => $validated['amount'],
+                'caregiver' => $caregiver->user->name,
+                'records_paid' => $unpaidRecords->count()
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Caregiver payment failed', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to process payment: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Get marketing commissions for admin dashboard
+     */
+    public function getMarketingCommissions()
+    {
+        $marketingStaff = User::where('user_type', 'marketing')
+            ->with('referralCode')
+            ->get();
+        
+        $commissions = $marketingStaff->map(function($user) {
+            // Get total and pending commissions from time_trackings
+            $totalCommission = \App\Models\TimeTracking::where('marketing_partner_id', $user->id)
+                ->sum('marketing_partner_commission');
+            
+            $pendingCommission = \App\Models\TimeTracking::where('marketing_partner_id', $user->id)
+                ->whereNull('marketing_commission_paid_at')
+                ->sum('marketing_partner_commission');
+            
+            $paidCommission = $totalCommission - $pendingCommission;
+            
+            // Get referral code
+            $referralCode = $user->referralCode ? $user->referralCode->code : 'N/A';
+            
+            // Count how many clients used their code
+            $clientsReferred = \App\Models\Booking::whereHas('client.user', function($q) use ($user) {
+                $q->where('referred_by', $user->referralCode?->id ?? 0);
+            })->distinct('client_id')->count('client_id');
+            
+            // Get bank account status
+            $bankConnected = !empty($user->stripe_connect_id);
+            
+            return [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'referral_code' => $referralCode,
+                'clients_referred' => $clientsReferred,
+                'total_commission' => $totalCommission,
+                'pending_commission' => $pendingCommission,
+                'paid_commission' => $paidCommission,
+                'total_display' => '$' . number_format($totalCommission, 2),
+                'pending_display' => '$' . number_format($pendingCommission, 2),
+                'bank_connected' => $bankConnected,
+                'bank_status' => $bankConnected ? 'Connected' : 'Not Connected',
+                'payment_status' => $pendingCommission > 0 ? 'Pending' : 'Paid',
+                'stripe_connect_id' => $user->stripe_connect_id,
+                'can_pay' => $bankConnected && $pendingCommission > 0
+            ];
+        })->filter(function($commission) {
+            return $commission['total_commission'] > 0;
+        })->values();
+        
+        return response()->json(['commissions' => $commissions]);
+    }
+
+    /**
+     * Pay marketing commission to staff member
+     */
+    public function payMarketingCommission($userId)
+    {
+        $user = User::findOrFail($userId);
+        
+        // Calculate pending commission
+        $pendingCommission = \App\Models\TimeTracking::where('marketing_partner_id', $userId)
+            ->whereNull('marketing_commission_paid_at')
+            ->sum('marketing_partner_commission');
+        
+        if ($pendingCommission <= 0) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No pending commission to pay'
+            ], 400);
+        }
+        
+        // Check if bank is connected
+        if (empty($user->stripe_connect_id)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Bank account not connected. Please ask the marketing staff to connect their bank account first.'
+            ], 400);
+        }
+        
+        try {
+            // Transfer via Stripe Connect
+            \Stripe\Stripe::setApiKey(config('services.stripe.secret'));
+            
+            $transfer = \Stripe\Transfer::create([
+                'amount' => (int)($pendingCommission * 100), // Convert to cents
+                'currency' => 'usd',
+                'destination' => $user->stripe_connect_id,
+                'description' => "Marketing commission payment for " . $user->name,
+                'metadata' => [
+                    'user_id' => $user->id,
+                    'user_type' => 'marketing',
+                    'commission_amount' => $pendingCommission
+                ]
+            ]);
+            
+            // Mark all pending commissions as paid
+            \App\Models\TimeTracking::where('marketing_partner_id', $userId)
+                ->whereNull('marketing_commission_paid_at')
+                ->update([
+                    'marketing_commission_paid_at' => now(),
+                    'marketing_commission_stripe_transfer_id' => $transfer->id
+                ]);
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Commission paid successfully',
+                'transfer_id' => $transfer->id,
+                'amount' => $pendingCommission
+            ]);
+            
+        } catch (\Exception $e) {
+            \Log::error('Marketing commission payment failed', [
+                'user_id' => $userId,
+                'error' => $e->getMessage()
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Payment failed: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Get training center commissions for admin dashboard
+     */
+    public function getTrainingCommissions()
+    {
+        $trainingCenters = User::where('user_type', 'training')
+            ->get();
+        
+        $commissions = $trainingCenters->map(function($user) {
+            // Get total and pending commissions from time_trackings
+            $totalCommission = \App\Models\TimeTracking::where('training_center_id', $user->id)
+                ->sum('training_center_commission');
+            
+            $pendingCommission = \App\Models\TimeTracking::where('training_center_id', $user->id)
+                ->whereNull('training_commission_paid_at')
+                ->sum('training_center_commission');
+            
+            $paidCommission = $totalCommission - $pendingCommission;
+            
+            // Count how many caregivers they trained
+            $caregiversTrained = \App\Models\Caregiver::where('training_center_id', $user->id)->count();
+            
+            // Get bank account status
+            $bankConnected = !empty($user->stripe_connect_id);
+            
+            return [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'center_name' => $user->business_name ?? $user->name,
+                'caregivers_trained' => $caregiversTrained,
+                'total_commission' => $totalCommission,
+                'pending_commission' => $pendingCommission,
+                'paid_commission' => $paidCommission,
+                'total_display' => '$' . number_format($totalCommission, 2),
+                'pending_display' => '$' . number_format($pendingCommission, 2),
+                'bank_connected' => $bankConnected,
+                'bank_status' => $bankConnected ? 'Connected' : 'Not Connected',
+                'payment_status' => $pendingCommission > 0 ? 'Pending' : 'Paid',
+                'stripe_connect_id' => $user->stripe_connect_id,
+                'can_pay' => $bankConnected && $pendingCommission > 0
+            ];
+        })->filter(function($commission) {
+            return $commission['total_commission'] > 0;
+        })->values();
+        
+        return response()->json(['commissions' => $commissions]);
+    }
+
+    /**
+     * Pay training center commission
+     */
+    public function payTrainingCommission($userId)
+    {
+        $user = User::findOrFail($userId);
+        
+        // Calculate pending commission
+        $pendingCommission = \App\Models\TimeTracking::where('training_center_id', $userId)
+            ->whereNull('training_commission_paid_at')
+            ->sum('training_center_commission');
+        
+        if ($pendingCommission <= 0) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No pending commission to pay'
+            ], 400);
+        }
+        
+        // Check if bank is connected
+        if (empty($user->stripe_connect_id)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Bank account not connected. Please ask the training center to connect their bank account first.'
+            ], 400);
+        }
+        
+        try {
+            // Transfer via Stripe Connect
+            \Stripe\Stripe::setApiKey(config('services.stripe.secret'));
+            
+            $transfer = \Stripe\Transfer::create([
+                'amount' => (int)($pendingCommission * 100), // Convert to cents
+                'currency' => 'usd',
+                'destination' => $user->stripe_connect_id,
+                'description' => "Training center commission payment for " . $user->name,
+                'metadata' => [
+                    'user_id' => $user->id,
+                    'user_type' => 'training',
+                    'commission_amount' => $pendingCommission
+                ]
+            ]);
+            
+            // Mark all pending commissions as paid
+            \App\Models\TimeTracking::where('training_center_id', $userId)
+                ->whereNull('training_commission_paid_at')
+                ->update([
+                    'training_commission_paid_at' => now(),
+                    'training_commission_stripe_transfer_id' => $transfer->id
+                ]);
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Commission paid successfully',
+                'transfer_id' => $transfer->id,
+                'amount' => $pendingCommission
+            ]);
+            
+        } catch (\Exception $e) {
+            \Log::error('Training commission payment failed', [
+                'user_id' => $userId,
+                'error' => $e->getMessage()
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Payment failed: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
     /**
@@ -1580,5 +1945,108 @@ class AdminController extends Controller
             return (int)$matches[1];
         }
         return 8;
+    }
+
+    /**
+     * Get all admin staff users
+     */
+    public function getAdminStaff()
+    {
+        $adminStaffUsers = User::where('user_type', 'admin')
+            ->where('role', 'Admin Staff')
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        $staff = $adminStaffUsers->map(function ($user) {
+            return [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'phone' => $user->phone ?? '',
+                'status' => $user->status ?? 'Active',
+                'email_verified' => $user->email_verified_at ? 'Yes' : 'No',
+                'joined' => $user->created_at->format('M d, Y'),
+                'last_login' => $user->last_login_at ? \Carbon\Carbon::parse($user->last_login_at)->format('M d, Y H:i') : 'Never',
+            ];
+        });
+
+        return response()->json(['staff' => $staff]);
+    }
+
+    /**
+     * Store new admin staff
+     */
+    public function storeAdminStaff(Request $request)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email',
+            'phone' => 'nullable|string|max:20',
+            'password' => 'required|string|min:8',
+            'status' => 'required|in:Active,Inactive'
+        ]);
+
+        $userData = [
+            'name' => $validated['name'],
+            'email' => $validated['email'],
+            'phone' => $validated['phone'] ?? null,
+            'password' => Hash::make($validated['password']),
+            'user_type' => 'admin',
+            'role' => 'Admin Staff',
+            'status' => $validated['status'],
+            'email_verified_at' => now() // Auto-verify admin staff
+        ];
+
+        $user = User::create($userData);
+
+        return response()->json([
+            'success' => true,
+            'staff' => $user
+        ]);
+    }
+
+    /**
+     * Update admin staff
+     */
+    public function updateAdminStaff(Request $request, $id)
+    {
+        $validated = $request->validate([
+            'name' => 'sometimes|string|max:255',
+            'email' => 'sometimes|email|unique:users,email,' . $id,
+            'phone' => 'nullable|string|max:20',
+            'status' => 'sometimes|in:Active,Inactive',
+            'password' => 'nullable|string|min:8'
+        ]);
+
+        $user = User::where('id', $id)
+            ->where('user_type', 'admin')
+            ->where('role', 'Admin Staff')
+            ->firstOrFail();
+        
+        $updateData = [];
+        if (isset($validated['name'])) $updateData['name'] = $validated['name'];
+        if (isset($validated['email'])) $updateData['email'] = $validated['email'];
+        if (isset($validated['phone'])) $updateData['phone'] = $validated['phone'];
+        if (isset($validated['status'])) $updateData['status'] = $validated['status'];
+        if (isset($validated['password'])) $updateData['password'] = Hash::make($validated['password']);
+        
+        $user->update($updateData);
+
+        return response()->json(['success' => true, 'staff' => $user]);
+    }
+
+    /**
+     * Delete admin staff
+     */
+    public function deleteAdminStaff($id)
+    {
+        $user = User::where('id', $id)
+            ->where('user_type', 'admin')
+            ->where('role', 'Admin Staff')
+            ->firstOrFail();
+        
+        $user->delete();
+
+        return response()->json(['success' => true]);
     }
 }

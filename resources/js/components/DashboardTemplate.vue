@@ -851,8 +851,7 @@ const mobileNavItems = computed(() => {
     margin: 0;
   }
 
-
-  /* Tables: enable horizontal scrolling when needed */
+/* Tables: enable horizontal scrolling when needed */
   .modern-activity-table {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;

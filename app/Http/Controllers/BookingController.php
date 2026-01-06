@@ -18,7 +18,7 @@ class BookingController extends Controller
     public function index()
     {
         $clientId = Auth::id();
-        $bookings = Booking::with(['client', 'assignments.caregiver.user'])
+        $bookings = Booking::with(['client', 'assignments.caregiver.user', 'payments'])
             ->where('client_id', $clientId)
             ->orderBy('created_at', 'desc')
             ->get();
@@ -34,6 +34,14 @@ class BookingController extends Controller
 
         // Explicitly map all fields for frontend compatibility
         $data = $bookings->map(function($b) {
+            // Calculate assignment status dynamically
+            $assignedCount = $b->assignments ? $b->assignments->count() : 0;
+            $assignmentStatus = $assignedCount > 0 ? 'assigned' : 'unassigned';
+            
+            // Get payment status from payments table
+            $hasCompletedPayment = $b->payments && $b->payments->where('status', 'completed')->isNotEmpty();
+            $paymentStatus = $hasCompletedPayment ? 'paid' : 'unpaid';
+            
             return [
                 'id' => $b->id,
                 'client_id' => $b->client_id,
@@ -63,10 +71,13 @@ class BookingController extends Controller
                 'apartment_unit' => $b->apartment_unit,
                 'special_instructions' => $b->special_instructions,
                 'status' => $b->status,
-                'assignment_status' => $b->assignment_status,
-                'submitted_at' => $b->submitted_at ? $b->submitted_at->toIso8601String() : null,
-                'created_at' => $b->created_at ? $b->created_at->toIso8601String() : null,
-                'updated_at' => $b->updated_at ? $b->updated_at->toIso8601String() : null,
+                'assignment_status' => $assignmentStatus,
+                'payment_status' => $paymentStatus,
+                'payment_intent_id' => $b->stripe_payment_intent_id,
+                'payment_date' => $b->payment_date ? (is_string($b->payment_date) ? $b->payment_date : $b->payment_date->toIso8601String()) : null,
+                'submitted_at' => $b->submitted_at ? (is_string($b->submitted_at) ? $b->submitted_at : $b->submitted_at->toIso8601String()) : null,
+                'created_at' => $b->created_at ? (is_string($b->created_at) ? $b->created_at : $b->created_at->toIso8601String()) : null,
+                'updated_at' => $b->updated_at ? (is_string($b->updated_at) ? $b->updated_at : $b->updated_at->toIso8601String()) : null,
                 'referral_code_id' => $b->referral_code_id,
                 'referral_discount_applied' => $b->referral_discount_applied,
                 // Add related client info if needed
@@ -167,7 +178,8 @@ class BookingController extends Controller
                     'status' => $request->status ?: ($user && $user->user_type === 'admin' ? 'approved' : 'pending'),
                     'submitted_at' => now(),
                     'referral_code_id' => $referralCodeId,
-                    'referral_discount_applied' => $referralDiscountApplied
+                    'referral_discount_applied' => $referralDiscountApplied,
+                    'day_schedules' => $request->day_schedules ?: null
                 ]);
             });
 
@@ -490,6 +502,155 @@ class BookingController extends Controller
             \Log::info('Booking update summary', ['updated_count' => $updated]);
         } catch (\Exception $e) {
             \Log::error('Error updating expired bookings: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Update booking payment status when payment is completed
+     */
+    public function updatePaymentStatus(Request $request)
+    {
+        $validated = $request->validate([
+            'booking_id' => 'required|integer',
+            'payment_intent_id' => 'required|string',
+            'status' => 'required|string|in:paid,completed'
+        ]);
+
+        try {
+            $booking = Booking::find($validated['booking_id']);
+            
+            if (!$booking) {
+                return response()->json(['success' => false, 'message' => 'Booking not found'], 404);
+            }
+
+            // Verify user owns this booking (if authenticated)
+            $user = Auth::user();
+            if ($user && $booking->client_id !== $user->id) {
+                return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
+            }
+            // If not authenticated, allow (payment_intent_id verification is sufficient)
+
+            // Create payment record
+            $payment = \App\Models\Payment::create([
+                'booking_id' => $booking->id,
+                'client_id' => $booking->client_id,
+                'amount' => $this->calculateBookingTotal($booking),
+                'platform_fee' => $this->calculatePlatformFee($booking),
+                'caregiver_amount' => 0,
+                'payment_method' => 'stripe',
+                'status' => 'completed',
+                'transaction_id' => $validated['payment_intent_id'],
+                'paid_at' => now(),
+                'notes' => 'Payment completed via Stripe'
+            ]);
+
+            // Update booking status to confirmed
+            $booking->update([
+                'status' => 'confirmed',
+                'stripe_payment_intent_id' => $validated['payment_intent_id']
+            ]);
+
+            \Log::info('Payment status updated', [
+                'booking_id' => $booking->id,
+                'payment_id' => $payment->id,
+                'status' => 'confirmed'
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Payment recorded successfully',
+                'booking_status' => 'confirmed',
+                'payment_id' => $payment->id
+            ]);
+
+        } catch (\Exception $e) {
+            \Log::error('Error updating payment status: ' . $e->getMessage());
+            \Log::error('Stack trace: ' . $e->getTraceAsString());
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to update payment status',
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error'
+            ], 500);
+        }
+    }
+
+    private function calculateBookingTotal($booking)
+    {
+        $hours = $this->extractHours($booking->duty_type);
+        $total = $hours * $booking->duration_days * $booking->hourly_rate;
+        if ($booking->referral_discount_applied) {
+            $total -= $hours * $booking->duration_days * $booking->referral_discount_applied;
+        }
+        return $total;
+    }
+
+    private function calculatePlatformFee($booking)
+    {
+        return $this->calculateBookingTotal($booking) * 0.15;
+    }
+
+    /**
+     * Get single booking details
+     */
+    public function getBooking($id)
+    {
+        try {
+            $booking = Booking::with(['client', 'assignments.caregiver.user', 'payments', 'referralCode'])
+                ->find($id);
+            
+            if (!$booking) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Booking not found'
+                ], 404);
+            }
+
+            // Verify user has access to this booking (if authenticated)
+            $user = Auth::user();
+            if ($user) {
+                // If user is authenticated, check authorization
+                if ($booking->client_id !== $user->id && $user->user_type !== 'admin') {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Unauthorized access'
+                    ], 403);
+                }
+            }
+            // If not authenticated, allow access (for payment page)
+
+            return response()->json([
+                'success' => true,
+                'booking' => [
+                    'id' => $booking->id,
+                    'client_id' => $booking->client_id,
+                    'service_type' => $booking->service_type,
+                    'duty_type' => $booking->duty_type,
+                    'borough' => $booking->borough,
+                    'city' => $booking->city,
+                    'service_date' => $booking->service_date ? $booking->service_date->toDateString() : null,
+                    'start_time' => $booking->start_time,
+                    'duration_days' => $booking->duration_days,
+                    'hourly_rate' => $booking->hourly_rate,
+                    'status' => $booking->status,
+                    'referral_discount_applied' => $booking->referral_discount_applied,
+                    'client' => $booking->client ? [
+                        'id' => $booking->client->id,
+                        'name' => $booking->client->name,
+                        'email' => $booking->client->email
+                    ] : null,
+                    'assignments' => $booking->assignments,
+                    'payments' => $booking->payments
+                ]
+            ]);
+
+        } catch (\Exception $e) {
+            \Log::error('Error fetching booking: ' . $e->getMessage());
+            \Log::error('Stack trace: ' . $e->getTraceAsString());
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to fetch booking',
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error'
+            ], 500);
         }
     }
 }

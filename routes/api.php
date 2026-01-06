@@ -10,6 +10,11 @@ use App\Models\BookingAssignment;
 use App\Models\Booking;
 use Illuminate\Support\Facades\DB;
 
+// ============================================
+// PUBLIC API ROUTES (Rate Limited - 60/min)
+// ============================================
+Route::middleware(['throttle:60,1'])->group(function () {
+
 // Profile avatar upload
 Route::post('/user/{id}/avatar', function ($id, Request $request) {
     try {
@@ -200,6 +205,8 @@ Route::get('/profile', function (Request $request) {
             'date_of_birth' => $user->date_of_birth,
             'avatar' => $user->avatar,
             'user_type' => $user->user_type,
+            'role' => $user->role,
+            'department' => $user->department,
             'created_at' => $user->created_at
         ],
         'caregiver' => $caregiver ? [
@@ -243,11 +250,23 @@ Route::get('/ny-cities/{county}', function (string $county) {
     }
 });
 
-Route::get('/caregiver/{id}/stats', [\App\Http\Controllers\DashboardController::class, 'caregiverStats']);
-Route::get('/admin/stats', [\App\Http\Controllers\DashboardController::class, 'adminStats']);
-Route::get('/admin/quick-caregivers', [\App\Http\Controllers\DashboardController::class, 'quickCaregivers']);
+// Apply caching to stats endpoints (5 minute cache)
+Route::middleware('cache.api:5')->group(function () {
+    Route::get('/caregiver/{id}/stats', [\App\Http\Controllers\DashboardController::class, 'caregiverStats']);
+    Route::get('/admin/stats', [\App\Http\Controllers\DashboardController::class, 'adminStats']);
+    Route::get('/admin/platform-metrics', [\App\Http\Controllers\Api\PlatformMetricsController::class, 'index']);
+    Route::get('/admin/quick-caregivers', [\App\Http\Controllers\DashboardController::class, 'quickCaregivers']);
+});
+
+Route::post('/admin/platform-metrics/clear-cache', [\App\Http\Controllers\Api\PlatformMetricsController::class, 'clearCache']);
 // Admin: get all bookings (full details)
 Route::get('/admin/bookings', [\App\Http\Controllers\AdminController::class, 'getAllBookings']);
+
+// Get single booking details
+Route::get('/bookings/{id}', [\App\Http\Controllers\BookingController::class, 'getBooking']);
+
+// Booking payment status update
+Route::post('/bookings/update-payment-status', [\App\Http\Controllers\BookingController::class, 'updatePaymentStatus']);
 
 Route::post('/bookings/{id}/unassign', function ($id, Request $request) {
     try {
@@ -265,6 +284,117 @@ Route::post('/bookings/{id}/unassign', function ($id, Request $request) {
         }
     } catch (\Exception $e) {
         return response()->json(['error' => 'Failed to unassign caregiver: ' . $e->getMessage()], 500);
+    }
+});
+
+// Caregiver Schedule Management
+Route::get('/bookings/{bookingId}/caregiver/{caregiverId}/schedule', function ($bookingId, $caregiverId) {
+    try {
+        // Check if schedule exists
+        $schedule = DB::table('caregiver_schedules')
+            ->where('booking_id', $bookingId)
+            ->where('caregiver_id', $caregiverId)
+            ->first();
+        
+        if ($schedule) {
+            return response()->json([
+                'success' => true,
+                'schedule' => [
+                    'days' => json_decode($schedule->days, true),
+                    'schedules' => json_decode($schedule->schedules, true)
+                ]
+            ]);
+        } else {
+            return response()->json([
+                'success' => true,
+                'schedule' => null
+            ]);
+        }
+    } catch (\Exception $e) {
+        return response()->json(['error' => 'Failed to load schedule: ' . $e->getMessage()], 500);
+    }
+});
+
+Route::post('/bookings/{bookingId}/caregiver/{caregiverId}/schedule', function ($bookingId, $caregiverId, Request $request) {
+    try {
+        $days = $request->input('days', []);
+        $schedules = $request->input('schedules', []);
+        
+        // Check if schedule already exists
+        $existing = DB::table('caregiver_schedules')
+            ->where('booking_id', $bookingId)
+            ->where('caregiver_id', $caregiverId)
+            ->first();
+        
+        // If days is empty, delete the record instead of updating
+        if (empty($days)) {
+            if ($existing) {
+                $deleted = DB::table('caregiver_schedules')
+                    ->where('id', $existing->id)
+                    ->delete();
+                
+                \Log::info("Schedule deleted for booking {$bookingId}, caregiver {$caregiverId}, rows deleted: {$deleted}");
+                
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Schedule cleared successfully',
+                    'schedule' => ['days' => [], 'schedules' => (object)[]]
+                ]);
+            }
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'No schedule to clear',
+                'schedule' => ['days' => [], 'schedules' => (object)[]]
+            ]);
+        }
+        
+        $data = [
+            'booking_id' => $bookingId,
+            'caregiver_id' => $caregiverId,
+            'days' => json_encode($days),
+            'schedules' => json_encode($schedules),
+            'updated_at' => now()
+        ];
+        
+        if ($existing) {
+            // Update existing schedule
+            DB::table('caregiver_schedules')
+                ->where('id', $existing->id)
+                ->update($data);
+        } else {
+            // Create new schedule
+            $data['created_at'] = now();
+            DB::table('caregiver_schedules')->insert($data);
+        }
+        
+        return response()->json([
+            'success' => true,
+            'message' => 'Schedule saved successfully',
+            'schedule' => ['days' => $days, 'schedules' => $schedules]
+        ]);
+    } catch (\Exception $e) {
+        return response()->json(['error' => 'Failed to save schedule: ' . $e->getMessage()], 500);
+    }
+});
+
+// DELETE endpoint for schedule
+Route::delete('/bookings/{bookingId}/caregiver/{caregiverId}/schedule', function ($bookingId, $caregiverId) {
+    try {
+        $deleted = DB::table('caregiver_schedules')
+            ->where('booking_id', $bookingId)
+            ->where('caregiver_id', $caregiverId)
+            ->delete();
+        
+        \Log::info("Schedule deleted via DELETE endpoint for booking {$bookingId}, caregiver {$caregiverId}, rows deleted: {$deleted}");
+        
+        return response()->json([
+            'success' => true,
+            'message' => 'Schedule deleted successfully',
+            'deleted' => $deleted
+        ]);
+    } catch (\Exception $e) {
+        return response()->json(['error' => 'Failed to delete schedule: ' . $e->getMessage()], 500);
     }
 });
 
@@ -834,4 +964,16 @@ Route::prefix('reviews')->group(function () {
     Route::post('/', [App\Http\Controllers\ReviewController::class, 'store']);
     Route::put('/{id}', [App\Http\Controllers\ReviewController::class, 'update']);
     Route::delete('/{id}', [App\Http\Controllers\ReviewController::class, 'destroy']);
+});
+
+}); // End throttle:60,1 middleware group
+
+// ============================================
+// CRITICAL PAYMENT ROUTES (Stricter Rate Limit - 10/min)
+// ============================================
+Route::middleware(['throttle:10,1'])->group(function () {
+    Route::post('/stripe/process-payment/{id}', [App\Http\Controllers\StripeController::class, 'processPayment']);
+    Route::post('/admin/bookings/{id}/approve', function($id) {
+        // Admin booking approval logic
+    });
 });

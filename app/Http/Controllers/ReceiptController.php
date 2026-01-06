@@ -418,4 +418,173 @@ class ReceiptController extends Controller
 </body>
 </html>';
     }
+    
+    // New method for payment receipts using the booking-receipt template
+    public function generatePaymentReceipt($bookingId)
+    {
+        // Load booking with all relationships
+        $booking = Booking::with(['client', 'assignments.caregiver.user'])
+            ->findOrFail($bookingId);
+        
+        // Verify user has access to this receipt
+        if (auth()->check()) {
+            if (auth()->user()->user_type === 'client' && $booking->client_id !== auth()->id()) {
+                abort(403, 'Unauthorized access to receipt');
+            }
+        }
+        
+        // Check if booking is paid
+        if ($booking->payment_status !== 'paid') {
+            return redirect()->back()->with('error', 'Receipt is only available for paid bookings');
+        }
+        
+        // Calculate booking details
+        $durationDays = $booking->duration_days ?? 15;
+        $dutyType = $booking->duty_type ?? '8 Hours';
+        $hourlyRate = $booking->hourly_rate ?? 40;
+        
+        // Extract hours per day from duty type
+        preg_match('/(\d+)/', $dutyType, $matches);
+        $hoursPerDay = isset($matches[1]) ? (int)$matches[1] : 8;
+        
+        $totalHours = $durationDays * $hoursPerDay;
+        $subtotal = $totalHours * $hourlyRate;
+        $taxRate = 0; // Healthcare services are tax-exempt in NY
+        $tax = 0;
+        $total = $subtotal + $tax;
+        
+        // Get assigned caregivers
+        $caregivers = $booking->assignments->map(function($assignment) {
+            return $assignment->caregiver->user->name ?? 'Not Assigned';
+        })->join(', ');
+        
+        if (empty($caregivers)) {
+            $caregivers = 'Not Assigned Yet';
+        }
+        
+        // Check for referral discount
+        $originalRate = $booking->original_hourly_rate ?? $hourlyRate;
+        $hasDiscount = $originalRate > $hourlyRate;
+        $savedAmount = $hasDiscount ? ($originalRate - $hourlyRate) * $totalHours : 0;
+        
+        // Generate receipt HTML using the same template as time tracking
+        $html = $this->generateReceiptHtml([
+            'receiptNumber' => 'RCP-' . str_pad($bookingId, 6, '0', STR_PAD_LEFT),
+            'issueDate' => date('M d, Y'),
+            'clientName' => $booking->client->name ?? 'N/A',
+            'clientEmail' => $booking->client->email ?? 'N/A',
+            'clientAddress' => $booking->street_address ?? 'N/A',
+            'clientCity' => $booking->city ?? 'New York',
+            'serviceType' => $booking->service_type ?? 'Caregiving Service',
+            'serviceDate' => $booking->service_date ? \Carbon\Carbon::parse($booking->service_date)->format('M d, Y') : 'N/A',
+            'completedDate' => $booking->updated_at->format('M d, Y'),
+            'duration' => $durationDays,
+            'dutyType' => $dutyType,
+            'totalHours' => $totalHours,
+            'hourlyRate' => $hourlyRate,
+            'originalRate' => $originalRate,
+            'hasDiscount' => $hasDiscount,
+            'savedAmount' => $savedAmount,
+            'caregiverName' => $caregivers,
+            'subtotal' => $subtotal,
+            'tax' => $tax,
+            'total' => $total,
+        ]);
+        
+        // Configure Dompdf
+        $options = new Options();
+        $options->set('isHtml5ParserEnabled', true);
+        $options->set('isRemoteEnabled', true);
+        $options->set('defaultFont', 'Helvetica');
+        
+        // Initialize Dompdf
+        $dompdf = new Dompdf($options);
+        $dompdf->loadHtml($html);
+        $dompdf->setPaper('A4', 'portrait');
+        $dompdf->render();
+        
+        // Output PDF
+        $filename = 'Receipt_' . $booking->id . '_' . date('Y-m-d') . '.pdf';
+        return $dompdf->stream($filename, ['Attachment' => false]); // false = display in browser
+    }
+    
+    public function downloadPaymentReceipt($bookingId)
+    {
+        // Same as generatePaymentReceipt but force download
+        $booking = Booking::with(['client', 'assignments.caregiver.user'])
+            ->findOrFail($bookingId);
+        
+        if (auth()->check()) {
+            if (auth()->user()->user_type === 'client' && $booking->client_id !== auth()->id()) {
+                abort(403, 'Unauthorized access to receipt');
+            }
+        }
+        
+        if ($booking->payment_status !== 'paid') {
+            return redirect()->back()->with('error', 'Receipt is only available for paid bookings');
+        }
+        
+        $durationDays = $booking->duration_days ?? 15;
+        $dutyType = $booking->duty_type ?? '8 Hours';
+        $hourlyRate = $booking->hourly_rate ?? 40;
+        
+        preg_match('/(\d+)/', $dutyType, $matches);
+        $hoursPerDay = isset($matches[1]) ? (int)$matches[1] : 8;
+        
+        $totalHours = $durationDays * $hoursPerDay;
+        $subtotal = $totalHours * $hourlyRate;
+        $taxRate = 0; // Healthcare services are tax-exempt in NY
+        $tax = 0;
+        $total = $subtotal + $tax;
+        
+        $caregivers = $booking->assignments->map(function($assignment) {
+            return $assignment->caregiver->user->name ?? 'Not Assigned';
+        })->join(', ');
+        
+        if (empty($caregivers)) {
+            $caregivers = 'Not Assigned Yet';
+        }
+        
+        // Check for referral discount
+        $originalRate = $booking->original_hourly_rate ?? $hourlyRate;
+        $hasDiscount = $originalRate > $hourlyRate;
+        $savedAmount = $hasDiscount ? ($originalRate - $hourlyRate) * $totalHours : 0;
+        
+        // Generate receipt HTML using the same template as time tracking
+        $html = $this->generateReceiptHtml([
+            'receiptNumber' => 'RCP-' . str_pad($bookingId, 6, '0', STR_PAD_LEFT),
+            'issueDate' => date('M d, Y'),
+            'clientName' => $booking->client->name ?? 'N/A',
+            'clientEmail' => $booking->client->email ?? 'N/A',
+            'clientAddress' => $booking->street_address ?? 'N/A',
+            'clientCity' => $booking->city ?? 'New York',
+            'serviceType' => $booking->service_type ?? 'Caregiving Service',
+            'serviceDate' => $booking->service_date ? \Carbon\Carbon::parse($booking->service_date)->format('M d, Y') : 'N/A',
+            'completedDate' => $booking->updated_at->format('M d, Y'),
+            'duration' => $durationDays,
+            'dutyType' => $dutyType,
+            'totalHours' => $totalHours,
+            'hourlyRate' => $hourlyRate,
+            'originalRate' => $originalRate,
+            'hasDiscount' => $hasDiscount,
+            'savedAmount' => $savedAmount,
+            'caregiverName' => $caregivers,
+            'subtotal' => $subtotal,
+            'tax' => $tax,
+            'total' => $total,
+        ]);
+        
+        $options = new Options();
+        $options->set('isHtml5ParserEnabled', true);
+        $options->set('isRemoteEnabled', true);
+        $options->set('defaultFont', 'Helvetica');
+        
+        $dompdf = new Dompdf($options);
+        $dompdf->loadHtml($html);
+        $dompdf->setPaper('A4', 'portrait');
+        $dompdf->render();
+        
+        $filename = 'Receipt_' . $booking->id . '_' . date('Y-m-d') . '.pdf';
+        return $dompdf->stream($filename, ['Attachment' => true]); // Force download
+    }
 }

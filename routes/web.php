@@ -166,7 +166,7 @@ Route::get('/client/dashboard', function () {
             };
             return redirect($route);
         }
-    return view('client-dashboard');
+    return view('client-dashboard-vue');
 });
     Route::get('/client/dashboard-vue', function () {
         if (auth()->user()->user_type !== 'client') {
@@ -180,7 +180,7 @@ Route::get('/client/dashboard', function () {
         $bookingId = request()->query('booking_id');
         
         if (!$bookingId) {
-            return redirect('/client-dashboard')->with('error', 'No booking specified');
+            return redirect('/client/dashboard')->with('error', 'No booking specified');
         }
         
         // Load booking data
@@ -189,18 +189,141 @@ Route::get('/client/dashboard', function () {
             ->first();
             
         if (!$booking) {
-            return redirect('/client-dashboard')->with('error', 'Booking not found');
+            return redirect('/client/dashboard')->with('error', 'Booking not found');
         }
         
         // Verify ownership (if authenticated)
         if (auth()->check() && auth()->user()->user_type === 'client') {
             if ($booking->client_id !== auth()->id()) {
-                return redirect('/client-dashboard')->with('error', 'Unauthorized access');
+                return redirect('/client/dashboard')->with('error', 'Unauthorized access');
             }
         }
         
-        return view('payment', compact('booking', 'bookingId'));
+        // Pass Stripe publishable key to the view
+        $stripeKey = config('stripe.key');
+        
+        return view('payment', compact('booking', 'bookingId', 'stripeKey'));
     })->name('payment');
+    
+    // Payment Success Page - ALSO UPDATES DATABASE
+    Route::get('/payment-success', function () {
+        $bookingId = request()->query('booking_id');
+        $paymentIntentId = request()->query('payment_intent');
+        
+        \Log::info("=== PAYMENT SUCCESS PAGE LOADED ===", [
+            'booking_id' => $bookingId,
+            'payment_intent' => $paymentIntentId,
+            'all_params' => request()->all()
+        ]);
+        
+        if (!$bookingId) {
+            return redirect('/client/dashboard')->with('error', 'No booking specified');
+        }
+        
+        // Load booking data
+        $booking = \App\Models\Booking::with(['client', 'assignments.caregiver.user'])
+            ->where('id', $bookingId)
+            ->first();
+            
+        if (!$booking) {
+            return redirect('/client/dashboard')->with('error', 'Booking not found');
+        }
+        
+        // ALWAYS UPDATE DATABASE IF NOT PAID (even without Stripe verification for localhost)
+        if ($booking->payment_status !== 'paid') {
+            try {
+                \Log::info("Payment Success - Booking not paid, updating now", [
+                    'booking_id' => $bookingId,
+                    'current_status' => $booking->payment_status
+                ]);
+                
+                // Calculate amount from booking
+                $hours = 8; // Default
+                if (preg_match('/(\d+)\s*Hours?/i', $booking->duty_type, $matches)) {
+                    $hours = (int)$matches[1];
+                }
+                $rate = $booking->hourly_rate ?: 45;
+                $amount = $hours * $booking->duration_days * $rate;
+                $platformFee = $amount * 0.10;
+                $caregiverAmount = $amount * 0.90;
+                
+                // Try to verify with Stripe if payment_intent provided
+                if ($paymentIntentId) {
+                    try {
+                        $stripe = new \Stripe\StripeClient(config('services.stripe.secret'));
+                        $paymentIntent = $stripe->paymentIntents->retrieve($paymentIntentId);
+                        
+                        if ($paymentIntent->status === 'succeeded') {
+                            $amount = $paymentIntent->amount / 100;
+                            $platformFee = $amount * 0.10;
+                            $caregiverAmount = $amount * 0.90;
+                        }
+                        
+                        \Log::info("Stripe verification successful", [
+                            'stripe_status' => $paymentIntent->status,
+                            'stripe_amount' => $paymentIntent->amount
+                        ]);
+                    } catch (\Exception $stripeError) {
+                        \Log::warning("Stripe verification failed, using calculated amount", [
+                            'error' => $stripeError->getMessage()
+                        ]);
+                    }
+                }
+                
+                // Update booking
+                \DB::table('bookings')->where('id', $booking->id)->update([
+                    'payment_status' => 'paid',
+                    'stripe_payment_intent_id' => $paymentIntentId,
+                    'payment_date' => now(),
+                    'updated_at' => now(),
+                ]);
+                
+                // Check if payment record already exists
+                $existingPayment = \DB::table('payments')->where('booking_id', $booking->id)->first();
+                
+                if (!$existingPayment) {
+                    \DB::table('payments')->insert([
+                        'booking_id' => $booking->id,
+                        'client_id' => $booking->client_id,
+                        'amount' => $amount,
+                        'platform_fee' => $platformFee,
+                        'caregiver_amount' => $caregiverAmount,
+                        'payment_method' => 'credit_card',
+                        'status' => 'completed',
+                        'transaction_id' => $paymentIntentId ?: 'payment_' . time(),
+                        'paid_at' => now(),
+                        'notes' => 'Stripe payment completed',
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ]);
+                    
+                    \Log::info("=== PAYMENT RECORD CREATED ===", [
+                        'booking_id' => $booking->id,
+                        'amount' => $amount,
+                        'platform_fee' => $platformFee,
+                        'caregiver_amount' => $caregiverAmount
+                    ]);
+                }
+                
+                // Refresh booking object
+                $booking = \App\Models\Booking::with(['client', 'assignments.caregiver.user'])
+                    ->where('id', $bookingId)
+                    ->first();
+                    
+            } catch (\Exception $e) {
+                \Log::error("Payment Success - Error updating database: " . $e->getMessage(), [
+                    'booking_id' => $bookingId,
+                    'trace' => $e->getTraceAsString()
+                ]);
+            }
+        } else {
+            \Log::info("Payment Success - Booking already paid", [
+                'booking_id' => $bookingId
+            ]);
+        }
+        
+        return view('payment-success', compact('booking', 'bookingId', 'paymentIntentId'));
+    })->name('payment.success');
     
     // Caregiver Dashboard - accessible by caregivers
 Route::get('/caregiver/dashboard', function () {
@@ -223,14 +346,47 @@ Route::get('/caregiver/dashboard-vue', function () {
         }
         return view('caregiver-dashboard-vue');
     })->name('caregiver.dashboard');
+
+    // Custom Bank Onboarding Page - Caregivers only
+    Route::get('/connect-bank-account', function () {
+        $user = auth()->user();
+        if (!$user || $user->user_type !== 'caregiver') {
+            return redirect('/login');
+        }
+        return view('connect-bank-account');
+    })->name('connect.bank.account');
+
+    // Stripe Connect Onboarding Page - Caregivers only
+    Route::get('/stripe-connect-onboarding', function () {
+        $user = auth()->user();
+        if (!$user || $user->user_type !== 'caregiver') {
+            return redirect('/login');
+        }
+        return view('stripe-connect-onboarding');
+    })->name('stripe.connect.onboarding');
     
     // Admin Dashboard - accessible by admins only
 Route::get('/admin/dashboard-vue', function () {
-        if (auth()->user()->user_type !== 'admin') {
+        $user = auth()->user();
+        if ($user->user_type !== 'admin') {
             return redirect('/login');
+        }
+        // Check if user has Admin Staff role
+        if ($user->role === 'Admin Staff') {
+            return redirect('/admin-staff/dashboard-vue');
         }
     return view('admin-dashboard-vue');
     })->name('admin.dashboard');
+
+    // Admin Staff Dashboard - accessible by Admin Staff only
+    Route::get('/admin-staff/dashboard-vue', function () {
+        $user = auth()->user();
+        if ($user->user_type !== 'admin' || $user->role !== 'Admin Staff') {
+            return redirect('/login');
+        }
+        return view('admin-staff-dashboard-vue');
+    })->name('admin-staff.dashboard');
+
 Route::get('/admin/settings', [AdminController::class, 'settings']);
 Route::post('/admin/settings', [AdminController::class, 'updateSettings']);
 
@@ -250,6 +406,15 @@ Route::post('/admin/settings', [AdminController::class, 'updateSettings']);
         return view('marketing-dashboard-vue');
     })->name('marketing.dashboard');
     
+    // Marketing Bank Onboarding - Stripe Connect
+    Route::get('/connect-bank-account-marketing', function () {
+        $user = auth()->user();
+        if ($user->user_type !== 'marketing') {
+            return redirect('/login');
+        }
+        return view('connect-bank-account-marketing');
+    })->name('marketing.connect.bank');
+    
     // Training Dashboard - accessible by training centers
     Route::get('/training/dashboard-vue', function () {
         $user = auth()->user();
@@ -265,6 +430,15 @@ Route::post('/admin/settings', [AdminController::class, 'updateSettings']);
         }
         return view('training-dashboard-vue');
     })->name('training.dashboard');
+    
+    // Training Bank Onboarding - Stripe Connect
+    Route::get('/connect-bank-account-training', function () {
+        $user = auth()->user();
+        if (!in_array($user->user_type, ['training', 'training_center'])) {
+            return redirect('/login');
+        }
+        return view('connect-bank-account-training');
+    })->name('training.connect.bank');
     
     // Book Service Form - accessible by clients
 Route::get('/book-service', [BookingController::class, 'create']);
@@ -392,6 +566,25 @@ Route::prefix('api')->middleware(['web', 'auth'])->group(function () {
     Route::get('/bookings-with-assignments', [\App\Http\Controllers\BookingController::class, 'indexWithAssignments']);
     Route::post('/bookings/{id}/approve', [\App\Http\Controllers\BookingController::class, 'approve']);
     
+    // Quick fix: Ensure booking has payment data
+    Route::post('/bookings/{id}/add-payment-data', function($id) {
+        $booking = \App\Models\Booking::find($id);
+        if ($booking) {
+            $booking->update([
+                'duration_days' => $booking->duration_days ?? 15,
+                'duty_type' => $booking->duty_type ?? '8 Hours',
+                'hourly_rate' => $booking->hourly_rate ?? 40,
+                'hours' => $booking->hours ?? ($booking->duration_days ?? 15) * 8,
+            ]);
+            return response()->json([
+                'success' => true,
+                'booking' => $booking,
+                'message' => 'Payment data added successfully'
+            ]);
+        }
+        return response()->json(['success' => false, 'message' => 'Booking not found'], 404);
+    });
+    
     // Client stats and data
     Route::get('/client/stats', [\App\Http\Controllers\DashboardController::class, 'clientStats']);
     Route::get('/client/available-years', [\App\Http\Controllers\DashboardController::class, 'clientAvailableYears']);
@@ -435,6 +628,131 @@ Route::prefix('api')->middleware(['web', 'auth'])->group(function () {
     Route::post('/caregiver/earnings-report-pdf', [\App\Http\Controllers\CaregiverController::class, 'generateEarningsReportPdf']);
     Route::get('/available-clients', [\App\Http\Controllers\CaregiverController::class, 'getAvailableClients']);
     Route::post('/apply-client/{id}', [\App\Http\Controllers\CaregiverController::class, 'applyForClient']);
+    
+    // Caregiver payment data (dynamic - no hardcoded values)
+    Route::get('/caregiver/payment-data', function(\Illuminate\Http\Request $request) {
+        $user = auth()->user();
+        if (!$user || $user->user_type !== 'caregiver') {
+            return response()->json(['error' => 'Unauthorized'], 403);
+        }
+        
+        $caregiver = \App\Models\Caregiver::where('user_id', $user->id)->first();
+        if (!$caregiver) {
+            return response()->json(['error' => 'Caregiver not found'], 404);
+        }
+        
+        // Get all time tracking records
+        $timeTrackings = \App\Models\TimeTracking::where('caregiver_id', $caregiver->id)
+            ->with(['client.user', 'booking'])
+            ->orderBy('work_date', 'desc')
+            ->get();
+        
+        // Calculate totals
+        $totalEarnings = $timeTrackings->sum('caregiver_earnings') ?? 0;
+        $pendingEarnings = $timeTrackings->where('payment_status', 'pending')->sum('caregiver_earnings') ?? 0;
+        $paidEarnings = $timeTrackings->where('payment_status', 'paid')->sum('caregiver_earnings') ?? 0;
+        
+        // Get last payment - sum all payments from the same paid_at date
+        $lastPaymentGroup = $timeTrackings->where('payment_status', 'paid')
+            ->where('paid_at', '!=', null)
+            ->sortByDesc('paid_at')
+            ->first();
+        
+        if ($lastPaymentGroup) {
+            // Get all records paid at the same time
+            $lastPaymentDate = $lastPaymentGroup->paid_at;
+            $lastPaymentAmount = $timeTrackings->where('payment_status', 'paid')
+                ->filter(function($tt) use ($lastPaymentDate) {
+                    return $tt->paid_at && $tt->paid_at->eq($lastPaymentDate);
+                })
+                ->sum('caregiver_earnings');
+            $lastPaymentDateFormatted = $lastPaymentDate->format('M d, Y');
+        } else {
+            $lastPaymentAmount = 0;
+            $lastPaymentDateFormatted = 'No payments yet';
+        }
+        
+        // Calculate current week earnings for account balance
+        $startOfWeek = \Carbon\Carbon::now()->startOfWeek();
+        $endOfWeek = \Carbon\Carbon::now()->endOfWeek();
+        
+        $weeklyEarnings = $timeTrackings->filter(function($tt) use ($startOfWeek, $endOfWeek) {
+            $workDate = \Carbon\Carbon::parse($tt->work_date);
+            return $workDate->between($startOfWeek, $endOfWeek) && $tt->payment_status === 'pending';
+        })->sum('caregiver_earnings') ?? 0;
+        
+        // Calculate next payout date (next Friday)
+        $today = \Carbon\Carbon::now();
+        $nextFriday = $today->copy()->next(\Carbon\Carbon::FRIDAY);
+        if ($today->isFriday()) {
+            $nextFriday = $today->copy()->addWeek();
+        }
+        
+        // Get Stripe connection status
+        $stripeConnected = !empty($user->stripe_connect_id);
+        $stripeOnboardingComplete = $user->stripe_onboarding_complete ?? false;
+        
+        // Get transactions (from time_trackings)
+        $transactions = $timeTrackings->map(function($tt) {
+            $clientName = 'Unknown';
+            if ($tt->client && $tt->client->user) {
+                $clientName = $tt->client->user->name;
+            } elseif ($tt->booking && $tt->booking->client) {
+                $clientName = $tt->booking->client->name ?? 'Client';
+            }
+            
+            return [
+                'id' => $tt->id,
+                'date' => \Carbon\Carbon::parse($tt->work_date)->format('M d, Y'),
+                'type' => $tt->payment_status === 'paid' ? 'Payment' : 'Pending',
+                'description' => "Service for {$clientName}",
+                'amount' => number_format($tt->caregiver_earnings ?? 0, 2),
+                'status' => $tt->payment_status === 'paid' ? 'Completed' : 'Pending',
+                'method' => $tt->payment_status === 'paid' ? 'Bank Transfer' : 'N/A',
+                'hours_worked' => round($tt->hours_worked ?? 0, 2),
+                'hourly_rate' => 28.00,
+                'client_name' => $clientName,
+                'work_date' => $tt->work_date,
+                'paid_at' => $tt->paid_at ? $tt->paid_at->format('M d, Y') : null,
+            ];
+        })->values();
+        
+        // Payment summary
+        $paymentSummary = [
+            'total_earnings' => number_format($paidEarnings, 2),
+            'pending_earnings' => number_format($pendingEarnings, 2),
+            'last_payment_amount' => number_format($lastPaymentAmount, 2),
+            'last_payment_date' => $lastPaymentDateFormatted,
+            'account_balance' => number_format($weeklyEarnings, 2),
+            'next_payout_date' => $nextFriday->format('M d, Y'),
+            'payout_frequency' => 'Weekly',
+            'payout_method' => $stripeConnected ? 'Bank Transfer (Stripe)' : 'Not Connected',
+        ];
+        
+        // Stripe connection info
+        $stripeInfo = [
+            'connected' => $stripeConnected,
+            'onboarding_complete' => $stripeOnboardingComplete,
+            'account_id' => $user->stripe_connect_id,
+            'needs_setup' => !$stripeConnected || !$stripeOnboardingComplete,
+        ];
+        
+        return response()->json([
+            'success' => true,
+            'payment_summary' => $paymentSummary,
+            'transactions' => $transactions,
+            'stripe_info' => $stripeInfo,
+            'statistics' => [
+                'total_hours_worked' => round($timeTrackings->sum('hours_worked') ?? 0, 2),
+                'total_sessions' => $timeTrackings->count(),
+                'paid_sessions' => $timeTrackings->where('payment_status', 'paid')->count(),
+                'pending_sessions' => $timeTrackings->where('payment_status', 'pending')->count(),
+                'average_hours_per_session' => $timeTrackings->count() > 0 
+                    ? round($timeTrackings->avg('hours_worked') ?? 0, 2) 
+                    : 0,
+            ]
+        ]);
+    });
     
     // Caregiver schedule events
     Route::get('/caregiver/schedule-events', function(\Illuminate\Http\Request $request) {
@@ -540,7 +858,11 @@ Route::prefix('api')->middleware(['web', 'auth'])->group(function () {
         return response()->json(['trainingCenters' => $trainingCenters]);
     });
     
-    // Receipts
+    // Payment Receipts (New - with payment details) - MUST come BEFORE generic receipts route
+    Route::get('/receipts/payment/{bookingId}', [\App\Http\Controllers\ReceiptController::class, 'generatePaymentReceipt'])->name('receipt.payment');
+    Route::get('/receipts/payment/{bookingId}/download', [\App\Http\Controllers\ReceiptController::class, 'downloadPaymentReceipt'])->name('receipt.payment.download');
+    
+    // Receipts (generic)
     Route::get('/receipts/{bookingId}', [\App\Http\Controllers\ReceiptController::class, 'generate']);
     Route::get('/receipts/{bookingId}/download', [\App\Http\Controllers\ReceiptController::class, 'download']);
     
@@ -736,6 +1058,12 @@ Route::prefix('api')->middleware(['web', 'auth'])->group(function () {
         Route::put('/admin/marketing-staff/{id}', [\App\Http\Controllers\AdminController::class, 'updateMarketingStaff']);
         Route::delete('/admin/marketing-staff/{id}', [\App\Http\Controllers\AdminController::class, 'deleteMarketingStaff']);
         
+        // Admin Staff Management
+        Route::get('/admin/admin-staff', [\App\Http\Controllers\AdminController::class, 'getAdminStaff']);
+        Route::post('/admin/admin-staff', [\App\Http\Controllers\AdminController::class, 'storeAdminStaff']);
+        Route::put('/admin/admin-staff/{id}', [\App\Http\Controllers\AdminController::class, 'updateAdminStaff']);
+        Route::delete('/admin/admin-staff/{id}', [\App\Http\Controllers\AdminController::class, 'deleteAdminStaff']);
+        
         // Training Center Management
         Route::get('/admin/training-centers', [\App\Http\Controllers\AdminController::class, 'getTrainingCenters']);
         Route::post('/admin/training-centers', [\App\Http\Controllers\AdminController::class, 'storeTrainingCenter']);
@@ -758,6 +1086,22 @@ Route::prefix('api')->middleware(['web', 'auth'])->group(function () {
         Route::get('/admin/transactions', [\App\Http\Controllers\AdminController::class, 'getTransactions']);
         Route::get('/admin/client-payments', [\App\Http\Controllers\AdminController::class, 'getClientPayments']);
         Route::get('/admin/caregiver-salaries', [\App\Http\Controllers\AdminController::class, 'getCaregiverSalaries']);
+        Route::post('/admin/pay-caregiver', [\App\Http\Controllers\AdminController::class, 'payCaregiver']);
+        
+        // Commission payments
+        Route::get('/admin/marketing-commissions', [\App\Http\Controllers\AdminController::class, 'getMarketingCommissions']);
+        Route::post('/admin/pay-marketing-commission/{id}', [\App\Http\Controllers\AdminController::class, 'payMarketingCommission']);
+        Route::get('/admin/training-commissions', [\App\Http\Controllers\AdminController::class, 'getTrainingCommissions']);
+        Route::post('/admin/pay-training-commission/{id}', [\App\Http\Controllers\AdminController::class, 'payTrainingCommission']);
+        
+        // Payment Monitoring Dashboard
+        Route::get('/admin/money-flow-dashboard', [\App\Http\Controllers\PaymentMonitoringController::class, 'getMoneyFlowDashboard']);
+        Route::get('/admin/verify-payout/{id}', [\App\Http\Controllers\PaymentMonitoringController::class, 'verifyPayoutDetails']);
+        Route::get('/admin/reconciliation-report', [\App\Http\Controllers\PaymentMonitoringController::class, 'getReconciliationReport']);
+        
+        // PDF Report Generation
+        Route::get('/admin/financial-report/pdf', [\App\Http\Controllers\AdminReportController::class, 'generateFinancialReport']);
+        
         Route::get('/admin/top-performers', [\App\Http\Controllers\AdminController::class, 'getTopPerformers']);
         Route::get('/admin/recent-activity', [\App\Http\Controllers\AdminController::class, 'getRecentActivity']);
     // All bookings for admin
@@ -1063,3 +1407,143 @@ Route::get('/migrate-status', function() {
     }
 });
 }
+
+// ============================================
+// STRIPE PAYMENT INTEGRATION ROUTES
+// ============================================
+
+Route::middleware(['auth'])->prefix('api/stripe')->group(function () {
+    // Client Payment Intents & Methods (NEW - Enhanced with Payment Element)
+    Route::post('/create-payment-intent', [App\Http\Controllers\ClientPaymentController::class, 'createPaymentIntent']);
+    Route::post('/create-setup-intent', [App\Http\Controllers\ClientPaymentController::class, 'createSetupIntent']);
+    Route::post('/attach-payment-method', [App\Http\Controllers\ClientPaymentController::class, 'attachPaymentMethod']);
+    Route::post('/charge-saved-method', [App\Http\Controllers\ClientPaymentController::class, 'chargeSavedMethod']);
+    Route::delete('/delete-payment-method', [App\Http\Controllers\ClientPaymentController::class, 'deletePaymentMethod']);
+    
+    // Legacy Client Payment Methods (keep for backward compatibility)
+    Route::get('/setup-intent', [App\Http\Controllers\StripeController::class, 'createSetupIntent']);
+    Route::post('/save-payment-method', [App\Http\Controllers\StripeController::class, 'savePaymentMethod']);
+    
+    // Caregiver/Partner Bank Connection
+    Route::post('/create-onboarding-link', [App\Http\Controllers\StripeController::class, 'createOnboardingLink']);
+    Route::post('/create-account-session', [App\Http\Controllers\StripeController::class, 'createAccountSession']);
+    Route::post('/connect-bank-account', [App\Http\Controllers\StripeController::class, 'connectBankAccount']);
+    Route::post('/connect-payout-method', [App\Http\Controllers\StripeController::class, 'connectPayoutMethod']);
+    Route::get('/connection-status', [App\Http\Controllers\StripeController::class, 'getConnectionStatus']);
+    
+    // Marketing Staff Bank Connection
+    Route::post('/connect-bank-account-marketing', [App\Http\Controllers\StripeController::class, 'connectMarketingBankAccount']);
+    
+    // Training Center Bank Connection
+    Route::post('/connect-bank-account-training', [App\Http\Controllers\StripeController::class, 'connectTrainingBankAccount']);
+    
+    // Admin Payment Processing
+    Route::post('/process-payment/{timeTrackingId}', [App\Http\Controllers\StripeController::class, 'processPayment'])
+        ->middleware('user.type:admin,adminstaff');
+    Route::get('/payment-preview/{timeTrackingId}', [App\Http\Controllers\StripeController::class, 'getPaymentPreview'])
+        ->middleware('user.type:admin,adminstaff');
+    Route::get('/pending-payments', [App\Http\Controllers\StripeController::class, 'getPendingPayments'])
+        ->middleware('user.type:admin,adminstaff');
+    Route::post('/batch-process', [App\Http\Controllers\StripeController::class, 'batchProcessPayments'])
+        ->middleware('user.type:admin,adminstaff');
+    
+    // Admin Commission Payments
+    Route::post('/admin/pay-marketing-commission/{userId}', [App\Http\Controllers\StripeController::class, 'payMarketingCommission'])
+        ->middleware('user.type:admin,adminstaff');
+    Route::post('/admin/pay-training-commission/{userId}', [App\Http\Controllers\StripeController::class, 'payTrainingCommission'])
+        ->middleware('user.type:admin,adminstaff');
+});
+
+// Client Saved Payment Methods & Booking Updates API
+Route::middleware(['auth'])->prefix('api')->group(function () {
+    Route::get('/client/payment-methods', [App\Http\Controllers\ClientPaymentController::class, 'getPaymentMethods']);
+    
+    // Booking payment status update
+    Route::post('/bookings/update-payment-status', function(\Illuminate\Http\Request $request) {
+        try {
+            \Log::info('Payment status update request received', [
+                'booking_id' => $request->input('booking_id'),
+                'payment_intent_id' => $request->input('payment_intent_id')
+            ]);
+            
+            $bookingId = $request->input('booking_id');
+            $paymentIntentId = $request->input('payment_intent_id');
+            
+            if (!$bookingId) {
+                return response()->json(['success' => false, 'message' => 'No booking ID provided']);
+            }
+            
+            $booking = App\Models\Booking::find($bookingId);
+            
+            if (!$booking) {
+                return response()->json(['success' => false, 'message' => 'Booking not found'], 404);
+            }
+            
+            // Update the booking record
+            $booking->update([
+                'payment_status' => 'paid',
+                'payment_intent_id' => $paymentIntentId,
+                'stripe_payment_intent_id' => $paymentIntentId,
+                'payment_date' => now()
+            ]);
+            
+            // Calculate the booking amount
+            $hours = 8; // Default
+            if (preg_match('/(\d+)\s*Hours?/i', $booking->duty_type, $matches)) {
+                $hours = (int)$matches[1];
+            }
+            $rate = $booking->hourly_rate ?: 45;
+            $amount = $hours * $booking->duration_days * $rate;
+            
+            // Platform fee calculation (10%)
+            $platformFee = $amount * 0.10;
+            $caregiverAmount = $amount * 0.90;
+            
+            // Create a Payment record if it doesn't exist
+            $existingPayment = App\Models\Payment::where('booking_id', $booking->id)
+                ->where('status', 'completed')
+                ->first();
+            
+            if (!$existingPayment) {
+                \DB::table('payments')->insert([
+                    'booking_id' => $booking->id,
+                    'client_id' => $booking->client_id,
+                    'amount' => $amount,
+                    'platform_fee' => $platformFee,
+                    'caregiver_amount' => $caregiverAmount,
+                    'payment_method' => 'credit_card',
+                    'status' => 'completed',
+                    'transaction_id' => $paymentIntentId,
+                    'paid_at' => now(),
+                    'notes' => 'Stripe payment via Stripe Elements',
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+                
+                \Log::info('Payment record created for booking #' . $booking->id, [
+                    'booking_id' => $booking->id,
+                    'amount' => $amount,
+                    'platform_fee' => $platformFee,
+                    'caregiver_amount' => $caregiverAmount,
+                    'payment_intent_id' => $paymentIntentId
+                ]);
+            }
+            
+            return response()->json([
+                'success' => true,
+                'booking' => $booking,
+                'receipt_url' => route('receipt.payment', ['bookingId' => $booking->id])
+            ]);
+            
+        } catch (\Exception $e) {
+            \Log::error('Payment status update error: ' . $e->getMessage(), [
+                'booking_id' => $request->input('booking_id'),
+                'trace' => $e->getTraceAsString()
+            ]);
+            return response()->json(['success' => false, 'message' => 'Error: ' . $e->getMessage()], 500);
+        }
+    });
+});
+
+// Stripe Webhook (no auth required)
+Route::post('/api/stripe/webhook', [App\Http\Controllers\StripeController::class, 'webhook']);

@@ -126,7 +126,6 @@ const removeRatings = async () => {
       throw new Error(data.message || 'Failed to remove ratings')
     }
   } catch (error) {
-    console.error('Error removing ratings:', error)
     alert('Error: ' + error.message)
   } finally {
     loading.value = false

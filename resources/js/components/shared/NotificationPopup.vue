@@ -116,7 +116,6 @@ const loadNotifications = async () => {
     const data = await response.json();
     notifications.value = data.notifications || [];
   } catch (error) {
-    console.error('Failed to load notifications:', error);
   } finally {
     loading.value = false;
   }
@@ -135,7 +134,6 @@ const markAsRead = async (notification) => {
     });
     notification.read = true;
   } catch (error) {
-    console.error('Failed to mark notification as read:', error);
   }
 };
 
@@ -151,7 +149,6 @@ const markAllAsRead = async () => {
     });
     notifications.value.forEach(n => n.read = true);
   } catch (error) {
-    console.error('Failed to mark all notifications as read:', error);
   }
 };
 

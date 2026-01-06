@@ -89,7 +89,21 @@ class CaregiverController extends Controller
 
         // Filter to only those that need more caregivers
         $availableBookings = $bookings->filter(function($booking) {
-            $caregiversNeeded = max(1, ceil($booking->duration_days / 15));
+            // Calculate caregivers needed based on hours per day
+            // 8 hours = 1 caregiver, 12 hours = 2 caregivers, 24 hours = 3 caregivers
+            $hoursPerDay = 8;
+            if (preg_match('/(\d+)\s*Hours?/i', $booking->duty_type, $matches)) {
+                $hoursPerDay = (int)$matches[1];
+            }
+            
+            if ($hoursPerDay <= 8) {
+                $caregiversNeeded = 1;
+            } elseif ($hoursPerDay <= 12) {
+                $caregiversNeeded = 2;
+            } else {
+                $caregiversNeeded = 3;
+            }
+            
             $assignedCount = $booking->assignments->where('status', 'assigned')->count();
             return $assignedCount < $caregiversNeeded;
         });
@@ -127,18 +141,28 @@ class CaregiverController extends Controller
                 }
             }
             
-            $caregiversNeeded = max(1, ceil($booking->duration_days / 15));
+            // Calculate caregivers needed based on hours per day
+            // 8 hours = 1 caregiver, 12 hours = 2 caregivers, 24 hours = 3 caregivers
+            $hoursPerDay = 8;
+            if (preg_match('/(\d+)\s*Hours?/i', $booking->duty_type, $matches)) {
+                $hoursPerDay = (int)$matches[1];
+            }
+            
+            if ($hoursPerDay <= 8) {
+                $caregiversNeeded = 1;
+            } elseif ($hoursPerDay <= 12) {
+                $caregiversNeeded = 2;
+            } else {
+                $caregiversNeeded = 3;
+            }
+            
             $assignedCount = $booking->assignments->where('status', 'assigned')->count();
             $spotsRemaining = $caregiversNeeded - $assignedCount;
             
             // Calculate pay rate for caregiver ($28/hr)
             $caregiverRate = 28.00;
             
-            // Calculate total hours based on duty type
-            $hoursPerDay = 8;
-            if (preg_match('/(\d+)\s*Hours?/i', $booking->duty_type, $matches)) {
-                $hoursPerDay = (int)$matches[1];
-            }
+            // Calculate total hours based on duty type (already extracted above)
             $totalHours = $hoursPerDay * $booking->duration_days;
             $estimatedEarnings = $totalHours * $caregiverRate;
             

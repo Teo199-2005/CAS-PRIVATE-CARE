@@ -126,8 +126,7 @@
         </v-col>
       </v-row>
 
-
-    </div>
+</div>
 
     <!-- Trainees Section -->
     <div v-if="currentSection === 'trainees'">
@@ -470,175 +469,94 @@
 
     <!-- Payments Section -->
     <div v-if="currentSection === 'payments'">
-      <v-row>
-        <v-col cols="12" md="8">
-          <v-card elevation="0" class="mb-6">
-            <v-card-title class="card-header pa-8 d-flex justify-space-between align-center">
-              <span class="section-title grey--text text--darken-2">Payment Methods</span>
-              <v-btn color="grey-darken-2" prepend-icon="mdi-plus" @click="addPaymentDialog = true">Add Payment Method</v-btn>
+      <v-card elevation="0">
+        <v-card-title class="card-header pa-8">
+          <div class="d-flex align-center">
+            <v-icon size="40" color="primary" class="mr-4">mdi-credit-card</v-icon>
+            <div>
+              <div class="section-title primary--text">Commission Payment Information</div>
+              <div class="text-caption text-grey">Connect your bank account to receive weekly commission payouts</div>
+            </div>
+          </div>
+        </v-card-title>
+        <v-card-text class="pa-8">
+          <!-- Bank Connection Alert -->
+          <v-alert color="info" variant="tonal" prominent class="mb-6">
+            <div class="font-weight-bold mb-2">
+              <v-icon start>mdi-bank</v-icon>
+              Connect Payout Method
+            </div>
+            <p class="mb-4">
+              Connect your bank account via Stripe to receive weekly commission payments ($2/hour per trained caregiver).
+              Your payment information is securely encrypted and never shared.
+            </p>
+            <v-btn 
+              color="primary" 
+              size="large" 
+              prepend-icon="mdi-bank" 
+              href="/connect-bank-account-training"
+              elevation="3"
+            >
+              Connect Bank Account
+            </v-btn>
+          </v-alert>
+          
+          <!-- Commission Summary Card -->
+          <v-card elevation="2" class="mb-6">
+            <v-card-title class="pa-6 bg-success">
+              <span class="section-title white--text">Commission Summary</span>
             </v-card-title>
-            <v-card-text class="pa-8">
+            <v-card-text class="pa-6">
               <v-row>
-                <v-col v-for="card in trainingPaymentMethods" :key="card.id" cols="12" md="6">
-                  <div class="payment-card" :class="card.type">
-                    <div class="d-flex justify-space-between align-center">
-                      <div class="card-chip"></div>
-                      <v-chip v-if="card.isDefault" color="rgba(255,255,255,0.3)" size="small" class="font-weight-bold" style="color: white;">DEFAULT</v-chip>
-                    </div>
-                    <div class="card-number">••••  ••••  ••••  {{ card.last4 }}</div>
-                    <div class="d-flex justify-space-between align-center" style="margin-top: 24px;">
-                      <div>
-                        <div class="card-label">CARD HOLDER</div>
-                        <div class="card-value">{{ card.holder.toUpperCase() }}</div>
-                      </div>
-                      <div>
-                        <div class="card-label">EXPIRES</div>
-                        <div class="card-value">{{ card.expiry }}</div>
-                      </div>
-                    </div>
-                    <div class="d-flex justify-space-between align-center" style="margin-top: 16px;">
-                      <div class="card-brand-logo">{{ card.brandName }}</div>
-                      <div class="card-actions">
-                        <v-btn size="x-small" variant="text" color="white" icon="mdi-pencil" @click="editCard(card)" />
-                        <v-btn size="x-small" variant="text" color="white" icon="mdi-delete" @click="deleteCard(card)" />
-                      </div>
-                    </div>
+                <v-col cols="12" md="4">
+                  <div class="text-center py-4">
+                    <span class="summary-label">Total Earned</span>
+                    <div class="summary-value success--text">${{ totalRevenue }}</div>
+                    <span class="text-caption text-grey">All time earnings</span>
+                  </div>
+                </v-col>
+                <v-col cols="12" md="4">
+                  <div class="text-center py-4">
+                    <span class="summary-label">This Month</span>
+                    <div class="summary-value primary--text">${{ monthlyRevenue }}</div>
+                    <span class="text-caption text-grey">Current period</span>
+                  </div>
+                </v-col>
+                <v-col cols="12" md="4">
+                  <div class="text-center py-4">
+                    <span class="summary-label">Last Payout</span>
+                    <div class="summary-value grey--text">$0.00</div>
+                    <span class="text-caption text-grey">Previous payment</span>
                   </div>
                 </v-col>
               </v-row>
             </v-card-text>
           </v-card>
-
-          <v-card elevation="0">
-            <v-card-title class="card-header pa-8">
-              <span class="section-title grey--text text--darken-2">Bank Account</span>
-            </v-card-title>
-            <v-card-text class="pa-8">
-              <div class="bank-account-card">
-                <div class="d-flex align-center mb-4">
-                  <v-icon size="40" color="grey-darken-2" class="mr-4">mdi-bank</v-icon>
-                  <div>
-                    <div class="bank-name">{{ paymentInfo.bankName || 'Chase Bank' }}</div>
-                    <div class="account-type">Checking Account</div>
-                  </div>
-                </div>
-                <div class="account-number">Account: {{ paymentInfo.accountNumber ? '••••••••' + paymentInfo.accountNumber.slice(-4) : '••••••••1234' }}</div>
-                <div class="routing-number">Routing: {{ paymentInfo.routingNumber ? '••••••' + paymentInfo.routingNumber.slice(-4) : '••••••5678' }}</div>
-                <div class="mt-4">
-                  <v-btn color="grey-darken-2" variant="outlined" size="small" class="mr-2">Edit</v-btn>
-                  <v-btn color="error" variant="outlined" size="small">Remove</v-btn>
-                </div>
-              </div>
-            </v-card-text>
-          </v-card>
-        </v-col>
-
-        <v-col cols="12" md="4">
-          <v-card elevation="0" class="mb-6">
-            <v-card-title class="card-header pa-8">
-              <span class="section-title grey--text text--darken-2">Payment Summary</span>
-            </v-card-title>
-            <v-card-text class="pa-8">
-              <div class="summary-item">
-                <span class="summary-label">Total Earnings</span>
-                <span class="summary-value grey--text text--darken-2">${{ totalRevenue }}</span>
-              </div>
-              <div class="summary-item">
-                <span class="summary-label">Pending</span>
-                <span class="summary-value">$850.00</span>
-              </div>
-              <div class="summary-item">
-                <span class="summary-label">Last Payment</span>
-                <span class="summary-value">${{ monthlyRevenue }}</span>
-              </div>
-              <v-divider class="my-4" />
-              <div class="summary-item">
-                <span class="summary-label">Next Payout</span>
-                <span class="summary-value font-weight-bold">Jan 5, 2025</span>
-              </div>
-              <v-divider class="my-4" />
-              <div v-if="trainingApplicationStatus === 'pending'" class="mt-4">
-                <v-alert type="info" variant="tonal" class="mb-4" density="compact" style="background-color: #f5f5f5;">
-                  <div class="text-body-2" style="color: #000000;">
-                    <strong>Action Required:</strong> Please view and print the W9 form, then submit it to the office to complete your application approval.
-                  </div>
-                  <div class="text-body-2" style="color: #000000;">
-                    <strong>Automatic Payout:</strong> Pending W9 form submission please submit it to the office
-                  </div>
-                </v-alert>
-                <v-btn 
-                  color="grey-darken-2" 
-                  block 
-                  size="large" 
-                  prepend-icon="mdi-file-document"
-                  @click="viewW9Form"
-                  class="mb-3"
-                  elevation="2"
-                >
-                  View W9 Form
-                </v-btn>
-                <v-btn 
-                  color="grey" 
-                  block 
-                  size="large" 
-                  prepend-icon="mdi-cash-multiple"
-                  disabled
-                  class="mb-3"
-                  elevation="0"
-                >
-                  Payout
-                </v-btn>
-                <v-btn 
-                  color="grey" 
-                  variant="text" 
-                  size="small" 
-                  prepend-icon="mdi-cash-fast"
-                  disabled
-                  block
-                  class="text-lowercase"
-                >
-                  Request Payout
-                </v-btn>
-              </div>
-              <div v-else class="mt-4">
-                <v-btn 
-                  color="grey-darken-2" 
-                  block 
-                  size="large" 
-                  prepend-icon="mdi-cash-multiple"
-                  @click="handleRequestPayout"
-                  class="mb-3"
-                  elevation="2"
-                >
-                  Payout
-                </v-btn>
-                <v-btn 
-                  color="grey-darken-2" 
-                  variant="text" 
-                  size="small" 
-                  prepend-icon="mdi-cash-fast"
-                  @click="handleRequestPayout"
-                  block
-                  class="text-lowercase"
-                >
-                  Request Payout
-                </v-btn>
-              </div>
-            </v-card-text>
-          </v-card>
-
-          <v-card elevation="0">
-            <v-card-title class="card-header pa-8">
+          
+          <!-- Payment Settings Card -->
+          <v-card elevation="2">
+            <v-card-title class="pa-6 bg-grey-lighten-4">
               <span class="section-title grey--text text--darken-2">Payment Settings</span>
             </v-card-title>
-            <v-card-text class="pa-8">
-              <!-- payout frequency restricted to Weekly per v1.2.0 -->
-              <v-select v-model="trainingPayoutFrequency" :items="['Weekly']" label="Payout Frequency" variant="outlined" density="comfortable" class="mb-4" />
-              <v-select v-model="trainingPayoutMethod" :items="['Bank Transfer', 'PayPal', 'Check']" label="Payout Method" variant="outlined" density="comfortable" />
+            <v-card-text class="pa-6">
+              <div class="d-flex flex-wrap ga-3 mb-4">
+                <v-chip color="success" size="large">
+                  <v-icon start>mdi-clock-outline</v-icon>
+                  Weekly (Every Friday)
+                </v-chip>
+                <v-chip color="primary" size="large">
+                  <v-icon start>mdi-cash</v-icon>
+                  $2.00 per hour trained
+                </v-chip>
+              </div>
+              <p class="text-body-2 text-grey mb-0">
+                Commissions are calculated based on the hours worked by caregivers you have trained. 
+                Payouts are processed automatically every Friday for the previous week's earnings.
+              </p>
             </v-card-text>
           </v-card>
-        </v-col>
-      </v-row>
+        </v-card-text>
+      </v-card>
     </div>
 
     <!-- Add Trainee Dialog -->
@@ -772,7 +690,6 @@ const lookupProfileZipCode = async () => {
         }
       }
     } catch (error) {
-      console.log('API lookup failed, using static map');
     }
     
     // Fallback to static map
@@ -890,7 +807,6 @@ const uploadAvatar = async (event) => {
       alert('Error: ' + (data.error || 'Failed to upload avatar'));
     }
   } catch (error) {
-    console.error('Error uploading avatar:', error);
     alert('Error uploading avatar. Please try again.');
   } finally {
     uploadingAvatar.value = false;
@@ -953,7 +869,6 @@ const loadPendingCaregivers = async () => {
       }
     }
   } catch (error) {
-    console.error('Failed to load pending caregivers:', error);
   }
 };
 
@@ -979,7 +894,6 @@ const approveCaregiverRequest = async (caregiver) => {
       error('Failed to approve caregiver', 'Error');
     }
   } catch (err) {
-    console.error('Error approving caregiver:', err);
     error('Failed to approve caregiver', 'Error');
   }
 };
@@ -1009,7 +923,6 @@ const rejectCaregiverRequest = async (caregiver) => {
       error('Failed to reject caregiver', 'Error');
     }
   } catch (err) {
-    console.error('Error rejecting caregiver:', err);
     error('Failed to reject caregiver', 'Error');
   }
 };
@@ -1048,7 +961,6 @@ const loadTrainingStats = async () => {
       }));
     }
   } catch (error) {
-    console.error('Failed to load training stats:', error);
   }
 };
 
@@ -1166,7 +1078,6 @@ const loadProfile = async () => {
   try {
     const response = await fetch('/api/profile?user_type=training');
     const data = await response.json();
-    console.log('Profile data received:', data); // Debug log
     if (data.user) {
       const nameParts = (data.user.name || '').split(' ');
       
@@ -1190,12 +1101,10 @@ const loadProfile = async () => {
       if (data.user.avatar) {
         userAvatar.value = `/storage/${data.user.avatar}`;
       }
-      console.log('Profile loaded:', profile.value, 'User ID:', trainingUserId.value);
       // Load training stats after we have the user ID
       loadTrainingStats();
     }
   } catch (error) {
-    console.error('Failed to load profile:', error);
   }
 };
 
@@ -1254,7 +1163,6 @@ const saveProfile = async () => {
       error('Error: ' + errorMessage);
     }
   } catch (err) {
-    console.error('Error saving profile:', err);
     const errorMessage = err?.message || err?.toString() || 'Unknown error occurred';
     error('Error saving profile: ' + errorMessage);
   }
@@ -1279,11 +1187,9 @@ const loadPaymentMethods = async () => {
       // Find bank account if exists
       const bankAccount = data.payment_methods.find(pm => pm.type === 'bank_account');
       if (bankAccount) {
-        console.log('Bank account loaded for training:', bankAccount);
       }
     }
   } catch (error) {
-    console.error('Failed to load payment methods:', error);
   }
 };
 
@@ -1297,12 +1203,10 @@ const handleRequestPayout = () => {
 };
 
 const editCard = (card) => {
-  console.log('Edit card:', card);
   info('Edit payment method', 'This feature is coming soon');
 };
 
 const deleteCard = (card) => {
-  console.log('Delete card:', card);
   info('Delete payment method', 'This feature is coming soon');
 };
 
@@ -1316,7 +1220,6 @@ const checkTrainingApplicationStatus = async () => {
       trainingApplicationStatus.value = 'pending';
     }
   } catch (error) {
-    console.error('Failed to check application status:', error);
     trainingApplicationStatus.value = 'pending';
   }
 };
@@ -1358,9 +1261,7 @@ const saveTrainee = () => {
 };
 
 const handleNotificationAction = (action) => {
-  console.log('Notification action:', action);
 };
-
 
 const revenueChart = ref(null);
 const certificationChart = ref(null);

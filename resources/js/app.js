@@ -15,7 +15,9 @@ import AdminDashboard from './components/AdminDashboard.vue';
 import AdminSettings from './components/AdminSettings.vue';
 import MarketingDashboard from './components/MarketingDashboard.vue';
 import TrainingDashboard from './components/TrainingDashboard.vue';
-import PaymentPage from './components/PaymentPage.vue';
+import PaymentPage from './components/PaymentPageStripeElements.vue'; // ✅ NEW: Stripe Payment Element (like Cursor Pro)
+import StripeConnectOnboarding from './components/StripeConnectOnboarding.vue'; // ✅ NEW: Styled Stripe Connect Onboarding
+import CustomBankOnboarding from './components/CustomBankOnboarding.vue'; // ✅ NEW: Custom Bank Form (Full Control)
 
 const vuetify = createVuetify({
     components,
@@ -107,4 +109,44 @@ if (document.getElementById('payment-page-app')) {
     });
     app.use(vuetify);
     app.mount('#payment-page-app');
+}
+
+if (document.getElementById('app')) {
+    const app = createApp({
+        components: {
+            StripeConnectOnboarding,
+        },
+    });
+    app.use(vuetify);
+    app.mount('#app');
+}
+
+if (document.getElementById('custom-bank-onboarding-app')) {
+    const app = createApp({
+        components: {
+            CustomBankOnboarding,
+        },
+    });
+    app.use(vuetify);
+    app.mount('#custom-bank-onboarding-app');
+}
+
+if (document.getElementById('marketing-bank-onboarding-app')) {
+    const app = createApp({
+        components: {
+            CustomBankOnboarding,
+        },
+    });
+    app.use(vuetify);
+    app.mount('#marketing-bank-onboarding-app');
+}
+
+if (document.getElementById('training-bank-onboarding-app')) {
+    const app = createApp({
+        components: {
+            CustomBankOnboarding,
+        },
+    });
+    app.use(vuetify);
+    app.mount('#training-bank-onboarding-app');
 }

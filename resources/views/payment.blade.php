@@ -8,6 +8,10 @@
     <title>Complete Payment - CAS Private Care LLC</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <!-- Stripe.js - Must be loaded from Stripe's CDN -->
+    <script src="https://js.stripe.com/v3/"></script>
+    
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <style>
         * {
@@ -41,6 +45,7 @@
         <payment-page 
             :booking-data='@json($booking)'
             booking-id="{{ $bookingId }}"
+            stripe-key="{{ $stripeKey ?? config('stripe.key') }}"
         ></payment-page>
     </div>
 </body>

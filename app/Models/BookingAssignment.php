@@ -45,12 +45,17 @@ class BookingAssignment extends Model
 
     /**
      * Boot method to handle model events
+     * 
+     * Note: updateAssignmentStatus() is disabled as assignment_status 
+     * column does not exist in current database schema
      */
     protected static function boot()
     {
         parent::boot();
         
         // Update booking assignment status when assignment is created, updated, or deleted
+        // Temporarily disabled - assignment_status column not in production schema
+        /*
         static::created(function ($assignment) {
             $assignment->booking->updateAssignmentStatus();
         });
@@ -62,5 +67,6 @@ class BookingAssignment extends Model
         static::deleted(function ($assignment) {
             $assignment->booking->updateAssignmentStatus();
         });
+        */
     }
 }

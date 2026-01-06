@@ -7,6 +7,8 @@ use Carbon\Carbon;
 
 class TimeTracking extends Model
 {
+    protected $table = 'time_trackings'; // Explicitly set table name
+    
     protected $fillable = [
         'caregiver_id',
         'client_id',

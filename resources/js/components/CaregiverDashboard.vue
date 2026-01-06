@@ -214,9 +214,7 @@
           </v-row>
         </div>
 
-
-
-        <!-- Job Listings Section -->
+<!-- Job Listings Section -->
         <div v-if="currentSection === 'available-clients'">
           <div class="mb-6">
             <v-row class="align-center">
@@ -383,44 +381,131 @@
           </v-data-table>
         </div>
 
-
-
-
-
-        <!-- Payment Information Section -->
+<!-- Payment Information Section -->
         <div v-if="currentSection === 'payment'">
           <v-row>
             <v-col cols="12" md="8">
               <v-card elevation="0" class="mb-6">
                 <v-card-title class="card-header pa-8 d-flex justify-space-between align-center">
-                  <span class="section-title success--text">Payment Methods</span>
-                  <v-btn color="success" prepend-icon="mdi-plus" @click="addPaymentDialog = true">Add Payment Method</v-btn>
+                  <span class="section-title success--text">Payout Method</span>
+                  <v-btn 
+                    v-if="!stripeConnected" 
+                    color="success" 
+                    prepend-icon="mdi-wallet-plus" 
+                    @click="connectBankAccount"
+                    :loading="connectingBank"
+                  >
+                    Connect Payout Method
+                  </v-btn>
+                  <v-chip v-else color="success" prepend-icon="mdi-check-circle">
+                    Connected
+                  </v-chip>
                 </v-card-title>
                 <v-card-text class="pa-8">
-                  <v-row>
-                    <v-col v-for="card in paymentMethods" :key="card.id" cols="12" md="6">
-                      <div class="payment-card" :class="card.type">
-                        <div class="d-flex justify-space-between align-center">
-                          <div class="card-chip"></div>
-                          <v-chip v-if="card.isDefault" color="rgba(255,255,255,0.3)" size="small" class="font-weight-bold" style="color: white;">DEFAULT</v-chip>
+                  <!-- Payout Method Not Connected -->
+                  <div v-if="!stripeConnected" class="text-center py-8">
+                    <v-icon size="80" color="grey-lighten-1" class="mb-4">mdi-wallet-outline</v-icon>
+                    <h3 class="text-h6 mb-2">Connect Your Payout Method</h3>
+                    <p class="text-body-2 text-grey mb-6">
+                      Connect your preferred payout method via Stripe to receive weekly payments.<br>
+                      Your payment information is securely encrypted and never shared.
+                    </p>
+                    
+                    <!-- Stripe Connect Not Enabled Warning -->
+                    <v-alert type="warning" variant="tonal" class="mb-4 text-left">
+                      <div class="font-weight-bold mb-2">⚠️ Stripe Connect Setup Required</div>
+                      <p class="text-body-2 mb-2">
+                        The platform administrator needs to enable Stripe Connect to allow caregiver payouts.
+                      </p>
+                      <p class="text-body-2">
+                        Once enabled, you'll be able to connect your bank account, debit card, or digital wallet to receive payments.
+                      </p>
+                    </v-alert>
+                    
+                    <!-- Available Payout Methods -->
+                    <v-alert color="info" variant="tonal" class="mb-4 text-left">
+                      <div class="font-weight-bold mb-3">📋 Available Payout Methods (Coming Soon):</div>
+                      <div class="d-flex align-center mb-2">
+                        <v-icon color="info" class="mr-2">mdi-bank</v-icon>
+                        <span><strong>Bank Account</strong> - Direct deposit (ACH) to your bank</span>
+                      </div>
+                      <div class="d-flex align-center mb-2">
+                        <v-icon color="info" class="mr-2">mdi-credit-card</v-icon>
+                        <span><strong>Debit Card</strong> - Instant transfer to your card</span>
+                      </div>
+                      <div class="d-flex align-center mb-2">
+                        <v-icon color="info" class="mr-2">mdi-cash</v-icon>
+                        <span><strong>Cash App</strong> - Direct to Cash App account</span>
+                      </div>
+                      <div class="d-flex align-center">
+                        <v-icon color="info" class="mr-2">mdi-wallet</v-icon>
+                        <span><strong>Other Digital Wallets</strong> - Alipay, Venmo, etc.</span>
+                      </div>
+                    </v-alert>
+                  </div>
+                  
+                  <!-- Payout Method Connected -->
+                  <v-row v-else>
+                    <v-col cols="12">
+                      <div class="bank-account-card-stripe">
+                        <div class="d-flex align-center mb-4">
+                          <v-icon size="48" color="success" class="mr-4">mdi-wallet</v-icon>
+                          <div class="flex-grow-1">
+                            <div class="text-h6 font-weight-bold">Payout Method Connected</div>
+                            <div class="text-body-2 text-grey">Stripe Connect • Verified</div>
+                          </div>
+                          <v-chip color="success" prepend-icon="mdi-check-circle" size="small">
+                            Active
+                          </v-chip>
                         </div>
-                        <div class="card-number">••••  ••••  ••••  {{ card.last4 }}</div>
-                        <div class="d-flex justify-space-between align-center" style="margin-top: 24px;">
-                          <div>
-                            <div class="card-label">CARD HOLDER</div>
-                            <div class="card-value">{{ card.holder.toUpperCase() }}</div>
-                          </div>
-                          <div>
-                            <div class="card-label">EXPIRES</div>
-                            <div class="card-value">{{ card.expiry }}</div>
-                          </div>
+                        
+                        <v-divider class="my-4"></v-divider>
+                        
+                        <div class="d-flex justify-space-between align-center mb-3">
+                          <span class="text-body-2 text-grey">Payout Method:</span>
+                          <span class="font-weight-medium">Bank Transfer (ACH)</span>
                         </div>
-                        <div class="d-flex justify-space-between align-center" style="margin-top: 16px;">
-                          <div class="card-brand-logo">{{ card.brandName }}</div>
-                          <div class="card-actions">
-                            <v-btn size="x-small" variant="text" color="white" icon="mdi-pencil" @click="editCard(card)" />
-                            <v-btn size="x-small" variant="text" color="white" icon="mdi-delete" @click="deleteCard(card)" />
+                        
+                        <div class="d-flex justify-space-between align-center mb-3">
+                          <span class="text-body-2 text-grey">Payout Schedule:</span>
+                          <span class="font-weight-medium">Weekly (Every Friday)</span>
+                        </div>
+                        
+                        <div class="d-flex justify-space-between align-center mb-3">
+                          <span class="text-body-2 text-grey">Next Payout:</span>
+                          <span class="font-weight-bold success--text">{{ nextPayoutDate }}</span>
+                        </div>
+                        
+                        <v-divider class="my-4"></v-divider>
+                        
+                        <v-alert type="success" variant="tonal" density="compact">
+                          <div class="d-flex align-center">
+                            <v-icon class="mr-2">mdi-shield-check</v-icon>
+                            <span class="text-body-2">
+                              Your bank account is securely connected via Stripe. Funds are transferred automatically after each session is completed and approved.
+                            </span>
                           </div>
+                        </v-alert>
+                        
+                        <div class="mt-4 d-flex gap-2">
+                          <v-btn 
+                            color="primary" 
+                            variant="outlined" 
+                            size="small"
+                            prepend-icon="mdi-open-in-new"
+                            @click="openStripeDashboard"
+                          >
+                            Manage on Stripe
+                          </v-btn>
+                          <v-btn 
+                            color="grey" 
+                            variant="outlined" 
+                            size="small"
+                            prepend-icon="mdi-refresh"
+                            @click="reconnectBankAccount"
+                          >
+                            Update Bank Info
+                          </v-btn>
                         </div>
                       </div>
                     </v-col>
@@ -428,63 +513,57 @@
                 </v-card-text>
               </v-card>
 
-              <v-card elevation="0">
-                <v-card-title class="card-header pa-8">
-                  <span class="section-title success--text">Bank Account</span>
-                </v-card-title>
-                <v-card-text class="pa-8">
-                  <div class="bank-account-card">
-                    <div class="d-flex align-center mb-4">
-                      <v-icon size="40" color="success" class="mr-4">mdi-bank</v-icon>
-                      <div>
-                        <div class="bank-name">Chase Bank</div>
-                        <div class="account-type">Checking Account</div>
-                      </div>
-                    </div>
-                    <div class="account-number">Account: ••••••••1234</div>
-                    <div class="routing-number">Routing: ••••••5678</div>
-                    <div class="mt-4">
-                      <v-btn color="success" variant="outlined" size="small" class="mr-2">Edit</v-btn>
-                      <v-btn color="error" variant="outlined" size="small">Remove</v-btn>
-                    </div>
-                  </div>
-                </v-card-text>
-              </v-card>
             </v-col>
 
             <v-col cols="12" md="4">
               <v-card elevation="0" class="mb-6">
                 <v-card-title class="card-header pa-8">
-                  <span class="section-title success--text">Payment Summary</span>
+                  <span class="section-title success--text">Account Balance</span>
                 </v-card-title>
                 <v-card-text class="pa-8">
-                  <div class="summary-item">
-                    <span class="summary-label">Total Earnings</span>
-                    <span class="summary-value success--text">$3,200.00</span>
+                  <div class="summary-item" style="margin-bottom: 24px;">
+                    <span class="summary-label text-h6">Current Balance</span>
+                    <span class="summary-value text-h4 warning--text">${{ pendingEarnings }}</span>
                   </div>
+                  <v-divider class="my-4" />
                   <div class="summary-item">
-                    <span class="summary-label">Pending</span>
-                    <span class="summary-value">$450.00</span>
+                    <span class="summary-label">Total Paid Out</span>
+                    <span class="summary-value success--text">${{ totalEarnings }}</span>
                   </div>
                   <div class="summary-item">
                     <span class="summary-label">Last Payment</span>
-                    <span class="summary-value">$1,200.00</span>
+                    <span class="summary-value">${{ lastPaymentAmount }}</span>
                   </div>
                   <v-divider class="my-4" />
                   <div class="summary-item">
                     <span class="summary-label">Next Payout</span>
-                    <span class="summary-value font-weight-bold">Dec 20, 2024</span>
+                    <span class="summary-value font-weight-bold">{{ nextPayoutDate }}</span>
                   </div>
                   <v-divider class="my-4" />
-                  <div v-if="applicationStatus === 'pending'" class="mt-4">
-                    <v-alert type="info" variant="tonal" class="mb-4" density="compact" style="background-color: #f5f5f5;">
-                      <div class="text-body-2" style="color: #000000;">
-                        <strong>Action Required:</strong> Please view and print the W9 form, then submit it to the office to complete your application approval.
-                        
+                  
+                  <!-- Automatic Payout Information -->
+                  <div v-if="pendingEarnings > 0" class="mt-4">
+                    <v-alert type="info" variant="tonal" density="compact" color="blue">
+                      <div class="text-body-2">
+                        <v-icon icon="mdi-information" size="small" class="mr-2"></v-icon>
+                        <strong>Automatic Payment:</strong> Your pending balance of ${{ pendingEarnings }} will be automatically paid by the admin team.
                       </div>
-                                            <div class="text-body-2" style="color: #000000;">
-                        <strong>Automatic Payout:</strong> Pending W9 form submission please submit it to the office
-                        
+                    </v-alert>
+                  </div>
+                  
+                  <div v-else class="mt-4">
+                    <v-alert type="success" variant="tonal" density="compact">
+                      <div class="text-body-2">
+                        <v-icon icon="mdi-check-circle" size="small" class="mr-2"></v-icon>
+                        <strong>All Caught Up!</strong> You have no pending payments at this time.
+                      </div>
+                    </v-alert>
+                  </div>
+                  
+                  <div v-if="applicationStatus === 'pending'" class="mt-4">
+                    <v-alert type="warning" variant="tonal" class="mb-4" density="compact">
+                      <div class="text-body-2">
+                        <strong>Action Required:</strong> Please view and print the W9 form, then submit it to the office to complete your application approval.
                       </div>
                     </v-alert>
                     <v-btn 
@@ -497,52 +576,6 @@
                       elevation="2"
                     >
                       View W9 Form
-                    </v-btn>
-                    <v-btn 
-                      color="grey" 
-                      block 
-                      size="large" 
-                      prepend-icon="mdi-cash-multiple"
-                      disabled
-                      class="mb-3"
-                      elevation="0"
-                    >
-                      Payout
-                    </v-btn>
-                    <v-btn 
-                      color="grey" 
-                      variant="text" 
-                      size="small" 
-                      prepend-icon="mdi-cash-fast"
-                      disabled
-                      block
-                      class="text-lowercase"
-                    >
-                      Request Payout
-                    </v-btn>
-                  </div>
-                  <div v-else class="mt-4">
-                    <v-btn 
-                      color="success" 
-                      block 
-                      size="large" 
-                      prepend-icon="mdi-cash-multiple"
-                      @click="handleRequestPayout"
-                      class="mb-3"
-                      elevation="2"
-                    >
-                      Payout
-                    </v-btn>
-                    <v-btn 
-                      color="success" 
-                      variant="text" 
-                      size="small" 
-                      prepend-icon="mdi-cash-fast"
-                      @click="handleRequestPayout"
-                      block
-                      class="text-lowercase"
-                    >
-                      Request Payout
                     </v-btn>
                   </div>
                 </v-card-text>
@@ -1035,8 +1068,7 @@
                 </v-card-text>
               </v-card>
 
-
-            </v-col>
+</v-col>
 
             <v-col cols="12" md="4">
               <v-card elevation="0" class="mb-6">
@@ -1151,38 +1183,8 @@
       </v-card>
     </v-dialog>
 
-    <!-- Add Payment Method Dialog -->
-    <v-dialog v-model="addPaymentDialog" max-width="500">
-      <v-card>
-        <v-card-title class="pa-6" style="background: #10b981; color: white;">
-          <span class="section-title" style="color: white;">Add Payment Method</span>
-        </v-card-title>
-        <v-card-text class="pa-6">
-          <v-row>
-            <v-col cols="12">
-              <v-text-field label="Card Number" variant="outlined" placeholder="1234 5678 9012 3456" />
-            </v-col>
-            <v-col cols="12">
-              <v-text-field label="Card Holder Name" variant="outlined" placeholder="Maria Santos" />
-            </v-col>
-            <v-col cols="12" md="6">
-              <v-text-field label="Expiry Date" variant="outlined" placeholder="MM/YY" />
-            </v-col>
-            <v-col cols="12" md="6">
-              <v-text-field label="CVV" variant="outlined" placeholder="123" type="password" />
-            </v-col>
-            <v-col cols="12">
-              <v-checkbox label="Set as default payment method" />
-            </v-col>
-          </v-row>
-        </v-card-text>
-        <v-card-actions class="pa-6 pt-0">
-          <v-spacer />
-          <v-btn color="grey" variant="outlined" @click="addPaymentDialog = false">Cancel</v-btn>
-          <v-btn color="success" @click="addPaymentDialog = false">Add Card</v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
+    <!-- Stripe Connect Bank Account Onboarding - No manual card entry needed -->
+    <!-- Caregivers use Stripe Connect to receive payouts, not add credit cards -->
 
     <!-- Add Appointment Dialog -->
     <v-dialog v-model="addAppointmentDialog" max-width="600">
@@ -1300,7 +1302,7 @@ const clientProfileModal = ref(false);
 const selectedClient = ref(null);
 const dayModal = ref(false);
 const addAppointmentDialog = ref(false);
-const addPaymentDialog = ref(false);
+// addPaymentDialog removed - caregivers use Stripe Connect for bank accounts, not manual card entry
 const selectedDate = ref(null);
 
 const appointmentFilter = ref('All');
@@ -1346,7 +1348,6 @@ const checkApplicationStatus = async () => {
       applicationStatus.value = 'pending';
     }
   } catch (error) {
-    console.error('Failed to check application status:', error);
     // Default to pending on error
     applicationStatus.value = 'pending';
   }
@@ -1370,26 +1371,21 @@ const availableClients = ref([]);
 
 const loadAvailableClients = async () => {
   try {
-    console.log('Loading available clients...');
     const response = await fetch('/api/available-clients');
-    console.log('Response status:', response.status);
     
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
     
     const data = await response.json();
-    console.log('Response data:', data);
     
     // Use the transformed data directly from the API
     if (Array.isArray(data) && data.length > 0) {
       availableClients.value = data;
     } else {
-      console.log('No available clients found');
       availableClients.value = [];
     }
   } catch (error) {
-    console.error('Failed to load available clients:', error);
     availableClients.value = [];
   }
 };
@@ -1424,7 +1420,6 @@ const loadScheduleEvents = async () => {
     const data = await response.json();
     scheduleEvents.value = data.events || {};
   } catch (error) {
-    console.error('Failed to load schedule events:', error);
     scheduleEvents.value = {};
   }
 };
@@ -1536,7 +1531,6 @@ const loadSidebarNotificationCount = async () => {
     const data = await response.json();
     sidebarNotifications.value = data.notifications || [];
   } catch (error) {
-    console.error('Failed to load notification count:', error);
   }
 };
 
@@ -1617,7 +1611,6 @@ const loadEarningsReportData = async () => {
       };
     }
   } catch (error) {
-    console.error('Failed to load earnings report:', error);
     // Clear data on error
     earningsHistory.value = [];
   }
@@ -1652,7 +1645,6 @@ const exportEarningsReport = async () => {
       alert('Failed to generate PDF report');
     }
   } catch (error) {
-    console.error('Failed to export earnings report:', error);
     alert('Failed to export earnings report');
   } finally {
     exportingEarningsReport.value = false;
@@ -1674,6 +1666,8 @@ const isTimedIn = ref(false);
 const currentBookingServiceDate = ref(null);
 const currentBookingStartTime = ref(null);
 const currentBookingDurationDays = ref(null);
+const currentBookingDaySchedules = ref(null);
+const currentBookingStatus = ref(null);
 
 // Helper function to format contract dates
 const formatContractDate = (dateStr) => {
@@ -1684,6 +1678,11 @@ const formatContractDate = (dateStr) => {
 
 // Computed properties to check booking status
 const isBookingActive = computed(() => {
+  // Check booking status first (must be 'approved' or 'active')
+  if (currentBookingStatus.value && !['approved', 'active'].includes(currentBookingStatus.value)) {
+    return false;
+  }
+  
   if (!currentBookingServiceDate.value || !currentBookingDurationDays.value) {
     return false;
   }
@@ -1702,11 +1701,54 @@ const isBookingActive = computed(() => {
 });
 
 const hasStartTimePassed = computed(() => {
+  const now = new Date();
+  const today = now.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase(); // monday, tuesday, etc.
+  
+  // Check if booking has day_schedules (new system)
+  if (currentBookingDaySchedules.value && typeof currentBookingDaySchedules.value === 'object') {
+    // Check if caregiver is assigned to work today
+    if (!currentBookingDaySchedules.value[today]) {
+      return false; // Not assigned to work today
+    }
+    
+    // Parse today's schedule (e.g., "11:00 AM - 11:00 PM")
+    const todaySchedule = currentBookingDaySchedules.value[today];
+    const scheduleMatch = todaySchedule.match(/(\d+:\d+\s*[AP]M)\s*-\s*(\d+:\d+\s*[AP]M)/);
+    
+    if (scheduleMatch) {
+      const startTimeStr = scheduleMatch[1]; // e.g., "11:00 AM"
+      
+      // Parse the time
+      const timeMatch = startTimeStr.match(/(\d+):(\d+)\s*([AP]M)/);
+      if (timeMatch) {
+        let hour = parseInt(timeMatch[1]);
+        const minute = parseInt(timeMatch[2]);
+        const period = timeMatch[3];
+        
+        // Convert to 24-hour format
+        if (period === 'PM' && hour !== 12) {
+          hour += 12;
+        } else if (period === 'AM' && hour === 12) {
+          hour = 0;
+        }
+        
+        // Create start time for today
+        const startTime = new Date();
+        startTime.setHours(hour, minute, 0, 0);
+        
+        // Check if current time >= start time
+        return now >= startTime;
+      }
+    }
+    
+    return false;
+  }
+  
+  // Fallback to old system (single start_time for all days)
   if (!currentBookingServiceDate.value || !currentBookingStartTime.value) {
     return false;
   }
   
-  const now = new Date();
   const serviceDate = new Date(currentBookingServiceDate.value);
   
   // Parse start_time (format: HH:MM:SS or HH:MM)
@@ -1731,12 +1773,18 @@ const bookingStatusMessage = computed(() => {
     return 'No active client assigned';
   }
   
+  // Check booking status
+  if (currentBookingStatus.value && !['approved', 'active'].includes(currentBookingStatus.value)) {
+    return `Booking is ${currentBookingStatus.value}`;
+  }
+  
   if (!currentBookingServiceDate.value) {
     return 'Ready to start your shift';
   }
   
   const serviceDate = new Date(currentBookingServiceDate.value);
   const today = new Date();
+  const todayDayName = today.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
   today.setHours(0, 0, 0, 0);
   serviceDate.setHours(0, 0, 0, 0);
   
@@ -1750,7 +1798,22 @@ const bookingStatusMessage = computed(() => {
     return 'Booking has ended';
   }
   
-  if (!hasStartTimePassed.value && currentBookingStartTime.value) {
+  // Check if using day_schedules system
+  if (currentBookingDaySchedules.value && typeof currentBookingDaySchedules.value === 'object') {
+    // Check if assigned to work today
+    if (!currentBookingDaySchedules.value[todayDayName]) {
+      return 'Not assigned to work today';
+    }
+    
+    // Get today's schedule
+    const todaySchedule = currentBookingDaySchedules.value[todayDayName];
+    const scheduleMatch = todaySchedule.match(/(\d+:\d+\s*[AP]M)\s*-\s*(\d+:\d+\s*[AP]M)/);
+    
+    if (scheduleMatch && !hasStartTimePassed.value) {
+      return `Shift starts at ${scheduleMatch[1]}`;
+    }
+  } else if (!hasStartTimePassed.value && currentBookingStartTime.value) {
+    // Fallback to old system
     // Parse start_time
     const timeParts = currentBookingStartTime.value.split(':');
     const startHour = parseInt(timeParts[0]) || 0;
@@ -1793,7 +1856,6 @@ const handleTimeIn = async () => {
     } else {
       // If not JSON, read as text to see what the error is
       const text = await response.text();
-      console.error('Non-JSON response:', text);
       throw new Error(`Server error (${response.status}): Please check your connection and try again.`);
     }
 
@@ -1806,7 +1868,6 @@ const handleTimeIn = async () => {
       alert(data.error || data.message || 'Failed to clock in');
     }
   } catch (error) {
-    console.error('Clock in error:', error);
     alert('Error clocking in: ' + (error.message || 'Please try again.'));
   }
 };
@@ -1839,7 +1900,6 @@ const handleTimeOut = async () => {
     } else {
       // If not JSON, read as text to see what the error is
       const text = await response.text();
-      console.error('Non-JSON response:', text);
       throw new Error(`Server error (${response.status}): Please check your connection and try again.`);
     }
 
@@ -1853,7 +1913,6 @@ const handleTimeOut = async () => {
       alert(data.error || data.message || 'Failed to clock out');
     }
   } catch (error) {
-    console.error('Clock out error:', error);
     alert('Error clocking out: ' + (error.message || 'Please try again.'));
   }
 };
@@ -1898,11 +1957,9 @@ const loadProfile = async () => {
     
     const response = await fetch('/api/profile?user_type=caregiver');
     const data = await response.json();
-    console.log('Profile API response:', data);
     if (data.user) {
       // Set user ID for avatar upload
       caregiverUserId.value = data.user.id;
-      console.log('Caregiver User ID set to:', caregiverUserId.value);
       
       // Set email verification status
       userEmailVerified.value = data.user.email_verified_at !== null && data.user.email_verified_at !== undefined;
@@ -1910,14 +1967,10 @@ const loadProfile = async () => {
       // Set avatar if exists
       if (data.user.avatar) {
         userAvatar.value = data.user.avatar.startsWith('/') ? data.user.avatar : '/storage/' + data.user.avatar;
-        console.log('User avatar set to:', userAvatar.value);
       } else {
-        console.log('No avatar found in user data');
       }
       
       const nameParts = data.user.name.split(' ');
-      console.log('User name from API:', data.user.name);
-      console.log('Name parts:', nameParts);
       profile.value = {
         firstName: nameParts[0] || '',
         lastName: nameParts.slice(1).join(' ') || '',
@@ -1945,19 +1998,16 @@ const loadProfile = async () => {
       } else {
         trainingCertificateUrl.value = null;
       }
-      console.log('Profile form data set to:', profile.value);
       
       // Store caregiver ID for stats loading
       if (data.caregiver) {
         caregiverId.value = data.caregiver.id;
-        console.log('Caregiver ID set to:', caregiverId.value);
       }
       
       // Check application status
       await checkApplicationStatus();
     } else if (data.error === 'User not authenticated') {
       // Fallback for demo purposes - use Demo Caregiver ID
-      console.log('No authenticated user, using demo caregiver ID 25');
       caregiverId.value = 25;
       caregiverUserId.value = null;
       profile.value = {
@@ -1982,7 +2032,6 @@ const loadProfile = async () => {
       };
     }
   } catch (error) {
-    console.error('Failed to load profile:', error);
     // Fallback for demo purposes
     caregiverId.value = 25;
     caregiverUserId.value = null;
@@ -1994,15 +2043,11 @@ const loadCaregiverStats = async () => {
     isLoadingStats.value = true;
     
     if (!caregiverId.value) {
-      console.log('No caregiver ID available yet');
       return;
     }
     
-    console.log('Loading caregiver stats for ID:', caregiverId.value);
     const response = await fetch(`/api/caregiver/${caregiverId.value}/stats`);
     const data = await response.json();
-    console.log('API Response:', data);
-    console.log('Active assignments:', data.active_assignments);
     
     // Check multiple possible data structures
     let hasActiveClient = false;
@@ -2011,7 +2056,6 @@ const loadCaregiverStats = async () => {
     if (data.active_assignments && data.active_assignments.length > 0) {
       // Get the first assignment (prioritize active over upcoming)
       const assignment = data.active_assignments[0];
-      console.log('First assignment:', assignment);
       
       // Try different possible structures
       if (assignment.booking?.client?.name) {
@@ -2022,6 +2066,8 @@ const loadCaregiverStats = async () => {
         currentBookingServiceDate.value = assignment.booking.service_date || null;
         currentBookingStartTime.value = assignment.booking.start_time || null;
         currentBookingDurationDays.value = assignment.booking.duration_days || null;
+        currentBookingDaySchedules.value = assignment.booking.day_schedules || null;
+        currentBookingStatus.value = assignment.booking.status || null;
         
         // Get contract dates from booking
         if (assignment.booking.service_date) {
@@ -2080,7 +2126,6 @@ const loadCaregiverStats = async () => {
       try {
         const assignmentResponse = await fetch(`/api/caregiver/${caregiverId.value}/assignments`);
         const assignmentData = await assignmentResponse.json();
-        console.log('Assignment fallback response:', assignmentData);
         
         if (assignmentData.assignments && assignmentData.assignments.length > 0) {
           const assignment = assignmentData.assignments[0];
@@ -2097,6 +2142,8 @@ const loadCaregiverStats = async () => {
             currentBookingServiceDate.value = assignment.booking.service_date || null;
             currentBookingStartTime.value = assignment.booking.start_time || null;
             currentBookingDurationDays.value = assignment.booking.duration_days || null;
+            currentBookingDaySchedules.value = assignment.booking.day_schedules || null;
+            currentBookingStatus.value = assignment.booking.status || null;
           }
           
           // Get contract dates
@@ -2112,15 +2159,10 @@ const loadCaregiverStats = async () => {
           }
         }
       } catch (fallbackError) {
-        console.log('Fallback assignment check failed:', fallbackError);
       }
     }
-    
-    console.log('Has active client:', hasActiveClient);
-    console.log('Client name found:', clientName);
-    console.log('Contract dates:', contractStartDate.value, '-', contractEndDate.value);
-    
-    if (hasActiveClient) {
+
+if (hasActiveClient) {
       const contractInfo = contractStartDate.value && contractEndDate.value 
         ? `${contractStartDate.value} - ${contractEndDate.value}`
         : 'Status: Active Contract';
@@ -2134,10 +2176,7 @@ const loadCaregiverStats = async () => {
         changeIcon: 'mdi-calendar-range'
       };
       currentClient.value = clientName;
-      console.log('Updated currentClient to:', currentClient.value);
-      console.log('Updated stats[0] to:', stats.value[0]);
     } else {
-      console.log('No active assignments found');
       stats.value[0] = {
         title: 'Current Client',
         value: 'N/A',
@@ -2153,9 +2192,10 @@ const loadCaregiverStats = async () => {
       currentBookingServiceDate.value = null;
       currentBookingStartTime.value = null;
       currentBookingDurationDays.value = null;
+      currentBookingDaySchedules.value = null;
+      currentBookingStatus.value = null;
     }
   } catch (error) {
-    console.error('Failed to load caregiver stats:', error);
     stats.value[0] = {
       title: 'Current Client',
       value: 'N/A',
@@ -2218,7 +2258,6 @@ const loadCaregiverStats = async () => {
         previousWeekPayout.value = prevEarnings.toFixed(2);
       }
     } catch (earningsError) {
-      console.error('Failed to load weekly earnings:', earningsError);
     }
   }
 };
@@ -2292,7 +2331,6 @@ const loadNotifications = async () => {
       });
     }
   } catch (error) {
-    console.error('Failed to load notifications:', error);
   }
 };
 
@@ -2336,11 +2374,9 @@ const clearAll = () => {
 };
 
 const handleAction = (action) => {
-  console.log('Action clicked:', action.label);
 };
 
 const showNotificationMenu = (notification) => {
-  console.log('Show menu for:', notification.title);
 };
 
 const settings = ref({
@@ -2354,7 +2390,6 @@ const settings = ref({
 
 const saveSettings = () => {
   notificationSettings.value = false;
-  console.log('Settings saved:', settings.value);
 };
 
 const viewClientProfile = (client) => {
@@ -2527,7 +2562,6 @@ const loadWeekHistory = async () => {
       }
     }
   } catch (error) {
-    console.error('Failed to load week history:', error);
     weekHistory.value = [];
   }
 };
@@ -2538,15 +2572,11 @@ const loadCurrentSession = async () => {
     
     const response = await fetch(`/api/time-tracking/current-session/${caregiverId.value}`);
     const data = await response.json();
-    
-    console.log('Current session data:', data);
-    
-    if (data.active_session) {
+
+if (data.active_session) {
       isTimedIn.value = true;
       // Parse the clock_in_time from the database
       const clockInTime = new Date(data.active_session.clock_in_time);
-      console.log('Clock in time from DB:', data.active_session.clock_in_time);
-      console.log('Parsed clock in time:', clockInTime);
       
       // Format the time for display
       timeIn.value = clockInTime.toLocaleTimeString('en-US', { 
@@ -2555,13 +2585,11 @@ const loadCurrentSession = async () => {
         hour12: true 
       });
       
-      console.log('Formatted time for display:', timeIn.value);
     } else {
       isTimedIn.value = false;
       timeIn.value = '';
     }
   } catch (error) {
-    console.error('Failed to load current session:', error);
     isTimedIn.value = false;
   }
 };
@@ -2691,7 +2719,6 @@ const applyForClient = async (job) => {
       alert(data.error || 'Failed to apply for this job');
     }
   } catch (error) {
-    console.error('Error applying for job:', error);
     alert('Error applying for this job. Please try again.');
   }
 };
@@ -2728,34 +2755,58 @@ const filteredAppointments = computed(() => {
 });
 
 const viewAppointment = (item) => {
-  console.log('View appointment:', item);
 };
 
 const editAppointment = (item) => {
-  console.log('Edit appointment:', item);
 };
 
 const deleteAppointment = (item) => {
-  console.log('Delete appointment:', item);
 };
 
-const paymentMethods = ref([
-  { id: 1, type: 'visa', icon: 'mdi-credit-card', last4: '4532', holder: 'Maria Santos', expiry: '12/25', isDefault: true, brandName: 'VISA' },
-  { id: 2, type: 'mastercard', icon: 'mdi-credit-card', last4: '8765', holder: 'Maria Santos', expiry: '08/26', isDefault: false, brandName: 'Mastercard' },
-]);
+// Payment methods - will be loaded dynamically from Stripe
+const paymentMethods = ref([]);
+
+// Payment summary variables - all dynamic from database
+const totalEarnings = ref('0.00');
+const pendingEarnings = ref('0.00');
+const lastPaymentAmount = ref('0.00');
+const stripeConnected = ref(false);
+const stripeOnboardingComplete = ref(false);
+const connectingBank = ref(false);
+
+// Stripe Connect Functions
+const connectBankAccount = async () => {
+  try {
+    connectingBank.value = true;
+    
+    // Navigate to YOUR custom styled page (like payment page)
+    window.location.href = '/connect-bank-account';
+    
+  } catch (error) {
+    alert('An error occurred. Please try again.');
+    connectingBank.value = false;
+  }
+};
+
+const reconnectBankAccount = async () => {
+  await connectBankAccount();
+};
+
+const openStripeDashboard = () => {
+  // Open Stripe Express Dashboard for caregiver to manage their account
+  window.open('https://dashboard.stripe.com/connect/accounts', '_blank');
+};
 
 const setDefaultCard = (card) => {
-  console.log('Set default:', card);
 };
 
 const editCard = (card) => {
-  console.log('Edit card:', card);
 };
 
 const deleteCard = (card) => {
-  console.log('Delete card:', card);
 };
 
+// Transactions - loaded dynamically from time_trackings table
 const transactions = ref([]);
 
 const transactionHeaders = [
@@ -2796,35 +2847,84 @@ const getTransactionStatusColor = (status) => {
 };
 
 const viewReceipt = (item) => {
-  console.log('View receipt:', item);
 };
 
-const loadPaymentMethods = async () => {
+// Load all payment data dynamically from database
+const loadPaymentData = async () => {
   try {
-    const response = await fetch('/api/payment-methods');
+    const response = await fetch('/api/caregiver/payment-data');
     const data = await response.json();
     
-    if (data.success && data.payment_methods) {
-      // Filter cards only
-      const cards = data.payment_methods.filter(pm => pm.type !== 'bank_account');
-      if (cards.length > 0) {
-        paymentMethods.value = cards;
+    if (data.success) {
+      // Update payment summary
+      if (data.payment_summary) {
+        accountBalance.value = data.payment_summary.account_balance;
+        totalEarnings.value = data.payment_summary.total_earnings;
+        pendingEarnings.value = data.payment_summary.pending_earnings;
+        lastPaymentAmount.value = data.payment_summary.last_payment_amount;
+        
+        // Update transaction page stats
+        pendingBalance.value = data.payment_summary.pending_earnings;
+        paidOut.value = data.payment_summary.total_earnings;
+        
+        // Update last payment info
+        if (data.payment_summary.last_payment_amount !== '0.00') {
+        }
       }
       
-      // Find bank account
-      const bankAccount = data.payment_methods.find(pm => pm.type === 'bank_account');
-      if (bankAccount) {
-        // Update paymentInfo if needed
-        console.log('Bank account loaded:', bankAccount);
+      // Update transactions with real data from time_trackings
+      if (data.transactions && data.transactions.length > 0) {
+        transactions.value = data.transactions;
+      } else {
+        transactions.value = [];
       }
+      
+      // Update Stripe connection status
+      if (data.stripe_info) {
+        stripeConnected.value = data.stripe_info.connected;
+        stripeOnboardingComplete.value = data.stripe_info.onboarding_complete;
+        
+        if (!data.stripe_info.connected) {
+          // Show connect bank account prompt
+          paymentMethods.value = [];
+        } else {
+          // Update paymentMethods to show connected bank account
+          paymentMethods.value = [{
+            id: 'stripe_bank',
+            type: 'bank_account',
+            icon: 'mdi-bank',
+            last4: 'Connected',
+            holder: profile.value.name || 'Bank Account',
+            isDefault: true,
+            brandName: 'Stripe Bank Transfer'
+          }];
+        }
+      }
+      
+      // Update statistics
+      if (data.statistics) {
+        Object.assign(earningStats.value, {
+          total_hours: data.statistics.total_hours_worked,
+          sessions: data.statistics.total_sessions,
+          paid_sessions: data.statistics.paid_sessions,
+          pending_sessions: data.statistics.pending_sessions,
+          avg_hours: data.statistics.average_hours_per_session
+        });
+      }
+      
+    } else {
     }
   } catch (error) {
-    console.error('Failed to load payment methods:', error);
   }
 };
 
+const loadPaymentMethods = async () => {
+  // This function is now replaced by loadPaymentData which loads everything
+  // Keeping for backward compatibility but it will be called by loadPaymentData
+  await loadPaymentData();
+};
+
 const downloadReceipt = (item) => {
-  console.log('Download receipt:', item);
 };
 
 const topClients = ref([
@@ -2871,7 +2971,6 @@ const lookupProfileZipCode = async () => {
         }
       }
     } catch (error) {
-      console.log('API lookup failed, using static map');
     }
     
     // Fallback to static map
@@ -2922,7 +3021,6 @@ const loadTrainingCenters = async () => {
       ];
     }
   } catch (err) {
-    console.error('Failed to load training centers:', err);
     // Fallback to default list
     trainingCenters.value = [
       'NYC Healthcare Training Institute',
@@ -3030,13 +3128,11 @@ const uploadAvatar = async (event) => {
     
     if (response.ok && data.success) {
       userAvatar.value = data.avatar;
-      console.log('Avatar uploaded successfully, new avatar URL:', userAvatar.value);
       success('Profile picture updated successfully!');
     } else {
       alert('Error: ' + (data.error || 'Failed to upload avatar'));
     }
   } catch (error) {
-    console.error('Error uploading avatar:', error);
     alert('Error uploading avatar. Please try again.');
   } finally {
     uploadingAvatar.value = false;
@@ -3051,24 +3147,16 @@ let earningsChartInstance = null;
 let servicesChartInstance = null;
 let clientsChartInstance = null;
 
-
 const saveProfileChanges = async () => {
   try {
     // Check if there's a file to upload
     // Vuetify v-file-input returns an array of File objects
     let hasFile = false;
     let certificateFile = null;
-    
-    console.log('=== SAVE PROFILE CHANGES STARTED ===');
-    console.log('Training certificate value:', profile.value.trainingCertificate);
-    console.log('Type:', typeof profile.value.trainingCertificate);
-    console.log('Is array:', Array.isArray(profile.value.trainingCertificate));
-    
-    if (profile.value.trainingCertificate) {
+
+if (profile.value.trainingCertificate) {
       if (Array.isArray(profile.value.trainingCertificate) && profile.value.trainingCertificate.length > 0) {
         certificateFile = profile.value.trainingCertificate[0];
-        console.log('First element:', certificateFile);
-        console.log('Is File instance:', certificateFile instanceof File);
         hasFile = certificateFile instanceof File;
       } else if (profile.value.trainingCertificate instanceof File) {
         certificateFile = profile.value.trainingCertificate;
@@ -3076,16 +3164,15 @@ const saveProfileChanges = async () => {
       }
     }
     
-    console.log('Final hasFile:', hasFile);
     if (hasFile && certificateFile) {
-      console.log('File details:', {
+      // Log file info for debugging
+      const fileInfo = {
         name: certificateFile.name,
         size: certificateFile.size,
         type: certificateFile.type,
         lastModified: certificateFile.lastModified
-      });
-    } else {
-      console.warn('No valid file detected for upload');
+      };
+      // File info logged
     }
     
     let response;
@@ -3110,19 +3197,14 @@ const saveProfileChanges = async () => {
       // Append the file - check if it's a File object
       if (certificateFile && certificateFile instanceof File) {
         formData.append('trainingCertificate', certificateFile);
-        console.log('FormData created with file:', certificateFile.name, certificateFile.type, certificateFile.size);
         
         // Log FormData contents for debugging
-        console.log('FormData entries:');
         for (let pair of formData.entries()) {
           if (pair[1] instanceof File) {
-            console.log(pair[0] + ': File - ' + pair[1].name + ' (' + pair[1].size + ' bytes)');
           } else {
-            console.log(pair[0] + ': ' + pair[1]);
           }
         }
       } else {
-        console.error('Invalid file object:', certificateFile);
         alert('Please select a valid file for the training certificate.');
         return;
       }
@@ -3169,14 +3251,12 @@ const saveProfileChanges = async () => {
     const contentType = response.headers.get('content-type');
     if (response.ok && contentType && contentType.includes('application/json')) {
       const responseData = await response.json();
-      console.log('Profile update response:', responseData);
       
       // Update training certificate URL if it was uploaded
       if (responseData.caregiver && responseData.caregiver.training_certificate) {
         trainingCertificateUrl.value = responseData.caregiver.training_certificate.startsWith('/') 
           ? responseData.caregiver.training_certificate 
           : '/storage/' + responseData.caregiver.training_certificate;
-        console.log('Training certificate URL updated:', trainingCertificateUrl.value);
       }
       
       // Clear the file input after successful upload
@@ -3198,11 +3278,9 @@ const saveProfileChanges = async () => {
         } else {
           // If not JSON, get text to see what the error is
           const text = await response.text();
-          console.error('Non-JSON response:', text.substring(0, 200));
           errorMessage = 'Server returned an error. Please check the console for details.';
         }
       } catch (e) {
-        console.error('Error parsing response:', e);
         errorMessage = 'Failed to parse server response. Status: ' + response.status;
       }
       
@@ -3227,7 +3305,6 @@ const saveProfileChanges = async () => {
       alert('Error: ' + errorMessage);
     }
   } catch (error) {
-    console.error('Error saving profile:', error);
     const errorMessage = error?.message || error?.toString() || 'Unknown error occurred';
     alert('Error saving profile: ' + errorMessage);
   }
@@ -3374,6 +3451,7 @@ onMounted(async () => {
     await loadCurrentSession(); // Check if already clocked in
     loadEarningsReportData(); // Load earnings report data
     loadScheduleEvents(); // Load schedule events from database
+    await loadPaymentData(); // Load payment data dynamically from database (NO HARDCODED DATA)
   }
   loadNotifications();
   loadAvailableClients();
@@ -3393,6 +3471,7 @@ onMounted(async () => {
       loadCaregiverStats();
       loadWeekHistory();
       loadCurrentSession();
+      loadPaymentData(); // Refresh payment data in real-time
     }
   }, 5000);
   
@@ -3911,6 +3990,14 @@ onMounted(async () => {
   border: 1px solid #c5c5c5ff;
   border-radius: 12px;
   padding: 20px;
+}
+
+.bank-account-card-stripe {
+  background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+  border: 2px solid #10b981;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.1);
 }
 
 .bank-name {

@@ -32,6 +32,7 @@ class Booking extends Model
         'transportation_needed',
         'recurring_service',
         'recurring_schedule',
+        'day_schedules',
         'urgency_level',
         'street_address',
         'apartment_unit',
@@ -40,7 +41,11 @@ class Booking extends Model
         'assignment_status',
         'submitted_at',
         'referral_code_id',
-        'referral_discount_applied'
+        'referral_discount_applied',
+        'payment_status',
+        'stripe_payment_intent_id',
+        'payment_intent_id',
+        'payment_date'
     ];
 
     protected $casts = [
@@ -49,7 +54,8 @@ class Booking extends Model
         'transportation_needed' => 'boolean',
         'recurring_service' => 'boolean',
         'specific_skills' => 'array',
-        'medical_conditions' => 'array'
+        'medical_conditions' => 'array',
+        'day_schedules' => 'array'
     ];
 
     public function client()

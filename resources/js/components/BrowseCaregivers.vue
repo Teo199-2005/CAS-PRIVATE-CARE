@@ -319,8 +319,7 @@
             </div>
           </div>
 
-
-        </v-card-text>
+</v-card-text>
       </v-card>
     </v-dialog>
   </div>
@@ -353,7 +352,6 @@ const fetchCaregivers = async () => {
     const response = await axios.get('/api/caregivers');
     caregivers.value = response.data.caregivers;
   } catch (error) {
-    console.error('Error fetching caregivers:', error);
   } finally {
     loading.value = false;
   }
@@ -417,7 +415,6 @@ const loadCaregiverReviews = async (caregiverId) => {
       caregiverReviews.value = response.data.reviews || [];
     }
   } catch (error) {
-    console.error('Error loading caregiver reviews:', error);
   } finally {
     loadingReviews.value = false;
   }

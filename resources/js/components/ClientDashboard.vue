@@ -85,7 +85,10 @@
                                 </div>
                               </div>
                               <div class="text-right">
-                                <div class="text-h6 warning--text font-weight-bold">${{ getBookingPrice(booking) }}</div>
+                                <div class="text-h6 warning--text font-weight-bold">
+                                  <span v-if="getOriginalBookingPrice(booking)" class="original-price-small">${{ getOriginalBookingPrice(booking) }}</span>
+                                  ${{ getBookingPrice(booking) }}
+                                </div>
                                 <v-chip color="warning" size="x-small" class="font-weight-bold">
                                   <v-icon start size="12">mdi-clock</v-icon>
                                   Pending
@@ -212,12 +215,34 @@
                               <div class="text-right d-flex flex-column align-end" style="gap: 8px;">
                                 <div class="d-flex align-center" style="gap: 12px;">
                                   <div class="text-h6 success--text font-weight-bold">${{ getBookingPrice(booking) }}</div>
-                                  <v-chip color="success" size="x-small" class="font-weight-bold">
-                                    <v-icon start size="12">mdi-check</v-icon>
-                                    Approved
+                                  <v-chip 
+                                    :color="booking.payment_status === 'paid' ? 'success' : 'warning'" 
+                                    size="x-small" 
+                                    class="font-weight-bold"
+                                  >
+                                    <v-icon start size="12">
+                                      {{ booking.payment_status === 'paid' ? 'mdi-check-circle' : 'mdi-check' }}
+                                    </v-icon>
+                                    {{ booking.payment_status === 'paid' ? 'Paid' : 'Approved' }}
                                   </v-chip>
                                 </div>
+                                
+                                <!-- Show Receipt Button if Paid, otherwise Pay Now -->
                                 <v-btn 
+                                  v-if="booking.payment_status === 'paid'"
+                                  color="success" 
+                                  size="large" 
+                                  prepend-icon="mdi-receipt-text"
+                                  :href="`/api/receipts/payment/${booking.id}`"
+                                  target="_blank"
+                                  elevation="3"
+                                  class="text-none font-weight-bold px-10"
+                                  style="min-width: 220px;"
+                                >
+                                  View Receipt
+                                </v-btn>
+                                <v-btn 
+                                  v-else
                                   color="error" 
                                   size="large" 
                                   prepend-icon="mdi-credit-card"
@@ -487,19 +512,6 @@
                       </v-col>
                       <v-col cols="12" md="6">
                         <div class="form-field">
-                          <label class="field-label">Starting Time *</label>
-                          <v-text-field 
-                            v-model="bookingData.startingTime" 
-                            type="time" 
-                            variant="outlined" 
-                            density="comfortable" 
-                            :rules="[v => !!v || 'Starting time is required']"
-                            class="professional-field"
-                          />
-                        </div>
-                      </v-col>
-                      <v-col cols="12" md="6">
-                        <div class="form-field">
                           <label class="field-label">Service Duration</label>
                           <v-select 
                             v-model="bookingData.durationDays" 
@@ -558,6 +570,8 @@
                                   density="compact"
                                   hide-details
                                   class="time-input"
+                                  :disabled="!!bookingData.dutyType"
+                                  :readonly="!!bookingData.dutyType"
                                 />
                                 <v-btn
                                   icon="mdi-chevron-down"
@@ -803,6 +817,7 @@
                             density="comfortable"
                             placeholder="Enter referral code for discount"
                             class="referral-field flex-grow-1"
+                            :error="!!referralCodeError"
                           />
                           <v-btn
                             color="primary"
@@ -815,14 +830,24 @@
                             Apply
                           </v-btn>
                         </div>
+                        <!-- Error Message -->
+                        <v-alert
+                          v-if="referralCodeError"
+                          type="error"
+                          density="compact"
+                          class="mt-3"
+                          closable
+                          @click:close="referralCodeError = ''"
+                        >
+                          {{ referralCodeError }}
+                        </v-alert>
                       </v-card-text>
                     </v-card>
                   </div>
                   
                   <div class="action-buttons">
                     <v-btn 
-                      variant="outlined" 
-                      color="grey-darken-1"
+                      variant="flat" 
                       size="x-large" 
                       class="demo-fill-btn" 
                       @click="fillDemoData"
@@ -840,7 +865,7 @@
                       Cancel
                     </v-btn>
                     <v-btn 
-                      color="primary" 
+                      variant="flat"
                       size="x-large" 
                       class="submit-btn" 
                       @click="submitBooking"
@@ -919,8 +944,8 @@
                             </div>
                             <div class="detail-row mt-3">
                               <v-chip color="warning" size="small" variant="flat">
-                                <v-icon start size="small">mdi-currency-usd</v-icon>
-                                Estimated: ${{ getBookingPrice(booking) }}
+                                <span v-if="getOriginalBookingPrice(booking)" class="original-price-chip">${{ getOriginalBookingPrice(booking) }}</span>
+                                ${{ getBookingPrice(booking) }}
                               </v-chip>
                             </div>
                           </div>
@@ -1142,68 +1167,104 @@
         <!-- Payment Information Section -->
         <div v-if="currentSection === 'payment'">
           <v-row>
+            <!-- Payment History -->
             <v-col cols="12" md="8">
               <v-card elevation="0" class="mb-6">
-                <v-card-title class="card-header pa-8 d-flex justify-between align-center">
-                  <span class="section-title primary--text">Payment Methods</span>
-                  <v-btn color="primary" prepend-icon="mdi-plus" @click="addPaymentDialog = true">Add Payment Method</v-btn>
+                <v-card-title class="card-header pa-8">
+                  <span class="section-title primary--text">Payment History</span>
                 </v-card-title>
                 <v-card-text class="pa-8">
-                  <v-row>
-                    <v-col v-for="card in paymentMethods" :key="card.id" cols="12" md="6">
-                      <div class="payment-card" :class="card.type">
-                        <div class="d-flex justify-between align-center">
-                          <div class="card-chip"></div>
-                          <v-chip v-if="card.isPrimary" color="rgba(255,255,255,0.3)" size="small" class="font-weight-bold" style="color: white;">DEFAULT</v-chip>
-                        </div>
-                        <div class="card-number">••••  ••••  ••••  {{ card.last4 }}</div>
-                        <div class="d-flex justify-between align-center" style="margin-top: 24px;">
-                          <div>
-                            <div class="card-label">CARD HOLDER</div>
-                            <div class="card-value">{{ card.holder.toUpperCase() }}</div>
-                          </div>
-                          <div>
-                            <div class="card-label">EXPIRES</div>
-                            <div class="card-value">{{ card.expiry }}</div>
-                          </div>
-                        </div>
-                        <div class="d-flex justify-between align-center" style="margin-top: 16px;">
-                          <div class="card-brand-logo">{{ card.brandName }}</div>
-                          <div class="card-actions">
-                            <v-btn size="x-small" variant="text" color="white" icon="mdi-pencil" @click="editCard(card.id)" />
-                            <v-btn size="x-small" variant="text" color="white" icon="mdi-delete" @click="deleteCard(card.id)" />
-                          </div>
-                        </div>
+                  <v-data-table
+                    :headers="[
+                      { title: 'Booking ID', key: 'id', width: '100px' },
+                      { title: 'Date', key: 'date', width: '140px' },
+                      { title: 'Service', key: 'service', width: '150px' },
+                      { title: 'Amount', key: 'amount', width: '120px', align: 'end' },
+                      { title: 'Status', key: 'status', width: '120px', align: 'center' },
+                      { title: 'Receipt', key: 'receipt', width: '100px', align: 'center' }
+                    ]"
+                    :items="getPaymentHistoryItems()"
+                    :items-per-page="10"
+                    class="elevation-0"
+                  >
+                    <template v-slot:item.amount="{ item }">
+                      <span class="font-weight-bold">${{ Math.round(item.amount).toLocaleString() }}</span>
+                    </template>
+
+                    <template v-slot:item.status="{ item }">
+                      <v-chip 
+                        v-if="item.paymentStatus === 'paid'" 
+                        color="success" 
+                        size="small" 
+                        prepend-icon="mdi-check-circle"
+                      >
+                        Paid
+                      </v-chip>
+                      <v-chip 
+                        v-else 
+                        color="warning" 
+                        size="small" 
+                        prepend-icon="mdi-clock-outline"
+                      >
+                        Pending
+                      </v-chip>
+                    </template>
+
+                    <template v-slot:item.receipt="{ item }">
+                      <v-btn
+                        v-if="item.paymentStatus === 'paid'"
+                        color="primary"
+                        size="small"
+                        variant="text"
+                        icon="mdi-download"
+                        @click="downloadReceipt(item.id)"
+                      />
+                      <span v-else class="text-grey">—</span>
+                    </template>
+
+                    <template v-slot:no-data>
+                      <div class="text-center py-8">
+                        <v-icon size="48" color="grey" class="mb-4">mdi-receipt-text-outline</v-icon>
+                        <div class="text-h6 text-grey">No payment history yet</div>
+                        <div class="text-body-2 text-grey mt-2">Your completed payments will appear here</div>
                       </div>
-                    </v-col>
-                  </v-row>
+                    </template>
+                  </v-data-table>
                 </v-card-text>
               </v-card>
 
               <v-card elevation="0">
                 <v-card-title class="card-header pa-8">
-                  <span class="section-title primary--text">Billing Address</span>
+                  <span class="section-title primary--text">Payment Information</span>
                 </v-card-title>
                 <v-card-text class="pa-8">
-                  <div class="billing-address-card">
-                    <div class="d-flex align-center mb-4">
-                      <v-icon size="40" color="primary" class="mr-4">mdi-map-marker</v-icon>
+                  <v-alert type="info" variant="tonal" class="mb-4">
+                    <div class="d-flex align-start">
+                      <v-icon start>mdi-information</v-icon>
                       <div>
-                        <div class="address-name">John Doe</div>
-                        <div class="address-type">Primary Address</div>
+                        <div class="font-weight-bold mb-2">Secure Payment Processing</div>
+                        <ul style="margin-left: 20px; line-height: 1.8;">
+                          <li>All payments are processed securely through Stripe</li>
+                          <li>Card information is never stored on our servers</li>
+                          <li>You'll enter payment details when booking is approved</li>
+                          <li>Receipts are automatically generated after payment</li>
+                        </ul>
                       </div>
                     </div>
-                    <div class="address-line">123 Main Street</div>
-                    <div class="address-line">New York, NY 10001</div>
-                    <div class="mt-4">
-                      <v-btn color="primary" variant="outlined" size="small" class="mr-2">Edit</v-btn>
-                      <v-btn color="error" variant="outlined" size="small">Remove</v-btn>
+                  </v-alert>
+
+                  <div class="d-flex align-center pa-4 rounded" style="background: rgba(var(--v-theme-primary), 0.05); border-left: 4px solid rgb(var(--v-theme-primary));">
+                    <v-icon color="primary" size="40" class="mr-4">mdi-shield-check</v-icon>
+                    <div>
+                      <div class="font-weight-bold">PCI-DSS Compliant</div>
+                      <div class="text-body-2 text-grey">Your payment information is protected with industry-standard encryption</div>
                     </div>
                   </div>
                 </v-card-text>
               </v-card>
             </v-col>
 
+            <!-- Payment Summary -->
             <v-col cols="12" md="4">
               <v-card elevation="0" class="mb-6">
                 <v-card-title class="card-header pa-8">
@@ -1212,40 +1273,62 @@
                 <v-card-text class="pa-8">
                   <div class="summary-item">
                     <span class="summary-label">Total Spent</span>
-                    <span class="summary-value primary--text">$2,450.00</span>
+                    <span class="summary-value primary--text">{{ stats[3]?.value || '$0' }}</span>
                   </div>
                   <div class="summary-item">
                     <span class="summary-label">This Month</span>
-                    <span class="summary-value">$450.00</span>
+                    <span class="summary-value">${{ formatPrice(analyticsData?.thisMonth || 0) }}</span>
                   </div>
                   <div class="summary-item">
-                    <span class="summary-label">Last Payment</span>
-                    <span class="summary-value">$120.00</span>
+                    <span class="summary-label">Amount Due</span>
+                    <span class="summary-value" :class="stats[0]?.color ? `${stats[0].color}--text` : 'success--text'">
+                      {{ stats[0]?.value || '$0' }}
+                    </span>
                   </div>
                   <v-divider class="my-4" />
                   <div class="summary-item">
-                    <span class="summary-label">Next Payment</span>
-                    <span class="summary-value font-weight-bold">Dec 20, 2024</span>
+                    <span class="summary-label">Paid Bookings</span>
+                    <span class="summary-value font-weight-bold">{{ getPaidBookingsCount() }}</span>
+                  </div>
+                  <div class="summary-item">
+                    <span class="summary-label">Pending Payments</span>
+                    <span class="summary-value font-weight-bold">{{ getPendingPaymentsCount() }}</span>
                   </div>
                 </v-card-text>
               </v-card>
 
               <v-card elevation="0">
                 <v-card-title class="card-header pa-8">
-                  <span class="section-title primary--text">Auto-Pay Settings</span>
+                  <span class="section-title primary--text">Quick Actions</span>
                 </v-card-title>
                 <v-card-text class="pa-8">
-                  <v-switch v-model="autoPayEnabled" label="Enable Auto-Pay" color="primary" class="mb-4" />
-                  <v-select :items="paymentMethods.map(p => `${p.type} ••${p.last4}`)" label="Default Payment Method" variant="outlined" density="comfortable" model-value="Visa ••4242" :disabled="!autoPayEnabled" />
+                  <v-btn
+                    color="primary"
+                    block
+                    size="large"
+                    prepend-icon="mdi-home"
+                    @click="currentSection = 'dashboard'"
+                    class="mb-3"
+                  >
+                    Back to Dashboard
+                  </v-btn>
+                  <v-btn
+                    color="success"
+                    variant="outlined"
+                    block
+                    size="large"
+                    prepend-icon="mdi-calendar-plus"
+                    @click="currentSection = 'book-form'"
+                  >
+                    Book New Service
+                  </v-btn>
                 </v-card-text>
               </v-card>
             </v-col>
           </v-row>
         </div>
 
-
-
-        <!-- Analytics Section -->
+<!-- Analytics Section -->
         <div v-if="currentSection === 'analytics'">
           <v-card elevation="0" class="mb-6">
             <v-card-text class="pa-8">
@@ -1393,7 +1476,10 @@
                 <v-card-text class="pa-6">
                   <div class="d-flex justify-space-between mb-3">
                     <span>Base Rate ({{ selectedBooking.duration_days }} days × {{ selectedBooking.hours_per_day }} hrs × ${{ selectedBooking.hourly_rate }}/hr)</span>
-                    <span class="font-weight-bold">${{ getBookingPrice(selectedBooking) }}</span>
+                    <span class="font-weight-bold">
+                      <span v-if="getOriginalBookingPrice(selectedBooking)" class="original-price-inline">${{ getOriginalBookingPrice(selectedBooking) }}</span>
+                      ${{ getBookingPrice(selectedBooking) }}
+                    </span>
                   </div>
                   <div class="d-flex justify-space-between mb-3">
                     <span>Service Fee</span>
@@ -1402,7 +1488,10 @@
                   <v-divider class="my-4"></v-divider>
                   <div class="d-flex justify-space-between">
                     <span class="text-h6 font-weight-bold">Total Amount</span>
-                    <span class="text-h5 primary--text font-weight-bold">${{ getBookingPrice(selectedBooking) }}</span>
+                    <span class="text-h5 primary--text font-weight-bold">
+                      <span v-if="getOriginalBookingPrice(selectedBooking)" class="original-price-total">${{ getOriginalBookingPrice(selectedBooking) }}</span>
+                      ${{ getBookingPrice(selectedBooking) }}
+                    </span>
                   </div>
                 </v-card-text>
               </v-card>
@@ -2098,7 +2187,7 @@ const props = defineProps({
   }
 });
 
-const { notification, success } = useNotification();
+const { notification, success, error } = useNotification();
 const { counties, getCitiesForCounty, loadNYLocationData } = useNYLocationData();
 
 // Computed properties for user display
@@ -2435,7 +2524,6 @@ const lookupZipCode = async () => {
         }
       }
     } catch (error) {
-      console.log('API lookup failed, using static map');
     }
     
     // Fallback to static map
@@ -2459,7 +2547,6 @@ const lookupProfileZipCode = async () => {
         }
       }
     } catch (error) {
-      console.log('API lookup failed, using static map');
     }
     
     // Fallback to static map
@@ -2606,7 +2693,7 @@ const navItems = computed(() => [
   { icon: 'mdi-credit-card', title: 'Payment Information', value: 'payment' },
   { icon: 'mdi-calendar-plus', title: 'Book Service', value: 'book-form', category: 'SERVICES' },
   { icon: 'mdi-account-multiple', title: 'Browse Caregivers', value: 'book', category: 'SERVICES' },
-  { icon: 'mdi-calendar-check', title: 'My Bookings', value: 'my-bookings', category: 'SERVICES' },
+  // Removed: My Bookings (accessible from dashboard)
   { icon: 'mdi-chart-bar', title: 'Analytics Reports', value: 'analytics', category: 'SERVICES' },
   { icon: 'mdi-account-circle', title: 'Profile', value: 'profile', category: 'ACCOUNT' }
 ]);
@@ -2617,7 +2704,6 @@ const loadNotificationCount = async () => {
     const data = await response.json();
     notifications.value = data.notifications || [];
   } catch (error) {
-    console.error('Failed to load notification count:', error);
   }
 };
 
@@ -2798,7 +2884,6 @@ const loadClientStats = async () => {
       recentTransactions.value = data.transactions;
     }
   } catch (error) {
-    console.error('Failed to load stats:', error);
   }
 };
 
@@ -2833,7 +2918,6 @@ const loadOngoingContracts = async () => {
       };
     });
   } catch (error) {
-    console.error('Failed to load ongoing contracts:', error);
     // Fallback data for demo
     ongoingContracts.value = [];
   }
@@ -2926,7 +3010,6 @@ const loadCaregivers = async () => {
       image: c.user?.avatar || 'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=300&h=200&fit=crop'
     }));
   } catch (error) {
-    console.error('Failed to load caregivers:', error);
     // Keep the default caregivers if API fails
   }
 };
@@ -2977,14 +3060,11 @@ const loadMyBookings = async () => {
     loadingBookings.value = true;
     const response = await fetch(clientStatsUrl.value);
     const data = await response.json();
-    console.log('Client stats data:', data); // Debug log
     
     if (data.my_bookings) {
-      console.log('Raw bookings:', data.my_bookings); // Debug log
       
       pendingBookings.value = data.my_bookings
         .filter(b => {
-          console.log(`Booking ${b.id} status: ${b.status}`); // Debug log
           return b.status === 'pending';
         })
         .map(booking => {
@@ -3011,6 +3091,7 @@ const loadMyBookings = async () => {
             medicalConditions: booking.medical_conditions || '',
             specialInstructions: booking.special_instructions || '',
             hourlyRate: booking.hourly_rate || 45,
+            referralDiscount: booking.referral_discount_applied || 0,
             price: booking.total_price || (hoursPerDay * (booking.duration_days || 1) * (booking.hourly_rate || 45))
           };
         });
@@ -3018,14 +3099,24 @@ const loadMyBookings = async () => {
       confirmedBookings.value = data.my_bookings
         .filter(b => {
           const isApproved = b.status === 'approved';
-          console.log(`Booking ${b.id} approved check: ${isApproved} (status: ${b.status})`); // Debug log
           return isApproved;
         })
         .map(booking => {
-          // Calculate required caregivers - same formula as Admin dashboard
-          // 1 caregiver per 15 days of service
+          // Extract hours from duty_type first
+          const hoursMatch = (booking.duty_type || '8 Hours Duty').match(/(\d+)\s*Hours?/i);
+          const hoursPerDay = hoursMatch ? parseInt(hoursMatch[1]) : 8;
+          
+          // Calculate required caregivers based on duty hours
+          // 8 hours = 1 caregiver, 12 hours = 2 caregivers, 24 hours = 3 caregivers
+          let requiredCount = 1;
+          if (hoursPerDay === 8) requiredCount = 1;
+          else if (hoursPerDay === 12) requiredCount = 2;
+          else if (hoursPerDay === 24) requiredCount = 3;
+          else if (hoursPerDay < 12) requiredCount = 1;
+          else if (hoursPerDay < 24) requiredCount = 2;
+          else requiredCount = 3;
+          
           const durationDays = booking.duration_days || 15;
-          const requiredCount = Math.ceil(durationDays / 15) || 1;
           const assignedCount = booking.assignments?.length || 0;
           
           // Build assigned caregivers list with contact info
@@ -3036,10 +3127,6 @@ const loadMyBookings = async () => {
             phone: assignment.caregiver?.phone || assignment.caregiver?.user?.phone || '',
             avatar: assignment.caregiver?.user?.avatar || null
           }));
-          
-          // Extract hours from duty_type
-          const hoursMatch = (booking.duty_type || '8 Hours Duty').match(/(\d+)\s*Hours?/i);
-          const hoursPerDay = hoursMatch ? parseInt(hoursMatch[1]) : 8;
           
           return {
             id: booking.id,
@@ -3066,16 +3153,17 @@ const loadMyBookings = async () => {
             medicalConditions: booking.medical_conditions || '',
             specialInstructions: booking.special_instructions || '',
             hourlyRate: booking.hourly_rate || 45,
+            referralDiscount: booking.referral_discount_applied || 0,
             price: booking.total_price || (hoursPerDay * durationDays * (booking.hourly_rate || 45)),
-            assignedCaregivers: assignedCaregivers
+            assignedCaregivers: assignedCaregivers,
+            payment_status: booking.payment_status || 'unpaid',
+            payment_intent_id: booking.stripe_payment_intent_id || booking.payment_intent_id || null,
+            payment_date: booking.payment_date || null
           };
         });
         
-      console.log('Pending bookings:', pendingBookings.value); // Debug log
-      console.log('Confirmed bookings:', confirmedBookings.value); // Debug log
     }
   } catch (error) {
-    console.error('Failed to load bookings:', error);
     pendingBookings.value = [];
     confirmedBookings.value = [];
   } finally {
@@ -3123,7 +3211,6 @@ const loadCompletedBookings = async () => {
         });
     }
   } catch (error) {
-    console.error('Failed to load completed bookings:', error);
     // Fallback data for demo
     completedBookings.value = [
       {
@@ -3139,12 +3226,21 @@ const loadCompletedBookings = async () => {
 
 const autoPayEnabled = ref(true);
 
-const paymentMethods = ref([
-  { id: 1, type: 'visa', last4: '4242', expiry: '12/25', isPrimary: true, holder: 'John Doe', brandName: 'VISA' },
-  { id: 2, type: 'mastercard', last4: '8888', expiry: '06/26', isPrimary: false, holder: 'John Doe', brandName: 'Mastercard' },
-]);
+// Mock data removed - now using real payment data from bookings
 
-
+// Helper function to convert 24-hour time to 12-hour format with AM/PM
+const formatTimeTo12Hour = (time24) => {
+  if (!time24) return '9:00 AM';
+  
+  const [hourStr, minuteStr] = time24.split(':');
+  let hour = parseInt(hourStr, 10);
+  const minute = minuteStr || '00';
+  
+  const ampm = hour >= 12 ? 'PM' : 'AM';
+  hour = hour % 12 || 12; // Convert 0 to 12 for midnight, and 13-23 to 1-11
+  
+  return `${hour}:${minute} ${ampm}`;
+};
 
 const submitBooking = async () => {
   try {
@@ -3194,6 +3290,26 @@ const submitBooking = async () => {
       }
     }
     
+    // Get the earliest start time from the selected days to use as the booking's starting time
+    let earliestStartTime = '09:00';
+    const enabledDays = Object.entries(bookingData.value.selectedDays)
+      .filter(([_, dayData]) => dayData.enabled)
+      .map(([_, dayData]) => dayData);
+    
+    if (enabledDays.length > 0) {
+      const times = enabledDays.map(day => day.startTime).sort();
+      earliestStartTime = times[0];
+    }
+    
+    // Build day_schedules object from selectedDays
+    const daySchedules = {};
+    Object.entries(bookingData.value.selectedDays).forEach(([dayKey, dayData]) => {
+      if (dayData.enabled) {
+        // Format: "11:00 AM - 11:00 PM"
+        daySchedules[dayKey] = `${formatTimeTo12Hour(dayData.startTime)} - ${formatTimeTo12Hour(dayData.endTime)}`;
+      }
+    });
+    
     const response = await fetch('/api/bookings', {
       method: 'POST',
       headers: {
@@ -3208,8 +3324,9 @@ const submitBooking = async () => {
         city: city,
         county: county,
         service_date: bookingData.value.date,
-        starting_time: bookingData.value.startingTime,
-        selected_days: bookingData.value.selectedDays,
+        starting_time: earliestStartTime, // Use earliest time from selected days
+        selected_days: bookingData.value.selectedDays, // Keep for backward compatibility
+        day_schedules: Object.keys(daySchedules).length > 0 ? daySchedules : null, // NEW: Send day schedules
         duration_days: bookingData.value.durationDays,
         gender_preference: bookingData.value.genderPreference,
         specific_skills: bookingData.value.specificSkills,
@@ -3266,7 +3383,6 @@ const submitBooking = async () => {
       alert('Error: ' + (errorData.message || 'Failed to submit booking'));
     }
   } catch (error) {
-    console.error('Error submitting booking:', error);
     alert('Error submitting booking. Please try again.');
   }
 };
@@ -3292,7 +3408,6 @@ const cancelBooking = async (id) => {
         alert('Failed to cancel booking. Please try again.');
       }
     } catch (error) {
-      console.error('Error cancelling booking:', error);
       alert('Error cancelling booking. Please try again.');
     }
   }
@@ -3368,7 +3483,6 @@ const rateBooking = async (id) => {
       }
     }
   } catch (error) {
-    console.error('Error checking review status:', error);
     success('Unable to load review form. Please try again.', 'Error');
   }
 };
@@ -3387,6 +3501,65 @@ const downloadReceipt = (bookingId) => {
 const viewReceipt = (bookingId) => {
   // View receipt PDF in new tab (inline)
   window.open(`/api/receipts/${bookingId}`, '_blank');
+};
+
+// Payment Information Section Helpers
+const getPaymentHistoryItems = () => {
+  try {
+    // Get all bookings and format for payment history table
+    // Only use bookings arrays that actually exist: pending, confirmed, completed
+    const allBookings = [
+      ...(pendingBookings.value || []),
+      ...(confirmedBookings.value || []),
+      ...(completedBookings.value || [])
+    ];
+
+return allBookings.map(booking => ({
+      id: booking.id,
+      date: booking.date || (booking.service_date ? new Date(booking.service_date).toLocaleDateString() : 'N/A'),
+      service: booking.service || booking.serviceType || booking.service_type || 'Caregiver Service',
+      amount: booking.price || booking.total_budget || (booking.hourly_rate * booking.durationDays * 12) || 0,
+      paymentStatus: booking.payment_status || 'unpaid',  // Use payment_status (with underscore)
+      status: booking.status
+    })).sort((a, b) => b.id - a.id); // Sort by ID descending (newest first)
+  } catch (error) {
+    return [];
+  }
+};
+
+const formatPrice = (value) => {
+  try {
+    if (!value || isNaN(value)) return '0.00';
+    return Number(value).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  } catch (error) {
+    return '0.00';
+  }
+};
+
+const getPaidBookingsCount = () => {
+  try {
+    const allBookings = [
+      ...(pendingBookings.value || []),
+      ...(confirmedBookings.value || []),
+      ...(completedBookings.value || [])
+    ];
+    const count = allBookings.filter(b => b.payment_status === 'paid').length;
+    return count;
+  } catch (error) {
+    return 0;
+  }
+};
+
+const getPendingPaymentsCount = () => {
+  try {
+    // Count approved bookings that haven't been paid yet
+    const count = (confirmedBookings.value || []).filter(b => 
+      b.payment_status !== 'paid'  // Use payment_status (with underscore)
+    ).length;
+    return count;
+  } catch (error) {
+    return 0;
+  }
 };
 
 const exportAnalyticsPdf = async () => {
@@ -3430,7 +3603,6 @@ const exportAnalyticsPdf = async () => {
       throw new Error('Failed to generate PDF');
     }
   } catch (err) {
-    console.error('Failed to export analytics PDF:', err);
     notification.value = { show: true, message: 'Failed to export analytics report', type: 'error' };
   } finally {
     exportingAnalytics.value = false;
@@ -3573,25 +3745,44 @@ const getBookingPrice = (booking) => {
   // Get duration days
   const days = booking.durationDays || booking.duration_days || 15;
   
-  // Get service type
-  const serviceType = booking.service || booking.serviceType || booking.service_type || 'Elderly Care';
+  // Use the actual hourly rate from the booking (which includes referral discount if applied)
+  // If not available, fall back to price property or calculate using default rate
+  const hourlyRate = booking.hourlyRate || booking.hourly_rate;
   
-  // Get rate based on service type
-  const rates = {
-    'Caregiver': 45,
-    'Elderly Care': 45,
-    'Personal Care': 45,
-    'Companion Care': 45,
-    'Childcare': 45,
-    'Housekeeping': 25,
-    'House Cleaning': 25,
-    'Personal Assistant': 30
-  };
+  if (hourlyRate) {
+    // Use the stored hourly rate (includes any referral discount)
+    const total = hoursPerDay * days * hourlyRate;
+    return total.toLocaleString();
+  }
   
-  const rate = rates[serviceType] || 45;
-  const total = hoursPerDay * days * rate;
+  // Fallback: use price if available
+  if (booking.price) {
+    return booking.price.toLocaleString();
+  }
   
+  // Last resort: calculate with default rate
+  const total = hoursPerDay * days * 45;
   return total.toLocaleString();
+};
+
+// Calculate original price (before discount) for a booking
+const getOriginalBookingPrice = (booking) => {
+  if (!booking || !booking.referralDiscount || booking.referralDiscount === 0) return null;
+  
+  // Extract hours from duty type
+  const hoursMatch = booking.dutyType?.match(/(\d+)/) || booking.duty_type?.match(/(\d+)/);
+  const hoursPerDay = hoursMatch ? parseInt(hoursMatch[1]) : 8;
+  
+  // Get duration days
+  const days = booking.durationDays || booking.duration_days || 15;
+  
+  // referralDiscount is the dollar amount per hour discount
+  // Original price = current total + (discount per hour × hours × days)
+  const currentPrice = parseFloat(getBookingPrice(booking).replace(/,/g, ''));
+  const totalDiscount = booking.referralDiscount * hoursPerDay * days;
+  const originalPrice = currentPrice + totalDiscount;
+  
+  return originalPrice.toLocaleString();
 };
 
 const updateBooking = async () => {
@@ -3628,7 +3819,6 @@ const updateBooking = async () => {
       alert('Error: ' + (errorData.message || 'Failed to update booking'));
     }
   } catch (error) {
-    console.error('Error updating booking:', error);
     alert('Error updating booking. Please try again.');
   }
 };
@@ -3645,11 +3835,11 @@ const viewBookingDetails = async (booking) => {
       const total = hoursPerDay * duration * hourlyRate;
       
       // Check if referral discount was applied
-      const standardRate = 45; // Standard rate without referral
-      const hasReferralDiscount = hourlyRate < standardRate || bookingData.referral_code_id || bookingData.referral_discount_applied;
-      const referralDiscount = hasReferralDiscount ? (standardRate - hourlyRate) : 0;
-      const originalTotal = hoursPerDay * duration * standardRate;
-      const totalSaved = hasReferralDiscount ? (originalTotal - total) : 0;
+      const referralDiscountAmount = bookingData.referral_discount_applied || 0;
+      const hasReferralDiscount = referralDiscountAmount > 0;
+      const originalRate = hasReferralDiscount ? (hourlyRate + referralDiscountAmount) : hourlyRate;
+      const originalTotal = hoursPerDay * duration * originalRate;
+      const totalSaved = hoursPerDay * duration * referralDiscountAmount;
       
       // Format submitted timestamp - prioritize submitted_at over created_at
       const timestampSource = bookingData.submitted_at || bookingData.created_at;
@@ -3670,7 +3860,6 @@ const viewBookingDetails = async (booking) => {
             });
           }
         } catch (e) {
-          console.error('Error formatting timestamp:', e);
         }
       }
       
@@ -3701,7 +3890,6 @@ const viewBookingDetails = async (booking) => {
             ? JSON.parse(bookingData.recurring_schedule) 
             : bookingData.recurring_schedule;
         } catch (e) {
-          console.error('Error parsing recurring_schedule:', e);
         }
       } else if (bookingData.selected_days) {
         try {
@@ -3709,7 +3897,6 @@ const viewBookingDetails = async (booking) => {
             ? JSON.parse(bookingData.selected_days)
             : bookingData.selected_days;
         } catch (e) {
-          console.error('Error parsing selected_days:', e);
         }
       }
 
@@ -3746,15 +3933,14 @@ const viewBookingDetails = async (booking) => {
         submittedAt,
         referralCode: bookingData.referral_code?.code || '',
         hasReferralDiscount,
-        referralDiscount,
-        originalRate: standardRate,
+        referralDiscount: referralDiscountAmount,
+        originalRate,
         originalTotal,
         totalSavings: totalSaved
       };
       viewBookingDialog.value = true;
     }
   } catch (error) {
-    console.error('Error loading booking details:', error);
     // Fallback with booking data if available
     const hoursPerDay = booking.hoursPerDay || (booking.dutyType ? parseInt(booking.dutyType.split(' ')[0]) : 8);
     const hourlyRate = booking.hourlyRate || 45;
@@ -3884,7 +4070,6 @@ const editBooking = async (id) => {
       editBookingDialog.value = true;
     }
   } catch (error) {
-    console.error('Error loading booking:', error);
     alert('Error loading booking for edit.');
   }
 };
@@ -3899,13 +4084,10 @@ const deleteCard = (id) => {
   }
 };
 
-
-
 const loadProfile = async () => {
   try {
     const response = await fetch(profileUrl.value);
     const data = await response.json();
-    console.log('Profile data received:', data);
     if (data.user) {
       // Set userId for avatar upload
       userId.value = data.user.id;
@@ -3928,7 +4110,6 @@ const loadProfile = async () => {
         zip: data.user.zip_code || '',
         birthdate: data.user.date_of_birth || ''
       };
-      console.log('Profile data set:', profileData.value);
     } else {
       // Fallback data if no user found
       profileData.value = {
@@ -3945,7 +4126,6 @@ const loadProfile = async () => {
       };
     }
   } catch (error) {
-    console.error('Failed to load profile:', error);
     // Fallback data on error
     profileData.value = {
       firstName: 'John',
@@ -4024,7 +4204,6 @@ const saveProfile = async () => {
       alert('Error: ' + errorMessage);
     }
   } catch (error) {
-    console.error('Error saving profile:', error);
     const errorMessage = error?.message || error?.toString() || 'Unknown error occurred';
     alert('Error saving profile: ' + errorMessage);
   }
@@ -4080,7 +4259,6 @@ const uploadAvatar = async (event) => {
       alert('Error: ' + (data.error || 'Failed to upload avatar'));
     }
   } catch (error) {
-    console.error('Error uploading avatar:', error);
     alert('Error uploading avatar. Please try again.');
   } finally {
     uploadingAvatar.value = false;
@@ -4094,6 +4272,15 @@ const uploadAvatar = async (event) => {
 // Day selection helper functions
 const toggleDay = (dayKey) => {
   bookingData.value.selectedDays[dayKey].enabled = !bookingData.value.selectedDays[dayKey].enabled;
+  
+  // If enabling a day and duty type is selected, calculate end time
+  if (bookingData.value.selectedDays[dayKey].enabled && bookingData.value.dutyType) {
+    const hours = getHoursFromDutyType(bookingData.value.dutyType);
+    bookingData.value.selectedDays[dayKey].endTime = addHoursToTime(
+      bookingData.value.selectedDays[dayKey].startTime,
+      hours
+    );
+  }
 };
 
 const getDayLabel = (dayKey) => {
@@ -4150,15 +4337,18 @@ const handleBookingRequest = (caregiver) => {
 };
 
 const handleNotificationAction = (action) => {
-  console.log('Notification action:', action);
 };
 
 const appliedReferralCodeId = ref(null);
+const referralCodeError = ref('');
 
 const applyReferralCode = async () => {
   if (!bookingData.value.referralCode) {
     return;
   }
+  
+  // Clear previous error
+  referralCodeError.value = '';
   
   const code = bookingData.value.referralCode.toUpperCase().trim();
   
@@ -4180,21 +4370,25 @@ const applyReferralCode = async () => {
       // Discount: $45 - $40 = $5/hr
       referralDiscount.value = parseFloat(data.data.discount_per_hour) || 5.00;
       appliedReferralCodeId.value = data.data.id;
+      referralCodeError.value = '';
       success(`Referral code "${code}" applied successfully! You'll receive $${referralDiscount.value.toFixed(2)} off per hour.`);
     } else {
       referralDiscount.value = 0;
       appliedReferralCodeId.value = null;
-      error(data.message || 'Invalid referral code. Please check and try again.');
+      const errorMessage = data.message || 'Invalid referral code. Please check and try again.';
+      referralCodeError.value = errorMessage;
+      // Removed duplicate error toast - inline alert is shown instead
     }
   } catch (err) {
-    console.error('Error validating referral code:', err);
     // Fallback to static validation for demo purposes
     const validCodes = ['SAVE10', 'WELCOME20', 'FRIEND15', 'CARE25'];
     if (validCodes.includes(code)) {
       referralDiscount.value = 5.00;
+      referralCodeError.value = '';
       success(`Referral code "${code}" applied successfully! You'll receive $5.00 off per hour.`);
     } else {
-      error('Unable to validate referral code. Please try again.');
+      referralCodeError.value = 'Invalid referral code. Please check and try again.';
+      // Removed duplicate error toast - inline alert is shown instead
     }
   }
 };
@@ -4300,6 +4494,56 @@ watch(currentSection, (newVal) => {
   }
 });
 
+// Helper function to add hours to a time string
+const addHoursToTime = (timeString, hoursToAdd) => {
+  if (!timeString) return '';
+  
+  const [hours, minutes] = timeString.split(':').map(Number);
+  let newHours = hours + hoursToAdd;
+  
+  // Handle overflow past 24 hours
+  if (newHours >= 24) {
+    newHours = newHours % 24;
+  }
+  
+  return `${String(newHours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+};
+
+// Helper function to get hours from duty type
+const getHoursFromDutyType = (dutyType) => {
+  if (dutyType.includes('8 Hours')) return 8;
+  if (dutyType.includes('12 Hours')) return 12;
+  if (dutyType.includes('24 Hours')) return 24;
+  return 8; // default
+};
+
+// Watch for duty type changes to recalculate all end times
+watch(() => bookingData.value.dutyType, (newDutyType) => {
+  if (!newDutyType) return;
+  
+  const hours = getHoursFromDutyType(newDutyType);
+  
+  // Recalculate end time for all enabled days
+  Object.keys(bookingData.value.selectedDays).forEach(day => {
+    if (bookingData.value.selectedDays[day].enabled && bookingData.value.selectedDays[day].startTime) {
+      bookingData.value.selectedDays[day].endTime = addHoursToTime(
+        bookingData.value.selectedDays[day].startTime,
+        hours
+      );
+    }
+  });
+});
+
+// Watch for start time changes on each day
+Object.keys(bookingData.value.selectedDays).forEach(day => {
+  watch(() => bookingData.value.selectedDays[day].startTime, (newStartTime) => {
+    if (bookingData.value.dutyType && newStartTime && bookingData.value.selectedDays[day].enabled) {
+      const hours = getHoursFromDutyType(bookingData.value.dutyType);
+      bookingData.value.selectedDays[day].endTime = addHoursToTime(newStartTime, hours);
+    }
+  });
+});
+
 onMounted(() => {
   loadNYLocationData();
   loadAvailableYears();
@@ -4311,6 +4555,34 @@ onMounted(() => {
   loadCaregivers();
   loadNotificationCount();
   loadTopCaregivers();
+  
+  // Check if returning from successful payment
+  const paymentCompleted = localStorage.getItem('payment_completed');
+  const paymentTimestamp = localStorage.getItem('payment_timestamp');
+  
+  if (paymentCompleted === 'true') {
+    // Check if payment was recent (within last 5 minutes)
+    const timeDiff = Date.now() - parseInt(paymentTimestamp || '0');
+    if (timeDiff < 300000) { // 5 minutes
+      
+      // Force reload stats and bookings
+      setTimeout(() => {
+        loadClientStats();
+        loadMyBookings();
+        loadCompletedBookings();
+      }, 500);
+      
+      // Show success message
+      setTimeout(() => {
+        success('Payment successful! Your dashboard has been updated.');
+      }, 1000);
+    }
+    
+    // Clear the flags
+    localStorage.removeItem('payment_completed');
+    localStorage.removeItem('payment_booking_id');
+    localStorage.removeItem('payment_timestamp');
+  }
   
   // Check for account creation success message
   const urlParams = new URLSearchParams(window.location.search);
@@ -4339,11 +4611,12 @@ onMounted(() => {
     }
   });
   
-  // Refresh bookings data every 10 seconds to sync with admin changes
+  // Refresh bookings and stats every 15 seconds to catch payment updates
   setInterval(() => {
+    loadClientStats();
     loadMyBookings();
     loadCompletedBookings();
-  }, 10000);
+  }, 15000);
 });
 
 const availableYears = ref([]);
@@ -4357,7 +4630,6 @@ const loadTopCaregivers = async () => {
     const data = await response.json();
     topCaregivers.value = data.caregivers || [];
   } catch (error) {
-    console.error('Failed to load top caregivers:', error);
   }
 };
 
@@ -4370,7 +4642,6 @@ const loadAvailableYears = async () => {
     availableYears.value = data.years || [new Date().getFullYear()];
     selectedYear.value = availableYears.value[0]; // Set current year as default
   } catch (error) {
-    console.error('Failed to load available years:', error);
     availableYears.value = [new Date().getFullYear()];
     selectedYear.value = new Date().getFullYear();
   }
@@ -4412,7 +4683,6 @@ const loadSpendingData = async () => {
       });
     }
   } catch (error) {
-    console.error('Failed to load spending data:', error);
     // Fallback to static data if API fails
     if (spendingChart.value && window.Chart) {
       const ctx = spendingChart.value.getContext('2d');
@@ -4455,6 +4725,41 @@ const initSpendingChart = () => {
 
 * {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+/* Strikethrough styling for original prices */
+.original-price-small {
+  font-size: 0.75rem;
+  color: #999;
+  text-decoration: line-through;
+  font-weight: 500;
+  display: block;
+  margin-bottom: 2px;
+}
+
+.original-price-chip {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.6);
+  text-decoration: line-through;
+  font-weight: 500;
+  margin-right: 4px;
+}
+
+.original-price-inline {
+  font-size: 0.875rem;
+  color: #999;
+  text-decoration: line-through;
+  font-weight: 500;
+  margin-right: 8px;
+}
+
+.original-price-total {
+  font-size: 1rem;
+  color: #999;
+  text-decoration: line-through;
+  font-weight: 500;
+  display: block;
+  margin-bottom: 4px;
 }
 
 /* Glowing Pay Now Button Animation */
@@ -4650,8 +4955,6 @@ const initSpendingChart = () => {
   font-weight: 600;
   font-size: 0.75rem;
 }
-
-
 
 .info-row {
   display: flex;
@@ -5969,63 +6272,62 @@ const initSpendingChart = () => {
   flex-wrap: wrap;
 }
 
-.demo-fill-btn {
+.action-buttons .v-btn {
+  height: 60px !important;
+  min-width: 160px !important;
+  padding: 0 2rem !important;
+  font-weight: 600 !important;
+  border-radius: 14px !important;
+  text-transform: none !important;
+  font-size: 1rem !important;
+}
+
+.demo-fill-btn,
+.demo-fill-btn.v-btn {
   background: linear-gradient(135deg, #6b7280 0%, #9ca3af 100%) !important;
   color: white !important;
   border: none !important;
-  font-size: 1rem !important;
-  font-weight: 600 !important;
-  border-radius: 14px !important;
-  padding: 14px 28px !important;
-  text-transform: none !important;
   letter-spacing: 0.5px !important;
   box-shadow: 0 4px 12px rgba(107, 114, 128, 0.25) !important;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
 
-.demo-fill-btn:hover {
+.demo-fill-btn:hover,
+.demo-fill-btn.v-btn:hover {
   box-shadow: 0 8px 20px rgba(107, 114, 128, 0.35), 0 4px 8px rgba(107, 114, 128, 0.2) !important;
   transform: translateY(-2px) !important;
   background: linear-gradient(135deg, #5b6573 0%, #8b92a0 100%) !important;
 }
 
-.submit-btn {
+.submit-btn,
+.submit-btn.v-btn {
   background: linear-gradient(135deg, #0B4FA2 0%, #2563eb 100%) !important;
   color: white !important;
   font-size: 1.125rem !important;
   font-weight: 700 !important;
-  border-radius: 14px !important;
   text-transform: uppercase !important;
   letter-spacing: 0.05em !important;
   box-shadow: 0 8px 24px rgba(11, 79, 162, 0.35), 0 4px 8px rgba(11, 79, 162, 0.2) !important;
-  height: 60px !important;
-  padding: 0 3rem !important;
   min-width: 220px !important;
-  transition: all 0.3s ease !important;
 }
 
-.submit-btn:hover {
+.submit-btn:hover,
+.submit-btn.v-btn:hover {
   box-shadow: 0 12px 32px rgba(11, 79, 162, 0.4), 0 6px 12px rgba(11, 79, 162, 0.25) !important;
   transform: translateY(-3px) !important;
   background: linear-gradient(135deg, #094d8f 0%, #1e40af 100%) !important;
 }
 
-.cancel-btn {
+.cancel-btn,
+.cancel-btn.v-btn {
   border: 2px solid #cbd5e1 !important;
   color: #475569 !important;
-  font-size: 1rem !important;
-  font-weight: 600 !important;
-  border-radius: 14px !important;
-  text-transform: none !important;
-  height: 60px !important;
-  padding: 0 2.5rem !important;
-  min-width: 160px !important;
   background: white !important;
-  transition: all 0.3s ease !important;
   letter-spacing: 0.02em !important;
 }
 
-.cancel-btn:hover {
+.cancel-btn:hover,
+.cancel-btn.v-btn:hover {
   border-color: #94a3b8 !important;
   background: #f1f5f9 !important;
   transform: translateY(-2px);

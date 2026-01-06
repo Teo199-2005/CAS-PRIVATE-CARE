@@ -73,7 +73,6 @@ const loadUserData = async () => {
       userData.value = data.user;
     }
   } catch (error) {
-    console.error('Failed to load user data:', error);
   }
 };
 
@@ -97,7 +96,6 @@ const sendVerificationEmail = async () => {
       notification(data.message || 'Failed to send verification email', 'error');
     }
   } catch (error) {
-    console.error('Error sending verification email:', error);
     notification('Failed to send verification email. Please try again later.', 'error');
   } finally {
     sending.value = false;

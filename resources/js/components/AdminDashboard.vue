@@ -4,7 +4,7 @@
     :type="notification.type"
     :title="notification.title"
     :message="notification.message"
-    :timeout="notification.timeout"
+    :timeout="notification.timeout"loo
   />
   
   <dashboard-template
@@ -230,7 +230,7 @@
             Delete Selected ({{ selectedUsers.length }})
           </v-btn>
         </v-card-title>
-        <v-data-table v-model="selectedUsers" :headers="userHeaders" :items="filteredUsers" :items-per-page="10" show-select item-value="id" class="elevation-0">
+        <v-data-table v-model="selectedUsers" :headers="userHeaders" :items="filteredUsers" :items-per-page="10" show-select item-value="id" class="elevation-0" density="compact">
           <template v-slot:item.status="{ item }">
             <v-chip :color="getUserStatusColor(item.status)" size="small" class="font-weight-bold" :prepend-icon="getStatusIcon(item.status)">{{ item.status }}</v-chip>
           </template>
@@ -408,12 +408,9 @@
         </v-col>
       </v-row>
 
+</div>
 
-    </div>
-
-
-
-    <!-- Caregivers Management Section -->
+<!-- Caregivers Management Section -->
     <div v-if="currentSection === 'caregivers'">
       <div class="mb-6">
         <v-row class="align-center">
@@ -438,7 +435,7 @@
             Delete Selected ({{ selectedCaregivers.length }})
           </v-btn>
         </v-card-title>
-        <v-data-table v-model="selectedCaregivers" :headers="caregiverHeaders" :items="filteredCaregivers" :items-per-page="10" show-select item-value="userId" class="elevation-0">
+        <v-data-table v-model="selectedCaregivers" :headers="caregiverHeaders" :items="filteredCaregivers" :items-per-page="10" show-select item-value="userId" class="elevation-0" density="compact">
           <template v-slot:item.status="{ item }">
             <v-chip :color="getUserStatusColor(item.status)" size="small" class="font-weight-bold" :prepend-icon="getStatusIcon(item.status)">{{ item.status }}</v-chip>
           </template>
@@ -776,7 +773,7 @@
             Delete Selected ({{ selectedClients.length }})
           </v-btn>
         </v-card-title>
-        <v-data-table v-model="selectedClients" :headers="clientHeaders" :items="filteredClients" :items-per-page="10" show-select item-value="id" class="elevation-0">
+        <v-data-table v-model="selectedClients" :headers="clientHeaders" :items="filteredClients" :items-per-page="10" show-select item-value="id" class="elevation-0" density="compact">
           <template v-slot:item.status="{ item }">
             <v-chip :color="getUserStatusColor(item.status)" size="small" class="font-weight-bold" :prepend-icon="getStatusIcon(item.status)">{{ item.status }}</v-chip>
           </template>
@@ -813,7 +810,7 @@
             Delete Selected ({{ selectedMarketingStaff.length }})
           </v-btn>
         </v-card-title>
-        <v-data-table v-model="selectedMarketingStaff" :headers="marketingStaffHeaders" :items="filteredMarketingStaff" :items-per-page="10" show-select item-value="id" class="elevation-0">
+        <v-data-table v-model="selectedMarketingStaff" :headers="marketingStaffHeaders" :items="filteredMarketingStaff" :items-per-page="10" show-select item-value="id" class="elevation-0" density="compact">
           <template v-slot:item.referralCode="{ item }">
             <v-chip color="primary" size="small" class="font-weight-bold">
               <v-icon size="14" class="mr-1">mdi-ticket-percent</v-icon>
@@ -833,6 +830,15 @@
             <div class="action-buttons">
               <v-btn class="action-btn-view" icon="mdi-eye" size="small" @click="viewMarketingStaffDetails(item)"></v-btn>
               <v-btn class="action-btn-edit" icon="mdi-pencil" size="small" @click="openMarketingStaffDialog(item)"></v-btn>
+              <v-btn 
+                v-if="parseFloat(item.commissionEarned) > 0" 
+                class="action-btn-pay" 
+                icon="mdi-cash-multiple" 
+                size="small" 
+                color="success"
+                @click="payMarketingCommission(item)"
+                :loading="payingCommission === item.id"
+              ></v-btn>
             </div>
           </template>
         </v-data-table>
@@ -1036,6 +1042,263 @@
       </v-card>
     </v-dialog>
 
+    <!-- Admin Staff Management Section -->
+    <div v-if="currentSection === 'admin-staff'">
+      <div class="mb-6">
+        <v-row class="align-center">
+          <v-col cols="12" md="3">
+            <v-text-field v-model="adminStaffSearch" placeholder="Search admin staff..." prepend-inner-icon="mdi-magnify" variant="outlined" density="compact" hide-details />
+          </v-col>
+          <v-col cols="12" md="2">
+            <v-select v-model="adminStaffStatusFilter" :items="['All', 'Active', 'Inactive']" label="All Status" variant="outlined" density="compact" hide-details />
+          </v-col>
+          <v-col cols="12" md="3">
+            <v-btn color="error" prepend-icon="mdi-plus" @click="openAdminStaffDialog()">Add Admin Staff</v-btn>
+          </v-col>
+        </v-row>
+      </div>
+      <v-card elevation="0">
+        <v-card-title class="card-header pa-8 d-flex justify-space-between align-center">
+          <span class="section-title error--text">Admin Staff Management</span>
+          <v-btn v-if="selectedAdminStaff.length > 0" color="error" variant="outlined" prepend-icon="mdi-delete" @click="deleteSelectedAdminStaff">
+            Delete Selected ({{ selectedAdminStaff.length }})
+          </v-btn>
+        </v-card-title>
+        <v-data-table 
+          v-model="selectedAdminStaff" 
+          :headers="adminStaffHeaders" 
+          :items="filteredAdminStaff" 
+          :items-per-page="10" 
+          show-select 
+          item-value="id" 
+          class="elevation-0" 
+          density="compact"
+        >
+          <template v-slot:item.email_verified="{ item }">
+            <v-chip :color="item.email_verified === 'Yes' ? 'success' : 'warning'" size="small">
+              <v-icon size="14" class="mr-1">{{ item.email_verified === 'Yes' ? 'mdi-check-circle' : 'mdi-alert-circle' }}</v-icon>
+              {{ item.email_verified }}
+            </v-chip>
+          </template>
+          <template v-slot:item.status="{ item }">
+            <v-chip :color="getUserStatusColor(item.status)" size="small" class="font-weight-bold" :prepend-icon="getStatusIcon(item.status)">
+              {{ item.status }}
+            </v-chip>
+          </template>
+          <template v-slot:item.actions="{ item }">
+            <div class="action-buttons">
+              <v-btn class="action-btn-view" icon="mdi-eye" size="small" @click="viewAdminStaffDetails(item)"></v-btn>
+              <v-btn class="action-btn-edit" icon="mdi-pencil" size="small" @click="openAdminStaffDialog(item)"></v-btn>
+            </div>
+          </template>
+        </v-data-table>
+      </v-card>
+    </div>
+
+    <!-- View Admin Staff Details Dialog -->
+    <v-dialog v-model="viewAdminStaffDialog" max-width="800">
+      <v-card v-if="viewingAdminStaff">
+        <v-card-title class="pa-6" style="background: #dc2626; color: white;">
+          <div class="d-flex align-center justify-space-between w-100">
+            <span class="section-title" style="color: white;">Admin Staff Details</span>
+            <v-btn icon="mdi-close" variant="text" style="color: white;" @click="viewAdminStaffDialog = false"></v-btn>
+          </div>
+        </v-card-title>
+        <v-card-text class="pa-6">
+          <v-row>
+            <v-col cols="12" class="text-center mb-4">
+              <v-avatar size="120" color="error" class="mb-3">
+                <span class="text-h3 font-weight-bold text-white">{{ viewingAdminStaff.name.split(' ').map(n => n[0]).join('') }}</span>
+              </v-avatar>
+              <h2>{{ viewingAdminStaff.name }}</h2>
+              <p class="text-subtitle-1 text-grey mb-2">Admin Staff</p>
+              <v-chip :color="getUserStatusColor(viewingAdminStaff.status)" class="mt-2">{{ viewingAdminStaff.status }}</v-chip>
+            </v-col>
+          </v-row>
+          
+          <v-divider class="mb-4"></v-divider>
+          
+          <v-row>
+            <v-col cols="12" md="6">
+              <div class="detail-section">
+                <div class="detail-label">Email</div>
+                <div class="detail-value">{{ viewingAdminStaff.email }}</div>
+              </div>
+            </v-col>
+            <v-col cols="12" md="6">
+              <div class="detail-section">
+                <div class="detail-label">Phone</div>
+                <div class="detail-value">{{ viewingAdminStaff.phone || 'Not provided' }}</div>
+              </div>
+            </v-col>
+            <v-col cols="12" md="6">
+              <div class="detail-section">
+                <div class="detail-label">Email Verified</div>
+                <div class="detail-value">
+                  <v-chip :color="viewingAdminStaff.email_verified === 'Yes' ? 'success' : 'warning'" size="small">
+                    {{ viewingAdminStaff.email_verified }}
+                  </v-chip>
+                </div>
+              </div>
+            </v-col>
+            <v-col cols="12" md="6">
+              <div class="detail-section">
+                <div class="detail-label">Last Login</div>
+                <div class="detail-value">{{ viewingAdminStaff.last_login }}</div>
+              </div>
+            </v-col>
+            <v-col cols="12" md="6">
+              <div class="detail-section">
+                <div class="detail-label">Joined Date</div>
+                <div class="detail-value">{{ viewingAdminStaff.joined }}</div>
+              </div>
+            </v-col>
+          </v-row>
+          
+          <v-divider class="my-4"></v-divider>
+          
+          <h3 class="mb-3">Access Permissions</h3>
+          <v-row>
+            <v-col cols="12" md="6">
+              <v-list density="compact" class="bg-transparent">
+                <v-list-item>
+                  <template v-slot:prepend>
+                    <v-icon color="success">mdi-check-circle</v-icon>
+                  </template>
+                  <v-list-item-title>View Users (Read-Only)</v-list-item-title>
+                </v-list-item>
+                <v-list-item>
+                  <template v-slot:prepend>
+                    <v-icon color="success">mdi-check-circle</v-icon>
+                  </template>
+                  <v-list-item-title>Contractors Application</v-list-item-title>
+                </v-list-item>
+                <v-list-item>
+                  <template v-slot:prepend>
+                    <v-icon color="success">mdi-check-circle</v-icon>
+                  </template>
+                  <v-list-item-title>Password Resets</v-list-item-title>
+                </v-list-item>
+                <v-list-item>
+                  <template v-slot:prepend>
+                    <v-icon color="success">mdi-check-circle</v-icon>
+                  </template>
+                  <v-list-item-title>Client Bookings</v-list-item-title>
+                </v-list-item>
+              </v-list>
+            </v-col>
+            <v-col cols="12" md="6">
+              <v-list density="compact" class="bg-transparent">
+                <v-list-item>
+                  <template v-slot:prepend>
+                    <v-icon color="success">mdi-check-circle</v-icon>
+                  </template>
+                  <v-list-item-title>Time Tracking</v-list-item-title>
+                </v-list-item>
+                <v-list-item>
+                  <template v-slot:prepend>
+                    <v-icon color="success">mdi-check-circle</v-icon>
+                  </template>
+                  <v-list-item-title>Reviews & Ratings</v-list-item-title>
+                </v-list-item>
+                <v-list-item>
+                  <template v-slot:prepend>
+                    <v-icon color="success">mdi-check-circle</v-icon>
+                  </template>
+                  <v-list-item-title>Announcements</v-list-item-title>
+                </v-list-item>
+                <v-list-item>
+                  <template v-slot:prepend>
+                    <v-icon color="error">mdi-close-circle</v-icon>
+                  </template>
+                  <v-list-item-title class="text-grey">Full Admin Controls</v-list-item-title>
+                </v-list-item>
+              </v-list>
+            </v-col>
+          </v-row>
+        </v-card-text>
+        <v-card-actions class="pa-6 pt-0">
+          <v-spacer />
+          <v-btn color="grey" variant="outlined" @click="viewAdminStaffDialog = false">Close</v-btn>
+          <v-btn color="error" @click="openAdminStaffDialog(viewingAdminStaff); viewAdminStaffDialog = false">Edit</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <!-- Add/Edit Admin Staff Dialog -->
+    <v-dialog v-model="adminStaffDialog" max-width="600">
+      <v-card>
+        <v-card-title class="pa-6" style="background: #dc2626; color: white;">
+          <span class="section-title" style="color: white;">{{ editingAdminStaff ? 'Edit Admin Staff' : 'Add Admin Staff' }}</span>
+        </v-card-title>
+        <v-card-text class="pa-6">
+          <v-row>
+            <v-col cols="12">
+              <v-text-field 
+                v-model="adminStaffFormData.name" 
+                label="Full Name *" 
+                variant="outlined" 
+                prepend-inner-icon="mdi-account"
+                required 
+              />
+            </v-col>
+            <v-col cols="12" md="6">
+              <v-text-field 
+                v-model="adminStaffFormData.email" 
+                label="Email *" 
+                variant="outlined" 
+                prepend-inner-icon="mdi-email"
+                type="email" 
+                required 
+              />
+            </v-col>
+            <v-col cols="12" md="6">
+              <v-text-field 
+                v-model="adminStaffFormData.phone" 
+                label="Phone" 
+                variant="outlined" 
+                prepend-inner-icon="mdi-phone"
+              />
+            </v-col>
+            <v-col cols="12" md="6">
+              <v-text-field 
+                v-model="adminStaffFormData.password" 
+                :label="editingAdminStaff ? 'New Password (leave blank to keep current)' : 'Password *'" 
+                :type="showAdminStaffPassword ? 'text' : 'password'" 
+                variant="outlined" 
+                prepend-inner-icon="mdi-lock"
+                :required="!editingAdminStaff"
+                :append-inner-icon="showAdminStaffPassword ? 'mdi-eye-off' : 'mdi-eye'"
+                @click:append-inner="showAdminStaffPassword = !showAdminStaffPassword"
+                :hint="editingAdminStaff ? 'Leave blank to keep current password' : 'Minimum 8 characters'"
+                persistent-hint
+              />
+            </v-col>
+            <v-col cols="12" md="6">
+              <v-select 
+                v-model="adminStaffFormData.status" 
+                :items="['Active', 'Inactive']" 
+                label="Status *" 
+                variant="outlined" 
+                prepend-inner-icon="mdi-check-circle"
+                required 
+              />
+            </v-col>
+          </v-row>
+          <v-alert type="info" variant="tonal" class="mt-4">
+            <strong>Note:</strong> Admin Staff will have limited permissions and can only access: Users (Read-Only), Contractors, Password Resets, Bookings, Time Tracking, Reviews, and Announcements.
+          </v-alert>
+        </v-card-text>
+        <v-card-actions class="pa-6 pt-0">
+          <v-spacer />
+          <v-btn color="grey" variant="outlined" @click="adminStaffDialog = false">Cancel</v-btn>
+          <v-btn color="error" @click="saveAdminStaff" :loading="savingAdminStaff">
+            {{ editingAdminStaff ? 'Update' : 'Create' }}
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
     <!-- Training Centers Management Section -->
     <div v-if="currentSection === 'training-centers'">
       <div class="mb-6">
@@ -1058,7 +1321,7 @@
             Delete Selected ({{ selectedTrainingCenters.length }})
           </v-btn>
         </v-card-title>
-        <v-data-table v-model="selectedTrainingCenters" :headers="trainingCenterHeaders" :items="filteredTrainingCenters" :items-per-page="10" show-select item-value="id" class="elevation-0">
+        <v-data-table v-model="selectedTrainingCenters" :headers="trainingCenterHeaders" :items="filteredTrainingCenters" :items-per-page="10" show-select item-value="id" class="elevation-0" density="compact">
           <template v-slot:item.caregiverCount="{ item }">
             <v-chip color="info" size="small">
               <v-icon size="14" class="mr-1">mdi-account-heart</v-icon>
@@ -1075,6 +1338,15 @@
             <div class="action-buttons">
               <v-btn class="action-btn-view" icon="mdi-eye" size="small" @click="viewTrainingCenterDetails(item)"></v-btn>
               <v-btn class="action-btn-edit" icon="mdi-pencil" size="small" @click="openTrainingCenterDialog(item)"></v-btn>
+              <v-btn 
+                v-if="parseFloat(item.commissionEarned) > 0" 
+                class="action-btn-pay" 
+                icon="mdi-cash-multiple" 
+                size="small" 
+                color="success"
+                @click="payTrainingCommission(item)"
+                :loading="payingCommission === item.id"
+              ></v-btn>
             </div>
           </template>
         </v-data-table>
@@ -1631,9 +1903,37 @@
             Delete Selected ({{ selectedBookings.length }})
           </v-btn>
         </v-card-title>
-        <v-data-table v-model="selectedBookings" :headers="bookingHeaders" :items="filteredBookings" :items-per-page="10" :items-per-page-options="[10, 25, 50, -1]" show-select item-value="id" class="elevation-0">
+        <v-data-table v-model="selectedBookings" :headers="bookingHeaders" :items="filteredBookings" :items-per-page="10" :items-per-page-options="[10, 25, 50, -1]" show-select item-value="id" class="elevation-0 admin-bookings-table" density="compact">
+          <template v-slot:item.formattedPrice="{ item }">
+            <div class="price-cell">
+              <span v-if="item.referralDiscountApplied && item.referralDiscountApplied > 0" class="original-price-strike">
+                ${{ ((item.hoursPerDay * item.durationDays * (parseFloat(item.hourlyRate) + parseFloat(item.referralDiscountApplied)))).toLocaleString() }}
+              </span>
+              <span class="current-price">{{ item.formattedPrice }}</span>
+            </div>
+          </template>
           <template v-slot:item.status="{ item }">
             <v-chip :color="getBookingStatusColor(item.status)" size="small" class="font-weight-bold" :prepend-icon="getStatusIcon(item.status)">{{ item.status }}</v-chip>
+          </template>
+          <template v-slot:item.paymentStatus="{ item }">
+            <v-chip 
+              v-if="item.paymentStatus === 'paid'" 
+              color="success" 
+              size="small" 
+              class="font-weight-bold" 
+              prepend-icon="mdi-check-circle"
+            >
+              Paid
+            </v-chip>
+            <v-chip 
+              v-else 
+              color="warning" 
+              size="small" 
+              class="font-weight-bold" 
+              prepend-icon="mdi-clock-outline"
+            >
+              Unpaid
+            </v-chip>
           </template>
           <template v-slot:item.assignmentStatus="{ item }">
             <v-chip :color="getAssignmentStatusColor(item.assignmentStatus)" size="small" class="font-weight-bold" :prepend-icon="getStatusIcon(item.assignmentStatus)">{{ item.assignmentStatus }}</v-chip>
@@ -1800,7 +2100,9 @@
       <v-tabs v-model="paymentsTab" color="error" class="mb-6">
         <v-tab value="overview">Overview</v-tab>
         <v-tab value="client-payments">Client Payments</v-tab>
-        <v-tab value="caregiver-salaries">Caregiver Salaries</v-tab>
+        <v-tab value="caregiver-payments">Caregiver Payments</v-tab>
+        <v-tab value="marketing-commissions">Marketing Commissions</v-tab>
+        <v-tab value="training-commissions">Training Commissions</v-tab>
         <v-tab value="transactions">All Transactions</v-tab>
       </v-tabs>
 
@@ -1818,6 +2120,167 @@
                       <div class="stat-label">{{ stat.title }}</div>
                       <div class="stat-change" :class="stat.changeColor">{{ stat.change }}</div>
                     </div>
+                  </div>
+                </v-card-text>
+              </v-card>
+            </v-col>
+          </v-row>
+
+          <!-- Money Flow Monitoring Card -->
+          <v-row class="mb-4">
+            <v-col cols="12">
+              <v-card elevation="2" class="money-flow-card" style="border: 2px solid #1565c0;">
+                <v-card-title class="pa-4" style="background: linear-gradient(135deg, #1565c0 0%, #0d47a1 100%);">
+                  <div class="d-flex align-center justify-space-between w-100">
+                    <div class="d-flex align-center">
+                      <v-icon size="32" color="white" class="mr-3">mdi-cash-sync</v-icon>
+                      <div>
+                        <span class="text-h5 font-weight-bold text-white">Money Flow Monitor</span>
+                        <div class="text-caption text-white" style="opacity: 0.9;">Real-time tracking of all payments</div>
+                      </div>
+                    </div>
+                    <v-chip color="success" variant="flat" size="large">
+                      <v-icon start>mdi-check-circle</v-icon>
+                      System Active
+                    </v-chip>
+                  </div>
+                </v-card-title>
+                
+                <v-card-text class="pa-4">
+                  <!-- Today's Activity -->
+                  <div class="mb-6">
+                    <div class="text-h6 mb-3 d-flex align-center">
+                      <v-icon color="primary" class="mr-2">mdi-calendar-today</v-icon>
+                      Today's Activity
+                    </div>
+                    <v-row>
+                      <v-col cols="12" md="4">
+                        <v-card variant="tonal" color="success" class="pa-4">
+                          <div class="d-flex align-center justify-space-between">
+                            <div>
+                              <div class="text-caption text-grey-darken-2">Money In (Clients)</div>
+                              <div class="text-h4 font-weight-bold success--text">
+                                ${{ moneyFlow.today.payments_in.toFixed(2) }}
+                              </div>
+                            </div>
+                            <v-icon size="48" color="success" style="opacity: 0.3;">mdi-arrow-down-bold-circle</v-icon>
+                          </div>
+                        </v-card>
+                      </v-col>
+                      <v-col cols="12" md="4">
+                        <v-card variant="tonal" color="error" class="pa-4">
+                          <div class="d-flex align-center justify-space-between">
+                            <div>
+                              <div class="text-caption text-grey-darken-2">Money Out (Contractors)</div>
+                              <div class="text-h4 font-weight-bold error--text">
+                                ${{ moneyFlow.today.payouts_out.toFixed(2) }}
+                              </div>
+                            </div>
+                            <v-icon size="48" color="error" style="opacity: 0.3;">mdi-arrow-up-bold-circle</v-icon>
+                          </div>
+                        </v-card>
+                      </v-col>
+                      <v-col cols="12" md="4">
+                        <v-card variant="tonal" color="primary" class="pa-4">
+                          <div class="d-flex align-center justify-space-between">
+                            <div>
+                              <div class="text-caption text-grey-darken-2">Net Change</div>
+                              <div class="text-h4 font-weight-bold primary--text">
+                                {{ moneyFlow.today.net_change >= 0 ? '+' : '' }}${{ moneyFlow.today.net_change.toFixed(2) }}
+                              </div>
+                            </div>
+                            <v-icon size="48" color="primary" style="opacity: 0.3;">mdi-scale-balance</v-icon>
+                          </div>
+                        </v-card>
+                      </v-col>
+                    </v-row>
+                  </div>
+
+                  <!-- All-Time Totals -->
+                  <div class="mb-6">
+                    <div class="text-h6 mb-3 d-flex align-center">
+                      <v-icon color="primary" class="mr-2">mdi-chart-line</v-icon>
+                      All-Time Totals
+                    </div>
+                    <v-row>
+                      <v-col cols="12" md="3">
+                        <div class="text-caption text-grey-darken-2">Total Received</div>
+                        <div class="text-h5 font-weight-bold">
+                          ${{ moneyFlow.totals.total_payments_in.toFixed(2) }}
+                        </div>
+                      </v-col>
+                      <v-col cols="12" md="3">
+                        <div class="text-caption text-grey-darken-2">Total Paid Out</div>
+                        <div class="text-h5 font-weight-bold">
+                          ${{ moneyFlow.totals.total_payouts_out.toFixed(2) }}
+                        </div>
+                      </v-col>
+                      <v-col cols="12" md="3">
+                        <div class="text-caption text-grey-darken-2">Pending Payouts</div>
+                        <div class="text-h5 font-weight-bold warning--text">
+                          ${{ moneyFlow.totals.pending_payouts.toFixed(2) }}
+                        </div>
+                      </v-col>
+                      <v-col cols="12" md="3">
+                        <div class="text-caption text-grey-darken-2">Expected Balance</div>
+                        <div class="text-h5 font-weight-bold primary--text">
+                          ${{ moneyFlow.totals.expected_balance.toFixed(2) }}
+                        </div>
+                      </v-col>
+                    </v-row>
+                  </div>
+
+                  <!-- Stripe Balance Verification -->
+                  <div class="mb-6" v-if="moneyFlow.totals.stripe_balance !== null">
+                    <v-alert 
+                      :color="moneyFlow.totals.balance_difference === 0 ? 'success' : 'warning'"
+                      variant="tonal"
+                      border="start"
+                      border-color="primary">
+                      <div class="d-flex align-center justify-space-between">
+                        <div>
+                          <div class="text-subtitle-2 font-weight-bold mb-1">
+                            <v-icon start>mdi-shield-check</v-icon>
+                            Stripe Balance Verification
+                          </div>
+                          <div>
+                            Database Expected: <strong>${{ moneyFlow.totals.expected_balance.toFixed(2) }}</strong> 
+                            | Stripe Actual: <strong>${{ moneyFlow.totals.stripe_balance.toFixed(2) }}</strong>
+                            | Difference: <strong :class="moneyFlow.totals.balance_difference === 0 ? 'success--text' : 'error--text'">
+                              ${{ Math.abs(moneyFlow.totals.balance_difference).toFixed(2) }}
+                            </strong>
+                          </div>
+                        </div>
+                        <v-chip 
+                          :color="moneyFlow.totals.balance_difference === 0 ? 'success' : 'warning'"
+                          variant="flat">
+                          {{ moneyFlow.totals.balance_difference === 0 ? '✓ Matched' : '⚠ Review' }}
+                        </v-chip>
+                      </div>
+                    </v-alert>
+                  </div>
+
+                  <!-- Failed Payouts Warning -->
+                  <div class="mb-4" v-if="moneyFlow.failed_payouts && moneyFlow.failed_payouts.length > 0">
+                    <v-alert color="error" variant="tonal" border="start">
+                      <div class="text-subtitle-2 font-weight-bold mb-2">
+                        <v-icon start>mdi-alert-circle</v-icon>
+                        {{ moneyFlow.failed_payouts.length }} Failed Payout{{ moneyFlow.failed_payouts.length > 1 ? 's' : '' }}
+                      </div>
+                      <div v-for="failed in moneyFlow.failed_payouts" :key="failed.id" class="mb-1">
+                        • {{ failed.caregiver_name }}: ${{ failed.amount }} - {{ failed.failure_reason }}
+                      </div>
+                    </v-alert>
+                  </div>
+
+                  <!-- Quick Actions -->
+                  <div class="d-flex gap-2 flex-wrap">
+                    <v-btn color="primary" variant="flat" prepend-icon="mdi-refresh" @click="loadMoneyFlowData">
+                      Refresh Data
+                    </v-btn>
+                    <v-btn color="primary" variant="outlined" prepend-icon="mdi-file-pdf-box" @click="exportFinancialReportPDF">
+                      Export to PDF
+                    </v-btn>
                   </div>
                 </v-card-text>
               </v-card>
@@ -1908,37 +2371,258 @@
           </v-card>
         </v-tabs-window-item>
 
-        <!-- Caregiver Salaries Tab -->
-        <v-tabs-window-item value="caregiver-salaries">
+        <!-- Caregiver Payments Tab -->
+        <v-tabs-window-item value="caregiver-payments">
           <div class="mb-4">
             <v-row class="align-center">
               <v-col cols="12" md="4">
                 <v-text-field v-model="salarySearch" placeholder="Search caregivers..." prepend-inner-icon="mdi-magnify" variant="outlined" density="compact" hide-details />
               </v-col>
               <v-col cols="12" md="3">
-                <v-select v-model="salaryStatusFilter" :items="['All', 'Paid', 'Pending', 'Processing']" variant="outlined" density="compact" hide-details />
+                <v-select v-model="salaryStatusFilter" :items="['All', 'Paid', 'Pending', 'Partial', 'No Hours']" variant="outlined" density="compact" hide-details />
               </v-col>
               <v-col cols="12" md="3">
                 <v-select v-model="salaryPeriodFilter" :items="['Current Month', 'Last Month', 'Last 3 Months']" variant="outlined" density="compact" hide-details />
               </v-col>
               <v-col cols="12" md="2">
-                <v-btn color="error" prepend-icon="mdi-cash" @click="processSalariesDialog = true">Process Salaries</v-btn>
+                <v-btn color="error" prepend-icon="mdi-cash-multiple" @click="processSalariesDialog = true">Pay All</v-btn>
               </v-col>
             </v-row>
           </div>
 
           <v-card elevation="0">
             <v-card-title class="card-header pa-4">
-              <span class="section-title-compact error--text">Caregiver Salaries</span>
+              <span class="section-title-compact error--text">Caregiver Payments</span>
             </v-card-title>
-            <v-data-table :headers="salaryHeaders" :items="caregiverSalaries" :items-per-page="10" class="elevation-0 table-no-checkbox">
+            <v-data-table :headers="paymentHeaders" :items="caregiverPayments" :items-per-page="10" class="elevation-0 table-no-checkbox">
+              <template v-slot:item.bank_status="{ item }">
+                <v-chip :color="item.bank_connected ? 'success' : 'warning'" size="small" variant="flat">
+                  <v-icon start size="small">{{ item.bank_connected ? 'mdi-check-circle' : 'mdi-alert-circle' }}</v-icon>
+                  {{ item.bank_status }}
+                </v-chip>
+              </template>
               <template v-slot:item.status="{ item }">
-                <v-chip :color="getSalaryStatusColor(item.status)" size="small" class="font-weight-bold">{{ item.status }}</v-chip>
+                <v-chip :color="getPaymentStatusColor(item.status)" size="small" class="font-weight-bold">{{ item.status }}</v-chip>
               </template>
               <template v-slot:item.actions="{ item }">
                 <div class="action-buttons">
-                  <v-btn class="action-btn-view" icon="mdi-eye" @click="viewSalary(item)"></v-btn>
-                  <v-btn v-if="item.status === 'Pending'" class="action-btn-pay-now" icon="mdi-cash" @click="paySalary(item)"></v-btn>
+                  <v-btn class="action-btn-view" icon="mdi-eye" size="small" @click="viewPaymentDetails(item)"></v-btn>
+                  <v-btn v-if="item.can_pay" class="action-btn-pay-now" icon="mdi-cash-fast" size="small" color="success" @click="payCaregiver(item)"></v-btn>
+                  <v-tooltip v-else-if="!item.bank_connected" text="Bank account not connected">
+                    <template v-slot:activator="{ props }">
+                      <v-btn v-bind="props" icon="mdi-bank-off" size="small" color="grey" disabled></v-btn>
+                    </template>
+                  </v-tooltip>
+                </div>
+              </template>
+            </v-data-table>
+          </v-card>
+        </v-tabs-window-item>
+
+        <!-- Marketing Commissions Tab -->
+        <v-tabs-window-item value="marketing-commissions">
+          <div class="mb-4">
+            <v-row class="align-center">
+              <v-col cols="12" md="4">
+                <v-text-field 
+                  v-model="marketingCommissionSearch" 
+                  placeholder="Search marketing staff..." 
+                  prepend-inner-icon="mdi-magnify" 
+                  variant="outlined" 
+                  density="compact" 
+                  hide-details 
+                />
+              </v-col>
+              <v-col cols="12" md="3">
+                <v-select 
+                  v-model="marketingCommissionStatusFilter" 
+                  :items="['All', 'Paid', 'Pending']" 
+                  variant="outlined" 
+                  density="compact" 
+                  hide-details 
+                />
+              </v-col>
+              <v-col cols="12" md="3">
+                <v-select 
+                  v-model="marketingCommissionPeriodFilter" 
+                  :items="['Current Month', 'Last Month', 'Last 3 Months']" 
+                  variant="outlined" 
+                  density="compact" 
+                  hide-details 
+                />
+              </v-col>
+              <v-col cols="12" md="2">
+                <v-btn 
+                  color="error" 
+                  prepend-icon="mdi-cash-multiple" 
+                  @click="payAllMarketingCommissions"
+                >
+                  Pay All
+                </v-btn>
+              </v-col>
+            </v-row>
+          </div>
+
+          <v-card elevation="0">
+            <v-card-title class="card-header pa-4">
+              <div class="d-flex align-center justify-space-between w-100">
+                <span class="section-title-compact error--text">Marketing Staff Commissions</span>
+                <v-chip color="info" variant="tonal">
+                  <v-icon start size="small">mdi-cash</v-icon>
+                  $1.00/hour per referral
+                </v-chip>
+              </div>
+            </v-card-title>
+            <v-data-table 
+              :headers="marketingCommissionHeaders" 
+              :items="filteredMarketingCommissions" 
+              :items-per-page="10" 
+              class="elevation-0 table-no-checkbox"
+              :loading="loadingMarketingCommissions"
+            >
+              <template v-slot:item.bank_status="{ item }">
+                <v-chip :color="item.bank_connected ? 'success' : 'warning'" size="small" variant="flat">
+                  <v-icon start size="small">{{ item.bank_connected ? 'mdi-check-circle' : 'mdi-alert-circle' }}</v-icon>
+                  {{ item.bank_status }}
+                </v-chip>
+              </template>
+              <template v-slot:item.payment_status="{ item }">
+                <v-chip :color="item.payment_status === 'Paid' ? 'success' : 'warning'" size="small" class="font-weight-bold">
+                  {{ item.payment_status }}
+                </v-chip>
+              </template>
+              <template v-slot:item.actions="{ item }">
+                <div class="action-buttons">
+                  <v-btn 
+                    class="action-btn-view" 
+                    icon="mdi-eye" 
+                    size="small" 
+                    @click="viewMarketingCommissionDetails(item)"
+                  ></v-btn>
+                  <v-btn 
+                    v-if="item.pending_commission > 0 && item.bank_connected" 
+                    class="action-btn-pay-now" 
+                    icon="mdi-cash-fast" 
+                    size="small" 
+                    color="success" 
+                    @click="payMarketingCommission(item)"
+                    :loading="item.paying"
+                  ></v-btn>
+                  <v-tooltip v-else-if="!item.bank_connected" text="Bank account not connected">
+                    <template v-slot:activator="{ props }">
+                      <v-btn v-bind="props" icon="mdi-bank-off" size="small" color="grey" disabled></v-btn>
+                    </template>
+                  </v-tooltip>
+                  <v-tooltip v-else text="No pending commission">
+                    <template v-slot:activator="{ props }">
+                      <v-btn v-bind="props" icon="mdi-cash-off" size="small" color="grey" disabled></v-btn>
+                    </template>
+                  </v-tooltip>
+                </div>
+              </template>
+            </v-data-table>
+          </v-card>
+        </v-tabs-window-item>
+
+        <!-- Training Commissions Tab -->
+        <v-tabs-window-item value="training-commissions">
+          <div class="mb-4">
+            <v-row class="align-center">
+              <v-col cols="12" md="4">
+                <v-text-field 
+                  v-model="trainingCommissionSearch" 
+                  placeholder="Search training centers..." 
+                  prepend-inner-icon="mdi-magnify" 
+                  variant="outlined" 
+                  density="compact" 
+                  hide-details 
+                />
+              </v-col>
+              <v-col cols="12" md="3">
+                <v-select 
+                  v-model="trainingCommissionStatusFilter" 
+                  :items="['All', 'Paid', 'Pending']" 
+                  variant="outlined" 
+                  density="compact" 
+                  hide-details 
+                />
+              </v-col>
+              <v-col cols="12" md="3">
+                <v-select 
+                  v-model="trainingCommissionPeriodFilter" 
+                  :items="['Current Month', 'Last Month', 'Last 3 Months']" 
+                  variant="outlined" 
+                  density="compact" 
+                  hide-details 
+                />
+              </v-col>
+              <v-col cols="12" md="2">
+                <v-btn 
+                  color="error" 
+                  prepend-icon="mdi-cash-multiple" 
+                  @click="payAllTrainingCommissions"
+                >
+                  Pay All
+                </v-btn>
+              </v-col>
+            </v-row>
+          </div>
+
+          <v-card elevation="0">
+            <v-card-title class="card-header pa-4">
+              <div class="d-flex align-center justify-space-between w-100">
+                <span class="section-title-compact error--text">Training Center Commissions</span>
+                <v-chip color="info" variant="tonal">
+                  <v-icon start size="small">mdi-cash</v-icon>
+                  $0.50/hour per trained caregiver
+                </v-chip>
+              </div>
+            </v-card-title>
+            <v-data-table 
+              :headers="trainingCommissionHeaders" 
+              :items="filteredTrainingCommissions" 
+              :items-per-page="10" 
+              class="elevation-0 table-no-checkbox"
+              :loading="loadingTrainingCommissions"
+            >
+              <template v-slot:item.bank_status="{ item }">
+                <v-chip :color="item.bank_connected ? 'success' : 'warning'" size="small" variant="flat">
+                  <v-icon start size="small">{{ item.bank_connected ? 'mdi-check-circle' : 'mdi-alert-circle' }}</v-icon>
+                  {{ item.bank_status }}
+                </v-chip>
+              </template>
+              <template v-slot:item.payment_status="{ item }">
+                <v-chip :color="item.payment_status === 'Paid' ? 'success' : 'warning'" size="small" class="font-weight-bold">
+                  {{ item.payment_status }}
+                </v-chip>
+              </template>
+              <template v-slot:item.actions="{ item }">
+                <div class="action-buttons">
+                  <v-btn 
+                    class="action-btn-view" 
+                    icon="mdi-eye" 
+                    size="small" 
+                    @click="viewTrainingCommissionDetails(item)"
+                  ></v-btn>
+                  <v-btn 
+                    v-if="item.pending_commission > 0 && item.bank_connected" 
+                    class="action-btn-pay-now" 
+                    icon="mdi-cash-fast" 
+                    size="small" 
+                    color="success" 
+                    @click="payTrainingCommission(item)"
+                    :loading="item.paying"
+                  ></v-btn>
+                  <v-tooltip v-else-if="!item.bank_connected" text="Bank account not connected">
+                    <template v-slot:activator="{ props }">
+                      <v-btn v-bind="props" icon="mdi-bank-off" size="small" color="grey" disabled></v-btn>
+                    </template>
+                  </v-tooltip>
+                  <v-tooltip v-else text="No pending commission">
+                    <template v-slot:activator="{ props }">
+                      <v-btn v-bind="props" icon="mdi-cash-off" size="small" color="grey" disabled></v-btn>
+                    </template>
+                  </v-tooltip>
                 </div>
               </template>
             </v-data-table>
@@ -1959,7 +2643,7 @@
                 <v-select v-model="transactionPeriodFilter" :items="['All Time', 'Today', 'This Week', 'This Month']" variant="outlined" density="compact" hide-details />
               </v-col>
               <v-col cols="12" md="2">
-                <v-btn color="error" prepend-icon="mdi-download" @click="exportTransactions">Export</v-btn>
+                <v-btn color="error" prepend-icon="mdi-file-pdf-box" @click="exportTransactions">Export PDF</v-btn>
               </v-col>
             </v-row>
           </div>
@@ -1982,6 +2666,274 @@
         </v-tabs-window-item>
       </v-tabs-window>
     </div>
+
+    <!-- Payment Confirmation Dialog -->
+    <v-dialog v-model="paymentConfirmDialog" max-width="550" persistent scrollable>
+      <v-card elevation="8" class="rounded-lg">
+        <!-- Header with Navy Blue -->
+        <v-card-title class="pa-4" style="background: linear-gradient(135deg, #1565c0 0%, #0d47a1 100%);">
+          <div class="d-flex align-center">
+            <v-icon size="28" color="white" class="mr-2">mdi-cash-check</v-icon>
+            <span class="text-h6 font-weight-bold text-white">Confirm Payment</span>
+          </div>
+        </v-card-title>
+
+        <v-card-text class="pa-4" v-if="selectedCaregiverPayment">
+          <!-- Payment Amount Highlight - Compact Red -->
+          <div class="text-center mb-3 pa-4 rounded-lg" style="background: linear-gradient(135deg, #c62828 0%, #b71c1c 100%); box-shadow: 0 3px 15px rgba(198, 40, 40, 0.3);">
+            <div class="text-caption text-white mb-1" style="letter-spacing: 1px; opacity: 0.9;">PAYMENT AMOUNT</div>
+            <div class="text-h4 font-weight-bold text-white">{{ selectedCaregiverPayment.unpaid_display }}</div>
+          </div>
+
+          <!-- Recipient Info - Compact -->
+          <v-card variant="tonal" color="blue-darken-3" class="mb-3">
+            <v-card-text class="pa-3">
+              <div class="d-flex align-center mb-2">
+                <v-avatar color="blue-darken-1" size="32" class="mr-2">
+                  <v-icon size="18" color="white">mdi-account</v-icon>
+                </v-avatar>
+                <div class="flex-grow-1">
+                  <div class="text-caption text-grey-darken-1">Recipient</div>
+                  <div class="font-weight-bold">{{ selectedCaregiverPayment.caregiver }}</div>
+                </div>
+              </div>
+              <div class="d-flex align-center">
+                <v-avatar color="blue-darken-1" size="32" class="mr-2">
+                  <v-icon size="18" color="white">mdi-email</v-icon>
+                </v-avatar>
+                <div class="flex-grow-1">
+                  <div class="text-caption text-grey-darken-1">Email</div>
+                  <div class="text-body-2">{{ selectedCaregiverPayment.caregiver_email }}</div>
+                </div>
+              </div>
+            </v-card-text>
+          </v-card>
+
+          <!-- Payment Details - Compact -->
+          <v-card variant="outlined" class="mb-3" style="border: 1px solid #e0e0e0;">
+            <v-card-text class="pa-3">
+              <div class="d-flex justify-space-between align-center mb-2">
+                <span class="text-body-2 text-grey-darken-2">
+                  <v-icon size="16" class="mr-1">mdi-clock-outline</v-icon>
+                  Hours:
+                </span>
+                <span class="font-weight-bold">{{ selectedCaregiverPayment.hours_display }}</span>
+              </div>
+              <v-divider class="my-1"></v-divider>
+              <div class="d-flex justify-space-between align-center mb-2">
+                <span class="text-body-2 text-grey-darken-2">
+                  <v-icon size="16" class="mr-1">mdi-currency-usd</v-icon>
+                  Rate:
+                </span>
+                <span class="font-weight-bold">{{ selectedCaregiverPayment.rate }}</span>
+              </div>
+              <v-divider class="my-1"></v-divider>
+              <div class="d-flex justify-space-between align-center mb-2">
+                <span class="text-body-2 text-grey-darken-2">
+                  <v-icon size="16" class="mr-1">mdi-calendar</v-icon>
+                  Period:
+                </span>
+                <span class="font-weight-bold">{{ selectedCaregiverPayment.period }}</span>
+              </div>
+              <v-divider class="my-2" style="border-color: #c62828;"></v-divider>
+              <div class="d-flex justify-space-between align-center pa-2 rounded" style="background: #ffebee;">
+                <span class="font-weight-bold">Total:</span>
+                <span class="text-h6 font-weight-bold" style="color: #c62828;">{{ selectedCaregiverPayment.unpaid_display }}</span>
+              </div>
+            </v-card-text>
+          </v-card>
+
+          <!-- Bank Transfer Info - Compact -->
+          <v-alert variant="tonal" class="mb-2 py-2" color="blue-darken-3" density="compact">
+            <div class="d-flex align-center">
+              <v-icon size="20" class="mr-2">mdi-bank-transfer</v-icon>
+              <span class="text-caption">Bank transfer via Stripe to connected account</span>
+            </div>
+          </v-alert>
+
+          <!-- Security Notice - Compact -->
+          <v-alert variant="tonal" density="compact" color="green-darken-1" class="py-1">
+            <div class="d-flex align-center">
+              <v-icon size="16" class="mr-1">mdi-shield-check</v-icon>
+              <span class="text-caption">Secure payment • Bank-level encryption</span>
+            </div>
+          </v-alert>
+        </v-card-text>
+
+        <v-divider></v-divider>
+
+        <v-card-actions class="pa-4">
+          <v-spacer></v-spacer>
+          <v-btn 
+            variant="outlined" 
+            size="default"
+            @click="paymentConfirmDialog = false" 
+            class="px-4"
+            color="grey-darken-1"
+          >
+            <v-icon start size="20">mdi-close</v-icon>
+            Cancel
+          </v-btn>
+          <v-btn 
+            size="default"
+            variant="elevated" 
+            @click="confirmPayment" 
+            class="px-6"
+            style="background: linear-gradient(135deg, #c62828 0%, #b71c1c 100%); color: white;"
+          >
+            <v-icon start size="20">mdi-check-circle</v-icon>
+            Confirm Payment
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <!-- Payment Details Dialog -->
+    <v-dialog v-model="caregiverPaymentDetailsDialog" max-width="550" scrollable>
+      <v-card elevation="8" class="rounded-lg">
+        <!-- Header with Navy Blue -->
+        <v-card-title class="pa-4" style="background: linear-gradient(135deg, #1565c0 0%, #0d47a1 100%);">
+          <div class="d-flex align-center">
+            <v-icon size="28" color="white" class="mr-2">mdi-information</v-icon>
+            <span class="text-h6 font-weight-bold text-white">Payment Details</span>
+          </div>
+        </v-card-title>
+
+        <v-card-text class="pa-4" v-if="selectedCaregiverPaymentDetails">
+          <!-- Caregiver Info -->
+          <v-card variant="tonal" color="blue-darken-3" class="mb-3">
+            <v-card-text class="pa-3">
+              <div class="d-flex align-center mb-2">
+                <v-avatar color="blue-darken-1" size="40" class="mr-3">
+                  <v-icon size="20" color="white">mdi-account</v-icon>
+                </v-avatar>
+                <div class="flex-grow-1">
+                  <div class="text-caption text-grey-darken-1">Caregiver</div>
+                  <div class="font-weight-bold text-h6">{{ selectedCaregiverPaymentDetails.caregiver }}</div>
+                </div>
+              </div>
+              <div class="d-flex align-center">
+                <v-avatar color="blue-darken-1" size="40" class="mr-3">
+                  <v-icon size="20" color="white">mdi-email</v-icon>
+                </v-avatar>
+                <div class="flex-grow-1">
+                  <div class="text-caption text-grey-darken-1">Email</div>
+                  <div class="text-body-2">{{ selectedCaregiverPaymentDetails.caregiver_email }}</div>
+                </div>
+              </div>
+            </v-card-text>
+          </v-card>
+
+          <!-- Work Details -->
+          <v-card variant="outlined" class="mb-3" style="border: 2px solid #1565c0;">
+            <v-card-text class="pa-3">
+              <div class="text-caption text-grey-darken-2 mb-2 font-weight-bold" style="letter-spacing: 1px;">WORK DETAILS</div>
+              
+              <div class="d-flex justify-space-between align-center mb-2">
+                <span class="text-body-2 text-grey-darken-2">
+                  <v-icon size="18" class="mr-1" color="blue-darken-1">mdi-clock-outline</v-icon>
+                  Total Hours:
+                </span>
+                <span class="font-weight-bold">{{ selectedCaregiverPaymentDetails.hours_display }}</span>
+              </div>
+              
+              <div class="d-flex justify-space-between align-center mb-2">
+                <span class="text-body-2 text-grey-darken-2">
+                  <v-icon size="18" class="mr-1" color="blue-darken-1">mdi-currency-usd</v-icon>
+                  Hourly Rate:
+                </span>
+                <span class="font-weight-bold">{{ selectedCaregiverPaymentDetails.rate }}</span>
+              </div>
+              
+              <div class="d-flex justify-space-between align-center mb-2">
+                <span class="text-body-2 text-grey-darken-2">
+                  <v-icon size="18" class="mr-1" color="blue-darken-1">mdi-calendar-multiple</v-icon>
+                  Days Worked:
+                </span>
+                <span class="font-weight-bold">{{ selectedCaregiverPaymentDetails.days_worked }}</span>
+              </div>
+              
+              <div class="d-flex justify-space-between align-center mb-2">
+                <span class="text-body-2 text-grey-darken-2">
+                  <v-icon size="18" class="mr-1" color="blue-darken-1">mdi-calendar-range</v-icon>
+                  Period:
+                </span>
+                <span class="font-weight-bold">{{ selectedCaregiverPaymentDetails.period }}</span>
+              </div>
+            </v-card-text>
+          </v-card>
+
+          <!-- Payment Status -->
+          <v-card variant="outlined" class="mb-3" style="border: 2px solid #2e7d32;">
+            <v-card-text class="pa-3">
+              <div class="text-caption text-grey-darken-2 mb-2 font-weight-bold" style="letter-spacing: 1px;">PAYMENT SUMMARY</div>
+              
+              <div class="d-flex justify-space-between align-center mb-2">
+                <span class="text-body-2 text-grey-darken-2">
+                  <v-icon size="18" class="mr-1" color="green-darken-2">mdi-cash-multiple</v-icon>
+                  Total Earned:
+                </span>
+                <span class="font-weight-bold text-success">{{ selectedCaregiverPaymentDetails.amount_display }}</span>
+              </div>
+              
+              <div class="d-flex justify-space-between align-center mb-2">
+                <span class="text-body-2 text-grey-darken-2">
+                  <v-icon size="18" class="mr-1" color="orange-darken-2">mdi-clock-alert</v-icon>
+                  Unpaid:
+                </span>
+                <span class="font-weight-bold text-warning">{{ selectedCaregiverPaymentDetails.unpaid_display }}</span>
+              </div>
+              
+              <v-divider class="my-2"></v-divider>
+              
+              <div class="d-flex justify-space-between align-center pa-2 rounded" style="background: #e8f5e9;">
+                <span class="text-body-2 text-grey-darken-2">
+                  <v-icon size="18" class="mr-1" color="green-darken-3">mdi-bank</v-icon>
+                  Bank Status:
+                </span>
+                <v-chip 
+                  :color="selectedCaregiverPaymentDetails.bank_connected ? 'success' : 'error'" 
+                  size="small" 
+                  variant="flat"
+                >
+                  <v-icon start size="16">{{ selectedCaregiverPaymentDetails.bank_connected ? 'mdi-check-circle' : 'mdi-alert-circle' }}</v-icon>
+                  {{ selectedCaregiverPaymentDetails.bank_status }}
+                </v-chip>
+              </div>
+            </v-card-text>
+          </v-card>
+
+          <!-- Stripe Info (if connected) -->
+          <v-alert 
+            v-if="selectedCaregiverPaymentDetails.bank_connected" 
+            type="info" 
+            variant="tonal" 
+            density="compact"
+            class="mb-0"
+          >
+            <div class="text-body-2">
+              <v-icon size="16" class="mr-1">mdi-information</v-icon>
+              Stripe Connect ID: <code class="text-caption">{{ selectedCaregiverPaymentDetails.stripe_connect_id }}</code>
+            </div>
+          </v-alert>
+        </v-card-text>
+
+        <v-divider></v-divider>
+
+        <v-card-actions class="pa-4">
+          <v-spacer></v-spacer>
+          <v-btn 
+            variant="elevated" 
+            color="primary"
+            @click="caregiverPaymentDetailsDialog = false" 
+            class="px-6"
+          >
+            <v-icon start size="20">mdi-check</v-icon>
+            Close
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
 
     <!-- Notifications Section -->
     <div v-if="currentSection === 'notifications'">
@@ -2028,7 +2980,7 @@
                   <v-text-field v-model="profileData.department" label="Department" variant="outlined" />
                 </v-col>
                 <v-col cols="12" md="6">
-                  <v-select v-model="profileData.role" :items="['Super Admin', 'Admin', 'Moderator']" label="Admin Role" variant="outlined" />
+                  <v-select v-model="profileData.role" :items="['Super Admin', 'Admin Staff']" label="Admin Role" variant="outlined" />
                 </v-col>
               </v-row>
               <v-btn color="error" class="mt-4" size="large" @click="saveProfile">Save Changes</v-btn>
@@ -2195,6 +3147,99 @@
           <v-spacer />
           <v-btn color="grey" variant="outlined" @click="addUserDialog = false">Cancel</v-btn>
           <v-btn color="error" @click="addUserDialog = false">Add User</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <!-- Payment Details Dialog -->
+    <v-dialog v-model="paymentDetailsDialog" max-width="700">
+      <v-card v-if="selectedPayment">
+        <v-card-title class="pa-6" style="background: #dc2626; color: white;">
+          <v-icon start color="white">mdi-cash-multiple</v-icon>
+          <span class="section-title" style="color: white;">Payment Details</span>
+        </v-card-title>
+        <v-card-text class="pa-6">
+          <v-row>
+            <!-- Client Information -->
+            <v-col cols="12">
+              <div class="text-overline mb-2">Client Information</div>
+              <v-card variant="outlined" class="pa-4 mb-4">
+                <div class="d-flex align-center mb-2">
+                  <v-avatar color="primary" size="48" class="mr-3">
+                    <span class="text-h6">{{ selectedPayment.client.charAt(0) }}</span>
+                  </v-avatar>
+                  <div>
+                    <div class="text-h6">{{ selectedPayment.client }}</div>
+                    <div class="text-caption text-grey">Client ID: {{ selectedPayment.id }}</div>
+                  </div>
+                </div>
+              </v-card>
+            </v-col>
+
+            <!-- Service Details -->
+            <v-col cols="12">
+              <div class="text-overline mb-2">Service Details</div>
+              <v-card variant="outlined" class="pa-4 mb-4">
+                <v-row dense>
+                  <v-col cols="6">
+                    <div class="text-caption text-grey">Service Type</div>
+                    <div class="font-weight-medium">{{ selectedPayment.service }}</div>
+                  </v-col>
+                  <v-col cols="6">
+                    <div class="text-caption text-grey">Service Date</div>
+                    <div class="font-weight-medium">{{ selectedPayment.date }}</div>
+                  </v-col>
+                </v-row>
+              </v-card>
+            </v-col>
+
+            <!-- Payment Information -->
+            <v-col cols="12">
+              <div class="text-overline mb-2">Payment Information</div>
+              <v-card variant="outlined" class="pa-4 mb-4">
+                <v-row dense>
+                  <v-col cols="6">
+                    <div class="text-caption text-grey">Total Amount</div>
+                    <div class="text-h5 success--text font-weight-bold">${{ selectedPayment.amount }}</div>
+                  </v-col>
+                  <v-col cols="6">
+                    <div class="text-caption text-grey">Payment Status</div>
+                    <v-chip :color="getPaymentStatusColor(selectedPayment.status)" class="mt-1">
+                      {{ selectedPayment.status }}
+                    </v-chip>
+                  </v-col>
+                  <v-col cols="12" class="mt-3">
+                    <v-divider class="mb-3"></v-divider>
+                    <div class="text-caption text-grey">Payment Method</div>
+                    <div class="d-flex align-center mt-1">
+                      <v-icon size="small" class="mr-2">mdi-credit-card</v-icon>
+                      <span class="font-weight-medium">Card ending in ****</span>
+                    </div>
+                  </v-col>
+                </v-row>
+              </v-card>
+            </v-col>
+
+            <!-- Transaction ID -->
+            <v-col cols="12" v-if="selectedPayment.status === 'Paid'">
+              <div class="text-overline mb-2">Transaction Details</div>
+              <v-card variant="outlined" class="pa-4">
+                <div class="text-caption text-grey">Transaction ID</div>
+                <div class="font-weight-medium font-monospace">TXN-{{ selectedPayment.id }}-{{ Date.now() }}</div>
+                <div class="text-caption text-grey mt-2">Processed via Stripe</div>
+              </v-card>
+            </v-col>
+          </v-row>
+        </v-card-text>
+        <v-card-actions class="pa-6 pt-0">
+          <v-btn color="primary" variant="outlined" prepend-icon="mdi-download" @click="downloadReceipt(selectedPayment)">
+            Download Receipt
+          </v-btn>
+          <v-spacer />
+          <v-btn color="grey" variant="outlined" @click="paymentDetailsDialog = false">Close</v-btn>
+          <v-btn v-if="selectedPayment.status === 'Pending'" color="success" prepend-icon="mdi-check" @click="markPaid(selectedPayment)">
+            Mark as Paid
+          </v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -3477,127 +4522,576 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
-    <v-dialog v-model="viewAssignedCaregiversDialog" max-width="800" scrollable>
-      <v-card v-if="viewingBookingCaregivers" max-height="80vh">
-        <v-card-title class="pa-6" style="background: #10b981; color: white;">
-          <div class="d-flex align-center justify-space-between w-100">
-            <div>
-              <span class="section-title" style="color: white;">Assigned Caregivers</span>
-              <div class="text-sm opacity-90 mt-1">{{ viewingBookingCaregivers.client }} - {{ viewingBookingCaregivers.service }}</div>
+    <v-dialog v-model="viewAssignedCaregiversDialog" max-width="1200" scrollable>
+      <v-card v-if="viewingBookingCaregivers">
+        <!-- Header -->
+        <v-toolbar color="success" dark>
+          <v-toolbar-title>
+            <div class="d-flex align-center">
+              <v-icon class="mr-2">mdi-account-heart</v-icon>
+              <div>
+                <div class="text-h6">Caregiver Management</div>
+                <div class="text-caption opacity-90">{{ viewingBookingCaregivers.client }} - {{ viewingBookingCaregivers.service }}</div>
+              </div>
             </div>
-            <v-btn icon="mdi-close" variant="text" style="color: white;" @click="viewAssignedCaregiversDialog = false"></v-btn>
-          </div>
-        </v-card-title>
-        <v-card-text class="pa-6 scrollable-content">
-          <v-row class="mb-4">
-            <v-col cols="12">
-              <div class="caregivers-booking-summary">
-                <div class="d-flex align-center justify-space-between mb-3">
-                  <div class="d-flex align-items-center">
-                    <v-icon color="success" size="20" class="mr-2">mdi-calendar-check</v-icon>
-                    <span class="summary-title">Booking Summary</span>
-                  </div>
-                  <v-chip :color="getBookingStatusColor(viewingBookingCaregivers.status)" size="small" class="font-weight-bold">
+          </v-toolbar-title>
+          <v-spacer />
+          <v-btn icon @click="viewAssignedCaregiversDialog = false">
+            <v-icon>mdi-close</v-icon>
+          </v-btn>
+        </v-toolbar>
+
+        <!-- Booking Info Card -->
+        <v-card-text class="pa-6 bg-grey-lighten-4">
+          <v-card elevation="0" class="rounded-lg">
+            <v-card-text class="pa-4">
+              <v-row dense>
+                <v-col cols="12" md="3">
+                  <div class="text-caption text-grey-darken-1 mb-1">Date & Time</div>
+                  <div class="text-body-2 font-weight-bold">{{ viewingBookingCaregivers.date }}</div>
+                  <div class="text-body-2 font-weight-bold">{{ viewingBookingCaregivers.time }}</div>
+                </v-col>
+                <v-col cols="12" md="2">
+                  <div class="text-caption text-grey-darken-1 mb-1">Duration</div>
+                  <div class="text-body-2 font-weight-bold">{{ viewingBookingCaregivers.duration }}</div>
+                </v-col>
+                <v-col cols="12" md="2">
+                  <div class="text-caption text-grey-darken-1 mb-1">Needed</div>
+                  <div class="text-body-2 font-weight-bold">{{ viewingBookingCaregivers.caregiversNeeded }} caregivers</div>
+                </v-col>
+                <v-col cols="12" md="2">
+                  <div class="text-caption text-grey-darken-1 mb-1">Assigned</div>
+                  <div class="text-body-2 font-weight-bold">{{ viewingBookingCaregivers.assignedCount }} caregivers</div>
+                </v-col>
+                <v-col cols="12" md="3" class="d-flex align-center justify-end">
+                  <v-chip :color="getBookingStatusColor(viewingBookingCaregivers.status)" class="text-white font-weight-bold">
                     {{ viewingBookingCaregivers.status }}
                   </v-chip>
-                </div>
-                <v-row>
-                  <v-col cols="6" md="3">
-                    <div class="summary-item">
-                      <div class="summary-label">Date & Time</div>
-                      <div class="summary-value">{{ viewingBookingCaregivers.date }} at {{ viewingBookingCaregivers.time }}</div>
-                    </div>
-                  </v-col>
-                  <v-col cols="6" md="3">
-                    <div class="summary-item">
-                      <div class="summary-label">Duration</div>
-                      <div class="summary-value">{{ viewingBookingCaregivers.duration }}</div>
-                    </div>
-                  </v-col>
-                  <v-col cols="6" md="3">
-                    <div class="summary-item">
-                      <div class="summary-label">Needed</div>
-                      <div class="summary-value">{{ viewingBookingCaregivers.caregiversNeeded }} caregivers</div>
-                    </div>
-                  </v-col>
-                  <v-col cols="6" md="3">
-                    <div class="summary-item">
-                      <div class="summary-label">Assigned</div>
-                      <div class="summary-value">{{ viewingBookingCaregivers.assignedCount }} caregivers</div>
-                    </div>
-                  </v-col>
-                </v-row>
-              </div>
-            </v-col>
-          </v-row>
+                </v-col>
+              </v-row>
+            </v-card-text>
+          </v-card>
+        </v-card-text>
 
-          <v-row>
-            <v-col cols="12">
-              <div class="assigned-caregivers-section">
-                <div class="d-flex align-center justify-space-between mb-4">
-                  <div class="d-flex align-items-center">
-                    <v-icon color="success" size="24" class="mr-3">mdi-account-heart</v-icon>
-                    <span class="caregivers-section-title">Assigned Caregivers</span>
-                    <v-chip color="success" size="small" class="ml-3 font-weight-bold">
-                      {{ getAssignedCaregivers(viewingBookingCaregivers.id).length }} assigned
-                    </v-chip>
-                  </div>
-                  <v-btn color="success" size="small" prepend-icon="mdi-account-plus" @click="assignCaregiverDialog(viewingBookingCaregivers); viewAssignedCaregiversDialog = false">
-                    Manage Assignment
-                  </v-btn>
+        <!-- Tabs -->
+        <v-tabs v-model="assignedCaregiversTab" color="success" bg-color="white">
+          <v-tab value="caregivers">
+            <v-icon class="mr-2">mdi-account-group</v-icon>
+            Caregivers ({{ getAssignedCaregivers(viewingBookingCaregivers.id).length }})
+          </v-tab>
+          <v-tab value="schedule">
+            <v-icon class="mr-2">mdi-calendar-week</v-icon>
+            Weekly Schedule
+          </v-tab>
+        </v-tabs>
+
+        <v-divider />
+
+        <!-- Tab Content -->
+        <v-card-text class="pa-0" style="height: 500px; overflow-y: auto;">
+          <v-tabs-window v-model="assignedCaregiversTab">
+            <!-- Caregivers List Tab -->
+            <v-tabs-window-item value="caregivers">
+              <div class="pa-6">
+                <div v-if="getAssignedCaregivers(viewingBookingCaregivers.id).length > 0">
+                  <v-row>
+                    <v-col v-for="caregiver in getAssignedCaregivers(viewingBookingCaregivers.id)" :key="caregiver.id" cols="12">
+                      <v-card elevation="2" class="rounded-lg hover-card">
+                        <v-card-text class="pa-4">
+                          <div class="d-flex align-start">
+                            <!-- Avatar -->
+                            <v-avatar size="64" color="success" class="mr-4">
+                              <span class="text-white font-weight-bold text-h5">{{ caregiver.name.split(' ').map(n => n[0]).join('') }}</span>
+                            </v-avatar>
+
+                            <!-- Caregiver Info -->
+                            <div class="flex-grow-1">
+                              <div class="text-h6 font-weight-bold mb-1 text-grey-darken-3">{{ caregiver.name }}</div>
+                              <div class="d-flex flex-wrap gap-2 mb-2">
+                                <v-chip size="small" color="grey-lighten-2">
+                                  <v-icon size="16" class="mr-1" style="color: #1a1a1a !important;">mdi-email</v-icon>
+                                  <span class="text-grey-darken-3">{{ caregiver.email }}</span>
+                                </v-chip>
+                                <v-chip size="small" color="grey-lighten-2">
+                                  <v-icon size="16" class="mr-1" style="color: #1a1a1a !important;">mdi-phone</v-icon>
+                                  <span class="text-grey-darken-3">{{ caregiver.phone || '(646) 282-8282' }}</span>
+                                </v-chip>
+                              </div>
+                              
+                              <!-- Schedule Info -->
+                              <div v-if="getCaregiverScheduleDays(caregiver.id).length > 0" class="mt-2">
+                                <v-chip size="small" color="primary" variant="tonal" prepend-icon="mdi-calendar-check">
+                                  {{ getCaregiverScheduleDays(caregiver.id).length }} days scheduled
+                                </v-chip>
+                                <span class="text-caption text-grey ml-2">
+                                  {{ getCaregiverScheduleDays(caregiver.id).map(d => d.charAt(0).toUpperCase() + d.slice(1, 3)).join(', ') }}
+                                </span>
+                              </div>
+                              <div v-else class="mt-2">
+                                <v-chip size="small" color="warning" variant="tonal" prepend-icon="mdi-calendar-alert">
+                                  No schedule assigned
+                                </v-chip>
+                              </div>
+                            </div>
+
+                            <!-- Actions -->
+                            <div class="d-flex flex-column gap-2">
+                              <v-btn color="error" variant="outlined" size="small" prepend-icon="mdi-close" @click="unassignCaregiver(caregiver.id)">
+                                Unassign
+                              </v-btn>
+                            </div>
+                          </div>
+                        </v-card-text>
+                      </v-card>
+                    </v-col>
+                  </v-row>
                 </div>
-                
-                <div v-if="getAssignedCaregivers(viewingBookingCaregivers.id).length > 0" class="assigned-caregivers-list">
-                  <div v-for="caregiver in getAssignedCaregivers(viewingBookingCaregivers.id)" :key="caregiver.id" class="assigned-caregiver-card">
-                    <v-avatar size="56" color="success" class="mr-4">
-                      <span class="text-white font-weight-bold text-h6">{{ caregiver.name.split(' ').map(n => n[0]).join('') }}</span>
-                    </v-avatar>
-                    <div class="flex-grow-1">
-                      <div class="caregiver-name-large">{{ caregiver.name }}</div>
-                      <div class="caregiver-contact-info">
-                        <div class="contact-item">
-                          <v-icon size="14" class="mr-1" color="success">mdi-email</v-icon>
-                          <a :href="'mailto:' + caregiver.email" class="contact-link">{{ caregiver.email }}</a>
-                        </div>
-                        <div class="contact-item">
-                          <v-icon size="14" class="mr-1" color="success">mdi-phone</v-icon>
-                          <a :href="'tel:' + (caregiver.phone || '(646) 282-8282')" class="contact-link">{{ caregiver.phone || '(646) 282-8282' }}</a>
-                        </div>
-                      </div>
-                      <div class="caregiver-stats">
-                        <v-chip color="info" size="x-small">
-                          <v-icon size="12" class="mr-1">mdi-account-group</v-icon>
-                          1 Client
-                        </v-chip>
-                      </div>
-                    </div>
-                    <div class="caregiver-actions">
-                      <v-chip color="success" size="small" class="font-weight-bold mb-2">
-                        <v-icon size="14" class="mr-1">mdi-check-circle</v-icon>
-                        Assigned
-                      </v-chip>
-                      <v-btn color="error" size="small" prepend-icon="mdi-close" @click="unassignCaregiver(caregiver.id)">Unassign</v-btn>
-                    </div>
-                  </div>
-                </div>
-                
-                <div v-else class="no-assigned-caregivers">
-                  <v-icon size="64" color="grey-lighten-1" class="mb-3">mdi-account-off</v-icon>
-                  <div class="text-h6 text-grey mb-2">No Caregivers Assigned</div>
-                  <div class="text-body-2 text-grey mb-4">This booking doesn't have any caregivers assigned yet.</div>
-                  <v-btn color="success" prepend-icon="mdi-account-plus" @click="assignCaregiverDialog(viewingBookingCaregivers); viewAssignedCaregiversDialog = false">
+
+                <!-- Empty State -->
+                <div v-else class="text-center py-12">
+                  <v-icon size="80" color="grey-lighten-2">mdi-account-off-outline</v-icon>
+                  <div class="text-h6 text-grey-darken-1 mt-4">No Caregivers Assigned</div>
+                  <div class="text-body-2 text-grey mt-2 mb-4">Assign caregivers to this booking to get started.</div>
+                  <v-btn color="success" size="large" prepend-icon="mdi-account-plus" @click="assignCaregiverDialog(viewingBookingCaregivers); viewAssignedCaregiversDialog = false">
                     Assign Caregivers
                   </v-btn>
                 </div>
               </div>
+            </v-tabs-window-item>
+
+            <!-- Weekly Schedule Tab -->
+            <v-tabs-window-item value="schedule">
+              <div class="pa-6">
+                <div v-if="getAssignedCaregivers(viewingBookingCaregivers.id).length > 0">
+                  <!-- Clear All Button -->
+                  <div class="d-flex justify-end mb-4">
+                    <v-btn
+                      color="error"
+                      variant="outlined"
+                      size="small"
+                      prepend-icon="mdi-close-circle"
+                      @click="clearAllSchedules"
+                    >
+                      Clear All Schedules
+                    </v-btn>
+                  </div>
+
+                  <!-- Week Calendar Grid - 4 columns -->
+                  <v-row>
+                    <v-col 
+                      v-for="day in getAvailableDays(viewingBookingCaregivers)" 
+                      :key="day.value"
+                      cols="12"
+                      sm="6"
+                      md="4"
+                      lg="3"
+                    >
+                      <v-card 
+                        :class="['day-schedule-card', { 'today-card': isToday(day.value) }]"
+                        :color="isToday(day.value) ? 'blue-lighten-5' : ''"
+                        elevation="2"
+                      >
+                        <v-card-title class="pa-3 d-flex align-center justify-space-between" :class="{ 'bg-blue-lighten-4': isToday(day.value) }" style="color: #1a1a1a !important;">
+                          <div class="d-flex align-center">
+                            <v-icon size="20" class="mr-2" :style="{ color: isToday(day.value) ? '#1565c0 !important' : '#1a1a1a !important' }">
+                              {{ isToday(day.value) ? 'mdi-calendar-star' : 'mdi-calendar' }}
+                            </v-icon>
+                            <div>
+                              <div class="text-body-2 font-weight-bold" style="color: #1a1a1a !important;">{{ day.label }}</div>
+                              <div v-if="isToday(day.value)" class="text-caption font-weight-bold" style="color: #1565c0 !important;">TODAY</div>
+                              <div class="text-caption d-flex align-center mt-1" style="color: #616161 !important;">
+                                <v-icon size="12" class="mr-1" style="color: #616161 !important;">mdi-clock-outline</v-icon>
+                                {{ getTimeForDay(viewingBookingCaregivers, day.value) }}
+                              </div>
+                            </div>
+                          </div>
+                        </v-card-title>
+
+                        <v-divider />
+
+                        <v-card-text class="pa-3">
+                          <!-- Assigned Caregiver Badge -->
+                          <div class="mb-3">
+                            <v-chip 
+                              v-if="getCaregiverForDay(day.value)"
+                              :color="isToday(day.value) ? 'blue' : 'success'"
+                              size="small"
+                              class="text-white font-weight-bold"
+                              block
+                            >
+                              <v-icon size="14" class="mr-1">mdi-account-check</v-icon>
+                              Assigned
+                            </v-chip>
+                            <v-chip 
+                              v-else
+                              color="grey-lighten-2"
+                              size="small"
+                              block
+                            >
+                              <v-icon size="14" class="mr-1" color="grey-darken-2">mdi-account-off</v-icon>
+                              <span class="text-grey-darken-2">Unassigned</span>
+                            </v-chip>
+                          </div>
+
+                          <!-- Current Assignment Display -->
+                          <div v-if="getCaregiverForDay(day.value)" class="mb-3">
+                            <div class="pa-2 bg-success-lighten-5 rounded d-flex align-center">
+                              <v-avatar size="32" color="success" class="mr-2">
+                                <span class="text-white text-caption font-weight-bold">
+                                  {{ getCaregiverForDay(day.value).name.split(' ').map(n => n[0]).join('') }}
+                                </span>
+                              </v-avatar>
+                              <div class="flex-grow-1" style="min-width: 0;">
+                                <div class="text-body-2 font-weight-bold text-truncate text-grey-darken-3">
+                                  {{ getCaregiverForDay(day.value).name }}
+                                </div>
+                                <div class="text-caption text-grey-darken-1">Currently assigned</div>
+                              </div>
+                            </div>
+                          </div>
+
+                          <!-- Caregiver Selection -->
+                          <v-select
+                            :model-value="getCaregiverForDay(day.value)?.id"
+                            @update:model-value="(val) => assignCaregiverToDay(day.value, val)"
+                            :items="getAssignedCaregivers(viewingBookingCaregivers.id)"
+                            item-title="name"
+                            item-value="id"
+                            label="Assign Caregiver"
+                            variant="outlined"
+                            density="compact"
+                            prepend-inner-icon="mdi-account"
+                            clearable
+                            hide-details
+                          >
+                            <template v-slot:selection="{ item }">
+                              <div class="d-flex align-center">
+                                <v-avatar size="20" color="success" class="mr-2">
+                                  <span class="text-white" style="font-size: 10px; font-weight: bold;">
+                                    {{ item.title.split(' ').map(n => n[0]).join('') }}
+                                  </span>
+                                </v-avatar>
+                                <span class="text-body-2 text-grey-darken-3">{{ item.title }}</span>
+                              </div>
+                            </template>
+                            <template v-slot:item="{ props, item }">
+                              <v-list-item v-bind="props">
+                                <template v-slot:prepend>
+                                  <v-avatar size="32" color="success">
+                                    <span class="text-white text-caption font-weight-bold">
+                                      {{ item.title.split(' ').map(n => n[0]).join('') }}
+                                    </span>
+                                  </v-avatar>
+                                </template>
+                                <template v-slot:title>
+                                  <span class="text-grey-darken-3">{{ item.title }}</span>
+                                </template>
+                              </v-list-item>
+                            </template>
+                          </v-select>
+                        </v-card-text>
+                      </v-card>
+                    </v-col>
+                  </v-row>
+                </div>
+
+                <!-- Empty State -->
+                <div v-else class="text-center py-12">
+                  <v-icon size="80" color="grey-lighten-2">mdi-account-off-outline</v-icon>
+                  <div class="text-h6 text-grey-darken-1 mt-4">No Caregivers Assigned</div>
+                  <div class="text-body-2 text-grey mt-2 mb-4">Please assign caregivers to this booking first.</div>
+                  <v-btn color="success" size="large" prepend-icon="mdi-account-plus" @click="assignCaregiverDialog(viewingBookingCaregivers); viewAssignedCaregiversDialog = false">
+                    Assign Caregivers
+                  </v-btn>
+                </div>
+              </div>
+            </v-tabs-window-item>
+          </v-tabs-window>
+        </v-card-text>
+
+        <!-- Actions -->
+        <v-divider />
+        <v-card-actions class="pa-4 bg-grey-lighten-5">
+          <v-spacer />
+          <v-btn variant="text" @click="viewAssignedCaregiversDialog = false">
+            Close
+          </v-btn>
+          <v-btn color="success" variant="flat" prepend-icon="mdi-account-plus" @click="assignCaregiverDialog(viewingBookingCaregivers); viewAssignedCaregiversDialog = false">
+            Manage Assignment
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <!-- Schedule Management Dialog -->
+    <v-dialog v-model="scheduleDialog" max-width="1000" persistent scrollable>
+      <v-card class="schedule-dialog-card">
+        <v-card-title class="d-flex align-center pa-6 bg-primary">
+          <v-icon color="white" class="mr-3" size="28">mdi-calendar-clock</v-icon>
+          <span class="text-h5 font-weight-bold text-white">Manage Caregiver Schedule</span>
+          <v-spacer />
+          <v-btn icon="mdi-close" variant="text" color="white" size="small" @click="closeScheduleDialog" />
+        </v-card-title>
+        
+        <v-divider />
+        
+        <v-card-text class="pa-6">
+          <v-row v-if="scheduleCaregiver && scheduleBooking">
+            <!-- Caregiver Info -->
+            <v-col cols="12">
+              <v-card class="caregiver-info-card" elevation="0" color="grey-lighten-5">
+                <v-card-text class="pa-4">
+                  <div class="d-flex align-center">
+                    <v-avatar 
+                      v-if="scheduleCaregiver.avatar" 
+                      :image="scheduleCaregiver.avatar.startsWith('http') ? scheduleCaregiver.avatar : `/storage/${scheduleCaregiver.avatar}`" 
+                      size="64" 
+                      class="mr-4" 
+                    />
+                    <v-avatar 
+                      v-else 
+                      color="primary" 
+                      size="64" 
+                      class="mr-4"
+                    >
+                      <span class="text-h5 font-weight-bold text-white">
+                        {{ getInitials(scheduleCaregiver.name) }}
+                      </span>
+                    </v-avatar>
+                    <div class="flex-grow-1">
+                      <h3 class="text-h6 font-weight-bold mb-1">{{ scheduleCaregiver.name }}</h3>
+                      <div class="d-flex align-center text-caption text-grey-darken-1">
+                        <v-icon size="14" class="mr-1">mdi-email</v-icon>
+                        {{ scheduleCaregiver.email }}
+                      </div>
+                    </div>
+                    <v-chip color="success" variant="flat" size="small">
+                      <v-icon start size="16">mdi-shield-check</v-icon>
+                      Assigned
+                    </v-chip>
+                  </div>
+                </v-card-text>
+              </v-card>
+            </v-col>
+
+            <!-- Booking Details -->
+            <v-col cols="12">
+              <v-card class="booking-info-card" elevation="0" color="blue-lighten-5">
+                <v-card-text class="pa-4">
+                  <div class="d-flex align-center">
+                    <v-icon color="blue-darken-2" class="mr-3" size="24">mdi-information</v-icon>
+                    <div>
+                      <div class="text-subtitle-2 text-grey-darken-1 mb-1">Booking Information</div>
+                      <div class="text-body-1 font-weight-medium">
+                        <strong>{{ scheduleBooking.client || 'Client' }}</strong> • 
+                        {{ scheduleBooking.dutyType || scheduleBooking.duty_type || 'Care Service' }} • 
+                        <v-chip size="x-small" color="primary" variant="flat" class="ml-1">
+                          {{ scheduleBooking.durationDays || scheduleBooking.duration_days || 0 }} days
+                        </v-chip>
+                      </div>
+                    </div>
+                  </div>
+                </v-card-text>
+              </v-card>
+            </v-col>
+
+            <!-- Days Selection -->
+            <v-col cols="12">
+              <div class="section-header mb-4">
+                <v-icon color="primary" class="mr-2">mdi-calendar-multiple</v-icon>
+                <span class="text-h6 font-weight-bold">Select Working Days</span>
+                <v-chip size="small" color="info" variant="tonal" class="ml-2">
+                  {{ getScheduleType(scheduleBooking.dutyType || scheduleBooking.duty_type) }}
+                </v-chip>
+              </div>
+              
+              <div class="days-grid-row">
+                <v-card
+                  v-for="day in getAvailableDays(scheduleBooking.dutyType || scheduleBooking.duty_type)"
+                  :key="day.value"
+                  :class="['day-card-modern', { 'day-selected': isDaySelected(day.value) }]"
+                  @click="toggleDay(day.value)"
+                  :elevation="isDaySelected(day.value) ? 8 : 2"
+                >
+                  <v-card-text class="pa-4">
+                    <div class="text-center">
+                      <v-icon 
+                        :color="isDaySelected(day.value) ? 'white' : 'grey'" 
+                        size="40" 
+                        class="mb-3"
+                      >
+                        {{ isDaySelected(day.value) ? 'mdi-check-circle' : 'mdi-circle-outline' }}
+                      </v-icon>
+                      <div 
+                        :class="['text-subtitle-1 font-weight-bold mb-2', isDaySelected(day.value) ? 'text-white' : '']"
+                      >
+                        {{ day.label }}
+                      </div>
+                      
+                      <!-- Show assigned caregiver if different from current -->
+                      <div v-if="getCaregiverForDay(day.value) && getCaregiverForDay(day.value).id !== scheduleCaregiver.id" class="mb-2">
+                        <v-chip 
+                          size="x-small" 
+                          :color="isDaySelected(day.value) ? 'white' : 'warning'" 
+                          :variant="isDaySelected(day.value) ? 'flat' : 'tonal'"
+                        >
+                          <v-icon size="12" class="mr-1">mdi-account</v-icon>
+                          {{ getCaregiverForDay(day.value).shortName }}
+                        </v-chip>
+                      </div>
+                      
+                      <div 
+                        v-if="isDaySelected(day.value)" 
+                        :class="['text-caption', isDaySelected(day.value) ? 'text-white' : 'text-primary']"
+                      >
+                        {{ getDaySchedule(day.value).start_time || '--:--' }} - {{ getDaySchedule(day.value).end_time || '--:--' }}
+                      </div>
+                      <div v-else-if="getCaregiverForDay(day.value) && getCaregiverForDay(day.value).id !== scheduleCaregiver.id" class="text-caption text-warning">
+                        Assigned to {{ getCaregiverForDay(day.value).name.split(' ')[0] }}
+                      </div>
+                      <div v-else class="text-caption text-grey">
+                        Not scheduled
+                      </div>
+                    </div>
+                  </v-card-text>
+                </v-card>
+              </div>
+            </v-col>
+
+            <!-- Time Settings -->
+            <v-col cols="12" v-if="selectedDays.length > 0">
+              <v-divider class="my-4" />
+              
+              <div class="section-header mb-4">
+                <v-icon color="primary" class="mr-2">mdi-clock-outline</v-icon>
+                <span class="text-h6 font-weight-bold">Set Shift Times</span>
+              </div>
+              
+              <v-card elevation="0" color="grey-lighten-5" class="pa-4">
+                <v-row>
+                  <v-col cols="12" md="5">
+                    <v-text-field
+                      v-model="shiftStartTime"
+                      label="Shift Start Time"
+                      type="time"
+                      variant="outlined"
+                      density="comfortable"
+                      prepend-inner-icon="mdi-clock-start"
+                      color="primary"
+                      bg-color="white"
+                      hide-details
+                    />
+                  </v-col>
+                  <v-col cols="12" md="5">
+                    <v-text-field
+                      v-model="shiftEndTime"
+                      label="Shift End Time"
+                      type="time"
+                      variant="outlined"
+                      density="comfortable"
+                      prepend-inner-icon="mdi-clock-end"
+                      color="primary"
+                      bg-color="white"
+                      hide-details
+                    />
+                  </v-col>
+                  <v-col cols="12" md="2">
+                    <v-btn
+                      color="primary"
+                      variant="flat"
+                      prepend-icon="mdi-arrow-down-bold"
+                      @click="applyTimesToSelectedDays"
+                      block
+                      height="40"
+                    >
+                      Apply
+                    </v-btn>
+                  </v-col>
+                </v-row>
+              </v-card>
+            </v-col>
+
+            <!-- Schedule Summary -->
+            <v-col cols="12" v-if="selectedDays.length > 0">
+              <v-divider class="my-4" />
+              
+              <div class="section-header mb-4">
+                <v-icon color="success" class="mr-2">mdi-calendar-check</v-icon>
+                <span class="text-h6 font-weight-bold">Schedule Summary</span>
+                <v-chip size="small" color="success" variant="flat" class="ml-2">
+                  {{ selectedDays.length }} {{ selectedDays.length === 1 ? 'day' : 'days' }} scheduled
+                </v-chip>
+              </div>
+              
+              <v-card elevation="2">
+                <v-list density="compact" class="py-0">
+                  <v-list-item
+                    v-for="(day, index) in selectedDays"
+                    :key="day"
+                    :class="index % 2 === 0 ? 'bg-grey-lighten-5' : ''"
+                  >
+                    <template v-slot:prepend>
+                      <v-avatar color="primary" size="32">
+                        <v-icon color="white" size="18">mdi-calendar</v-icon>
+                      </v-avatar>
+                    </template>
+                    
+                    <v-list-item-title class="font-weight-medium">
+                      {{ getDayLabel(day) }}
+                    </v-list-item-title>
+                    
+                    <v-list-item-subtitle>
+                      <v-icon size="14" class="mr-1">mdi-clock-outline</v-icon>
+                      {{ getDaySchedule(day).start_time || 'Not set' }} - {{ getDaySchedule(day).end_time || 'Not set' }}
+                    </v-list-item-subtitle>
+
+                    <template v-slot:append>
+                      <v-btn
+                        icon="mdi-close"
+                        size="x-small"
+                        variant="text"
+                        color="error"
+                        @click="toggleDay(day)"
+                      />
+                    </template>
+                  </v-list-item>
+                </v-list>
+              </v-card>
+            </v-col>
+
+            <!-- No Days Selected Message -->
+            <v-col cols="12" v-else>
+              <v-alert type="warning" variant="tonal" prominent>
+                <v-alert-title class="font-weight-bold">No Days Selected</v-alert-title>
+                Please select at least one day from the calendar above to create a schedule.
+              </v-alert>
             </v-col>
           </v-row>
         </v-card-text>
-        <v-card-actions class="pa-6 pt-0">
+
+        <v-divider />
+
+        <v-card-actions class="pa-6">
           <v-spacer />
-          <v-btn color="grey" variant="outlined" @click="viewAssignedCaregiversDialog = false">Close</v-btn>
-          <v-btn color="success" prepend-icon="mdi-account-plus" @click="assignCaregiverDialog(viewingBookingCaregivers); viewAssignedCaregiversDialog = false">
-            Manage Assignment
+          <v-btn 
+            color="grey-darken-1" 
+            variant="outlined" 
+            prepend-icon="mdi-close"
+            @click="closeScheduleDialog"
+            size="large"
+          >
+            Cancel
+          </v-btn>
+          <v-btn
+            color="success"
+            variant="flat"
+            prepend-icon="mdi-content-save"
+            @click="saveSchedule"
+            :disabled="selectedDays.length === 0"
+            :loading="savingSchedule"
+            size="large"
+          >
+            Save Schedule
           </v-btn>
         </v-card-actions>
       </v-card>
@@ -3742,7 +5236,6 @@ const loadApplications = async () => {
     const data = await response.json();
     pendingApplications.value = data.applications;
   } catch (error) {
-    console.error('Failed to load applications:', error);
   }
 };
 
@@ -3759,7 +5252,6 @@ const loadPasswordResets = async () => {
     const data = await response.json();
     passwordResets.value = data.resets;
   } catch (error) {
-    console.error('Failed to load password resets:', error);
   }
 };
 
@@ -3791,6 +5283,7 @@ const marketingStaffDialog = ref(false);
 const editingMarketingStaff = ref(null);
 const viewMarketingStaffDialog = ref(false);
 const viewingMarketingStaff = ref(null);
+const payingCommission = ref(null);
 const marketingStaffHeaders = [
   { title: 'Name', key: 'name' },
   { title: 'Email', key: 'email' },
@@ -3798,6 +5291,35 @@ const marketingStaffHeaders = [
   { title: 'Clients Acquired', key: 'clientsAcquired' },
   { title: 'Total Hours', key: 'totalHours' },
   { title: 'Commission Earned', key: 'commissionEarned' },
+  { title: 'Status', key: 'status' },
+  { title: 'Actions', key: 'actions', sortable: false },
+];
+
+// Admin Staff Management
+const adminStaff = ref([]);
+const adminStaffSearch = ref('');
+const adminStaffStatusFilter = ref('All');
+const adminStaffDialog = ref(false);
+const editingAdminStaff = ref(null);
+const viewAdminStaffDialog = ref(false);
+const viewingAdminStaff = ref(null);
+const selectedAdminStaff = ref([]);
+const savingAdminStaff = ref(false);
+const showAdminStaffPassword = ref(false);
+const adminStaffFormData = ref({
+  name: '',
+  email: '',
+  phone: '',
+  password: '',
+  status: 'Active'
+});
+const adminStaffHeaders = [
+  { title: 'Name', key: 'name' },
+  { title: 'Email', key: 'email' },
+  { title: 'Phone', key: 'phone' },
+  { title: 'Email Verified', key: 'email_verified' },
+  { title: 'Last Login', key: 'last_login' },
+  { title: 'Joined', key: 'joined' },
   { title: 'Status', key: 'status' },
   { title: 'Actions', key: 'actions', sortable: false },
 ];
@@ -3894,7 +5416,6 @@ const uploadAvatar = async (event) => {
       userAvatar.value = data.avatar_url;
     }
   } catch (error) {
-    console.error('Failed to upload avatar:', error);
   } finally {
     uploadingAvatar.value = false;
     if (avatarInput.value) avatarInput.value.value = '';
@@ -3921,10 +5442,8 @@ const loadProfile = async () => {
       if (data.avatar) {
         userAvatar.value = `/storage/${data.avatar}`;
       }
-      console.log('Admin profile loaded, user ID:', adminUserId.value);
     }
   } catch (error) {
-    console.error('Failed to load profile:', error);
   }
 };
 
@@ -3943,6 +5462,7 @@ const navItems = ref([
     children: [
       { icon: 'mdi-account-heart', title: 'Caregivers', value: 'caregivers' },
       { icon: 'mdi-account-multiple', title: 'Clients', value: 'clients' },
+      { icon: 'mdi-shield-account', title: 'Admin Staff', value: 'admin-staff' },
       { icon: 'mdi-bullhorn-variant', title: 'Marketing Partner', value: 'marketing-staff' },
       { icon: 'mdi-school', title: 'Training Centers', value: 'training-centers' }
     ]
@@ -3964,7 +5484,6 @@ const loadAdminNotificationCount = async () => {
     const data = await response.json();
     adminNotifications.value = data.notifications || [];
   } catch (error) {
-    console.error('Failed to load notification count:', error);
   }
 };
 
@@ -3994,8 +5513,37 @@ const loadAdminStats = async () => {
     userProgress.value = Math.min((totalUsers / 100) * 100, 100);
     userGrowth.value = totalUsers > 0 ? `${totalUsers} total users` : '+0% this month';
     revenueProgress.value = Math.min((revenue / 50000) * 100, 100);
-    platformMetrics.value.bookings = activeBookings.toString();
-    platformMetrics.value.sessions = totalUsers.toString();
+    
+    // Load real platform metrics from new endpoint
+    try {
+      const metricsResponse = await fetch('/api/admin/platform-metrics');
+      if (metricsResponse.ok) {
+        const metricsData = await metricsResponse.json();
+        const metrics = metricsData.metrics || {};
+        platformMetrics.value.bookings = (metrics.total_bookings || activeBookings).toString();
+        platformMetrics.value.response = metrics.response_time ? `${metrics.response_time}ms` : '0ms';
+        platformMetrics.value.errors = metrics.error_rate ? `${metrics.error_rate.toFixed(1)}%` : '0%';
+        platformMetrics.value.sessions = (metrics.active_sessions || totalUsers).toString();
+        
+        // Update System Uptime in analyticsStats
+        if (metrics.uptime && analyticsStats.value.length > 0) {
+          // Find and update the System Uptime stat
+          const uptimeStat = analyticsStats.value.find(s => s.title === 'System Uptime');
+          if (uptimeStat) {
+            uptimeStat.value = `${metrics.uptime.toFixed(1)}%`;
+          }
+        }
+      } else {
+        // Fallback to basic values
+        platformMetrics.value.bookings = activeBookings.toString();
+        platformMetrics.value.sessions = totalUsers.toString();
+      }
+    } catch (metricsError) {
+      // Fallback on error
+      platformMetrics.value.bookings = activeBookings.toString();
+      platformMetrics.value.sessions = totalUsers.toString();
+    }
+    
     if (data.recent_bookings) {
       recentActivity.value = data.recent_bookings.map(b => ({
         time: new Date(b.created_at).toLocaleString(),
@@ -4005,7 +5553,6 @@ const loadAdminStats = async () => {
       }));
     }
   } catch (error) {
-    console.error('Failed to load admin stats:', error);
   }
 };
 
@@ -4015,6 +5562,93 @@ const analyticsStats = ref([
   { title: 'Caregivers', value: '0', icon: 'mdi-account-heart', color: 'success', change: '+12%' },
   { title: 'Bookings', value: '0', icon: 'mdi-calendar-check', color: 'warning', change: '+5%' },
 ]);
+
+// Money Flow Monitoring
+const moneyFlow = ref({
+  today: {
+    payments_in: 0,
+    payouts_out: 0,
+    net_change: 0
+  },
+  totals: {
+    total_payments_in: 0,
+    total_payouts_out: 0,
+    pending_payouts: 0,
+    expected_balance: 0,
+    stripe_balance: null,
+    balance_difference: null
+  },
+  commissions: {
+    pending_marketing: 0,
+    pending_training: 0,
+    platform_total: 0
+  },
+  recent_transactions: [],
+  failed_payouts: [],
+  caregiver_balances: []
+});
+
+const loadMoneyFlowData = async () => {
+  try {
+    console.log('🔄 Loading Money Flow Data...');
+    const response = await fetch('/api/admin/money-flow-dashboard');
+    console.log('📡 Money Flow API Response Status:', response.status);
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('❌ Money Flow API Error:', errorText);
+      throw new Error('Failed to load money flow data');
+    }
+    
+    const data = await response.json();
+    console.log('📦 Money Flow API Raw Data:', JSON.stringify(data, null, 2));
+    
+    if (data.success) {
+      // Safely extract today data
+      const today = data.today || {};
+      console.log('📅 Today Data:', today);
+      moneyFlow.value.today = {
+        payments_in: Number(today.payments_in ?? 0),
+        payouts_out: Number(today.payouts_out ?? 0),
+        net_change: Number(today.net_change ?? 0)
+      };
+      
+      // Safely extract totals data
+      const totals = data.totals || {};
+      console.log('💰 Totals Data:', totals);
+      moneyFlow.value.totals = {
+        total_payments_in: Number(totals.total_payments_in ?? 0),
+        total_payouts_out: Number(totals.total_payouts_out ?? 0),
+        pending_payouts: Number(totals.pending_payouts ?? 0),
+        expected_balance: Number(totals.expected_balance ?? 0),
+        stripe_balance: totals.stripe_balance !== null ? Number(totals.stripe_balance) : null,
+        balance_difference: totals.balance_difference !== null ? Number(totals.balance_difference) : null
+      };
+      
+      // Safely extract commissions data
+      const commissions = data.commissions || {};
+      console.log('💵 Commissions Data:', commissions);
+      moneyFlow.value.commissions = {
+        pending_marketing: Number(commissions.pending_marketing ?? 0),
+        pending_training: Number(commissions.pending_training ?? 0),
+        platform_total: Number(commissions.platform_total ?? 0)
+      };
+      
+      moneyFlow.value.recent_transactions = data.recent_transactions || [];
+      moneyFlow.value.failed_payouts = data.failed_payouts || [];
+      moneyFlow.value.caregiver_balances = data.caregiver_balances || [];
+      
+      console.log('✅ Money Flow Data Loaded Successfully:');
+      console.log('   Today:', moneyFlow.value.today);
+      console.log('   Totals:', moneyFlow.value.totals);
+      console.log('   Commissions:', moneyFlow.value.commissions);
+    } else {
+      console.error('❌ Money Flow API returned success=false');
+    }
+  } catch (error) {
+    console.error('💥 Money Flow Data Error:', error);
+  }
+};
 
 const loadAnalyticsStats = async () => {
   try {
@@ -4026,7 +5660,6 @@ const loadAnalyticsStats = async () => {
     analyticsStats.value[2].value = (data.total_caregivers || 0).toString();
     analyticsStats.value[3].value = (data.active_bookings || 0).toString();
   } catch (error) {
-    console.error('Failed to load analytics stats:', error);
   }
 };
 
@@ -4087,7 +5720,6 @@ const loadMetrics = async () => {
     totalBookingsForChart.value = allBookings.length.toString();
     setTimeout(initCharts, 100);
   } catch (error) {
-    console.error('Failed to load metrics:', error);
   }
 };
 
@@ -4099,7 +5731,6 @@ const loadTopPerformers = async () => {
     const data = await response.json();
     topPerformers.value = data.performers || [];
   } catch (error) {
-    console.error('Failed to load top performers:', error);
   }
 };
 
@@ -4111,7 +5742,6 @@ const loadRecentAnalyticsActivity = async () => {
     const data = await response.json();
     recentAnalyticsActivity.value = data.activities || [];
   } catch (error) {
-    console.error('Failed to load recent activity:', error);
   }
 };
 
@@ -4181,7 +5811,6 @@ const loadUsers = async () => {
       verified: true
     }));
   } catch (error) {
-    console.error('Failed to load users:', error);
   }
 };
 
@@ -4219,6 +5848,7 @@ const notifications = ref({
 
 const maintenanceMessage = ref('The system is currently under maintenance. Please check back later.');
 const paymentsTab = ref('overview');
+const assignedCaregiversTab = ref('caregivers');
 const clientPaymentSearch = ref('');
 const paymentStatusFilter = ref('All');
 const paymentPeriodFilter = ref('All Time');
@@ -4229,6 +5859,8 @@ const transactionSearch = ref('');
 const transactionTypeFilter = ref('All');
 const transactionPeriodFilter = ref('All Time');
 const addPaymentDialog = ref(false);
+const paymentDetailsDialog = ref(false);
+const selectedPayment = ref(null);
 const processSalariesDialog = ref(false);
 const timeTrackingSearch = ref('');
 const timeTrackingDateFilter = ref('Today');
@@ -4390,7 +6022,6 @@ const reviewHeaders = [
 
 const loadAllReviews = async () => {
   loadingReviews.value = true;
-  console.log('Loading all reviews...');
   try {
     const response = await fetch('/api/reviews', {
       headers: {
@@ -4400,19 +6031,14 @@ const loadAllReviews = async () => {
       credentials: 'include'
     });
     
-    console.log('Reviews API response status:', response.status);
     const data = await response.json();
-    console.log('Reviews API response data:', data);
     
     if (data.success) {
       allReviews.value = data.reviews || [];
-      console.log(`✅ Loaded ${allReviews.value.length} reviews`);
     } else {
-      console.error('❌ Reviews API returned success:false', data.message);
       error(data.message || 'Failed to load reviews');
     }
   } catch (err) {
-    console.error('❌ Failed to load reviews:', err);
     error('Failed to load reviews. Please try again.');
   } finally {
     loadingReviews.value = false;
@@ -4445,7 +6071,6 @@ const deleteReview = async (reviewId) => {
       error(data.message || 'Failed to delete review');
     }
   } catch (err) {
-    console.error('Error deleting review:', err);
     error('Failed to delete review');
   }
 };
@@ -4496,7 +6121,6 @@ const loadTimeTrackingData = async () => {
       throw new Error('Failed to load from API');
     }
   } catch (error) {
-    console.error('Failed to load time tracking data:', error);
     timeTrackingData.value = [];
   }
 };
@@ -4552,7 +6176,6 @@ const viewClientCaregivers = async (item) => {
       selectedClientEntry.value.timeHistory = [];
     }
   } catch (err) {
-    console.error('Failed to load time history:', err);
     selectedClientEntry.value.timeHistory = [];
   }
   
@@ -4597,7 +6220,6 @@ const viewTimeDetails = async (item) => {
       selectedTimeEntry.value.timeHistory = [];
     }
   } catch (err) {
-    console.error('Failed to load time history:', err);
     selectedTimeEntry.value.timeHistory = [];
   }
   
@@ -4687,7 +6309,6 @@ const loadTimeTrackingHistory = async () => {
       throw new Error('Failed to load from API');
     }
   } catch (error) {
-    console.error('Failed to load time tracking history:', error);
     
     // Show empty state when API fails - no hardcoded data
     timeHistory.value = [];
@@ -4783,20 +6404,18 @@ const exportTimeHistory = async () => {
     if (response.ok) {
       const blob = await response.blob();
       const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `CAS-TimeTracking-Report-${new Date().toISOString().split('T')[0]}.pdf`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
+      
+      // Open in new window instead of download
+      window.open(url, '_blank');
+      
+      // Clean up after a delay
+      setTimeout(() => URL.revokeObjectURL(url), 100);
       
       success('Professional time tracking report exported successfully!', 'Export Complete');
     } else {
       throw new Error('Failed to generate PDF report');
     }
   } catch (err) {
-    console.error('PDF export error:', err);
     
     // Fallback to client-side generation with clean styling
     try {
@@ -4960,7 +6579,6 @@ const exportTimeHistory = async () => {
       
       success('Time tracking report exported successfully!', 'Export Complete');
     } catch (fallbackErr) {
-      console.error('Fallback PDF export error:', fallbackErr);
       error('Failed to export PDF. Please ensure jsPDF library is loaded.', 'Export Failed');
     }
   }
@@ -4986,7 +6604,6 @@ const loadPaymentStats = async () => {
       paymentStats.value = data.stats;
     }
   } catch (error) {
-    console.error('Failed to load payment stats:', error);
   }
 };
 
@@ -4998,15 +6615,26 @@ const loadRecentTransactions = async () => {
     const data = await response.json();
     recentTransactions.value = data.transactions || [];
   } catch (error) {
-    console.error('Failed to load transactions:', error);
   }
 };
 
 const paymentMethods = ref([
-  { type: 'stripe', name: 'Stripe', icon: 'mdi-credit-card', color: 'info', status: 'Active', details: 'Credit/Debit Cards' },
-  { type: 'paypal', name: 'PayPal', icon: 'mdi-paypal', color: 'primary', status: 'Active', details: 'PayPal Payments' },
-  { type: 'bank', name: 'Bank Transfer', icon: 'mdi-bank', color: 'success', status: 'Active', details: 'ACH Transfers' },
-  { type: 'cash', name: 'Cash Payment', icon: 'mdi-cash', color: 'warning', status: 'Limited', details: 'In-person only' },
+  { 
+    type: 'stripe', 
+    name: 'Stripe Payment Element', 
+    icon: 'mdi-credit-card', 
+    color: 'info', 
+    status: 'Active', 
+    details: 'Card, Link, Apple Pay, Google Pay' 
+  },
+  { 
+    type: 'stripe-connect', 
+    name: 'Stripe Connect', 
+    icon: 'mdi-bank-transfer', 
+    color: 'success', 
+    status: 'Active', 
+    details: 'Caregiver bank payouts' 
+  },
 ]);
 
 const clientPaymentHeaders = [
@@ -5026,30 +6654,211 @@ const loadClientPayments = async () => {
     const data = await response.json();
     clientPayments.value = data.payments || [];
   } catch (error) {
-    console.error('Failed to load client payments:', error);
   }
 };
 
-const salaryHeaders = [
+const paymentHeaders = [
   { title: 'Caregiver', key: 'caregiver' },
-  { title: 'Hours Worked', key: 'hours' },
-  { title: 'Rate', key: 'rate' },
-  { title: 'Total Amount', key: 'amount' },
+  { title: 'Hours Worked', key: 'hours_display' },
+  { title: 'Hourly Rate', key: 'rate' },
+  { title: 'Total Earned', key: 'amount_display' },
+  { title: 'Unpaid Amount', key: 'unpaid_display' },
+  { title: 'Bank Account', key: 'bank_status' },
   { title: 'Period', key: 'period' },
   { title: 'Status', key: 'status' },
   { title: 'Actions', key: 'actions', sortable: false },
 ];
 
-const caregiverSalaries = ref([]);
+const caregiverPayments = ref([]);
+const paymentConfirmDialog = ref(false);
+const caregiverPaymentDetailsDialog = ref(false);
+const selectedCaregiverPayment = ref(null);
+const selectedCaregiverPaymentDetails = ref(null);
 
-const loadCaregiverSalaries = async () => {
+const loadCaregiverPayments = async () => {
   try {
     const response = await fetch('/api/admin/caregiver-salaries');
     const data = await response.json();
-    caregiverSalaries.value = data.salaries || [];
+    caregiverPayments.value = data.payments || [];
   } catch (error) {
-    console.error('Failed to load caregiver salaries:', error);
   }
+};
+
+// Marketing Commissions
+const marketingCommissionHeaders = [
+  { title: 'Name', key: 'name' },
+  { title: 'Email', key: 'email' },
+  { title: 'Referral Code', key: 'referral_code' },
+  { title: 'Total Commission', key: 'total_commission' },
+  { title: 'Pending', key: 'pending_commission' },
+  { title: 'Bank Account', key: 'bank_status' },
+  { title: 'Status', key: 'payment_status' },
+  { title: 'Actions', key: 'actions', sortable: false },
+];
+
+const marketingCommissions = ref([]);
+const loadingMarketingCommissions = ref(false);
+const marketingCommissionSearch = ref('');
+const marketingCommissionStatusFilter = ref('All');
+const marketingCommissionPeriodFilter = ref('Current Month');
+
+const filteredMarketingCommissions = computed(() => {
+  let filtered = marketingCommissions.value;
+  
+  if (marketingCommissionSearch.value) {
+    const search = marketingCommissionSearch.value.toLowerCase();
+    filtered = filtered.filter(m => 
+      m.name.toLowerCase().includes(search) ||
+      m.email.toLowerCase().includes(search) ||
+      m.referral_code.toLowerCase().includes(search)
+    );
+  }
+  
+  if (marketingCommissionStatusFilter.value !== 'All') {
+    filtered = filtered.filter(m => m.payment_status === marketingCommissionStatusFilter.value);
+  }
+  
+  return filtered;
+});
+
+const loadMarketingCommissions = async () => {
+  loadingMarketingCommissions.value = true;
+  try {
+    const response = await fetch('/api/admin/marketing-commissions');
+    const data = await response.json();
+    
+    if (data.success) {
+      marketingCommissions.value = data.commissions.map(c => ({
+        ...c,
+        total_commission: parseFloat(c.total_commission || 0).toFixed(2),
+        pending_commission: parseFloat(c.pending_commission || 0).toFixed(2),
+        bank_connected: !!c.stripe_connect_id,
+        bank_status: c.stripe_connect_id ? 'Connected' : 'Not Connected',
+        payment_status: parseFloat(c.pending_commission || 0) > 0 ? 'Pending' : 'Paid',
+        paying: false
+      }));
+    }
+  } catch (error) {
+  } finally {
+    loadingMarketingCommissions.value = false;
+  }
+};
+
+const payAllMarketingCommissions = async () => {
+  const pending = marketingCommissions.value.filter(m => 
+    parseFloat(m.pending_commission) > 0 && m.bank_connected
+  );
+  
+  if (pending.length === 0) {
+    showError('No pending commissions to pay');
+    return;
+  }
+  
+  const total = pending.reduce((sum, m) => sum + parseFloat(m.pending_commission), 0);
+  
+  if (!confirm(`Pay total of $${total.toFixed(2)} to ${pending.length} marketing staff?`)) return;
+  
+  try {
+    for (const item of pending) {
+      await payMarketingCommission(item);
+    }
+    showSuccess('All commissions paid successfully!');
+  } catch (error) {
+    showError('Some payments failed');
+  }
+};
+
+const viewMarketingCommissionDetails = (item) => {
+  // Show detailed commission breakdown dialog
+  alert(`Marketing Commission Details:\n\nName: ${item.name}\nTotal Earned: $${item.total_commission}\nPending: $${item.pending_commission}\nReferral Code: ${item.referral_code}`);
+};
+
+// Training Commissions
+const trainingCommissionHeaders = [
+  { title: 'Center Name', key: 'name' },
+  { title: 'Email', key: 'email' },
+  { title: 'Caregivers Trained', key: 'caregivers_count' },
+  { title: 'Total Commission', key: 'total_commission' },
+  { title: 'Pending', key: 'pending_commission' },
+  { title: 'Bank Account', key: 'bank_status' },
+  { title: 'Status', key: 'payment_status' },
+  { title: 'Actions', key: 'actions', sortable: false },
+];
+
+const trainingCommissions = ref([]);
+const loadingTrainingCommissions = ref(false);
+const trainingCommissionSearch = ref('');
+const trainingCommissionStatusFilter = ref('All');
+const trainingCommissionPeriodFilter = ref('Current Month');
+
+const filteredTrainingCommissions = computed(() => {
+  let filtered = trainingCommissions.value;
+  
+  if (trainingCommissionSearch.value) {
+    const search = trainingCommissionSearch.value.toLowerCase();
+    filtered = filtered.filter(t => 
+      t.name.toLowerCase().includes(search) ||
+      t.email.toLowerCase().includes(search)
+    );
+  }
+  
+  if (trainingCommissionStatusFilter.value !== 'All') {
+    filtered = filtered.filter(t => t.payment_status === trainingCommissionStatusFilter.value);
+  }
+  
+  return filtered;
+});
+
+const loadTrainingCommissions = async () => {
+  loadingTrainingCommissions.value = true;
+  try {
+    const response = await fetch('/api/admin/training-commissions');
+    const data = await response.json();
+    
+    if (data.success) {
+      trainingCommissions.value = data.commissions.map(c => ({
+        ...c,
+        total_commission: parseFloat(c.total_commission || 0).toFixed(2),
+        pending_commission: parseFloat(c.pending_commission || 0).toFixed(2),
+        bank_connected: !!c.stripe_connect_id,
+        bank_status: c.stripe_connect_id ? 'Connected' : 'Not Connected',
+        payment_status: parseFloat(c.pending_commission || 0) > 0 ? 'Pending' : 'Paid',
+        paying: false
+      }));
+    }
+  } catch (error) {
+  } finally {
+    loadingTrainingCommissions.value = false;
+  }
+};
+
+const payAllTrainingCommissions = async () => {
+  const pending = trainingCommissions.value.filter(t => 
+    parseFloat(t.pending_commission) > 0 && t.bank_connected
+  );
+  
+  if (pending.length === 0) {
+    showError('No pending commissions to pay');
+    return;
+  }
+  
+  const total = pending.reduce((sum, t) => sum + parseFloat(t.pending_commission), 0);
+  
+  if (!confirm(`Pay total of $${total.toFixed(2)} to ${pending.length} training centers?`)) return;
+  
+  try {
+    for (const item of pending) {
+      await payTrainingCommission(item);
+    }
+    showSuccess('All commissions paid successfully!');
+  } catch (error) {
+    showError('Some payments failed');
+  }
+};
+
+const viewTrainingCommissionDetails = (item) => {
+  // Show detailed commission breakdown dialog
+  alert(`Training Commission Details:\n\nCenter: ${item.name}\nTotal Earned: $${item.total_commission}\nPending: $${item.pending_commission}\nCaregivers: ${item.caregivers_count}`);
 };
 
 const transactionHeaders = [
@@ -5062,24 +6871,24 @@ const transactionHeaders = [
 ];
 
 const bookingHeaders = [
-  { title: 'Client', key: 'client', width: '120px' },
-  { title: 'Service', key: 'service', width: '130px' },
-  { title: 'Date', key: 'date', width: '100px' },
-  { title: 'Time', key: 'startingTime', width: '80px' },
-  { title: 'Hours/Day', key: 'hoursPerDay', width: '90px' },
-  { title: 'Duration', key: 'duration', width: '90px' },
-  { title: 'Location', key: 'location', width: '120px' },
-  { title: 'Price', key: 'formattedPrice', width: '100px' },
-  { title: 'Assigned', key: 'assignedCount', width: '100px' },
-  { title: 'Status', key: 'status', width: '100px' },
-  { title: 'Actions', key: 'actions', sortable: false, width: '180px' },
+  { title: 'Client', key: 'client', width: '110px' },
+  { title: 'Service', key: 'service', width: '100px' },
+  { title: 'Date', key: 'date', width: '95px' },
+  { title: 'Time', key: 'startingTime', width: '70px', align: 'center' },
+  { title: 'Hours', key: 'hoursPerDay', width: '60px', align: 'center' },
+  { title: 'Duration', key: 'duration', width: '80px' },
+  { title: 'Location', key: 'location', width: '100px' },
+  { title: 'Price', key: 'formattedPrice', width: '90px', align: 'end' },
+  { title: 'Payment', key: 'paymentStatus', width: '90px', align: 'center' },
+  { title: 'Assigned', key: 'assignedCount', width: '100px', align: 'center' },
+  { title: 'Status', key: 'status', width: '90px', align: 'center' },
+  { title: 'Actions', key: 'actions', sortable: false, width: '140px', align: 'center' },
 ];
 
 const clientBookings = ref([]);
 
 const loadClientBookings = async () => {
   try {
-    console.log('Loading client bookings...');
     const response = await fetch('/api/admin/bookings', {
       method: 'GET',
       headers: {
@@ -5089,33 +6898,25 @@ const loadClientBookings = async () => {
       },
       credentials: 'same-origin'
     });
-    
-    console.log('Bookings response status:', response.status);
-    
-    if (!response.ok) {
+
+if (!response.ok) {
       const errorText = await response.text();
-      console.error('HTTP error response:', errorText);
       throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
     }
     
     const result = await response.json();
-    console.log('Bookings API result:', result);
-    console.log('Bookings count:', result.data?.length || 0);
     
     if (!result.success) {
-      console.error('API returned error:', result);
       clientBookings.value = [];
       return;
     }
     
     const bookings = result.data || [];
     if (!Array.isArray(bookings)) {
-      console.error('Bookings data is not an array:', bookings);
       clientBookings.value = [];
       return;
     }
     
-    console.log('Processing', bookings.length, 'bookings...');
     clientBookings.value = bookings.map(b => {
       const date = new Date(b.service_date);
       const time = b.start_time ? new Date(`1970-01-01T${b.start_time}`) : date;
@@ -5127,12 +6928,29 @@ const loadClientBookings = async () => {
         return match ? parseInt(match[1]) : 8;
       };
       
+      const calculateEndTime = (startTime, hours) => {
+        if (!startTime) return '';
+        const [hoursStr, minutesStr] = startTime.split(':');
+        const startHour = parseInt(hoursStr);
+        const startMinutes = parseInt(minutesStr);
+        const totalHours = startHour + hours;
+        const endHour = totalHours % 24;
+        const endMinutes = startMinutes;
+        const endPeriod = endHour >= 12 ? 'PM' : 'AM';
+        const displayHour = endHour === 0 ? 12 : (endHour > 12 ? endHour - 12 : endHour);
+        const nextDay = totalHours >= 24 ? ' +1' : '';
+        return `${displayHour}:${endMinutes.toString().padStart(2, '0')} ${endPeriod}${nextDay}`;
+      };
+      
       const calculateCaregiversNeeded = (dutyType) => {
         const hoursPerDay = extractHours(dutyType);
-        if (hoursPerDay <= 8) return 1;
-        if (hoursPerDay <= 12) return 2;
-        if (hoursPerDay <= 24) return 3;
-        return Math.ceil(hoursPerDay / 8); // For more than 24 hours
+        if (hoursPerDay === 8) return 1;
+        if (hoursPerDay === 12) return 2;
+        if (hoursPerDay === 24) return 3;
+        // Fallback for custom hours
+        if (hoursPerDay < 12) return 1;
+        if (hoursPerDay < 24) return 2;
+        return 3;
       };
       
       const caregiversNeeded = b.caregivers_needed !== undefined ? b.caregivers_needed : calculateCaregiversNeeded(b.duty_type);
@@ -5167,7 +6985,7 @@ const loadClientBookings = async () => {
       // Calculate pricing
       // Pricing: Caregiver $28 + Agency $16.50 + Training $0.50 = $45/hr (no referral)
       // With referral: Caregiver $28 + Agency $10.50 + Marketing $1 + Training $0.50 = $40/hr
-      const hoursPerDay = b.duty_type === 'live-in' ? 24 : (b.duty_type === 'live-out' ? 12 : 8);
+      const hoursPerDay = extractHours(b.duty_type);
       const hourlyRate = parseFloat(b.hourly_rate) || 45;
       const durationDays = parseInt(b.duration_days) || 1;
       const totalBudget = parseFloat(b.total_budget) || (hoursPerDay * hourlyRate * durationDays);
@@ -5196,20 +7014,42 @@ const loadClientBookings = async () => {
       
       // Format starting time
       const startingTime = b.starting_time || b.start_time || '';
-      const timeFormatted = startingTime ? (() => {
-        const [hours, minutes] = startingTime.split(':');
+      
+      // Extract time from different formats:
+      // - ISO 8601: "2026-01-04T01:00:00.000000Z" or "2026-01-04T01:00:00+08:00"
+      // - DateTime: "2026-01-04 09:00:00"
+      // - Time only: "09:00:00" or "09:00"
+      let timeOnly = startingTime;
+      if (startingTime.includes('T')) {
+        // ISO 8601 format - parse as Date and get local time
+        const dateObj = new Date(startingTime);
+        const hours = dateObj.getHours().toString().padStart(2, '0');
+        const minutes = dateObj.getMinutes().toString().padStart(2, '0');
+        timeOnly = `${hours}:${minutes}`;
+      } else if (startingTime.includes(' ')) {
+        // DateTime format - extract time part after space
+        timeOnly = startingTime.split(' ')[1];
+      }
+      
+      const timeFormatted = timeOnly ? (() => {
+        const [hours, minutes] = timeOnly.split(':');
         const hour = parseInt(hours);
         const ampm = hour >= 12 ? 'PM' : 'AM';
         const displayHour = hour % 12 || 12;
         return `${displayHour}:${minutes} ${ampm}`;
       })() : 'N/A';
+      const endTimeFormatted = timeOnly ? calculateEndTime(timeOnly, hoursPerDay) : 'N/A';
+      const timeRange = `${timeFormatted} - ${endTimeFormatted}`;
       
       return {
         id: b.id,
         client: b.client?.name || 'Unknown',
         service: b.service_type,
         date: date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }),
-        time: timeFormatted,
+        time: timeRange,
+        startingTime: timeFormatted,
+        endingTime: endTimeFormatted,
+        location: b.borough || b.city || b.county || 'N/A',
         submitted: b.submitted_at ? new Date(b.submitted_at).toLocaleString('en-US', { 
           month: 'short', 
           day: 'numeric', 
@@ -5230,6 +7070,7 @@ const loadClientBookings = async () => {
         assignedCount: assignedCount,
         caregiver: b.assigned_caregiver?.user?.name || null,
         status: b.status || 'pending',
+        paymentStatus: b.payment_status || 'unpaid',
         assignmentStatus: assignmentStatus,
         assignments: b.assignments || [], // Store full assignment data with phone numbers
         // Pricing fields
@@ -5241,20 +7082,27 @@ const loadClientBookings = async () => {
         // Referral code/voucher information
         referralCode: b.referral_code || null,
         referralCodeId: b.referral_code_id || null,
-        referralDiscountApplied: b.referral_discount_applied || null
+        referralDiscountApplied: b.referral_discount_applied || null,
+        // Day schedules (if client selected specific days/times)
+        daySchedules: b.day_schedules || null,
+        // Full address details
+        borough: b.borough,
+        city: b.city,
+        county: b.county,
+        streetAddress: b.street_address,
+        apartmentUnit: b.apartment_unit
       };
     });
     
     // Update caregiver statuses based on assignments
     updateCaregiverStatuses();
-    console.log('Successfully loaded', clientBookings.value.length, 'bookings');
   } catch (error) {
-    console.error('Failed to load bookings:', error);
-    console.error('Error details:', {
+    // Error loading bookings
+    const errorInfo = {
       message: error.message,
       stack: error.stack,
       name: error.name
-    });
+    };
     clientBookings.value = [];
   }
 };
@@ -5276,7 +7124,6 @@ const loadAllTransactions = async () => {
     const data = await response.json();
     allTransactions.value = data.transactions || [];
   } catch (error) {
-    console.error('Failed to load all transactions:', error);
   }
 };
 
@@ -5313,6 +7160,17 @@ const filteredMarketingStaff = computed(() => {
   return marketingStaff.value.filter(m => {
     const matchesSearch = !marketingStaffSearch.value || m.name.toLowerCase().includes(marketingStaffSearch.value.toLowerCase()) || m.email.toLowerCase().includes(marketingStaffSearch.value.toLowerCase());
     const matchesStatus = marketingStaffStatusFilter.value === 'All' || m.status === marketingStaffStatusFilter.value;
+    return matchesSearch && matchesStatus;
+  });
+});
+
+// Admin Staff filtering
+const filteredAdminStaff = computed(() => {
+  return adminStaff.value.filter(a => {
+    const matchesSearch = !adminStaffSearch.value || 
+      a.name.toLowerCase().includes(adminStaffSearch.value.toLowerCase()) || 
+      a.email.toLowerCase().includes(adminStaffSearch.value.toLowerCase());
+    const matchesStatus = adminStaffStatusFilter.value === 'All' || a.status === adminStaffStatusFilter.value;
     return matchesSearch && matchesStatus;
   });
 });
@@ -5388,6 +7246,16 @@ const getStatusIcon = (status) => {
 
 const saveProfile = async () => {
   try {
+    if (!profileData.value.firstName || !profileData.value.lastName) {
+      error('First Name and Last Name are required', 'Validation Error');
+      return;
+    }
+    
+    if (!profileData.value.email) {
+      error('Email is required', 'Validation Error');
+      return;
+    }
+    
     const response = await fetch('/api/profile/update', {
       method: 'POST',
       headers: {
@@ -5395,20 +7263,26 @@ const saveProfile = async () => {
         'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
       },
       body: JSON.stringify({
-        ...profileData.value,
-        borough: profileData.value.county
+        firstName: profileData.value.firstName,
+        lastName: profileData.value.lastName,
+        email: profileData.value.email,
+        phone: profileData.value.phone,
+        department: profileData.value.department,
+        role: profileData.value.role
       })
     });
     
     if (response.ok) {
       success('Profile changes saved successfully!');
+      // Update the header name
+      profile.value.firstName = profileData.value.firstName;
+      profile.value.lastName = profileData.value.lastName;
     } else {
       const data = await response.json();
       error('Error: ' + (data.message || 'Failed to save profile'));
     }
   } catch (err) {
-    console.error('Error saving profile:', err);
-    error('Error saving profile. Please try again.');
+    error('Failed to save profile. Please try again.');
   }
 };
 
@@ -5719,7 +7593,6 @@ const saveClient = async () => {
       error(errorData.message || 'Failed to save client. Please try again.', 'Save Failed');
     }
   } catch (err) {
-    console.error('Save client error:', err);
     error('Failed to save client. Please try again.', 'Save Failed');
   }
 };
@@ -5809,7 +7682,74 @@ const loadMarketingStaff = async () => {
     const data = await response.json();
     marketingStaff.value = data.staff || [];
   } catch (err) {
-    console.error('Failed to load marketing staff:', err);
+  }
+};
+
+// Pay Marketing Commission
+const payMarketingCommission = async (item) => {
+  if (payingCommission.value) return; // Prevent double-click
+  
+  if (!confirm(`Pay $${parseFloat(item.commissionEarned).toFixed(2)} commission to ${item.name}?`)) {
+    return;
+  }
+  
+  payingCommission.value = item.id;
+  
+  try {
+    const response = await fetch(`/api/stripe/admin/pay-marketing-commission/${item.id}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content')
+      }
+    });
+    
+    const data = await response.json();
+    
+    if (data.success) {
+      success(`Successfully paid $${parseFloat(data.amount).toFixed(2)} to ${item.name}`);
+      await loadMarketingStaff(); // Refresh marketing staff data
+    } else {
+      error(data.message || 'Payment failed');
+    }
+  } catch (err) {
+    error('Payment failed: ' + err.message);
+  } finally {
+    payingCommission.value = null;
+  }
+};
+
+// Pay Training Commission
+const payTrainingCommission = async (item) => {
+  if (payingCommission.value) return; // Prevent double-click
+  
+  if (!confirm(`Pay $${parseFloat(item.commissionEarned).toFixed(2)} commission to ${item.name}?`)) {
+    return;
+  }
+  
+  payingCommission.value = item.id;
+  
+  try {
+    const response = await fetch(`/api/stripe/admin/pay-training-commission/${item.id}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content')
+      }
+    });
+    
+    const data = await response.json();
+    
+    if (data.success) {
+      success(`Successfully paid $${parseFloat(data.amount).toFixed(2)} to ${item.name}`);
+      await loadTrainingCenters(); // Refresh training centers data
+    } else {
+      error(data.message || 'Payment failed');
+    }
+  } catch (err) {
+    error('Payment failed: ' + err.message);
+  } finally {
+    payingCommission.value = null;
   }
 };
 
@@ -5932,6 +7872,158 @@ const deleteMarketingStaff = (staff) => {
   );
 };
 
+// Admin Staff Functions
+const loadAdminStaff = async () => {
+  try {
+    const response = await fetch('/api/admin/admin-staff');
+    const data = await response.json();
+    adminStaff.value = data.staff || [];
+  } catch (err) {
+    adminStaff.value = [];
+  }
+};
+
+const viewAdminStaffDetails = (staff) => {
+  viewingAdminStaff.value = staff;
+  viewAdminStaffDialog.value = true;
+};
+
+const openAdminStaffDialog = (staff = null) => {
+  if (staff) {
+    editingAdminStaff.value = staff;
+    adminStaffFormData.value = {
+      name: staff.name || '',
+      email: staff.email || '',
+      phone: staff.phone || '',
+      password: '',
+      status: staff.status || 'Active'
+    };
+  } else {
+    editingAdminStaff.value = null;
+    adminStaffFormData.value = { 
+      name: '', 
+      email: '', 
+      phone: '', 
+      password: '', 
+      status: 'Active' 
+    };
+  }
+  adminStaffDialog.value = true;
+};
+
+const saveAdminStaff = async () => {
+  try {
+    if (!adminStaffFormData.value.name || !adminStaffFormData.value.email) {
+      error('Please fill in required fields: Name and Email', 'Validation Error');
+      return;
+    }
+    
+    if (!editingAdminStaff.value && !adminStaffFormData.value.password) {
+      error('Password is required for new admin staff', 'Validation Error');
+      return;
+    }
+
+    if (!editingAdminStaff.value && adminStaffFormData.value.password && adminStaffFormData.value.password.length < 8) {
+      error('Password must be at least 8 characters', 'Validation Error');
+      return;
+    }
+
+    savingAdminStaff.value = true;
+
+    const url = editingAdminStaff.value 
+      ? `/api/admin/admin-staff/${editingAdminStaff.value.id}`
+      : '/api/admin/admin-staff';
+    
+    const formData = {
+      name: adminStaffFormData.value.name.trim(),
+      email: adminStaffFormData.value.email,
+      phone: adminStaffFormData.value.phone || null,
+      status: adminStaffFormData.value.status
+    };
+    
+    // Only include password if it's provided
+    if (adminStaffFormData.value.password) {
+      formData.password = adminStaffFormData.value.password;
+    }
+
+    const response = await fetch(url, {
+      method: editingAdminStaff.value ? 'PUT' : 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+      },
+      body: JSON.stringify(formData)
+    });
+
+    if (response.ok) {
+      success(editingAdminStaff.value ? 'Admin staff updated!' : 'Admin staff created!', 'Success');
+      adminStaffDialog.value = false;
+      await loadAdminStaff();
+    } else {
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Failed to save');
+    }
+  } catch (err) {
+    error(err.message || 'Failed to save admin staff', 'Error');
+  } finally {
+    savingAdminStaff.value = false;
+  }
+};
+
+const deleteAdminStaff = (staff) => {
+  showConfirm(
+    'Delete Admin Staff',
+    `Are you sure you want to delete ${staff.name}? This action cannot be undone.`,
+    async () => {
+      try {
+        const response = await fetch(`/api/admin/admin-staff/${staff.id}`, {
+          method: 'DELETE',
+          headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+          }
+        });
+        
+        if (response.ok) {
+          success('Admin staff deleted!', 'Deleted');
+          await loadAdminStaff();
+        } else {
+          throw new Error('Failed to delete');
+        }
+      } catch (err) {
+        error('Failed to delete admin staff', 'Error');
+      }
+    }
+  );
+};
+
+const deleteSelectedAdminStaff = () => {
+  if (selectedAdminStaff.value.length === 0) return;
+  
+  showConfirm(
+    'Delete Selected Admin Staff',
+    `Are you sure you want to delete ${selectedAdminStaff.value.length} admin staff member(s)? This action cannot be undone.`,
+    async () => {
+      try {
+        const deletePromises = selectedAdminStaff.value.map(id => 
+          fetch(`/api/admin/admin-staff/${id}`, {
+            method: 'DELETE',
+            headers: {
+              'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+            }
+          })
+        );
+        
+        await Promise.all(deletePromises);
+        success('Selected admin staff deleted!', 'Deleted');
+        selectedAdminStaff.value = [];
+        await loadAdminStaff();
+      } catch (err) {
+        error('Failed to delete some admin staff members', 'Error');
+      }
+    }
+  );
+};
+
 // Training Center Form Data and Methods
 const loadTrainingCenters = async () => {
   try {
@@ -5944,24 +8036,18 @@ const loadTrainingCenters = async () => {
     });
     
     if (!response.ok) {
-      console.error('Training centers API error - HTTP status:', response.status);
       const errorText = await response.text();
-      console.error('Error response:', errorText);
       trainingCenters.value = [];
       return;
     }
     
     const data = await response.json();
-    console.log('Training centers API response:', data);
     
     trainingCenters.value = data.centers || [];
-    console.log('Training centers loaded:', trainingCenters.value.length, 'centers');
     
     if (trainingCenters.value.length === 0) {
-      console.log('No training centers found in database');
     }
   } catch (err) {
-    console.error('Failed to load training centers:', err);
     trainingCenters.value = [];
   }
 };
@@ -5976,7 +8062,6 @@ const viewTrainingCenterDetails = async (center) => {
     const data = await response.json();
     viewingTrainingCenter.value.caregivers = data.caregivers || [];
   } catch (err) {
-    console.error('Failed to load caregivers:', err);
   }
 };
 
@@ -6027,7 +8112,6 @@ const saveTrainingCenter = async () => {
     }
     
     if (editingTrainingCenter.value && !editingTrainingCenter.value.id) {
-      console.error('Editing training center but no ID found:', editingTrainingCenter.value);
       error('Invalid training center data. Please refresh the page and try again.', 'Error');
       return;
     }
@@ -6036,12 +8120,13 @@ const saveTrainingCenter = async () => {
       ? `/api/admin/training-centers/${editingTrainingCenter.value.id}`
       : '/api/admin/training-centers';
     
-    console.log('Saving training center:', {
+    // Log save operation details
+    const saveDetails = {
       isEdit: !!editingTrainingCenter.value,
       id: editingTrainingCenter.value?.id,
       url: url,
       formData: trainingCenterFormData.value
-    });
+    };
     
     const formData = {
       name: trainingCenterFormData.value.name.trim(),
@@ -6081,10 +8166,8 @@ const saveTrainingCenter = async () => {
     } else {
       const errorMessage = data.message || (data.errors ? JSON.stringify(data.errors) : 'Failed to save training center. Please try again.');
       error(errorMessage, 'Save Failed');
-      console.error('Training center save error:', data);
     }
   } catch (err) {
-    console.error('Error saving training center:', err);
     error('Failed to save training center: ' + err.message, 'Error');
   }
 };
@@ -6246,10 +8329,8 @@ const saveBooking = async () => {
       await loadClientBookings();
     } else {
       error(data.message || 'Failed to create booking. Please try again.', 'Booking Failed');
-      console.error('Booking creation error:', data);
     }
   } catch (err) {
-    console.error('Error creating booking:', err);
     error('Failed to create booking: ' + err.message, 'Booking Failed');
   } finally {
     savingBooking.value = false;
@@ -6312,7 +8393,6 @@ const saveCaregiver = async () => {
       error(errorData.message || 'Failed to save caregiver. Please try again.', 'Save Failed');
     }
   } catch (err) {
-    console.error('Save caregiver error:', err);
     error('Failed to save caregiver. Please try again.', 'Save Failed');
   }
 };
@@ -6371,11 +8451,9 @@ const deleteSelectedUsers = async () => {
               deletedCount++;
             } else {
               failedCount++;
-              console.error(`Failed to delete user ${userId}:`, data);
             }
           } catch (err) {
             failedCount++;
-            console.error(`Error deleting user ${userId}:`, err);
           }
         }
         
@@ -6390,7 +8468,6 @@ const deleteSelectedUsers = async () => {
         selectedUsers.value = [];
         await loadUsers();
       } catch (err) {
-        console.error('Bulk delete error:', err);
         error('Failed to delete users. Please try again.', 'Delete Failed');
       }
     }
@@ -6425,7 +8502,6 @@ const deleteSelectedCaregivers = async () => {
               continue;
             }
             
-            console.log(`Attempting to delete user ${userId}...`);
             const response = await fetch(`/api/admin/users/${userId}`, {
               method: 'DELETE',
               headers: {
@@ -6435,17 +8511,13 @@ const deleteSelectedCaregivers = async () => {
                 'X-Requested-With': 'XMLHttpRequest'
               }
             });
-            
-            console.log(`Response status for user ${userId}:`, response.status);
-            
-            let data;
+
+let data;
             const contentType = response.headers.get('content-type');
             if (contentType && contentType.includes('application/json')) {
               data = await response.json();
-              console.log(`Response data for user ${userId}:`, data);
             } else {
               const text = await response.text();
-              console.error(`Non-JSON response for user ${userId}:`, text.substring(0, 500));
               errors.push(`Server error for user ${userId}: ${response.status} ${response.statusText}`);
               failedCount++;
               continue;
@@ -6453,18 +8525,15 @@ const deleteSelectedCaregivers = async () => {
             
             if (response.ok && data.success) {
               deletedCount++;
-              console.log(`Successfully deleted user ${userId}`);
             } else {
               failedCount++;
               const errorMsg = data.message || data.error || `HTTP ${response.status}`;
               errors.push(`User ${userId}: ${errorMsg}`);
-              console.error(`Failed to delete user ${userId}:`, data);
             }
           } catch (err) {
             failedCount++;
             const errorMsg = err.message || 'Network error';
             errors.push(`User ${userId}: ${errorMsg}`);
-            console.error(`Error deleting user ${userId}:`, err);
           }
         }
         
@@ -6472,16 +8541,13 @@ const deleteSelectedCaregivers = async () => {
           success(`${deletedCount} caregiver(s) deleted successfully!`, 'Caregivers Deleted');
         } else if (deletedCount > 0) {
           warning(`${deletedCount} caregiver(s) deleted, but ${failedCount} failed. Check console for details.`, 'Partial Success');
-          console.error('Delete errors:', errors);
         } else {
           error(`Failed to delete all caregivers. Check console for details.`, 'Delete Failed');
-          console.error('All delete operations failed. Errors:', errors);
         }
         
         selectedCaregivers.value = [];
         await loadUsers();
       } catch (err) {
-        console.error('Bulk delete error:', err);
         error(`Failed to delete caregivers: ${err.message}`, 'Delete Failed');
       }
     }
@@ -6516,11 +8582,9 @@ const deleteSelectedClients = async () => {
               deletedCount++;
             } else {
               failedCount++;
-              console.error(`Failed to delete client ${clientId}:`, data);
             }
           } catch (err) {
             failedCount++;
-            console.error(`Error deleting client ${clientId}:`, err);
           }
         }
         
@@ -6535,7 +8599,6 @@ const deleteSelectedClients = async () => {
         selectedClients.value = [];
         await loadUsers();
       } catch (err) {
-        console.error('Bulk delete error:', err);
         error('Failed to delete clients. Please try again.', 'Delete Failed');
       }
     }
@@ -6570,11 +8633,9 @@ const deleteSelectedMarketingStaff = async () => {
               deletedCount++;
             } else {
               failedCount++;
-              console.error(`Failed to delete marketing partner ${staffId}:`, data);
             }
           } catch (err) {
             failedCount++;
-            console.error(`Error deleting marketing partner ${staffId}:`, err);
           }
         }
         
@@ -6589,7 +8650,6 @@ const deleteSelectedMarketingStaff = async () => {
         selectedMarketingStaff.value = [];
         await loadMarketingStaff();
       } catch (err) {
-        console.error('Bulk delete error:', err);
         error('Failed to delete marketing partner. Please try again.', 'Delete Failed');
       }
     }
@@ -6624,11 +8684,9 @@ const deleteSelectedTrainingCenters = async () => {
               deletedCount++;
             } else {
               failedCount++;
-              console.error(`Failed to delete training center ${centerId}:`, data);
             }
           } catch (err) {
             failedCount++;
-            console.error(`Error deleting training center ${centerId}:`, err);
           }
         }
         
@@ -6643,7 +8701,6 @@ const deleteSelectedTrainingCenters = async () => {
         selectedTrainingCenters.value = [];
         await loadTrainingCenters();
       } catch (err) {
-        console.error('Bulk delete error:', err);
         error('Failed to delete training centers. Please try again.', 'Delete Failed');
       }
     }
@@ -6678,7 +8735,6 @@ const deleteSelectedBookings = async () => {
               continue;
             }
             
-            console.log(`Attempting to delete booking ${bookingId}...`);
             const response = await fetch(`/api/bookings/${bookingId}`, {
               method: 'DELETE',
               headers: {
@@ -6688,17 +8744,13 @@ const deleteSelectedBookings = async () => {
                 'X-Requested-With': 'XMLHttpRequest'
               }
             });
-            
-            console.log(`Response status for booking ${bookingId}:`, response.status);
-            
-            let data;
+
+let data;
             const contentType = response.headers.get('content-type');
             if (contentType && contentType.includes('application/json')) {
               data = await response.json();
-              console.log(`Response data for booking ${bookingId}:`, data);
             } else {
               const text = await response.text();
-              console.error(`Non-JSON response for booking ${bookingId}:`, text.substring(0, 500));
               errors.push(`Server error for booking ${bookingId}: ${response.status} ${response.statusText}`);
               failedCount++;
               continue;
@@ -6706,18 +8758,15 @@ const deleteSelectedBookings = async () => {
             
             if (response.ok && data.success) {
               deletedCount++;
-              console.log(`Successfully deleted booking ${bookingId}`);
             } else {
               failedCount++;
               const errorMsg = data.message || data.error || `HTTP ${response.status}`;
               errors.push(`Booking ${bookingId}: ${errorMsg}`);
-              console.error(`Failed to delete booking ${bookingId}:`, data);
             }
           } catch (err) {
             failedCount++;
             const errorMsg = err.message || 'Network error';
             errors.push(`Booking ${bookingId}: ${errorMsg}`);
-            console.error(`Error deleting booking ${bookingId}:`, err);
           }
         }
         
@@ -6725,16 +8774,13 @@ const deleteSelectedBookings = async () => {
           success(`${deletedCount} booking(s) deleted successfully!`, 'Bookings Deleted');
         } else if (deletedCount > 0) {
           warning(`${deletedCount} booking(s) deleted, but ${failedCount} failed. Check console for details.`, 'Partial Success');
-          console.error('Delete errors:', errors);
         } else {
           error(`Failed to delete all bookings. Check console for details.`, 'Delete Failed');
-          console.error('All delete operations failed. Errors:', errors);
         }
         
         selectedBookings.value = [];
         await loadClientBookings();
       } catch (err) {
-        console.error('Bulk delete error:', err);
         error(`Failed to delete bookings: ${err.message}`, 'Delete Failed');
       }
     }
@@ -6761,7 +8807,6 @@ const loadCaregiverReviews = async (caregiverId) => {
       caregiverReviews.value = response.data.reviews || [];
     }
   } catch (error) {
-    console.error('Error loading caregiver reviews:', error);
     error('Failed to load reviews');
   } finally {
     loadingCaregiverReviews.value = false;
@@ -6780,12 +8825,13 @@ const viewAllReviews = (caregiver) => {
 };
 
 const getPaymentStatusColor = (status) => {
-  const colors = { 'Paid': 'success', 'Pending': 'warning', 'Overdue': 'error' };
-  return colors[status] || 'grey';
-};
-
-const getSalaryStatusColor = (status) => {
-  const colors = { 'Paid': 'success', 'Pending': 'warning', 'Processing': 'info' };
+  const colors = { 
+    'Paid': 'success', 
+    'Pending': 'warning', 
+    'Partial': 'info',
+    'Overdue': 'error',
+    'No Hours': 'grey'
+  };
   return colors[status] || 'grey';
 };
 
@@ -6889,16 +8935,379 @@ const viewBookingDialog = ref(false);
 const viewingBooking = ref(null);
 const viewAssignedCaregiversDialog = ref(false);
 const viewingBookingCaregivers = ref(null);
+const caregiverSchedules = ref({}); // Store schedules for each caregiver
+const weeklySchedule = ref({}); // Store caregiver assignments for each day: { monday: caregiverId, tuesday: caregiverId, ... }
+
+// Schedule management
+const scheduleDialog = ref(false);
+const scheduleCaregiver = ref(null);
+const scheduleBooking = ref(null);
+const selectedDays = ref([]);
+const daySchedules = ref({});
+const shiftStartTime = ref('08:00');
+const shiftEndTime = ref('17:00');
+const savingSchedule = ref(false);
+
+const daysOfWeek = [
+  { label: 'Monday', value: 'monday' },
+  { label: 'Tuesday', value: 'tuesday' },
+  { label: 'Wednesday', value: 'wednesday' },
+  { label: 'Thursday', value: 'thursday' },
+  { label: 'Friday', value: 'friday' },
+  { label: 'Saturday', value: 'saturday' },
+  { label: 'Sunday', value: 'sunday' }
+];
 
 const viewBooking = (booking) => {
   viewingBooking.value = booking;
   viewBookingDialog.value = true;
 };
 
-const viewAssignedCaregivers = (booking) => {
+const viewAssignedCaregivers = async (booking) => {
   viewingBookingCaregivers.value = booking;
   loadUsers(); // Refresh caregiver data
-  viewAssignedCaregiversDialog.value = true;
+  
+  // Load schedules for all assigned caregivers
+  caregiverSchedules.value = {};
+  weeklySchedule.value = {}; // Reset weekly schedule
+
+if (booking && booking.assignments) {
+    for (const assignment of booking.assignments) {
+      try {
+        const response = await fetch(`/api/bookings/${booking.id}/caregiver/${assignment.caregiver_id}/schedule`);
+        if (response.ok) {
+          const data = await response.json();
+          
+          if (data.schedule) {
+            // Store the full schedule object (days array and schedules object)
+            caregiverSchedules.value[assignment.caregiver_id] = {
+              days: data.schedule.days || [],
+              schedules: data.schedule.schedules || {}
+            };
+
+// Build the weekly schedule view
+            if (data.schedule.days) {
+              for (const day of data.schedule.days) {
+                weeklySchedule.value[day] = assignment.caregiver_id;
+              }
+            }
+          }
+        } else {
+        }
+      } catch (err) {
+      }
+    }
+  }
+
+viewAssignedCaregiversDialog.value = true;
+};
+
+const getCaregiverScheduleDays = (caregiverId) => {
+  const schedule = caregiverSchedules.value[caregiverId];
+  return schedule?.days || [];
+};
+
+const getCaregiverForDay = (dayValue) => {
+  // Use the weeklySchedule to get the caregiver for this day
+  const caregiverId = weeklySchedule.value[dayValue];
+  
+  if (!caregiverId || !viewingBookingCaregivers.value || !viewingBookingCaregivers.value.assignments) {
+    return null;
+  }
+  
+  // Find the caregiver details
+  const assignment = viewingBookingCaregivers.value.assignments.find(a => a.caregiver_id === caregiverId);
+  
+  if (assignment) {
+    return {
+      id: caregiverId,
+      name: assignment.caregiver?.user?.name || 'Unknown',
+      shortName: (assignment.caregiver?.user?.name || 'Unknown').split(' ').map(n => n[0]).join('')
+    };
+  }
+  
+  return null;
+};
+
+// Check if a day is today
+const isToday = (dayValue) => {
+  if (!viewingBookingCaregivers.value) return false;
+  
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  
+  // Parse the booking start date
+  const bookingDate = viewingBookingCaregivers.value.date;
+  const bookingStart = new Date(bookingDate);
+  bookingStart.setHours(0, 0, 0, 0);
+  
+  // If today is before the booking starts, no day should be marked as today
+  if (today < bookingStart) {
+    return false;
+  }
+  
+  // Calculate how many days have passed since booking started
+  const daysPassed = Math.floor((today - bookingStart) / (1000 * 60 * 60 * 24));
+  
+  // Get the day of week for the booking start date
+  const startDayOfWeek = bookingStart.getDay(); // 0 = Sunday, 1 = Monday, etc.
+  
+  // Calculate current day of week in the booking cycle
+  const currentDayOfWeek = (startDayOfWeek + daysPassed) % 7;
+  
+  // Map to day names
+  const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+  
+  return days[currentDayOfWeek] === dayValue.toLowerCase();
+};
+
+// Assign a caregiver to a specific day in the weekly schedule
+const assignCaregiverToDay = async (dayValue, caregiverId) => {
+  
+  if (!caregiverId) {
+    // Remove assignment if cleared
+    await removeCaregiverFromDay(dayValue);
+    return;
+  }
+  
+  const previousCaregiverId = weeklySchedule.value[dayValue];
+  
+  // Update weeklySchedule immediately
+  weeklySchedule.value[dayValue] = caregiverId;
+  
+  // If there was a previous caregiver assigned to this day, remove it from their schedule first
+  if (previousCaregiverId && previousCaregiverId !== caregiverId) {
+    try {
+      const oldSchedule = caregiverSchedules.value[previousCaregiverId] || { days: [], schedules: {} };
+      
+      // Remove this day from old caregiver's schedule
+      oldSchedule.days = oldSchedule.days.filter(d => d !== dayValue);
+      delete oldSchedule.schedules[dayValue];
+      
+      // Update cache immediately
+      caregiverSchedules.value[previousCaregiverId] = { ...oldSchedule };
+
+// Save the removal to the database (async, don't wait)
+      fetch(`/api/bookings/${viewingBookingCaregivers.value.id}/caregiver/${previousCaregiverId}/schedule`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+        },
+        body: JSON.stringify({
+          days: oldSchedule.days,
+          schedules: oldSchedule.schedules
+        })
+      }).then(response => {
+        if (response.ok) {
+        } else {
+        }
+      }).catch(err => console.error('Error removing previous caregiver:', err));
+      
+    } catch (error) {
+    }
+  }
+  
+  // Save immediately to database
+  try {
+    const caregiver = getAssignedCaregivers(viewingBookingCaregivers.value.id).find(c => c.id === caregiverId);
+    if (!caregiver) {
+      return;
+    }
+    
+    // Get current schedule for this caregiver from cache
+    const currentSchedule = caregiverSchedules.value[caregiverId] || { days: [], schedules: {} };
+    
+    // Add this day if not already in the schedule
+    if (!currentSchedule.days.includes(dayValue)) {
+      currentSchedule.days.push(dayValue);
+    }
+    
+    // Update cache immediately before API call
+    caregiverSchedules.value[caregiverId] = { ...currentSchedule };
+
+// Save to database
+    const response = await fetch(`/api/bookings/${viewingBookingCaregivers.value.id}/caregiver/${caregiverId}/schedule`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+      },
+      body: JSON.stringify({
+        days: currentSchedule.days,
+        schedules: currentSchedule.schedules
+      })
+    });
+    
+    if (response.ok) {
+      const data = await response.json();
+      // Update cache with server response
+      caregiverSchedules.value[caregiverId] = data.schedule;
+      
+    } else {
+      const errorText = await response.text();
+      
+      // Revert on error
+      if (previousCaregiverId) {
+        weeklySchedule.value[dayValue] = previousCaregiverId;
+      } else {
+        delete weeklySchedule.value[dayValue];
+      }
+    }
+  } catch (error) {
+    
+    // Revert on error
+    if (previousCaregiverId) {
+      weeklySchedule.value[dayValue] = previousCaregiverId;
+    } else {
+      delete weeklySchedule.value[dayValue];
+    }
+  }
+};
+
+// Remove a caregiver from a specific day
+const removeCaregiverFromDay = async (dayValue) => {
+  const caregiverId = weeklySchedule.value[dayValue];
+  if (!caregiverId) return;
+  
+  delete weeklySchedule.value[dayValue];
+  
+  // Save removal to database
+  try {
+    const currentSchedule = caregiverSchedules.value[caregiverId] || { days: [], schedules: {} };
+    
+    // Remove this day from the schedule
+    currentSchedule.days = currentSchedule.days.filter(d => d !== dayValue);
+    delete currentSchedule.schedules[dayValue];
+    
+    // Save to database
+    const response = await fetch(`/api/bookings/${viewingBookingCaregivers.value.id}/caregiver/${caregiverId}/schedule`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+      },
+      body: JSON.stringify({
+        days: currentSchedule.days,
+        schedules: currentSchedule.schedules
+      })
+    });
+    
+    if (response.ok) {
+      const data = await response.json();
+      // Update cache
+      caregiverSchedules.value[caregiverId] = data.schedule;
+    }
+  } catch (error) {
+  }
+};
+
+// Clear all schedules for all caregivers
+const clearAllSchedules = () => {
+  showConfirm(
+    'Clear All Schedules',
+    'Are you sure you want to clear all schedule assignments? This action cannot be undone.',
+    async () => {
+      if (!viewingBookingCaregivers.value) return;
+      
+      try {
+        const bookingId = viewingBookingCaregivers.value.id;
+        
+        // Get all assigned caregivers from the booking, not just from weeklySchedule
+        const allCaregiverIds = getAssignedCaregivers(bookingId).map(c => c.id);
+
+// Clear all caregivers' schedules
+        for (const caregiverId of allCaregiverIds) {
+          const response = await fetch(`/api/bookings/${bookingId}/caregiver/${caregiverId}/schedule`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+            },
+            body: JSON.stringify({
+              days: [],
+              schedules: {}
+            })
+          });
+          
+          if (response.ok) {
+            const data = await response.json();
+            caregiverSchedules.value[caregiverId] = { days: [], schedules: {} };
+          } else {
+          }
+        }
+        
+        // Clear local schedule
+        weeklySchedule.value = {};
+        
+        success('All schedules cleared successfully', 'Success');
+      } catch (error) {
+        failure('Failed to clear schedules', 'Error');
+      }
+    },
+    'error',
+    'Clear All',
+    'mdi-delete-sweep'
+  );
+};
+
+// Save the weekly schedule
+const saveWeeklySchedule = async () => {
+  if (!viewingBookingCaregivers.value) return;
+  
+  const bookingId = viewingBookingCaregivers.value.id;
+  const assignments = Object.entries(weeklySchedule.value);
+  
+  if (assignments.length === 0) {
+    warning('Please assign at least one caregiver to a day', 'No Assignments');
+    return;
+  }
+  
+  try {
+    // Group days by caregiver
+    const caregiverDays = {};
+    
+    for (const [day, caregiverId] of assignments) {
+      if (!caregiverDays[caregiverId]) {
+        caregiverDays[caregiverId] = [];
+      }
+      caregiverDays[caregiverId].push(day);
+    }
+    
+    // Save schedule for each caregiver
+    for (const [caregiverId, days] of Object.entries(caregiverDays)) {
+      const response = await fetch(`/api/bookings/${bookingId}/caregiver/${caregiverId}/schedule`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: JSON.stringify({ 
+          days: days,
+          schedules: days.reduce((acc, day) => {
+            acc[day] = {
+              start_time: '08:00',
+              end_time: '17:00'
+            };
+            return acc;
+          }, {})
+        })
+      });
+      
+      if (!response.ok) throw new Error('Failed to save schedule');
+      
+      // Update local cache
+      caregiverSchedules.value[caregiverId] = days;
+    }
+    
+    success('Weekly schedule saved successfully!', 'Schedule Updated');
+    
+    // Refresh the caregiver list
+    await viewAssignedCaregivers(viewingBookingCaregivers.value);
+    
+  } catch (error) {
+    failure('Failed to save weekly schedule', 'Error');
+  }
 };
 
 const unassignCaregiver = async (caregiverId) => {
@@ -6906,7 +9315,6 @@ const unassignCaregiver = async (caregiverId) => {
   
   try {
     const bookingId = viewingBookingCaregivers.value.id;
-    console.log('Unassigning caregiver ID:', caregiverId, 'from booking ID:', bookingId);
     
     const response = await fetch(`/api/bookings/${bookingId}/unassign`, {
       method: 'POST',
@@ -6917,11 +9325,38 @@ const unassignCaregiver = async (caregiverId) => {
       body: JSON.stringify({ caregiver_id: caregiverId })
     });
     
-    console.log('Unassign response status:', response.status);
     const responseData = await response.json();
-    console.log('Unassign response data:', responseData);
     
     if (response.ok) {
+      // Delete the caregiver's schedule assignments for this booking
+      try {
+        const deleteResponse = await fetch(`/api/bookings/${bookingId}/caregiver/${caregiverId}/schedule`, {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+          }
+        });
+        
+        if (deleteResponse.ok) {
+          const deleteData = await deleteResponse.json();
+        } else {
+        }
+        
+        // Clear from local cache
+        delete caregiverSchedules.value[caregiverId];
+        
+        // Remove from weeklySchedule
+        Object.keys(weeklySchedule.value).forEach(day => {
+          if (weeklySchedule.value[day] === caregiverId) {
+            delete weeklySchedule.value[day];
+          }
+        });
+        
+      } catch (scheduleErr) {
+        // Continue anyway - the important part is the caregiver unassignment
+      }
+      
       // Update local state immediately
       const currentAssignments = caregiverAssignments.value[bookingId] || [];
       const updatedAssignments = currentAssignments.filter(id => id !== caregiverId);
@@ -6959,8 +9394,196 @@ const unassignCaregiver = async (caregiverId) => {
       error(responseData.error || 'Failed to unassign caregiver', 'Unassign Failed');
     }
   } catch (err) {
-    console.error('Unassign error:', err);
     error('Failed to unassign caregiver. Please try again.', 'Unassign Failed');
+  }
+};
+
+// Schedule Management Functions
+const openScheduleDialog = async (caregiver, booking) => {
+  
+  scheduleCaregiver.value = caregiver;
+  scheduleBooking.value = booking;
+
+// Load existing schedule for this caregiver-booking combination
+  try {
+    const response = await fetch(`/api/bookings/${booking.id}/caregiver/${caregiver.id}/schedule`);
+    if (response.ok) {
+      const data = await response.json();
+      if (data.schedule) {
+        selectedDays.value = data.schedule.days || [];
+        daySchedules.value = data.schedule.schedules || {};
+      } else {
+        // No existing schedule, reset
+        selectedDays.value = [];
+        daySchedules.value = {};
+      }
+    }
+  } catch (err) {
+    // If no schedule exists, start fresh
+    selectedDays.value = [];
+    daySchedules.value = {};
+  }
+  
+  scheduleDialog.value = true;
+};
+
+const closeScheduleDialog = () => {
+  scheduleDialog.value = false;
+  selectedDays.value = [];
+  daySchedules.value = {};
+  shiftStartTime.value = '08:00';
+  shiftEndTime.value = '17:00';
+  scheduleCaregiver.value = null;
+  scheduleBooking.value = null;
+};
+
+const isDaySelected = (day) => {
+  return selectedDays.value.includes(day);
+};
+
+const toggleDay = (day) => {
+  const index = selectedDays.value.indexOf(day);
+  if (index > -1) {
+    selectedDays.value.splice(index, 1);
+    delete daySchedules.value[day];
+  } else {
+    selectedDays.value.push(day);
+    // Initialize with default or current shift times
+    daySchedules.value[day] = {
+      start_time: shiftStartTime.value,
+      end_time: shiftEndTime.value
+    };
+  }
+};
+
+const getDaySchedule = (day) => {
+  return daySchedules.value[day] || { start_time: '', end_time: '' };
+};
+
+const getDayLabel = (day) => {
+  const dayObj = daysOfWeek.find(d => d.value === day);
+  return dayObj ? dayObj.label : day;
+};
+
+const applyTimesToSelectedDays = () => {
+  if (!shiftStartTime.value || !shiftEndTime.value) {
+    warning('Please set both start and end times', 'Missing Times');
+    return;
+  }
+  
+  selectedDays.value.forEach(day => {
+    daySchedules.value[day] = {
+      start_time: shiftStartTime.value,
+      end_time: shiftEndTime.value
+    };
+  });
+  
+  success('Times applied to all selected days', 'Schedule Updated');
+};
+
+const getInitials = (name) => {
+  if (!name) return 'NA';
+  const parts = name.trim().split(' ');
+  if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+};
+
+const getScheduleType = (dutyType) => {
+  if (!dutyType) return 'All Days';
+  if (dutyType.toLowerCase().includes('24 hours')) return '7 Days/Week';
+  if (dutyType.toLowerCase().includes('12 hours')) return 'Custom Schedule';
+  if (dutyType.toLowerCase().includes('8 hours')) return 'Weekdays Only';
+  return 'Custom Schedule';
+};
+
+const getAvailableDays = (dutyTypeOrBooking) => {
+  // If passed a booking object with day_schedules, use those
+  if (typeof dutyTypeOrBooking === 'object' && dutyTypeOrBooking?.daySchedules) {
+    // Convert day_schedules object to array of day objects
+    return Object.keys(dutyTypeOrBooking.daySchedules).map(dayKey => {
+      const dayName = dayKey.charAt(0).toUpperCase() + dayKey.slice(1);
+      return daysOfWeek.find(d => d.label === dayName) || { label: dayName, value: dayKey };
+    });
+  }
+  
+  // Fallback to old logic based on duty_type
+  const dutyType = typeof dutyTypeOrBooking === 'string' ? dutyTypeOrBooking : (dutyTypeOrBooking?.dutyType || dutyTypeOrBooking?.duty_type);
+  
+  // If 8 hours, show Monday-Friday only
+  if (dutyType && dutyType.toLowerCase().includes('8 hours')) {
+    return daysOfWeek.filter(day => 
+      !['saturday', 'sunday'].includes(day.value)
+    );
+  }
+  // For 12 hours and 24 hours, show all days
+  return daysOfWeek;
+};
+
+const getTimeForDay = (booking, dayValue) => {
+  // If booking has day_schedules, use the specific time for this day
+  if (booking?.daySchedules && booking.daySchedules[dayValue]) {
+    return booking.daySchedules[dayValue];
+  }
+  // Fallback to the booking's general time
+  return booking?.time || 'N/A';
+};
+
+const saveSchedule = async () => {
+  if (selectedDays.value.length === 0) {
+    warning('Please select at least one day', 'No Days Selected');
+    return;
+  }
+  
+  // Validate that all selected days have times set
+  const missingTimes = selectedDays.value.filter(day => {
+    const schedule = daySchedules.value[day];
+    return !schedule || !schedule.start_time || !schedule.end_time;
+  });
+  
+  if (missingTimes.length > 0) {
+    warning('Please set times for all selected days', 'Missing Times');
+    return;
+  }
+  
+  savingSchedule.value = true;
+  
+  try {
+    // Log schedule data being saved
+    const scheduleData = {
+      bookingId: scheduleBooking.value.id,
+      caregiverId: scheduleCaregiver.value.id,
+      days: selectedDays.value,
+      schedules: daySchedules.value
+    };
+    
+    const response = await fetch(`/api/bookings/${scheduleBooking.value.id}/caregiver/${scheduleCaregiver.value.id}/schedule`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+      },
+      body: JSON.stringify({
+        days: selectedDays.value,
+        schedules: daySchedules.value
+      })
+    });
+
+if (response.ok) {
+      const data = await response.json();
+      
+      // Update the caregiverSchedules cache
+      caregiverSchedules.value[scheduleCaregiver.value.id] = selectedDays.value;
+      
+      success(`Schedule saved for ${scheduleCaregiver.value.name}`, 'Schedule Updated');
+      closeScheduleDialog();
+    } else {
+      const data = await response.json();
+      error(data.error || 'Failed to save schedule', 'Save Failed');
+    }
+  } catch (err) {
+    error('Failed to save schedule. Please try again.', 'Save Failed');
+  } finally {
+    savingSchedule.value = false;
   }
 };
 
@@ -7033,7 +9656,6 @@ const confirmAssignCaregivers = async () => {
     const responseData = await response.json().catch(() => ({}));
     
     if (!response.ok) {
-      console.error('Assignment failed:', responseData);
       throw new Error(responseData.message || 'Failed to save assignments');
     }
     
@@ -7069,35 +9691,103 @@ const confirmAssignCaregivers = async () => {
     
     closeAssignDialog();
   } catch (err) {
-    console.error('Assignment error:', err);
     error(err.message || 'Failed to update caregiver assignments. Please try again.', 'Assignment Failed');
   }
 };
 
 const viewPayment = (payment) => {
-  info(`Viewing payment details for ${payment.client}`, 'Payment Details');
+  selectedPayment.value = payment;
+  paymentDetailsDialog.value = true;
 };
 
 const markPaid = (payment) => {
   if (confirm(`Mark payment from ${payment.client} as paid?`)) {
     payment.status = 'Paid';
     success('Payment marked as paid!', 'Payment Updated');
+    paymentDetailsDialog.value = false;
   }
 };
 
-const viewSalary = (salary) => {
-  info(`Viewing salary details for ${salary.caregiver}`, 'Salary Details');
+const downloadReceipt = async (payment) => {
+  try {
+    if (!payment.booking_id) {
+      error('Cannot generate receipt: No booking ID found', 'Error');
+      return;
+    }
+    
+    info(`Generating receipt for ${payment.client}...`, 'Receipt');
+    
+    // Use existing ReceiptController to download PDF
+    const receiptUrl = `/api/receipts/${payment.booking_id}/download`;
+    window.open(receiptUrl, '_blank');
+    
+    success(`Receipt for ${payment.client} opened successfully!`, 'Download Complete');
+  } catch (err) {
+    error('Failed to generate receipt. Please try again.', 'Error');
+  }
 };
 
-const paySalary = (salary) => {
-  if (confirm(`Process salary payment for ${salary.caregiver}?`)) {
-    salary.status = 'Processing';
-    success('Salary payment initiated!', 'Payment Processing');
+const viewPaymentDetails = (payment) => {
+  // Show detailed payment information in styled modal
+  selectedCaregiverPaymentDetails.value = payment;
+  caregiverPaymentDetailsDialog.value = true;
+};
+
+const payCaregiver = async (payment) => {
+  if (!payment.bank_connected) {
+    error('Cannot process payment', 'Bank account not connected');
+    return;
+  }
+  
+  // Open styled confirmation dialog
+  selectedCaregiverPayment.value = payment;
+  paymentConfirmDialog.value = true;
+};
+
+const confirmPayment = async () => {
+  const payment = selectedCaregiverPayment.value;
+  if (!payment) return;
+  
+  paymentConfirmDialog.value = false;
+  
+  try {
+    const response = await fetch('/api/admin/pay-caregiver', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+      },
+      body: JSON.stringify({
+        caregiver_id: payment.id,
+        amount: payment.unpaid_amount
+      })
+    });
+    
+    const result = await response.json();
+    
+    if (result.success) {
+      success(`Payment of ${payment.unpaid_display} sent to ${payment.caregiver}!`, 'Payment Sent');
+      loadCaregiverPayments(); // Reload data
+    } else {
+      error(result.message || 'Payment failed', 'Payment Error');
+    }
+  } catch (err) {
+    error('Failed to process payment', 'Network Error');
   }
 };
 
 const exportTransactions = () => {
-  info('Exporting transactions to CSV...', 'Export Started');
+  info('Exporting financial report to PDF...', 'Export Started');
+  
+  // Open PDF in new window
+  window.open('/api/admin/financial-report/pdf?period=all', '_blank');
+};
+
+const exportFinancialReportPDF = () => {
+  info('Generating comprehensive financial report...', 'Export Started');
+  
+  // Open PDF in new window
+  window.open('/api/admin/financial-report/pdf?period=all', '_blank');
 };
 
 const caregiverContactsDialog = ref(false);
@@ -7122,7 +9812,6 @@ const loadQuickCaregivers = async () => {
       quickCaregivers.value = await response.json();
     }
   } catch (error) {
-    console.error('Failed to load quick caregivers:', error);
   }
 };
 
@@ -7294,7 +9983,6 @@ const viewCaregiverProfile = (caregiver) => {
 const notificationCenter = ref(null);
 
 const handleNotificationAction = (action) => {
-  console.log('Notification action:', action);
 };
 
 const handleNavClick = (item) => {
@@ -7612,6 +10300,7 @@ onMounted(() => {
   loadAdminNotificationCount();
   loadTimeTrackingData();
   loadMarketingStaff();
+  loadAdminStaff();
   loadTrainingCenters();
   loadQuickCaregivers();
   
@@ -7619,8 +10308,11 @@ onMounted(() => {
   loadPaymentStats();
   loadRecentTransactions();
   loadClientPayments();
-  loadCaregiverSalaries();
+  loadCaregiverPayments();
+  loadMarketingCommissions();
+  loadTrainingCommissions();
   loadAllTransactions();
+  loadMoneyFlowData(); // NEW: Load money flow monitoring data
   loadTopPerformers();
   loadRecentAnalyticsActivity();
   
@@ -7643,40 +10335,49 @@ onMounted(() => {
     }, 500);
   });
   
-  // Re-add labels when booking data changes
-  watch(clientBookings, () => {
-    setTimeout(() => {
-      addMobileTableLabels();
-    }, 300);
-  }, { deep: true });
-  
-  // Re-add labels when other table data changes
-  watch([caregivers, clients, pendingApplications, passwordResets, marketingStaff, trainingCenters], () => {
-    setTimeout(() => {
-      addMobileTableLabels();
-    }, 300);
-  }, { deep: true });
-  
-  // Re-add labels on window resize
-  if (typeof window !== 'undefined') {
-    let resizeTimeout;
-    window.addEventListener('resize', () => {
-      clearTimeout(resizeTimeout);
-      resizeTimeout = setTimeout(() => {
-        addMobileTableLabels();
-      }, 200);
-    });
-  }
-  
-  // Refresh notification count every 30 seconds
-  setInterval(loadAdminNotificationCount, 30000);
-  // Refresh time tracking every 10 seconds for real-time updates
+  // Auto-refresh bookings and stats every 15 seconds to catch payment updates
   setInterval(() => {
-    if (currentSection.value === 'time-tracking') {
-      loadTimeTrackingData();
-    }
-  }, 10000);
+    loadClientBookings();  // Refresh bookings table
+    loadAdminStats();      // Refresh platform metrics
+    loadPaymentStats();    // Refresh payment stats
+    loadMetrics();         // Refresh financial metrics
+  }, 15000);
 });
+
+// Re-add labels when booking data changes
+watch(clientBookings, () => {
+  setTimeout(() => {
+    addMobileTableLabels();
+  }, 300);
+}, { deep: true });
+
+// Re-add labels when other table data changes
+watch([caregivers, clients, pendingApplications, passwordResets, marketingStaff, trainingCenters], () => {
+  setTimeout(() => {
+    addMobileTableLabels();
+  }, 300);
+}, { deep: true });
+
+// Re-add labels on window resize
+if (typeof window !== 'undefined') {
+  let resizeTimeout;
+  window.addEventListener('resize', () => {
+    clearTimeout(resizeTimeout);
+    resizeTimeout = setTimeout(() => {
+      addMobileTableLabels();
+    }, 200);
+  });
+}
+
+// Refresh notification count every 30 seconds
+setInterval(loadAdminNotificationCount, 30000);
+
+// Refresh time tracking every 10 seconds for real-time updates
+setInterval(() => {
+  if (currentSection.value === 'time-tracking') {
+    loadTimeTrackingData();
+  }
+}, 10000);
 </script>
 
 <style>
@@ -7761,10 +10462,10 @@ onMounted(() => {
 .v-data-table table thead tr th:first-child:has(.v-checkbox),
 .v-data-table table tbody tr td:first-child:has(.v-checkbox) {
   text-align: center !important;
-  padding: 16px 8px !important;
-  width: 60px !important;
-  min-width: 60px !important;
-  max-width: 60px !important;
+  padding: 8px 4px !important;
+  width: 48px !important;
+  min-width: 48px !important;
+  max-width: 48px !important;
 }
 
 .v-data-table table thead tr th:first-child .v-checkbox,
@@ -7774,6 +10475,7 @@ onMounted(() => {
   align-items: center !important;
   margin: 0 auto !important;
   width: 100% !important;
+  min-width: unset !important;
 }
 
 .v-data-table table thead tr th:first-child .v-selection-control,
@@ -7783,6 +10485,229 @@ onMounted(() => {
   align-items: center !important;
   margin: 0 auto !important;
   width: 100% !important;
+  min-width: unset !important;
+  padding: 0 !important;
+}
+
+/* Compact checkbox styling */
+.v-data-table .v-selection-control {
+  min-height: unset !important;
+}
+
+.v-data-table .v-selection-control__wrapper {
+  width: 24px !important;
+  height: 24px !important;
+}
+
+/* Optimize table cell spacing and wrapping */
+.v-data-table .v-data-table__tbody .v-data-table__tr .v-data-table__td {
+  padding: 12px 16px !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  max-width: 200px !important;
+}
+
+/* Specific column widths for better layout */
+.v-data-table .v-data-table__thead .v-data-table__tr .v-data-table__th {
+  padding: 12px 16px !important;
+  white-space: nowrap !important;
+}
+
+/* Compact action buttons */
+.action-buttons {
+  display: flex !important;
+  gap: 4px !important;
+  flex-wrap: nowrap !important;
+  justify-content: center !important;
+}
+
+.action-buttons .v-btn {
+  min-width: 32px !important;
+  width: 32px !important;
+  height: 32px !important;
+  padding: 0 !important;
+}
+
+/* Compact chips */
+.v-data-table .v-chip {
+  font-size: 0.75rem !important;
+  padding: 0 8px !important;
+  height: 24px !important;
+}
+
+/* Allow specific columns to wrap if needed */
+.v-data-table .v-data-table__tbody .v-data-table__tr .v-data-table__td:has(.assignment-progress),
+.v-data-table .v-data-table__tbody .v-data-table__tr .v-data-table__td:has(.action-buttons) {
+  white-space: normal !important;
+  max-width: none !important;
+}
+
+/* Progress bars in tables */
+.assignment-progress {
+  min-width: 100px !important;
+  max-width: 120px !important;
+}
+
+.assignment-progress .progress-text {
+  font-size: 0.75rem !important;
+  font-weight: 600 !important;
+  margin-bottom: 2px !important;
+}
+
+/* Compact table density */
+.v-data-table--density-default > .v-table__wrapper > table > tbody > tr > td,
+.v-data-table--density-default > .v-table__wrapper > table > thead > tr > th {
+  height: 48px !important;
+}
+
+/* Remove excessive padding from table wrapper */
+.v-data-table__wrapper {
+  overflow-x: auto !important;
+}
+
+/* Ensure table uses available width efficiently */
+.v-data-table table {
+  width: 100% !important;
+  table-layout: auto !important;
+}
+
+/* Additional specificity for checkbox columns */
+.v-data-table.v-table thead tr th:first-child,
+.v-data-table.v-table tbody tr td:first-child {
+  width: auto !important;
+  padding: 12px 16px !important;
+}
+
+.v-data-table.v-table thead tr th:first-child:has(.v-selection-control),
+.v-data-table.v-table tbody tr td:first-child:has(.v-selection-control) {
+  width: 48px !important;
+  max-width: 48px !important;
+  min-width: 48px !important;
+  padding: 4px !important;
+  text-align: center !important;
+}
+
+/* Force checkbox controls to be compact */
+.v-data-table .v-data-table-column--align-start:has(.v-selection-control) {
+  width: 48px !important;
+  max-width: 48px !important;
+  padding: 4px !important;
+}
+
+.v-data-table .v-selection-control {
+  width: 40px !important;
+  min-width: 40px !important;
+  margin: 0 auto !important;
+}
+
+.v-data-table .v-selection-control .v-selection-control__wrapper {
+  width: 40px !important;
+  height: 40px !important;
+  margin: 0 auto !important;
+}
+
+.v-data-table .v-selection-control .v-selection-control__input {
+  width: 40px !important;
+  height: 40px !important;
+}
+
+/* Specific fixes for admin bookings table */
+.admin-bookings-table.v-data-table {
+  font-size: 0.875rem !important;
+}
+
+.admin-bookings-table .v-data-table__th {
+  font-size: 0.8125rem !important;
+  padding: 8px 12px !important;
+}
+
+.admin-bookings-table .v-data-table__td {
+  padding: 8px 12px !important;
+  font-size: 0.8125rem !important;
+}
+
+.admin-bookings-table .v-chip {
+  height: 22px !important;
+  font-size: 0.7rem !important;
+}
+
+.admin-bookings-table .v-btn {
+  width: 30px !important;
+  height: 30px !important;
+  min-width: 30px !important;
+}
+
+/* Override Vuetify's default table density */
+.v-data-table.v-table--density-compact > .v-table__wrapper > table > tbody > tr > td,
+.v-data-table.v-table--density-compact > .v-table__wrapper > table > thead > tr > th {
+  height: 44px !important;
+  padding: 8px 12px !important;
+}
+
+/* Make TIME column narrower */
+.v-data-table th[data-key="startingTime"],
+.v-data-table td[data-column="startingTime"] {
+  width: 70px !important;
+  max-width: 70px !important;
+}
+
+/* Make HOURS/DAY column narrower */
+.v-data-table th[data-key="hoursPerDay"],
+.v-data-table td[data-column="hoursPerDay"] {
+  width: 60px !important;
+  max-width: 60px !important;
+  text-align: center !important;
+}
+
+/* Make DURATION column narrower */
+.v-data-table th[data-key="duration"],
+.v-data-table td[data-column="duration"] {
+  width: 80px !important;
+  max-width: 80px !important;
+}
+
+/* Make ASSIGNED column specific width */
+.v-data-table th[data-key="assignedCount"],
+.v-data-table td[data-column="assignedCount"] {
+  width: 100px !important;
+  max-width: 100px !important;
+}
+
+/* Make STATUS column narrower */
+.v-data-table th[data-key="status"],
+.v-data-table td[data-column="status"] {
+  width: 90px !important;
+  max-width: 90px !important;
+  text-align: center !important;
+}
+
+/* Make ACTIONS column compact */
+.v-data-table th[data-key="actions"],
+.v-data-table td[data-column="actions"] {
+  width: 140px !important;
+  max-width: 140px !important;
+  text-align: center !important;
+}
+
+/* Price column with strikethrough for discounts */
+.price-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+}
+
+.original-price-strike {
+  font-size: 0.7rem;
+  color: #999;
+  text-decoration: line-through;
+  font-weight: 400;
+}
+
+.current-price {
+  font-weight: 600;
+  color: #1a1a1a;
 }
 
 /* Password Requirements Styling */
@@ -7836,6 +10761,37 @@ onMounted(() => {
 
 * {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+/* Hover effect for caregiver cards */
+.hover-card {
+  transition: all 0.3s ease;
+  border: 1px solid #e0e0e0;
+}
+
+.hover-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+  border-color: #10b981;
+}
+
+/* Weekly schedule day cards */
+.day-schedule-card {
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
+}
+
+.day-schedule-card:hover {
+  border-color: #10b981;
+}
+
+.day-schedule-card.today-card {
+  border-color: #2196F3 !important;
+  box-shadow: 0 4px 12px rgba(33, 150, 243, 0.2) !important;
+}
+
+.bg-success-lighten-5 {
+  background-color: #f0fdf4 !important;
 }
 
 .admin-btn {
@@ -8082,8 +11038,6 @@ onMounted(() => {
 .compact-table .v-data-table__th {
   padding: 8px 12px !important;
 }
-
-
 
 .metric-item {
   padding: 12px 16px;
@@ -9619,9 +12573,10 @@ onMounted(() => {
 .caregivers-booking-summary {
   background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
   border-radius: 12px;
-  padding: 16px;
+  padding: 20px;
   border: 1px solid #bbf7d0;
   box-shadow: 0 2px 8px rgba(16, 185, 129, 0.1);
+  margin-bottom: 0;
 }
 
 .summary-title {
@@ -9651,11 +12606,16 @@ onMounted(() => {
 }
 
 .assigned-caregivers-section {
-  background: white;
-  border-radius: 12px;
-  padding: 20px;
-  border: 1px solid #e5e7eb;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  background: transparent;
+  border-radius: 0;
+  padding: 0;
+  border: none;
+  box-shadow: none;
+}
+
+.schedule-tab-content {
+  background: transparent;
+  padding: 0;
 }
 
 .caregivers-section-title {
@@ -10023,6 +12983,77 @@ onMounted(() => {
     justify-content: center !important;
     width: 100% !important;
   }
+}
+
+/* Schedule Management Styles */
+.schedule-dialog-card {
+  border-radius: 16px !important;
+  overflow: hidden !important;
+}
+
+.caregiver-info-card,
+.booking-info-card {
+  border-radius: 12px !important;
+  border: 1px solid #e0e0e0 !important;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+}
+
+.days-grid-row {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  padding-bottom: 8px;
+  margin-bottom: 16px;
+}
+
+.days-grid-row::-webkit-scrollbar {
+  height: 8px;
+}
+
+.days-grid-row::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.days-grid-row::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 4px;
+}
+
+.days-grid-row::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+.day-card-modern {
+  cursor: pointer;
+  border: 2px solid #e0e0e0 !important;
+  border-radius: 12px !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  min-height: 140px;
+  min-width: 130px;
+  flex-shrink: 0;
+  background: white !important;
+}
+
+.day-card-modern:hover {
+  border-color: #1976d2 !important;
+  box-shadow: 0 8px 16px rgba(25, 118, 210, 0.2) !important;
+  transform: translateY(-4px);
+}
+
+.day-card-modern.day-selected {
+  border-color: #1976d2 !important;
+  background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%) !important;
+  box-shadow: 0 8px 24px rgba(25, 118, 210, 0.4) !important;
+}
+
+.day-card-modern.day-selected:hover {
+  box-shadow: 0 12px 32px rgba(25, 118, 210, 0.5) !important;
+  transform: translateY(-6px);
 }
 
 </style>

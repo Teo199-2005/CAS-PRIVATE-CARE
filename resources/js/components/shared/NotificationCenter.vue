@@ -131,7 +131,6 @@ const loadNotifications = async () => {
     notifications.value = data.notifications;
     unreadCount.value = data.unread_count;
   } catch (error) {
-    console.error('Failed to load notifications:', error);
   } finally {
     loading.value = false;
   }
@@ -151,7 +150,6 @@ const markAsRead = async (notification) => {
     notification.read = true;
     unreadCount.value = Math.max(0, unreadCount.value - 1);
   } catch (error) {
-    console.error('Failed to mark notification as read:', error);
   }
 };
 
@@ -165,7 +163,6 @@ const toggleRead = async (notification) => {
       unreadCount.value += 1;
     }
   } catch (error) {
-    console.error('Failed to toggle notification read status:', error);
   }
 };
 
@@ -183,7 +180,6 @@ const markAllRead = async () => {
     notifications.value.forEach(n => n.read = true);
     unreadCount.value = 0;
   } catch (error) {
-    console.error('Failed to mark all notifications as read:', error);
   } finally {
     loading.value = false;
   }
@@ -205,7 +201,6 @@ const clearAll = async () => {
     notifications.value = [];
     unreadCount.value = 0;
   } catch (error) {
-    console.error('Failed to clear all notifications:', error);
   } finally {
     loading.value = false;
   }
@@ -229,7 +224,6 @@ const deleteNotification = async (notification) => {
       notifications.value.splice(index, 1);
     }
   } catch (error) {
-    console.error('Failed to delete notification:', error);
   }
 };
 

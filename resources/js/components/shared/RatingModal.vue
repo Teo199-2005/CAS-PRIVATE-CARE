@@ -232,7 +232,6 @@ const submit = async () => {
     }
   } catch (err) {
     error.value = 'An error occurred while submitting your review';
-    console.error('Review submission error:', err);
   } finally {
     loading.value = false;
   }

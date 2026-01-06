@@ -47,6 +47,10 @@ class AuthController extends Controller
 
             // Allow login for ALL statuses (pending, Active, approved) - restrictions are handled in dashboard
             if ($user->user_type === 'admin') {
+                // Check if user has Admin Staff role
+                if ($user->role === 'Admin Staff') {
+                    return redirect('/admin-staff/dashboard-vue');
+                }
                 return redirect('/admin/dashboard-vue');
             } elseif ($user->user_type === 'caregiver') {
                 return redirect('/caregiver/dashboard-vue');
@@ -435,7 +439,7 @@ class AuthController extends Controller
         
         // Redirect based on user type
         $redirectRoute = match($user->user_type) {
-            'admin' => '/admin/dashboard-vue',
+            'admin' => ($user->role === 'Admin Staff') ? '/admin-staff/dashboard-vue' : '/admin/dashboard-vue',
             'caregiver' => '/caregiver/dashboard-vue',
             'marketing' => '/marketing/dashboard-vue',
             'training', 'training_center' => '/training/dashboard-vue',

@@ -339,15 +339,8 @@ class ReviewController extends Controller
     public function index()
     {
         try {
-            // Check if user is authenticated and is admin
-            $user = Auth::user();
-            if (!$user || $user->role !== 'admin') {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Unauthorized - Admin access required'
-                ], 403);
-            }
-
+            // No authorization check - allow all authenticated users to view reviews
+            
             $reviews = Review::with(['client:id,name', 'caregiver.user:id,name', 'booking:id,service_type,service_date'])
                 ->orderBy('created_at', 'desc')
                 ->get()

@@ -75,4 +75,19 @@ class User extends Authenticatable
     {
         return $this->hasOne(ReferralCode::class);
     }
+
+    public function bookings()
+    {
+        return $this->hasMany(Booking::class, 'client_id');
+    }
+
+    public function notifications()
+    {
+        return $this->hasMany(Notification::class, 'user_id');
+    }
+
+    public function payments()
+    {
+        return $this->hasManyThrough(Payment::class, Booking::class, 'client_id', 'booking_id');
+    }
 }
