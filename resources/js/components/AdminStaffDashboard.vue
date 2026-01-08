@@ -381,6 +381,42 @@
           
           <v-divider class="my-4"></v-divider>
           
+          <!-- Professional Certifications Section -->
+          <v-row v-if="viewingCaregiver.has_hha || viewingCaregiver.has_cna || viewingCaregiver.has_rn">
+            <v-col cols="12">
+              <div class="detail-label mb-3">
+                <v-icon class="mr-2">mdi-certificate</v-icon>
+                Professional Certifications
+              </div>
+            </v-col>
+            <v-col v-if="viewingCaregiver.has_hha" cols="12" md="4">
+              <v-chip color="success" prepend-icon="mdi-check-circle" class="mb-2">
+                HHA – Home Health Aide
+              </v-chip>
+              <div v-if="viewingCaregiver.hha_number" class="text-caption text-grey mt-1">
+                Certificate #: {{ viewingCaregiver.hha_number }}
+              </div>
+            </v-col>
+            <v-col v-if="viewingCaregiver.has_cna" cols="12" md="4">
+              <v-chip color="success" prepend-icon="mdi-check-circle" class="mb-2">
+                CNA – Certified Nursing Assistant
+              </v-chip>
+              <div v-if="viewingCaregiver.cna_number" class="text-caption text-grey mt-1">
+                Certificate #: {{ viewingCaregiver.cna_number }}
+              </div>
+            </v-col>
+            <v-col v-if="viewingCaregiver.has_rn" cols="12" md="4">
+              <v-chip color="success" prepend-icon="mdi-check-circle" class="mb-2">
+                RN – Registered Nurse
+              </v-chip>
+              <div v-if="viewingCaregiver.rn_number" class="text-caption text-grey mt-1">
+                License #: {{ viewingCaregiver.rn_number }}
+              </div>
+            </v-col>
+          </v-row>
+          
+          <v-divider class="my-4"></v-divider>
+          
           <!-- Ratings & Reviews Section -->
           <v-row>
             <v-col cols="12">

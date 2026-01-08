@@ -61,7 +61,7 @@ class PayoutService
             
             // Step 4: Create Stripe transfer
             try {
-                $stripe = new \Stripe\StripeClient(config('services.stripe.secret'));
+                $stripe = new \Stripe\StripeClient(config('stripe.secret'));
                 $transfer = $stripe->transfers->create([
                     'amount' => intval($amount * 100), // Convert to cents
                     'currency' => 'usd',

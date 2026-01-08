@@ -297,7 +297,7 @@ class PaymentMonitoringController extends Controller
     private function getStripeBalance()
     {
         try {
-            $stripe = new \Stripe\StripeClient(config('services.stripe.secret'));
+            $stripe = new \Stripe\StripeClient(config('stripe.secret'));
             $balance = $stripe->balance->retrieve();
             
             // Get available balance in dollars
@@ -322,7 +322,7 @@ class PaymentMonitoringController extends Controller
     private function verifyStripeTransfer($transferId)
     {
         try {
-            $stripe = new \Stripe\StripeClient(config('services.stripe.secret'));
+            $stripe = new \Stripe\StripeClient(config('stripe.secret'));
             $transfer = $stripe->transfers->retrieve($transferId);
             
             return [

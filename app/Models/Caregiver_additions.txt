@@ -1,0 +1,20 @@
+﻿    /**
+     * Check if a given rate is within the caregiver's preferred range
+     */
+    public function isRateWithinPreferredRange($rate)
+    {
+        $min = $this->preferred_hourly_rate_min ?? 20;
+        $max = $this->preferred_hourly_rate_max ?? 50;
+        return $rate >= $min && $rate <= $max;
+    }
+
+    /**
+     * Get the preferred rate range as a formatted string
+     */
+    public function getPreferredRangeAttribute()
+    {
+        $min = $this->preferred_hourly_rate_min ?? 20;
+        $max = $this->preferred_hourly_rate_max ?? 50;
+        return "$" . number_format($min, 0) . " - $" . number_format($max, 0);
+    }
+}

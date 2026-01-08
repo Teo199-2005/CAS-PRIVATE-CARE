@@ -29,7 +29,15 @@ class Caregiver extends Model
         'available_for_transport',
         'availability_status',
         'rating',
-        'total_reviews'
+        'total_reviews',
+        'has_hha',
+        'hha_number',
+        'has_cna',
+        'cna_number',
+        'has_rn',
+        'rn_number',
+        'preferred_hourly_rate_min',
+        'preferred_hourly_rate_max'
     ];
 
     protected $casts = [
@@ -39,8 +47,13 @@ class Caregiver extends Model
         'background_check_completed' => 'boolean',
         'available_for_transport' => 'boolean',
         'has_training_center' => 'boolean',
+        'has_hha' => 'boolean',
+        'has_cna' => 'boolean',
+        'has_rn' => 'boolean',
         'hourly_rate' => 'decimal:2',
-        'rating' => 'decimal:2'
+        'rating' => 'decimal:2',
+        'preferred_hourly_rate_min' => 'decimal:2',
+        'preferred_hourly_rate_max' => 'decimal:2'
     ];
 
     public function user()
@@ -79,5 +92,25 @@ class Caregiver extends Model
             ->where('status', 'active')
             ->whereNull('clock_out_time')
             ->first();
+    }
+
+    /**
+     * Check if a given rate is within the caregiver's preferred range
+     */
+    public function isRateWithinPreferredRange($rate)
+    {
+        $min = $this->preferred_hourly_rate_min ?? 20;
+        $max = $this->preferred_hourly_rate_max ?? 50;
+        return $rate >= $min && $rate <= $max;
+    }
+
+    /**
+     * Get the preferred rate range as a formatted string
+     */
+    public function getPreferredRangeAttribute()
+    {
+        $min = $this->preferred_hourly_rate_min ?? 20;
+        $max = $this->preferred_hourly_rate_max ?? 50;
+        return "$" . number_format($min, 0) . " - $" . number_format($max, 0);
     }
 }

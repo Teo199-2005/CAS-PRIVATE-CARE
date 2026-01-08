@@ -213,7 +213,19 @@ Route::get('/profile', function (Request $request) {
             'id' => $caregiver->id,
             'years_experience' => $caregiver->years_experience,
             'specializations' => $caregiver->specializations,
-            'bio' => $caregiver->bio
+            'bio' => $caregiver->bio,
+            'training_certificate' => $caregiver->training_certificate,
+            'training_center_id' => $caregiver->training_center_id,
+            'training_center_name' => $caregiver->trainingCenter ? $caregiver->trainingCenter->name : null,
+            'training_center_approval_status' => $caregiver->training_center_approval_status,
+            'has_hha' => $caregiver->has_hha,
+            'hha_number' => $caregiver->hha_number,
+            'has_cna' => $caregiver->has_cna,
+            'cna_number' => $caregiver->cna_number,
+            'has_rn' => $caregiver->has_rn,
+            'rn_number' => $caregiver->rn_number,
+            'preferred_hourly_rate_min' => $caregiver->preferred_hourly_rate_min,
+            'preferred_hourly_rate_max' => $caregiver->preferred_hourly_rate_max
         ] : null
     ]);
 });
@@ -631,6 +643,236 @@ Route::post('/reports/time-tracking-pdf', function (Request $request) {
             return response($dompdf->output(), 200, [
                 'Content-Type' => 'application/pdf',
                 'Content-Disposition' => 'attachment; filename="CAS-TimeTracking-Report-' . date('Y-m-d') . '.pdf"'
+            ]);
+        } else {
+            return response($html, 200, [
+                'Content-Type' => 'text/html'
+            ]);
+        }
+    } catch (\Exception $e) {
+        return response()->json(['error' => 'Failed to generate PDF: ' . $e->getMessage()], 500);
+    }
+});
+
+// Payment Reports PDF Export (Caregiver, Marketing, Training)
+Route::post('/reports/payment-pdf', function (Request $request) {
+    try {
+        $data = $request->all();
+        
+        // Extract data with defaults
+        $reportType = $data['reportType'] ?? 'Caregiver Payments';
+        $period = $data['period'] ?? 'Current Month';
+        $statusFilter = $data['statusFilter'] ?? 'All';
+        $totalRecords = $data['totalRecords'] ?? '0';
+        $totalHours = $data['totalHours'] ?? '0';
+        $activeEmployees = $data['activeEmployees'] ?? '0';
+        $avgRate = $data['avgRate'] ?? '0.0';
+        $paymentData = $data['paymentData'] ?? [];
+        $columns = $data['columns'] ?? [];
+        
+        // Build HTML
+        $html = '<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>CAS Private Care - ' . htmlspecialchars($reportType) . '</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; font-size: 10pt; line-height: 1.4; color: #000; background: #fff; padding: 30px 40px; }
+        .header { border-bottom: 2px solid #000; padding-bottom: 15px; margin-bottom: 20px; }
+        .header-table { width: 100%; }
+        .header-table td { vertical-align: top; }
+        .logo-cell { width: 100px; }
+        .logo-cell img { width: 90px; height: auto; }
+        .company-name { font-size: 16pt; font-weight: bold; letter-spacing: 1px; }
+        .company-tagline { font-size: 9pt; font-style: italic; color: #333; }
+        .company-address { font-size: 8pt; color: #555; margin-top: 3px; }
+        .date-cell { text-align: right; font-size: 9pt; }
+        .doc-id { font-size: 7pt; color: #666; margin-top: 5px; }
+        .report-title { text-align: center; margin: 20px 0; padding: 12px 0; border-top: 1px solid #000; border-bottom: 1px solid #000; }
+        .report-title h1 { font-size: 14pt; font-weight: bold; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 3px; }
+        .report-title .subtitle { font-size: 9pt; color: #333; }
+        .report-info { margin-bottom: 15px; font-size: 9pt; }
+        .report-info table { width: 100%; }
+        .report-info td { padding: 2px 0; }
+        .report-info .label { font-weight: bold; width: 100px; }
+        .summary-section { margin-bottom: 20px; padding: 12px; border: 1px solid #000; }
+        .summary-title { font-size: 10pt; font-weight: bold; text-transform: uppercase; margin-bottom: 8px; padding-bottom: 4px; border-bottom: 1px solid #ccc; }
+        .summary-table { width: 100%; }
+        .summary-table td { text-align: center; padding: 8px; width: 25%; }
+        .stat-value { font-size: 16pt; font-weight: bold; }
+        .stat-label { font-size: 7pt; text-transform: uppercase; color: #555; }
+        .data-section { margin-bottom: 20px; }
+        .section-title { font-size: 10pt; font-weight: bold; text-transform: uppercase; margin-bottom: 8px; padding-bottom: 4px; border-bottom: 2px solid #000; }
+        .data-table { width: 100%; border-collapse: collapse; font-size: 8pt; }
+        .data-table th { background-color: #e0e0e0; border: 1px solid #000; padding: 6px 4px; text-align: left; font-weight: bold; text-transform: uppercase; font-size: 7pt; }
+        .data-table td { border: 1px solid #000; padding: 5px 4px; }
+        .data-table tr:nth-child(even) { background-color: #f5f5f5; }
+        .text-center { text-align: center; }
+        .font-bold { font-weight: bold; }
+        .signature-section { margin-top: 25px; }
+        .signature-table { width: 100%; }
+        .signature-table td { width: 45%; padding-top: 35px; }
+        .signature-line { border-top: 1px solid #000; padding-top: 4px; font-size: 8pt; }
+        .footer { margin-top: 25px; padding-top: 12px; border-top: 2px solid #000; font-size: 7pt; }
+        .footer-table { width: 100%; }
+        .footer-table td { vertical-align: top; }
+        .footer-left { text-align: left; width: 33%; }
+        .footer-center { text-align: center; width: 34%; }
+        .footer-right { text-align: right; width: 33%; }
+        .confidential { text-align: center; font-size: 7pt; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; margin-top: 12px; padding: 4px; border: 1px solid #000; }
+    </style>
+</head>
+<body>';
+
+        // Logo
+        $logoPath = public_path('logo.png');
+        $logoHtml = '';
+        if (file_exists($logoPath)) {
+            $logoData = base64_encode(file_get_contents($logoPath));
+            $logoHtml = '<img src="data:image/png;base64,' . $logoData . '" alt="CAS Logo">';
+        }
+
+        $html .= '
+    <div class="header">
+        <table class="header-table">
+            <tr>
+                <td class="logo-cell">' . $logoHtml . '</td>
+                <td>
+                    <div class="company-name">CAS PRIVATE CARE LLC</div>
+                    <div class="company-tagline">Comfort & Support Healthcare Services</div>
+                    <div class="company-address">Licensed Healthcare Provider | New York</div>
+                </td>
+                <td class="date-cell">
+                    <strong>Report Date:</strong><br>
+                    ' . date('F j, Y') . '<br>
+                    ' . date('g:i A') . '
+                    <div class="doc-id">Doc ID: RPT-' . date('Ymd-His') . '</div>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="report-title">
+        <h1>' . htmlspecialchars($reportType) . '</h1>
+        <div class="subtitle">Official Payment Records Documentation</div>
+    </div>
+
+    <div class="report-info">
+        <table>
+            <tr>
+                <td class="label">Report Period:</td>
+                <td>' . htmlspecialchars($period) . '</td>
+                <td class="label" style="padding-left: 20px;">Status Filter:</td>
+                <td>' . htmlspecialchars($statusFilter) . '</td>
+            </tr>
+            <tr>
+                <td class="label">Generated By:</td>
+                <td>System Administrator</td>
+                <td class="label" style="padding-left: 20px;">Report Type:</td>
+                <td>' . htmlspecialchars($reportType) . '</td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="summary-section">
+        <div class="summary-title">Executive Summary</div>
+        <table class="summary-table">
+            <tr>
+                <td>
+                    <div class="stat-value">' . htmlspecialchars($totalRecords) . '</div>
+                    <div class="stat-label">Total Records</div>
+                </td>
+                <td>
+                    <div class="stat-value">' . htmlspecialchars($totalHours) . '</div>
+                    <div class="stat-label">Total Hours</div>
+                </td>
+                <td>
+                    <div class="stat-value">' . htmlspecialchars($activeEmployees) . '</div>
+                    <div class="stat-label">Active Employees</div>
+                </td>
+                <td>
+                    <div class="stat-value">$' . htmlspecialchars($avgRate) . '</div>
+                    <div class="stat-label">Avg Rate/HR</div>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="data-section">
+        <div class="section-title">Detailed Payment Records</div>
+        <table class="data-table">
+            <thead>
+                <tr>';
+
+        // Add column headers
+        foreach ($columns as $col) {
+            $html .= '<th>' . htmlspecialchars($col) . '</th>';
+        }
+
+        $html .= '
+                </tr>
+            </thead>
+            <tbody>';
+
+        if (empty($paymentData)) {
+            $html .= '<tr><td colspan="' . count($columns) . '" class="text-center" style="padding: 15px;">No payment records found for the selected period.</td></tr>';
+        } else {
+            foreach ($paymentData as $row) {
+                $html .= '<tr>';
+                foreach ($row as $value) {
+                    $html .= '<td>' . htmlspecialchars($value) . '</td>';
+                }
+                $html .= '</tr>';
+            }
+        }
+
+        $html .= '</tbody>
+        </table>
+    </div>
+
+    <div class="signature-section">
+        <table class="signature-table">
+            <tr>
+                <td><div class="signature-line">Prepared By</div></td>
+                <td style="width: 10%;"></td>
+                <td><div class="signature-line">Approved By</div></td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="footer">
+        <table class="footer-table">
+            <tr>
+                <td class="footer-left">
+                    <strong>CAS Private Care LLC</strong><br>
+                    &copy; ' . date('Y') . ' All Rights Reserved
+                </td>
+                <td class="footer-center">
+                    This is an official document<br>
+                    Generated: ' . date('M j, Y g:i A') . '
+                </td>
+                <td class="footer-right">
+                    Page 1 of 1<br>
+                    Ref: RPT-' . date('Ymd') . '
+                </td>
+            </tr>
+        </table>
+        <div class="confidential">Confidential - For Internal Use Only</div>
+    </div>
+</body>
+</html>';
+
+        // Generate PDF with DomPDF
+        if (class_exists('Dompdf\Dompdf')) {
+            $dompdf = new \Dompdf\Dompdf();
+            $dompdf->loadHtml($html);
+            $dompdf->setPaper('A4', 'portrait');
+            $dompdf->render();
+            
+            return response($dompdf->output(), 200, [
+                'Content-Type' => 'application/pdf',
+                'Content-Disposition' => 'attachment; filename="CAS-' . str_replace(' ', '-', $reportType) . '-Report-' . date('Y-m-d') . '.pdf"'
             ]);
         } else {
             return response($html, 200, [

@@ -530,6 +530,14 @@
                       <v-col cols="12">
                         <div class="form-field">
                           <label class="field-label mb-3 d-block">Select Days of Week *</label>
+                          <div v-if="getSelectedDaysCount() < 3" class="text-error mb-2" style="font-size: 0.875rem; font-weight: 600;">
+                            <v-icon size="small" color="error" class="mr-1">mdi-alert-circle</v-icon>
+                            Minimum 3 days required ({{ getSelectedDaysCount() }}/3 selected)
+                          </div>
+                          <div v-else class="text-success mb-2" style="font-size: 0.875rem; font-weight: 500;">
+                            <v-icon size="small" color="success" class="mr-1">mdi-check-circle</v-icon>
+                            {{ getSelectedDaysCount() }} days selected
+                          </div>
                           <div class="day-selector-container">
                             <div class="day-buttons-row">
                               <v-btn
@@ -583,7 +591,7 @@
                               </div>
                             </div>
                             <div v-else class="text-grey text-caption mt-2">
-                              Please select at least one day
+                              Please select at least 3 days of the week
                             </div>
                           </div>
                         </div>
@@ -3295,6 +3303,15 @@ const submitBooking = async () => {
     const enabledDays = Object.entries(bookingData.value.selectedDays)
       .filter(([_, dayData]) => dayData.enabled)
       .map(([_, dayData]) => dayData);
+    
+    // Validate minimum 3 days selected
+    if (enabledDays.length < 3) {
+      error(
+        'Please select at least 3 days of the week for your service. This ensures consistent care and better availability of qualified caregivers.',
+        'Minimum Days Required'
+      );
+      return;
+    }
     
     if (enabledDays.length > 0) {
       const times = enabledDays.map(day => day.startTime).sort();

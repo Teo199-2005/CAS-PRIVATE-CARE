@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Caregiver Certifications API</title>
+</head>
+<body>
+    <h1>Testing Caregiver Certifications</h1>
+    <div id="output"></div>
+
+    <script>
+        async function testAPI() {
+            try {
+                const response = await fetch('/api/profile?user_type=caregiver');
+                const data = await response.json();
+                
+                const output = document.getElementById('output');
+                output.innerHTML = `
+                    <h2>Raw API Response:</h2>
+                    <pre>${JSON.stringify(data, null, 2)}</pre>
+                    
+                    <h2>Certification Data:</h2>
+                    <p>has_hha: ${data.caregiver?.has_hha} (type: ${typeof data.caregiver?.has_hha})</p>
+                    <p>Boolean(has_hha): ${Boolean(data.caregiver?.has_hha)}</p>
+                    <p>has_cna: ${data.caregiver?.has_cna} (type: ${typeof data.caregiver?.has_cna})</p>
+                    <p>Boolean(has_cna): ${Boolean(data.caregiver?.has_cna)}</p>
+                    <p>has_rn: ${data.caregiver?.has_rn} (type: ${typeof data.caregiver?.has_rn})</p>
+                    <p>Boolean(has_rn): ${Boolean(data.caregiver?.has_rn)}</p>
+                `;
+                
+                console.log('Full API Response:', data);
+            } catch (error) {
+                document.getElementById('output').innerHTML = '<p style="color:red">Error: ' + error.message + '</p>';
+            }
+        }
+        
+        testAPI();
+    </script>
+</body>
+</html>

@@ -551,6 +551,54 @@
                 </div>
               </div>
             </v-col>
+            <v-col cols="12" md="6">
+              <div class="detail-section">
+                <div class="detail-label">Preferred Hourly Rate</div>
+                <div class="detail-value">
+                  <v-chip color="success" size="small">
+                    <v-icon size="14" class="mr-1">mdi-cash</v-icon>
+                    ${{ viewingCaregiver.preferred_hourly_rate_min || 20 }} - 
+                    ${{ viewingCaregiver.preferred_hourly_rate_max || 50 }}/hr
+                  </v-chip>
+                </div>
+              </div>
+            </v-col>
+          </v-row>
+          
+          <v-divider class="my-4"></v-divider>
+          
+          <!-- Professional Certifications Section -->
+          <v-row v-if="viewingCaregiver.has_hha || viewingCaregiver.has_cna || viewingCaregiver.has_rn">
+            <v-col cols="12">
+              <div class="detail-label mb-3">
+                <v-icon class="mr-2">mdi-certificate</v-icon>
+                Professional Certifications
+              </div>
+            </v-col>
+            <v-col v-if="viewingCaregiver.has_hha" cols="12" md="4">
+              <v-chip color="success" prepend-icon="mdi-check-circle" class="mb-2">
+                HHA – Home Health Aide
+              </v-chip>
+              <div v-if="viewingCaregiver.hha_number" class="text-caption text-grey mt-1">
+                Certificate #: {{ viewingCaregiver.hha_number }}
+              </div>
+            </v-col>
+            <v-col v-if="viewingCaregiver.has_cna" cols="12" md="4">
+              <v-chip color="success" prepend-icon="mdi-check-circle" class="mb-2">
+                CNA – Certified Nursing Assistant
+              </v-chip>
+              <div v-if="viewingCaregiver.cna_number" class="text-caption text-grey mt-1">
+                Certificate #: {{ viewingCaregiver.cna_number }}
+              </div>
+            </v-col>
+            <v-col v-if="viewingCaregiver.has_rn" cols="12" md="4">
+              <v-chip color="success" prepend-icon="mdi-check-circle" class="mb-2">
+                RN – Registered Nurse
+              </v-chip>
+              <div v-if="viewingCaregiver.rn_number" class="text-caption text-grey mt-1">
+                License #: {{ viewingCaregiver.rn_number }}
+              </div>
+            </v-col>
           </v-row>
           
           <v-divider class="my-4"></v-divider>
@@ -2373,19 +2421,86 @@
 
         <!-- Caregiver Payments Tab -->
         <v-tabs-window-item value="caregiver-payments">
+          <!-- Friday Payout Notice Banner -->
+          <v-alert 
+            :color="isFriday ? 'success' : 'info'"
+            :variant="isFriday ? 'tonal' : 'outlined'"
+            :border="isFriday ? 'start' : 'start'"
+            border-color="primary"
+            class="mb-4"
+            prominent
+          >
+            <template v-slot:prepend>
+              <v-icon :color="isFriday ? 'success' : 'primary'" size="x-large">
+                {{ isFriday ? 'mdi-check-circle' : 'mdi-information' }}
+              </v-icon>
+            </template>
+            <div class="d-flex flex-column">
+              <div class="text-h6 font-weight-bold mb-2">
+                {{ isFriday ? 'Today is Payout Day!' : 'Payout Schedule Information' }}
+              </div>
+              <div class="text-body-1 mb-2">
+                {{ isFriday 
+                  ? 'All payment buttons are now active. You can process caregiver payments today.' 
+                  : 'Payment processing is only available on Fridays to ensure proper fund allocation and processing time.' 
+                }}
+              </div>
+              <div class="text-body-2 text-medium-emphasis">
+                <strong>Why Fridays Only?</strong> 
+                This ensures: (1) Consistent weekly payment schedule for all staff, 
+                (2) Adequate time for bank processing before the weekend, 
+                (3) Proper reconciliation of weekly hours and earnings, 
+                (4) Compliance with payment processing protocols.
+              </div>
+              <v-chip 
+                v-if="!isFriday"
+                :color="'primary'" 
+                variant="flat" 
+                size="small" 
+                class="mt-2 align-self-start"
+              >
+                <v-icon start size="small">mdi-calendar</v-icon>
+                Next Payout: This Friday
+              </v-chip>
+            </div>
+          </v-alert>
+          
           <div class="mb-4">
             <v-row class="align-center">
-              <v-col cols="12" md="4">
+              <v-col cols="12" md="3">
                 <v-text-field v-model="salarySearch" placeholder="Search caregivers..." prepend-inner-icon="mdi-magnify" variant="outlined" density="compact" hide-details />
               </v-col>
-              <v-col cols="12" md="3">
+              <v-col cols="12" md="2">
                 <v-select v-model="salaryStatusFilter" :items="['All', 'Paid', 'Pending', 'Partial', 'No Hours']" variant="outlined" density="compact" hide-details />
               </v-col>
-              <v-col cols="12" md="3">
+              <v-col cols="12" md="2">
                 <v-select v-model="salaryPeriodFilter" :items="['Current Month', 'Last Month', 'Last 3 Months']" variant="outlined" density="compact" hide-details />
               </v-col>
-              <v-col cols="12" md="2">
-                <v-btn color="error" prepend-icon="mdi-cash-multiple" @click="processSalariesDialog = true">Pay All</v-btn>
+              <v-col cols="12" md="3" class="d-flex gap-2">
+                <v-btn 
+                  color="success" 
+                  @click="exportCaregiverPaymentsPDF" 
+                  variant="elevated"
+                  size="large"
+                  class="font-weight-bold text-none"
+                  elevation="4"
+                >
+                  <v-icon size="large" class="mr-2">mdi-file-pdf-box</v-icon>
+                  Export PDF
+                </v-btn>
+                <v-tooltip :text="isFriday ? 'Process all payments' : 'Payments are processed only on Fridays'">
+                  <template v-slot:activator="{ props }">
+                    <v-btn 
+                      v-bind="props"
+                      color="error" 
+                      prepend-icon="mdi-cash-multiple" 
+                      @click="processSalariesDialog = true"
+                      :disabled="!isFriday"
+                    >
+                      Pay All
+                    </v-btn>
+                  </template>
+                </v-tooltip>
               </v-col>
             </v-row>
           </div>
@@ -2407,7 +2522,29 @@
               <template v-slot:item.actions="{ item }">
                 <div class="action-buttons">
                   <v-btn class="action-btn-view" icon="mdi-eye" size="small" @click="viewPaymentDetails(item)"></v-btn>
-                  <v-btn v-if="item.can_pay" class="action-btn-pay-now" icon="mdi-cash-fast" size="small" color="success" @click="payCaregiver(item)"></v-btn>
+                  <v-tooltip v-if="item.can_pay && isFriday" text="Process Payment">
+                    <template v-slot:activator="{ props }">
+                      <v-btn 
+                        v-bind="props" 
+                        class="action-btn-pay-now" 
+                        icon="mdi-cash-fast" 
+                        size="small" 
+                        color="success" 
+                        @click="payCaregiver(item)"
+                      ></v-btn>
+                    </template>
+                  </v-tooltip>
+                  <v-tooltip v-else-if="item.can_pay && !isFriday" text="Payments are processed only on Fridays">
+                    <template v-slot:activator="{ props }">
+                      <v-btn 
+                        v-bind="props" 
+                        icon="mdi-cash-clock" 
+                        size="small" 
+                        color="grey" 
+                        disabled
+                      ></v-btn>
+                    </template>
+                  </v-tooltip>
                   <v-tooltip v-else-if="!item.bank_connected" text="Bank account not connected">
                     <template v-slot:activator="{ props }">
                       <v-btn v-bind="props" icon="mdi-bank-off" size="small" color="grey" disabled></v-btn>
@@ -2421,9 +2558,51 @@
 
         <!-- Marketing Commissions Tab -->
         <v-tabs-window-item value="marketing-commissions">
+          <!-- Friday Payout Notice Banner -->
+          <v-alert 
+            :color="isFriday ? 'success' : 'info'"
+            :variant="isFriday ? 'tonal' : 'outlined'"
+            :border="isFriday ? 'start' : 'start'"
+            border-color="primary"
+            class="mb-4"
+            prominent
+          >
+            <template v-slot:prepend>
+              <v-icon :color="isFriday ? 'success' : 'primary'" size="x-large">
+                {{ isFriday ? 'mdi-check-circle' : 'mdi-information' }}
+              </v-icon>
+            </template>
+            <div class="d-flex flex-column">
+              <div class="text-h6 font-weight-bold mb-2">
+                {{ isFriday ? 'Today is Payout Day!' : 'Payout Schedule Information' }}
+              </div>
+              <div class="text-body-1 mb-2">
+                {{ isFriday 
+                  ? 'All payment buttons are now active. You can process marketing commission payments today.' 
+                  : 'Commission payment processing is only available on Fridays to maintain consistency with all staff payments.' 
+                }}
+              </div>
+              <div class="text-body-2 text-medium-emphasis">
+                <strong>Why Fridays Only?</strong> 
+                Unified payment schedule across all departments, streamlined accounting processes, 
+                and predictable cash flow management for both the agency and commission earners.
+              </div>
+              <v-chip 
+                v-if="!isFriday"
+                :color="'primary'" 
+                variant="flat" 
+                size="small" 
+                class="mt-2 align-self-start"
+              >
+                <v-icon start size="small">mdi-calendar</v-icon>
+                Next Payout: This Friday
+              </v-chip>
+            </div>
+          </v-alert>
+          
           <div class="mb-4">
             <v-row class="align-center">
-              <v-col cols="12" md="4">
+              <v-col cols="12" md="3">
                 <v-text-field 
                   v-model="marketingCommissionSearch" 
                   placeholder="Search marketing staff..." 
@@ -2433,7 +2612,7 @@
                   hide-details 
                 />
               </v-col>
-              <v-col cols="12" md="3">
+              <v-col cols="12" md="2">
                 <v-select 
                   v-model="marketingCommissionStatusFilter" 
                   :items="['All', 'Paid', 'Pending']" 
@@ -2442,7 +2621,7 @@
                   hide-details 
                 />
               </v-col>
-              <v-col cols="12" md="3">
+              <v-col cols="12" md="2">
                 <v-select 
                   v-model="marketingCommissionPeriodFilter" 
                   :items="['Current Month', 'Last Month', 'Last 3 Months']" 
@@ -2451,27 +2630,38 @@
                   hide-details 
                 />
               </v-col>
-              <v-col cols="12" md="2">
+              <v-col cols="12" md="3" class="d-flex gap-2">
                 <v-btn 
-                  color="error" 
-                  prepend-icon="mdi-cash-multiple" 
-                  @click="payAllMarketingCommissions"
+                  color="success" 
+                  @click="exportMarketingCommissionsPDF" 
+                  variant="elevated"
+                  size="large"
+                  class="font-weight-bold text-none"
+                  elevation="4"
                 >
-                  Pay All
+                  <v-icon size="large" class="mr-2">mdi-file-pdf-box</v-icon>
+                  Export PDF
                 </v-btn>
+                <v-tooltip :text="isFriday ? 'Process all marketing commissions' : 'Payments are processed only on Fridays'">
+                  <template v-slot:activator="{ props }">
+                    <v-btn 
+                      v-bind="props"
+                      color="error" 
+                      prepend-icon="mdi-cash-multiple" 
+                      @click="payAllMarketingCommissions"
+                      :disabled="!isFriday"
+                    >
+                      Pay All
+                    </v-btn>
+                  </template>
+                </v-tooltip>
               </v-col>
             </v-row>
           </div>
 
           <v-card elevation="0">
             <v-card-title class="card-header pa-4">
-              <div class="d-flex align-center justify-space-between w-100">
-                <span class="section-title-compact error--text">Marketing Staff Commissions</span>
-                <v-chip color="info" variant="tonal">
-                  <v-icon start size="small">mdi-cash</v-icon>
-                  $1.00/hour per referral
-                </v-chip>
-              </div>
+              <span class="section-title-compact error--text">Marketing Staff Commissions</span>
             </v-card-title>
             <v-data-table 
               :headers="marketingCommissionHeaders" 
@@ -2499,15 +2689,30 @@
                     size="small" 
                     @click="viewMarketingCommissionDetails(item)"
                   ></v-btn>
-                  <v-btn 
-                    v-if="item.pending_commission > 0 && item.bank_connected" 
-                    class="action-btn-pay-now" 
-                    icon="mdi-cash-fast" 
-                    size="small" 
-                    color="success" 
-                    @click="payMarketingCommission(item)"
-                    :loading="item.paying"
-                  ></v-btn>
+                  <v-tooltip v-if="item.pending_commission > 0 && item.bank_connected && isFriday" text="Process Payment">
+                    <template v-slot:activator="{ props }">
+                      <v-btn 
+                        v-bind="props"
+                        class="action-btn-pay-now" 
+                        icon="mdi-cash-fast" 
+                        size="small" 
+                        color="success" 
+                        @click="payMarketingCommission(item)"
+                        :loading="item.paying"
+                      ></v-btn>
+                    </template>
+                  </v-tooltip>
+                  <v-tooltip v-else-if="item.pending_commission > 0 && item.bank_connected && !isFriday" text="Payments are processed only on Fridays">
+                    <template v-slot:activator="{ props }">
+                      <v-btn 
+                        v-bind="props"
+                        icon="mdi-cash-clock" 
+                        size="small" 
+                        color="grey" 
+                        disabled
+                      ></v-btn>
+                    </template>
+                  </v-tooltip>
                   <v-tooltip v-else-if="!item.bank_connected" text="Bank account not connected">
                     <template v-slot:activator="{ props }">
                       <v-btn v-bind="props" icon="mdi-bank-off" size="small" color="grey" disabled></v-btn>
@@ -2526,9 +2731,51 @@
 
         <!-- Training Commissions Tab -->
         <v-tabs-window-item value="training-commissions">
+          <!-- Friday Payout Notice Banner -->
+          <v-alert 
+            :color="isFriday ? 'success' : 'info'"
+            :variant="isFriday ? 'tonal' : 'outlined'"
+            :border="isFriday ? 'start' : 'start'"
+            border-color="primary"
+            class="mb-4"
+            prominent
+          >
+            <template v-slot:prepend>
+              <v-icon :color="isFriday ? 'success' : 'primary'" size="x-large">
+                {{ isFriday ? 'mdi-check-circle' : 'mdi-information' }}
+              </v-icon>
+            </template>
+            <div class="d-flex flex-column">
+              <div class="text-h6 font-weight-bold mb-2">
+                {{ isFriday ? 'Today is Payout Day!' : 'Payout Schedule Information' }}
+              </div>
+              <div class="text-body-1 mb-2">
+                {{ isFriday 
+                  ? 'All payment buttons are now active. You can process training commission payments today.' 
+                  : 'Training commission payments are processed only on Fridays along with all other staff payments.' 
+                }}
+              </div>
+              <div class="text-body-2 text-medium-emphasis">
+                <strong>Why Fridays Only?</strong> 
+                Synchronized payment processing ensures training centers receive payments on the same schedule as all staff members, 
+                simplifying financial tracking and maintaining professional payment standards.
+              </div>
+              <v-chip 
+                v-if="!isFriday"
+                :color="'primary'" 
+                variant="flat" 
+                size="small" 
+                class="mt-2 align-self-start"
+              >
+                <v-icon start size="small">mdi-calendar</v-icon>
+                Next Payout: This Friday
+              </v-chip>
+            </div>
+          </v-alert>
+          
           <div class="mb-4">
             <v-row class="align-center">
-              <v-col cols="12" md="4">
+              <v-col cols="12" md="3">
                 <v-text-field 
                   v-model="trainingCommissionSearch" 
                   placeholder="Search training centers..." 
@@ -2538,7 +2785,7 @@
                   hide-details 
                 />
               </v-col>
-              <v-col cols="12" md="3">
+              <v-col cols="12" md="2">
                 <v-select 
                   v-model="trainingCommissionStatusFilter" 
                   :items="['All', 'Paid', 'Pending']" 
@@ -2547,7 +2794,7 @@
                   hide-details 
                 />
               </v-col>
-              <v-col cols="12" md="3">
+              <v-col cols="12" md="2">
                 <v-select 
                   v-model="trainingCommissionPeriodFilter" 
                   :items="['Current Month', 'Last Month', 'Last 3 Months']" 
@@ -2556,27 +2803,38 @@
                   hide-details 
                 />
               </v-col>
-              <v-col cols="12" md="2">
+              <v-col cols="12" md="3" class="d-flex gap-2">
                 <v-btn 
-                  color="error" 
-                  prepend-icon="mdi-cash-multiple" 
-                  @click="payAllTrainingCommissions"
+                  color="success" 
+                  @click="exportTrainingCommissionsPDF" 
+                  variant="elevated"
+                  size="large"
+                  class="font-weight-bold text-none"
+                  elevation="4"
                 >
-                  Pay All
+                  <v-icon size="large" class="mr-2">mdi-file-pdf-box</v-icon>
+                  Export PDF
                 </v-btn>
+                <v-tooltip :text="isFriday ? 'Process all training commissions' : 'Payments are processed only on Fridays'">
+                  <template v-slot:activator="{ props }">
+                    <v-btn 
+                      v-bind="props"
+                      color="error" 
+                      prepend-icon="mdi-cash-multiple" 
+                      @click="payAllTrainingCommissions"
+                      :disabled="!isFriday"
+                    >
+                      Pay All
+                    </v-btn>
+                  </template>
+                </v-tooltip>
               </v-col>
             </v-row>
           </div>
 
           <v-card elevation="0">
             <v-card-title class="card-header pa-4">
-              <div class="d-flex align-center justify-space-between w-100">
-                <span class="section-title-compact error--text">Training Center Commissions</span>
-                <v-chip color="info" variant="tonal">
-                  <v-icon start size="small">mdi-cash</v-icon>
-                  $0.50/hour per trained caregiver
-                </v-chip>
-              </div>
+              <span class="section-title-compact error--text">Training Center Commissions</span>
             </v-card-title>
             <v-data-table 
               :headers="trainingCommissionHeaders" 
@@ -2604,15 +2862,30 @@
                     size="small" 
                     @click="viewTrainingCommissionDetails(item)"
                   ></v-btn>
-                  <v-btn 
-                    v-if="item.pending_commission > 0 && item.bank_connected" 
-                    class="action-btn-pay-now" 
-                    icon="mdi-cash-fast" 
-                    size="small" 
-                    color="success" 
-                    @click="payTrainingCommission(item)"
-                    :loading="item.paying"
-                  ></v-btn>
+                  <v-tooltip v-if="item.pending_commission > 0 && item.bank_connected && isFriday" text="Process Payment">
+                    <template v-slot:activator="{ props }">
+                      <v-btn 
+                        v-bind="props"
+                        class="action-btn-pay-now" 
+                        icon="mdi-cash-fast" 
+                        size="small" 
+                        color="success" 
+                        @click="payTrainingCommission(item)"
+                        :loading="item.paying"
+                      ></v-btn>
+                    </template>
+                  </v-tooltip>
+                  <v-tooltip v-else-if="item.pending_commission > 0 && item.bank_connected && !isFriday" text="Payments are processed only on Fridays">
+                    <template v-slot:activator="{ props }">
+                      <v-btn 
+                        v-bind="props"
+                        icon="mdi-cash-clock" 
+                        size="small" 
+                        color="grey" 
+                        disabled
+                      ></v-btn>
+                    </template>
+                  </v-tooltip>
                   <v-tooltip v-else-if="!item.bank_connected" text="Bank account not connected">
                     <template v-slot:activator="{ props }">
                       <v-btn v-bind="props" icon="mdi-bank-off" size="small" color="grey" disabled></v-btn>
@@ -3715,7 +3988,7 @@
     </v-dialog>
 
     <!-- Assign Caregiver Dialog -->
-    <v-dialog v-model="assignDialog" max-width="700">
+    <v-dialog v-model="assignDialog" max-width="1200" scrollable>
       <v-card class="assign-dialog-card">
         <v-card-title class="assign-dialog-header pa-6">
           <div class="d-flex align-center justify-space-between w-100">
@@ -3723,29 +3996,35 @@
               <span class="assign-dialog-title">Assign Caregivers</span>
               <div class="assign-dialog-subtitle">Select caregivers for this booking</div>
             </div>
-            <v-chip 
-              :color="assignSelectedCaregivers.length > (selectedBooking?.caregiversNeeded || 0) ? 'warning' : 'error'" 
-              size="large" 
-              class="font-weight-bold selection-counter"
-            >
-              {{ assignSelectedCaregivers.length }} / {{ selectedBooking?.caregiversNeeded || 0 }} Selected
-              <v-icon v-if="assignSelectedCaregivers.length > (selectedBooking?.caregiversNeeded || 0)" size="16" class="ml-1">mdi-alert</v-icon>
-            </v-chip>
-            <div v-if="assignSelectedCaregivers.length > (selectedBooking?.caregiversNeeded || 0)" class="text-warning text-caption mt-1">
-              <v-icon size="12" class="mr-1">mdi-information</v-icon>
-              Too many caregivers selected. This booking only needs {{ selectedBooking?.caregiversNeeded || 0 }}.
+            <div>
+              <v-chip 
+                :color="assignSelectedCaregivers.length > (customCaregiversNeeded || selectedBooking?.caregiversNeeded || 0) ? 'warning' : 'error'" 
+                size="large" 
+                class="font-weight-bold selection-counter"
+              >
+                {{ assignSelectedCaregivers.length }} / {{ customCaregiversNeeded || selectedBooking?.caregiversNeeded || 0 }} Selected
+                <v-icon v-if="assignSelectedCaregivers.length > (customCaregiversNeeded || selectedBooking?.caregiversNeeded || 0)" size="16" class="ml-1">mdi-alert</v-icon>
+              </v-chip>
+              <div v-if="assignSelectedCaregivers.length > (customCaregiversNeeded || selectedBooking?.caregiversNeeded || 0)" class="text-warning text-caption mt-1">
+                <v-icon size="12" class="mr-1">mdi-information</v-icon>
+                Too many caregivers selected. This booking needs {{ customCaregiversNeeded || selectedBooking?.caregiversNeeded || 0 }}.
+              </div>
             </div>
           </div>
         </v-card-title>
-        <v-card-text class="pa-6">
-          <div v-if="selectedBooking" class="booking-details-card mb-4">
-            <div class="booking-details-header">Booking Details</div>
+        <v-card-text class="pa-6" style="max-height: 70vh; overflow-y: auto;">
+          <v-container fluid>
+          <div v-if="selectedBooking" class="booking-details-card mb-6" style="background: #f5f5f5; border-radius: 12px; padding: 20px;">
+            <div class="text-h6 font-weight-bold mb-4" style="color: #d32f2f;">
+              <v-icon color="error" class="mr-2">mdi-information</v-icon>
+              Booking Details
+            </div>
             <v-row class="booking-details-content">
-              <v-col cols="6">
+              <v-col cols="12" md="3">
                 <div class="detail-item">
                   <v-icon color="error" size="16" class="mr-2">mdi-account</v-icon>
                   <span class="detail-label">Client:</span>
-                  <span class="detail-value">{{ selectedBooking.client }}</span>
+                  <span class="detail-value font-weight-bold">{{ selectedBooking.client }}</span>
                 </div>
                 <div class="detail-item">
                   <v-icon color="error" size="16" class="mr-2">mdi-calendar</v-icon>
@@ -3764,6 +4043,42 @@
                   <span class="detail-label">Duration:</span>
                   <span class="detail-value">{{ selectedBooking.duration }}</span>
                 </div>
+              </v-col>
+            </v-row>
+            
+            <!-- Customizable Caregivers Needed -->
+            <v-divider class="my-3" />
+            <v-row>
+              <v-col cols="12">
+                <v-alert color="info" variant="tonal" density="compact" class="mb-2">
+                  <div class="d-flex align-center">
+                    <v-icon size="18" class="mr-2">mdi-information</v-icon>
+                    <span class="text-caption">Recommended: <strong>{{ selectedBooking.caregiversNeeded }} caregiver(s)</strong> based on {{ selectedBooking.dutyType }}</span>
+                  </div>
+                </v-alert>
+                <v-text-field
+                  v-model.number="customCaregiversNeeded"
+                  label="Number of Caregivers Needed"
+                  type="number"
+                  variant="outlined"
+                  density="compact"
+                  min="1"
+                  max="10"
+                  prepend-inner-icon="mdi-account-multiple"
+                  hint="Customize the number of caregivers for this booking"
+                  persistent-hint
+                >
+                  <template v-slot:append-inner>
+                    <v-btn 
+                      size="x-small" 
+                      variant="text" 
+                      color="primary"
+                      @click="customCaregiversNeeded = selectedBooking.caregiversNeeded"
+                    >
+                      Reset
+                    </v-btn>
+                  </template>
+                </v-text-field>
               </v-col>
             </v-row>
           </div>
@@ -3797,6 +4112,102 @@
             </v-row>
           </div>
 
+          <!-- Assigned Hourly Rate Section -->
+          <v-card v-if="assignSelectedCaregivers.length > 0" elevation="0" class="mb-4" style="border: 2px solid #4caf50; border-radius: 8px;">
+            <v-card-title class="pa-4" style="background: #4caf50; color: white;">
+              <div class="d-flex align-center justify-space-between w-100">
+                <div class="d-flex align-center">
+                  <v-icon size="24" class="mr-2" color="white">mdi-cash-multiple</v-icon>
+                  <div>
+                    <div class="text-h6 font-weight-bold">Assign Hourly Rates</div>
+                    <div class="text-caption" style="opacity: 0.9;">
+                      Set rates within each caregiver's preferred range
+                    </div>
+                  </div>
+                </div>
+                <v-chip size="small" style="background: rgba(255,255,255,0.25); color: white;" class="font-weight-bold px-3">
+                  {{ assignSelectedCaregivers.length }} Selected
+                </v-chip>
+              </div>
+            </v-card-title>
+            
+            <v-card-text class="pa-4">
+              <v-row>
+                <!-- Rate input for each selected caregiver -->
+                <v-col v-for="caregiverId in assignSelectedCaregivers" :key="`rate-${caregiverId}`" cols="12" md="6">
+                  <v-card elevation="0" class="pa-3" style="border: 1px solid #e0e0e0; border-radius: 8px; background: #fafafa;">
+                    <div class="d-flex align-center mb-3">
+                      <v-avatar size="40" color="success" class="mr-3">
+                        <span class="text-white font-weight-bold">{{ getCaregiverById(caregiverId)?.name.split(' ').map(n => n[0]).join('') }}</span>
+                      </v-avatar>
+                      <div class="flex-grow-1">
+                        <div class="text-subtitle-2 font-weight-bold">{{ getCaregiverById(caregiverId)?.name }}</div>
+                        <div class="text-caption text-grey">
+                          Preferred: ${{ getCaregiverById(caregiverId)?.preferred_hourly_rate_min || 20 }}-${{ getCaregiverById(caregiverId)?.preferred_hourly_rate_max || 50 }}/hr
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <v-text-field
+                      v-model="assignedRates[caregiverId]"
+                      type="number"
+                      label="Hourly Rate"
+                      prefix="$"
+                      suffix="/hr"
+                      variant="outlined"
+                      density="compact"
+                      :min="getCaregiverById(caregiverId)?.preferred_hourly_rate_min || 20"
+                      :max="getCaregiverById(caregiverId)?.preferred_hourly_rate_max || 50"
+                      step="1"
+                      hide-details
+                      color="success"
+                      class="mb-2"
+                    />
+                    
+                    <!-- Profit Preview -->
+                    <div class="pa-2 mt-2" style="background: #e8f5e9; border-radius: 4px; border-left: 3px solid #4caf50;">
+                      <div class="text-caption">
+                        <div class="d-flex justify-space-between mb-1">
+                          <span class="text-grey-darken-1">Profit:</span>
+                          <span class="font-weight-bold" style="color: #2e7d32;">
+                            ${{ calculateProfit(caregiverId) }}
+                          </span>
+                        </div>
+                        <div class="text-grey" style="font-size: 10px;">
+                          (${{ selectedBooking?.hourlyRate || 45 }} - ${{ assignedRates[caregiverId] || 0 }}) × {{ selectedBooking?.hoursPerDay || 8 }}h × {{ selectedBooking?.durationDays || 1 }}d
+                        </div>
+                      </div>
+                    </div>
+                  </v-card>
+                </v-col>
+              </v-row>
+              
+              <!-- Total Profit Summary -->
+              <v-divider class="my-4" />
+              <v-card elevation="0" class="pa-3" style="background: linear-gradient(135deg, #e8f5e9 0%, #f1f8e9 100%); border-radius: 8px;">
+                <div class="d-flex align-center justify-space-between">
+                  <div class="d-flex align-center">
+                    <v-avatar size="40" color="success" class="mr-3">
+                      <v-icon size="20" color="white">mdi-chart-line</v-icon>
+                    </v-avatar>
+                    <div>
+                      <div class="text-caption text-grey-darken-1">TOTAL EARNINGS</div>
+                      <div class="text-h6 font-weight-bold" style="color: #2e7d32;">Total Agency Profit</div>
+                    </div>
+                  </div>
+                  <div class="text-right">
+                    <div class="text-h4 font-weight-bold" style="color: #2e7d32;">
+                      ${{ calculateTotalProfit() }}
+                    </div>
+                    <div class="text-caption text-grey">
+                      {{ selectedBooking?.durationDays || 0 }} days
+                    </div>
+                  </div>
+                </div>
+              </v-card>
+            </v-card-text>
+          </v-card>
+
           <div class="caregivers-list-container">
             <div v-for="caregiver in filteredAssignCaregivers" :key="caregiver.id" class="caregiver-assign-card">
               <div class="d-flex align-center justify-space-between">
@@ -3819,6 +4230,9 @@
                       <span class="mx-2">•</span>
                       <v-icon size="14" class="mr-1">mdi-map-marker</v-icon>
                       {{ caregiver.borough }}
+                      <span class="mx-2">•</span>
+                      <v-icon size="14" class="mr-1">mdi-cash</v-icon>
+                      ${{ caregiver.preferred_hourly_rate_min || 20 }}-${{ caregiver.preferred_hourly_rate_max || 50 }}/hr
                     </div>
                   </div>
                   <v-chip
@@ -3836,12 +4250,16 @@
               <div class="text-grey mt-2">No caregivers found</div>
             </div>
           </div>
+          </v-container>
         </v-card-text>
-        <v-card-actions class="pa-6 pt-0">
+        <v-card-actions class="pa-4" style="border-top: 1px solid #e0e0e0; background: #fafafa;">
           <v-spacer />
-          <v-btn color="grey" variant="outlined" @click="closeAssignDialog">Cancel</v-btn>
+          <v-btn color="grey" variant="text" @click="closeAssignDialog">
+            Cancel
+          </v-btn>
           <v-btn 
             color="error" 
+            variant="elevated"
             @click="confirmAssignCaregivers"
           >
             {{ assignSelectedCaregivers.length === 0 ? 'Unassign All' : `Assign ${assignSelectedCaregivers.length} Caregiver${assignSelectedCaregivers.length !== 1 ? 's' : ''}` }}
@@ -4072,6 +4490,41 @@
                       <span class="booking-detail-label">Email:</span>
                       <span class="booking-detail-value">{{ viewingBooking.referralCode.user.email }}</span>
                     </div>
+                  </v-col>
+                </v-row>
+              </div>
+            </v-col>
+          </v-row>
+
+          <!-- Assigned Caregivers Section -->
+          <v-row v-if="getAssignedCaregivers(viewingBooking.id).length > 0" class="mb-4">
+            <v-col cols="12">
+              <div class="booking-overview-card" style="border: 2px solid #4caf50;">
+                <div class="booking-overview-header">
+                  <v-icon color="success" size="24" class="mr-3">mdi-account-heart</v-icon>
+                  <span class="booking-overview-title">Assigned Caregivers</span>
+                  <v-chip size="small" color="success" class="ml-2">
+                    {{ getAssignedCaregivers(viewingBooking.id).length }} Active
+                  </v-chip>
+                </div>
+                <v-divider class="my-3" />
+                <v-row>
+                  <v-col v-for="caregiver in getAssignedCaregivers(viewingBooking.id)" :key="caregiver.id" cols="12" md="6">
+                    <v-card elevation="1" class="pa-3" style="border: 1px solid #e0e0e0; border-radius: 8px; background: #f9f9f9;">
+                      <div class="d-flex align-center">
+                        <v-avatar size="48" color="success" class="mr-3">
+                          <span class="text-white font-weight-bold">{{ caregiver.name.split(' ').map(n => n[0]).join('') }}</span>
+                        </v-avatar>
+                        <div class="flex-grow-1">
+                          <div class="text-subtitle-2 font-weight-bold">{{ caregiver.name }}</div>
+                          <div class="text-caption text-grey">{{ caregiver.email }}</div>
+                          <v-chip size="x-small" color="success" class="mt-1">
+                            <v-icon size="14" class="mr-1">mdi-cash</v-icon>
+                            ${{ caregiver.hourly_rate || caregiver.hourlyRate || 20 }}/hr
+                          </v-chip>
+                        </div>
+                      </div>
+                    </v-card>
                   </v-col>
                 </v-row>
               </div>
@@ -4615,6 +5068,10 @@
                                 <v-chip size="small" color="grey-lighten-2">
                                   <v-icon size="16" class="mr-1" style="color: #1a1a1a !important;">mdi-phone</v-icon>
                                   <span class="text-grey-darken-3">{{ caregiver.phone || '(646) 282-8282' }}</span>
+                                </v-chip>
+                                <v-chip size="small" color="success" variant="elevated">
+                                  <v-icon size="16" class="mr-1">mdi-cash</v-icon>
+                                  <span class="font-weight-bold">${{ caregiver.hourly_rate || caregiver.hourlyRate || 20 }}/hr</span>
                                 </v-chip>
                               </div>
                               
@@ -5811,6 +6268,11 @@ const loadUsers = async () => {
       verified: true
     }));
   } catch (error) {
+    console.error('Error loading users:', error);
+    // Set empty arrays to avoid undefined errors
+    users.value = [];
+    caregivers.value = [];
+    clients.value = [];
   }
 };
 
@@ -6588,6 +7050,8 @@ const selectedBooking = ref(null);
 const assignCaregiverSearch = ref('');
 const assignAvailabilityFilter = ref('Available');
 const assignSelectedCaregivers = ref([]);
+const assignedRates = ref({});
+const customCaregiversNeeded = ref(null);
 
 const paymentStats = ref([
   { title: 'Total Revenue', value: '$0', icon: 'mdi-currency-usd', color: 'success', change: '+15%', changeColor: 'success--text' },
@@ -6674,6 +7138,11 @@ const paymentConfirmDialog = ref(false);
 const caregiverPaymentDetailsDialog = ref(false);
 const selectedCaregiverPayment = ref(null);
 const selectedCaregiverPaymentDetails = ref(null);
+
+// Check if today is Friday (payout day)
+const isFriday = computed(() => {
+  return new Date().getDay() === 5; // 5 = Friday
+});
 
 const loadCaregiverPayments = async () => {
   try {
@@ -7098,6 +7567,7 @@ if (!response.ok) {
     updateCaregiverStatuses();
   } catch (error) {
     // Error loading bookings
+    console.error('Error loading bookings:', error);
     const errorInfo = {
       message: error.message,
       stack: error.stack,
@@ -8871,8 +9341,21 @@ const assignCaregiverDialog = async (booking) => {
   assignCaregiverSearch.value = '';
   assignAvailabilityFilter.value = 'Available';
   
+  // Initialize custom caregivers needed with booking's default value
+  customCaregiversNeeded.value = booking.caregiversNeeded;
+  
   // Load currently assigned caregivers for this booking
   assignSelectedCaregivers.value = caregiverAssignments.value[booking.id] || [];
+  
+  // Initialize assigned rates for selected caregivers with default values
+  assignedRates.value = {};
+  assignSelectedCaregivers.value.forEach(caregiverId => {
+    const caregiver = caregivers.value.find(c => c.id === caregiverId);
+    if (caregiver) {
+      // Default to minimum preferred rate
+      assignedRates.value[caregiverId] = caregiver.preferred_hourly_rate_min || 20;
+    }
+  });
   
   assignDialog.value = true;
 };
@@ -8880,23 +9363,53 @@ const assignCaregiverDialog = async (booking) => {
 const closeAssignDialog = () => {
   assignDialog.value = false;
   assignSelectedCaregivers.value = [];
+  assignedRates.value = {};
+  customCaregiversNeeded.value = null;
   selectedBooking.value = null;
 };
 
 const toggleCaregiverSelection = (caregiverId) => {
   const index = assignSelectedCaregivers.value.indexOf(caregiverId);
   if (index > -1) {
-    // Uncheck - remove from selection
+    // Uncheck - remove from selection and clear rate
     assignSelectedCaregivers.value.splice(index, 1);
+    delete assignedRates.value[caregiverId];
   } else {
     // Check - add to selection but validate limit
-    const maxNeeded = selectedBooking.value?.caregiversNeeded || 1;
+    const maxNeeded = customCaregiversNeeded.value || selectedBooking.value?.caregiversNeeded || 1;
     if (assignSelectedCaregivers.value.length >= maxNeeded) {
-      warning(`This booking only needs ${maxNeeded} caregiver${maxNeeded !== 1 ? 's' : ''}. Please unselect a caregiver first.`, 'Selection Limit Reached');
+      warning(`This booking needs ${maxNeeded} caregiver${maxNeeded !== 1 ? 's' : ''}. Please unselect a caregiver first or increase the number needed.`, 'Selection Limit Reached');
       return;
     }
     assignSelectedCaregivers.value.push(caregiverId);
+    
+    // Initialize rate for newly selected caregiver
+    const caregiver = caregivers.value.find(c => c.id === caregiverId);
+    if (caregiver) {
+      assignedRates.value[caregiverId] = caregiver.preferred_hourly_rate_min || 20;
+    }
   }
+};
+
+const getCaregiverById = (id) => {
+  return caregivers.value.find(c => c.id === id);
+};
+
+const calculateProfit = (caregiverId) => {
+  const rate = parseFloat(assignedRates.value[caregiverId] || 0);
+  const clientRate = parseFloat(selectedBooking.value?.hourlyRate || 45);
+  const hours = parseFloat(selectedBooking.value?.hoursPerDay || 8);
+  const days = parseFloat(selectedBooking.value?.durationDays || 1);
+  const profit = (clientRate - rate) * hours * days;
+  return profit.toFixed(2);
+};
+
+const calculateTotalProfit = () => {
+  let total = 0;
+  assignSelectedCaregivers.value.forEach(caregiverId => {
+    total += parseFloat(calculateProfit(caregiverId));
+  });
+  return total.toFixed(2);
 };
 
 const filteredAssignCaregivers = computed(() => {
@@ -8920,10 +9433,12 @@ const getAssignedCaregivers = (bookingId) => {
       id: assignment.caregiver_id,
       name: assignment.caregiver?.user?.name || 'Unknown',
       email: assignment.caregiver?.user?.email || 'Unknown',
-  phone: assignment.caregiver?.user?.phone || '(646) 282-8282',
+      phone: assignment.caregiver?.user?.phone || '(646) 282-8282',
       rating: assignment.caregiver?.rating || 5.0,
       status: 'Active',
-      borough: 'Manhattan'
+      borough: 'Manhattan',
+      hourly_rate: assignment.assigned_hourly_rate,
+      hourlyRate: assignment.assigned_hourly_rate
     }));
   }
   
@@ -9642,6 +10157,24 @@ const confirmAssignCaregivers = async () => {
   try {
     const bookingId = selectedBooking.value.id;
     
+    // Validate all rates are set
+    for (const caregiverId of assignSelectedCaregivers.value) {
+      if (!assignedRates.value[caregiverId]) {
+        error('Please assign hourly rate for all selected caregivers', 'Rate Required');
+        return;
+      }
+      
+      const caregiver = getCaregiverById(caregiverId);
+      const rate = parseFloat(assignedRates.value[caregiverId]);
+      const min = caregiver?.preferred_hourly_rate_min || 20;
+      const max = caregiver?.preferred_hourly_rate_max || 50;
+      
+      if (rate < min || rate > max) {
+        error(`Rate for ${caregiver?.name || 'caregiver'} must be between $${min} and $${max}`, 'Invalid Rate');
+        return;
+      }
+    }
+    
     // Save to database
     const response = await fetch(`/api/bookings/${bookingId}/assign`, {
       method: 'POST',
@@ -9650,7 +10183,10 @@ const confirmAssignCaregivers = async () => {
         'Accept': 'application/json',
         'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
       },
-      body: JSON.stringify({ caregiver_ids: assignSelectedCaregivers.value })
+      body: JSON.stringify({ 
+        caregiver_ids: assignSelectedCaregivers.value,
+        assigned_rates: assignedRates.value
+      })
     });
     
     const responseData = await response.json().catch(() => ({}));
@@ -9683,7 +10219,7 @@ const confirmAssignCaregivers = async () => {
       success('All caregivers unassigned from this booking.', 'Assignment Updated');
     } else {
       const statusText = booking.assignmentStatus === 'partial' ? 'partially assigned' : 'fully assigned';
-      success(`${assignSelectedCaregivers.value.length} caregiver(s) ${statusText} successfully!`, 'Assignment Complete');
+      success(`${assignSelectedCaregivers.value.length} caregiver(s) ${statusText} successfully with assigned rates!`, 'Assignment Complete');
     }
     
     // Refresh client bookings data
@@ -10215,6 +10751,209 @@ const initCharts = () => {
         }
       }
     });
+  }
+};
+
+// PDF Export Functions
+const exportCaregiverPaymentsPDF = () => {
+  try {
+    console.log('Exporting Caregiver Payments PDF...');
+    console.log('Data:', caregiverPayments.value);
+    console.log('Period:', salaryPeriodFilter.value);
+    
+    if (!window.jspdf) {
+      console.error('jsPDF library not loaded!');
+      alert('PDF library not loaded. Please refresh the page.');
+      return;
+    }
+    
+    if (!caregiverPayments.value || caregiverPayments.value.length === 0) {
+      console.warn('No caregiver payment data to export');
+      alert('No payment data available to export.');
+      return;
+    }
+    
+    generatePaymentPDF('Caregiver Payments', caregiverPayments.value, salaryPeriodFilter.value, [
+      'Date',
+      'Employee Name',
+      'Client Name',
+      'Total Hours',
+      'Total Payout'
+    ]);
+    
+    console.log('PDF exported successfully!');
+  } catch (error) {
+    console.error('Error exporting PDF:', error);
+    alert('Error generating PDF: ' + error.message);
+  }
+};
+
+const exportMarketingCommissionsPDF = () => {
+  try {
+    console.log('Exporting Marketing Commissions PDF...');
+    console.log('Data:', filteredMarketingCommissions.value);
+    console.log('Period:', marketingCommissionPeriodFilter.value);
+    
+    if (!window.jspdf) {
+      console.error('jsPDF library not loaded!');
+      alert('PDF library not loaded. Please refresh the page.');
+      return;
+    }
+    
+    if (!filteredMarketingCommissions.value || filteredMarketingCommissions.value.length === 0) {
+      console.warn('No marketing commission data to export');
+      alert('No commission data available to export.');
+      return;
+    }
+    
+    generatePaymentPDF('Marketing Commissions', filteredMarketingCommissions.value, marketingCommissionPeriodFilter.value, [
+      'Date',
+      'Marketing Staff',
+      'Client Name',
+      'Commission Amount',
+      'Status'
+    ]);
+    
+    console.log('PDF exported successfully!');
+  } catch (error) {
+    console.error('Error exporting PDF:', error);
+    alert('Error generating PDF: ' + error.message);
+  }
+};
+
+const exportTrainingCommissionsPDF = () => {
+  try {
+    console.log('Exporting Training Commissions PDF...');
+    console.log('Data:', filteredTrainingCommissions.value);
+    console.log('Period:', trainingCommissionPeriodFilter.value);
+    
+    if (!window.jspdf) {
+      console.error('jsPDF library not loaded!');
+      alert('PDF library not loaded. Please refresh the page.');
+      return;
+    }
+    
+    if (!filteredTrainingCommissions.value || filteredTrainingCommissions.value.length === 0) {
+      console.warn('No training commission data to export');
+      alert('No commission data available to export.');
+      return;
+    }
+    
+    generatePaymentPDF('Training Center Commissions', filteredTrainingCommissions.value, trainingCommissionPeriodFilter.value, [
+      'Date',
+      'Training Center',
+      'Caregiver Name',
+      'Commission Amount',
+      'Status'
+    ]);
+    
+    console.log('PDF exported successfully!');
+  } catch (error) {
+    console.error('Error exporting PDF:', error);
+    alert('Error generating PDF: ' + error.message);
+  }
+};
+
+const generatePaymentPDF = async (title, data, period, columns) => {
+  try {
+    // Prepare data for server-side PDF generation
+    const totalRecords = data.length;
+    
+    // Fix: Try multiple possible field names for hours
+    const totalHours = data.reduce((sum, item) => {
+      const hours = parseFloat(
+        item.hours_worked || 
+        item.hours || 
+        item.hoursWorked || 
+        item.hours_display?.replace(' hrs', '') || 
+        item.totalHours ||
+        0
+      );
+      return sum + hours;
+    }, 0);
+    
+    const totalPayout = data.reduce((sum, item) => sum + parseFloat(item.amount || item.total_commission || item.pending_commission || 0), 0);
+    const avgRate = totalHours > 0 ? (totalPayout / totalHours) : 0;
+    
+    // Format table data
+    const paymentData = [];
+    data.forEach(item => {
+      if (title.includes('Caregiver')) {
+        // Extract hours from various possible fields
+        const hoursValue = parseFloat(
+          item.hours_worked || 
+          item.hours || 
+          item.hoursWorked || 
+          item.hours_display?.replace(' hrs', '') || 
+          item.totalHours ||
+          0
+        );
+        
+        paymentData.push([
+          item.period || period,
+          item.caregiver || item.name || 'N/A',
+          'Various Clients',
+          `${hoursValue.toFixed(1)} hrs`,
+          `$${parseFloat(item.amount || 0).toFixed(2)}`
+        ]);
+      } else if (title.includes('Marketing')) {
+        paymentData.push([
+          period,
+          item.name || 'N/A',
+          'Multiple Bookings',
+          `$${parseFloat(item.total_commission || 0).toFixed(2)}`,
+          item.payment_status || 'Pending'
+        ]);
+      } else if (title.includes('Training')) {
+        paymentData.push([
+          period,
+          item.name || 'N/A',
+          `${item.caregivers_count || 0} caregivers`,
+          `$${parseFloat(item.total_commission || 0).toFixed(2)}`,
+          item.payment_status || 'Pending'
+        ]);
+      }
+    });
+    
+    const reportData = {
+      reportType: title,
+      period: period,
+      statusFilter: 'All',
+      totalRecords: totalRecords.toString(),
+      totalHours: Math.round(totalHours).toString(),
+      activeEmployees: totalRecords.toString(),
+      avgRate: avgRate.toFixed(1),
+      paymentData: paymentData,
+      columns: columns
+    };
+    
+    // Generate PDF using the server-side template
+    const response = await fetch('/api/reports/payment-pdf', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+      },
+      body: JSON.stringify(reportData)
+    });
+    
+    if (response.ok) {
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      
+      // Open in new window instead of download
+      window.open(url, '_blank');
+      
+      // Clean up after a delay
+      setTimeout(() => URL.revokeObjectURL(url), 100);
+      
+      console.log('PDF opened in new tab successfully');
+    } else {
+      throw new Error('Failed to generate PDF report');
+    }
+  } catch (error) {
+    console.error('Error generating PDF:', error);
+    alert('Failed to generate PDF: ' + error.message);
   }
 };
 
@@ -13054,6 +13793,33 @@ setInterval(() => {
 .day-card-modern.day-selected:hover {
   box-shadow: 0 12px 32px rgba(25, 118, 210, 0.5) !important;
   transform: translateY(-6px);
+}
+
+/* PDF Export Button Animation */
+.v-btn.v-btn--elevated {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.v-btn.v-btn--elevated:hover {
+  transform: translateY(-2px) scale(1.02) !important;
+  box-shadow: 0 8px 24px rgba(34, 197, 94, 0.4) !important;
+}
+
+.v-btn.v-btn--elevated:active {
+  transform: translateY(0) scale(0.98) !important;
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  }
+  50% {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06), 0 0 20px rgba(34, 197, 94, 0.3);
+  }
+}
+
+.v-btn.v-btn--elevated.bg-success {
+  animation: pulse-glow 2s ease-in-out infinite;
 }
 
 </style>

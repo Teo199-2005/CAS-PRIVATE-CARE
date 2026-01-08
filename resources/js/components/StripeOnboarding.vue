@@ -34,8 +34,9 @@
               <div class="payment-info-item">
                 <v-icon color="primary" class="mr-2">mdi-cash-multiple</v-icon>
                 <div>
-                  <div class="text-caption text-grey">Hourly Rate</div>
-                  <div class="font-weight-bold">$28.00/hour</div>
+                  <div class="text-caption text-grey">Your Preferred Rate</div>
+                  <div class="font-weight-bold">$20 - $50/hour</div>
+                  <div class="text-caption text-grey-darken-1">Admin assigns actual rate per booking</div>
                 </div>
               </div>
             </v-col>

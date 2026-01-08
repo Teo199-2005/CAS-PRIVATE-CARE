@@ -21,7 +21,8 @@ class BookingAssignment extends Model
         'is_active',
         'start_date',
         'end_date',
-        'expected_days'
+        'expected_days',
+        'assigned_hourly_rate'
     ];
 
     protected $casts = [
@@ -30,7 +31,8 @@ class BookingAssignment extends Model
         'end_time' => 'datetime',
         'start_date' => 'date',
         'end_date' => 'date',
-        'is_active' => 'boolean'
+        'is_active' => 'boolean',
+        'assigned_hourly_rate' => 'decimal:2'
     ];
 
     public function booking()

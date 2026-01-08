@@ -39,6 +39,7 @@ class Booking extends Model
         'special_instructions',
         'status',
         'assignment_status',
+        'assigned_hourly_rate',
         'submitted_at',
         'referral_code_id',
         'referral_discount_applied',

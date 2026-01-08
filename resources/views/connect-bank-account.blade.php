@@ -14,7 +14,7 @@
     
     <script>
         // Pass user role to Vue component
-        window.userRole = '{{ auth()->user()->user_type }}';
+        window.userRole = '{{ auth()->check() ? auth()->user()->user_type : "guest" }}';
     </script>
 </body>
 </html>

@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Test - Admin Dashboard</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        h1 { color: #333; }
+        .test-section { margin: 30px 0; padding: 20px; border: 1px solid #ddd; border-radius: 5px; }
+        .success { background-color: #d4edda; border-color: #c3e6cb; }
+        .error { background-color: #f8d7da; border-color: #f5c6cb; }
+        pre { background: #f4f4f4; padding: 15px; overflow-x: auto; border-radius: 3px; }
+        button { padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        button:hover { background: #0056b3; }
+    </style>
+</head>
+<body>
+    <h1>🔍 Admin Dashboard API Diagnostic</h1>
+    
+    <div class="test-section">
+        <h2>Test 1: Check /api/admin/users</h2>
+        <button onclick="testUsers()">Run Test</button>
+        <div id="users-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Test 2: Check /api/admin/bookings</h2>
+        <button onclick="testBookings()">Run Test</button>
+        <div id="bookings-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Test 3: Check Authentication</h2>
+        <button onclick="testAuth()">Run Test</button>
+        <div id="auth-result"></div>
+    </div>
+
+    <script>
+        async function testUsers() {
+            const resultDiv = document.getElementById('users-result');
+            resultDiv.innerHTML = '<p>Loading...</p>';
+            
+            try {
+                const response = await fetch('/api/admin/users', {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    credentials: 'same-origin'
+                });
+
+                const data = await response.json();
+                
+                let html = `<p>✅ <strong>Status:</strong> ${response.status} ${response.statusText}</p>`;
+                html += `<p><strong>Total Users:</strong> ${data.users?.length || 0}</p>`;
+                
+                if (data.users) {
+                    const caregivers = data.users.filter(u => u.type === 'Caregiver');
+                    const clients = data.users.filter(u => u.type === 'Client');
+                    const admins = data.users.filter(u => u.type === 'Admin');
+                    
+                    html += `<p><strong>Breakdown:</strong></p>`;
+                    html += `<ul>`;
+                    html += `<li>Caregivers: ${caregivers.length}</li>`;
+                    html += `<li>Clients: ${clients.length}</li>`;
+                    html += `<li>Admins: ${admins.length}</li>`;
+                    html += `</ul>`;
+                    
+                    html += `<p><strong>Sample Data (first 3 users):</strong></p>`;
+                    html += `<pre>${JSON.stringify(data.users.slice(0, 3), null, 2)}</pre>`;
+                } else {
+                    html += `<p class="error">❌ No users array in response</p>`;
+                }
+                
+                resultDiv.innerHTML = html;
+                resultDiv.parentElement.classList.add('success');
+            } catch (error) {
+                resultDiv.innerHTML = `<p class="error">❌ <strong>Error:</strong> ${error.message}</p>`;
+                resultDiv.parentElement.classList.add('error');
+            }
+        }
+
+        async function testBookings() {
+            const resultDiv = document.getElementById('bookings-result');
+            resultDiv.innerHTML = '<p>Loading...</p>';
+            
+            try {
+                const response = await fetch('/api/admin/bookings', {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    credentials: 'same-origin'
+                });
+
+                const data = await response.json();
+                
+                let html = `<p>✅ <strong>Status:</strong> ${response.status} ${response.statusText}</p>`;
+                html += `<p><strong>Success:</strong> ${data.success ? 'Yes' : 'No'}</p>`;
+                html += `<p><strong>Total Bookings:</strong> ${data.data?.length || 0}</p>`;
+                
+                if (data.data && data.data.length > 0) {
+                    html += `<p><strong>Sample Booking:</strong></p>`;
+                    html += `<pre>${JSON.stringify(data.data[0], null, 2)}</pre>`;
+                } else {
+                    html += `<p>⚠️ No bookings found</p>`;
+                }
+                
+                resultDiv.innerHTML = html;
+                resultDiv.parentElement.classList.add('success');
+            } catch (error) {
+                resultDiv.innerHTML = `<p class="error">❌ <strong>Error:</strong> ${error.message}</p>`;
+                resultDiv.parentElement.classList.add('error');
+            }
+        }
+
+        async function testAuth() {
+            const resultDiv = document.getElementById('auth-result');
+            resultDiv.innerHTML = '<p>Loading...</p>';
+            
+            try {
+                const response = await fetch('/api/profile?user_type=admin', {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    credentials: 'same-origin'
+                });
+
+                const data = await response.json();
+                
+                let html = `<p>✅ <strong>Status:</strong> ${response.status} ${response.statusText}</p>`;
+                html += `<p><strong>Authenticated:</strong> ${response.status === 200 ? 'Yes' : 'No'}</p>`;
+                html += `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+                
+                resultDiv.innerHTML = html;
+                resultDiv.parentElement.classList.add('success');
+            } catch (error) {
+                resultDiv.innerHTML = `<p class="error">❌ <strong>Error:</strong> ${error.message}</p>`;
+                resultDiv.parentElement.classList.add('error');
+            }
+        }
+    </script>
+</body>
+</html>

@@ -106,6 +106,7 @@ class AdminController extends Controller
                             'caregiver_id' => $assignment->caregiver_id,
                             'booking_id' => $assignment->booking_id,
                             'status' => $assignment->status,
+                            'assigned_hourly_rate' => $assignment->assigned_hourly_rate,
                             'caregiver' => $assignment->caregiver ? [
                                 'id' => $assignment->caregiver->id,
                                 'user' => $assignment->caregiver->user ? [
@@ -719,7 +720,9 @@ class AdminController extends Controller
     public function assignCaregivers(Request $request, $bookingId)
     {
         $validated = $request->validate([
-            'caregiver_ids' => 'required|array'
+            'caregiver_ids' => 'required|array',
+            'assigned_rates' => 'required|array',
+            'assigned_rates.*' => 'required|numeric|min:20|max:50'
         ]);
 
         // Validate booking exists
@@ -728,10 +731,29 @@ class AdminController extends Controller
             return response()->json(['success' => false, 'message' => 'Booking not found'], 404);
         }
 
-        // Validate caregivers exist
-        $validCaregiverIds = \App\Models\Caregiver::whereIn('id', $validated['caregiver_ids'])->pluck('id')->toArray();
-        if (count($validCaregiverIds) !== count($validated['caregiver_ids'])) {
-            return response()->json(['success' => false, 'message' => 'One or more caregivers not found'], 404);
+        // Validate caregivers exist and rates are within their preferred range
+        foreach ($validated['caregiver_ids'] as $caregiverId) {
+            $caregiver = \App\Models\Caregiver::find($caregiverId);
+            if (!$caregiver) {
+                return response()->json(['success' => false, 'message' => "Caregiver ID {$caregiverId} not found"], 404);
+            }
+            
+            // Validate rate is within caregiver's preferred range
+            $assignedRate = $validated['assigned_rates'][$caregiverId] ?? null;
+            if (!$assignedRate) {
+                return response()->json(['success' => false, 'message' => "Assigned rate required for caregiver ID {$caregiverId}"], 422);
+            }
+            
+            $min = $caregiver->preferred_hourly_rate_min ?? 20;
+            $max = $caregiver->preferred_hourly_rate_max ?? 50;
+            
+            if ($assignedRate < $min || $assignedRate > $max) {
+                $caregiverName = $caregiver->user->name ?? "Caregiver {$caregiverId}";
+                return response()->json([
+                    'success' => false, 
+                    'message' => "Rate \${$assignedRate} is outside {$caregiverName}'s preferred range (\${$min} - \${$max})"
+                ], 422);
+            }
         }
 
         // Delete existing assignments
@@ -753,6 +775,9 @@ class AdminController extends Controller
                 // First caregiver is active, others are pending
                 $isActive = ($order === 1);
                 
+                // Get assigned rate for this caregiver
+                $assignedRate = $validated['assigned_rates'][$caregiverId];
+                
                 DB::table('booking_assignments')->insert([
                     'booking_id' => $bookingId,
                     'caregiver_id' => $caregiverId,
@@ -763,8 +788,16 @@ class AdminController extends Controller
                     'start_date' => $startDate->format('Y-m-d'),
                     'end_date' => $endDate->format('Y-m-d'),
                     'expected_days' => $daysPerCaregiver,
+                    'assigned_hourly_rate' => $assignedRate,
                     'created_at' => now(),
                     'updated_at' => now()
+                ]);
+            }
+            
+            // Update booking's assigned_hourly_rate if single caregiver
+            if (count($validated['caregiver_ids']) === 1) {
+                $booking->update([
+                    'assigned_hourly_rate' => $validated['assigned_rates'][$validated['caregiver_ids'][0]]
                 ]);
             }
         }
@@ -1314,7 +1347,7 @@ class AdminController extends Controller
         $completedBookings = Booking::where('status', 'completed')->get();
         $totalRevenue = $completedBookings->sum(function($booking) {
             $hours = $this->extractHours($booking->duty_type);
-            $rate = $booking->hourly_rate ?: 45;
+            $rate = $booking->hourly_rate ?: 45; // Client rate for revenue
             return $hours * $booking->duration_days * $rate;
         });
         
@@ -1322,7 +1355,7 @@ class AdminController extends Controller
         $pendingBookings = Booking::whereIn('status', ['approved', 'confirmed'])->get();
         $pendingPayments = $pendingBookings->sum(function($booking) {
             $hours = $this->extractHours($booking->duty_type);
-            $rate = $booking->hourly_rate ?: 45;
+            $rate = $booking->hourly_rate ?: 45; // Client rate for revenue
             return $hours * $booking->duration_days * $rate;
         });
         $pendingCount = $pendingBookings->count();
@@ -1382,7 +1415,7 @@ class AdminController extends Controller
             
             $transactions = $bookings->map(function($b) {
                 $hours = $this->extractHours($b->duty_type);
-                $amount = $hours * $b->duration_days * ($b->hourly_rate ?: 45);
+                $amount = $hours * $b->duration_days * ($b->hourly_rate ?: 45); // Client payment amount
                 return [
                     'id' => $b->id,
                     'date' => \Carbon\Carbon::parse($b->updated_at)->format('Y-m-d'),
@@ -1412,7 +1445,7 @@ class AdminController extends Controller
         
         $payments = $bookings->map(function($b) {
             $hours = $this->extractHours($b->duty_type);
-            $amount = $hours * $b->duration_days * ($b->hourly_rate ?: 45);
+            $amount = $hours * $b->duration_days * ($b->hourly_rate ?: 45); // Client payment amount
             $dueDate = \Carbon\Carbon::parse($b->service_date);
             $isPast = $dueDate->isPast();
             
@@ -1545,7 +1578,7 @@ class AdminController extends Controller
 
             // Create Stripe payout
             try {
-                $stripe = new \Stripe\StripeClient(config('services.stripe.secret'));
+                $stripe = new \Stripe\StripeClient(config('stripe.secret'));
                 $payout = $stripe->transfers->create([
                     'amount' => intval($validated['amount'] * 100), // Convert to cents
                     'currency' => 'usd',
@@ -1687,7 +1720,7 @@ class AdminController extends Controller
         
         try {
             // Transfer via Stripe Connect
-            \Stripe\Stripe::setApiKey(config('services.stripe.secret'));
+            \Stripe\Stripe::setApiKey(config('stripe.secret'));
             
             $transfer = \Stripe\Transfer::create([
                 'amount' => (int)($pendingCommission * 100), // Convert to cents
@@ -1807,7 +1840,7 @@ class AdminController extends Controller
         
         try {
             // Transfer via Stripe Connect
-            \Stripe\Stripe::setApiKey(config('services.stripe.secret'));
+            \Stripe\Stripe::setApiKey(config('stripe.secret'));
             
             $transfer = \Stripe\Transfer::create([
                 'amount' => (int)($pendingCommission * 100), // Convert to cents

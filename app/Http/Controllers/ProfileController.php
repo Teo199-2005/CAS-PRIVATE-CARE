@@ -138,7 +138,15 @@ class ProfileController extends Controller
                 'department' => 'nullable|string',
                 'role' => 'nullable|string',
                 'ssn' => ['nullable', new \App\Rules\ValidSSN, 'max:11'],
-                'itin' => ['nullable', new \App\Rules\ValidITIN, 'max:11']
+                'itin' => ['nullable', new \App\Rules\ValidITIN, 'max:11'],
+                'hasHHA' => 'nullable|boolean',
+                'hhaNumber' => 'nullable|string|max:255',
+                'hasCNA' => 'nullable|boolean',
+                'cnaNumber' => 'nullable|string|max:255',
+                'hasRN' => 'nullable|boolean',
+                'rnNumber' => 'nullable|string|max:255',
+                'preferredHourlyRateMin' => 'nullable|numeric|min:20|max:50',
+                'preferredHourlyRateMax' => 'nullable|numeric|min:20|max:50'
             ];
             
             // Only validate file if it's actually being uploaded
@@ -293,6 +301,18 @@ class ProfileController extends Controller
             \Log::info('Setting training_certificate in caregiver data:', ['path' => $validated['training_certificate']]);
         }
         
+        // Add certification fields
+        if (isset($validated['hasHHA'])) $caregiverData['has_hha'] = $validated['hasHHA'];
+        if (isset($validated['hhaNumber'])) $caregiverData['hha_number'] = $validated['hhaNumber'];
+        if (isset($validated['hasCNA'])) $caregiverData['has_cna'] = $validated['hasCNA'];
+        if (isset($validated['cnaNumber'])) $caregiverData['cna_number'] = $validated['cnaNumber'];
+        if (isset($validated['hasRN'])) $caregiverData['has_rn'] = $validated['hasRN'];
+        if (isset($validated['rnNumber'])) $caregiverData['rn_number'] = $validated['rnNumber'];
+        
+        // Add preferred salary range
+        if (isset($validated['preferredHourlyRateMin'])) $caregiverData['preferred_hourly_rate_min'] = $validated['preferredHourlyRateMin'];
+        if (isset($validated['preferredHourlyRateMax'])) $caregiverData['preferred_hourly_rate_max'] = $validated['preferredHourlyRateMax'];
+        
         if (!empty($caregiverData)) {
             \Log::info('Updating caregiver with data:', $caregiverData);
             $user->caregiver->update($caregiverData);
@@ -323,6 +343,7 @@ class ProfileController extends Controller
             ]);
             
             return response()->json([
+                'success' => true,
                 'message' => 'Profile updated successfully!', 
                 'user' => $user->fresh(),
                 'caregiver' => $caregiver ? [

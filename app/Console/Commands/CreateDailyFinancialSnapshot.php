@@ -59,8 +59,8 @@ class CreateDailyFinancialSnapshot extends Command
         $stripeReconciled = false;
         
         try {
-            if (config('services.stripe.secret')) {
-                $stripe = new \Stripe\StripeClient(config('services.stripe.secret'));
+            if (config('stripe.secret')) {
+                $stripe = new \Stripe\StripeClient(config('stripe.secret'));
                 $balance = $stripe->balance->retrieve();
                 $stripeBalance = $balance->available[0]->amount / 100; // Convert from cents
                 $stripePending = $balance->pending[0]->amount / 100;

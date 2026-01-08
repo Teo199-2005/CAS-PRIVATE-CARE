@@ -242,7 +242,7 @@ Route::get('/client/dashboard', function () {
                 if (preg_match('/(\d+)\s*Hours?/i', $booking->duty_type, $matches)) {
                     $hours = (int)$matches[1];
                 }
-                $rate = $booking->hourly_rate ?: 45;
+                $rate = $booking->assigned_hourly_rate ?: 28;
                 $amount = $hours * $booking->duration_days * $rate;
                 $platformFee = $amount * 0.10;
                 $caregiverAmount = $amount * 0.90;
@@ -250,7 +250,7 @@ Route::get('/client/dashboard', function () {
                 // Try to verify with Stripe if payment_intent provided
                 if ($paymentIntentId) {
                     try {
-                        $stripe = new \Stripe\StripeClient(config('services.stripe.secret'));
+                        $stripe = new \Stripe\StripeClient(config('stripe.secret'));
                         $paymentIntent = $stripe->paymentIntents->retrieve($paymentIntentId);
                         
                         if ($paymentIntent->status === 'succeeded') {
@@ -365,6 +365,11 @@ Route::get('/caregiver/dashboard-vue', function () {
         return view('stripe-connect-onboarding');
     })->name('stripe.connect.onboarding');
     
+    // API Test Page (for debugging)
+    Route::get('/api-test', function () {
+        return view('api-test');
+    })->name('api.test');
+
     // Admin Dashboard - accessible by admins only
 Route::get('/admin/dashboard-vue', function () {
         $user = auth()->user();
@@ -710,7 +715,7 @@ Route::prefix('api')->middleware(['web', 'auth'])->group(function () {
                 'status' => $tt->payment_status === 'paid' ? 'Completed' : 'Pending',
                 'method' => $tt->payment_status === 'paid' ? 'Bank Transfer' : 'N/A',
                 'hours_worked' => round($tt->hours_worked ?? 0, 2),
-                'hourly_rate' => 28.00,
+                'hourly_rate' => $tt->assigned_hourly_rate ?? 28.00,
                 'client_name' => $clientName,
                 'work_date' => $tt->work_date,
                 'paid_at' => $tt->paid_at ? $tt->paid_at->format('M d, Y') : null,
@@ -723,7 +728,7 @@ Route::prefix('api')->middleware(['web', 'auth'])->group(function () {
             'pending_earnings' => number_format($pendingEarnings, 2),
             'last_payment_amount' => number_format($lastPaymentAmount, 2),
             'last_payment_date' => $lastPaymentDateFormatted,
-            'account_balance' => number_format($weeklyEarnings, 2),
+            'account_balance' => number_format($pendingEarnings, 2), // Total pending, not just weekly
             'next_payout_date' => $nextFriday->format('M d, Y'),
             'payout_frequency' => 'Weekly',
             'payout_method' => $stripeConnected ? 'Bank Transfer (Stripe)' : 'Not Connected',
@@ -1492,7 +1497,7 @@ Route::middleware(['auth'])->prefix('api')->group(function () {
             if (preg_match('/(\d+)\s*Hours?/i', $booking->duty_type, $matches)) {
                 $hours = (int)$matches[1];
             }
-            $rate = $booking->hourly_rate ?: 45;
+            $rate = $booking->assigned_hourly_rate ?: 28;
             $amount = $hours * $booking->duration_days * $rate;
             
             // Platform fee calculation (10%)

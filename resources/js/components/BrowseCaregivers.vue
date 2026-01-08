@@ -260,6 +260,16 @@
                 <div class="stat-label">Certifications</div>
               </div>
             </div>
+            <div class="stat-card">
+              <v-icon color="grey-darken-1" size="28">mdi-cash</v-icon>
+              <div class="stat-content">
+                <div class="stat-value">
+                  ${{ selectedCaregiver.preferred_hourly_rate_min || 20 }} - 
+                  ${{ selectedCaregiver.preferred_hourly_rate_max || 50 }}
+                </div>
+                <div class="stat-label">Hourly Rate Range</div>
+              </div>
+            </div>
           </div>
           
           <!-- Reviews Section -->

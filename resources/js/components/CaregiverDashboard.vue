@@ -58,7 +58,20 @@
               </v-card>
             </v-col>
             <v-col v-for="stat in stats" :key="stat.title" cols="6" sm="6" md="3">
-              <stat-card :icon="stat.icon" :value="stat.value" :label="stat.title" :change="stat.change" :change-color="stat.changeColor" :change-icon="stat.changeIcon" icon-class="success" />
+              <div 
+                :class="stat.clickable ? 'cursor-pointer' : ''"
+                @click="stat.onClick ? stat.onClick() : null"
+              >
+                <stat-card 
+                  :icon="stat.icon" 
+                  :value="stat.value" 
+                  :label="stat.title" 
+                  :change="stat.change" 
+                  :change-color="stat.changeColor" 
+                  :change-icon="stat.changeIcon" 
+                  icon-class="success" 
+                />
+              </div>
             </v-col>
           </v-row>
 
@@ -160,13 +173,6 @@
                             <span class="summary-label-compact">Previous Payout</span>
                             <span class="summary-value-compact info--text">${{ previousWeekPayout }} - {{ previousPayoutDate }}</span>
                           </div>
-                        </div>
-                      </div>
-                      <div>
-                        <v-divider class="my-2" />
-                        <div class="summary-item-compact">
-                          <span class="summary-label-compact">Earnings Rate</span>
-                          <span class="summary-value-compact font-weight-bold">$28.00/hr</span>
                         </div>
                       </div>
                     </v-card-text>
@@ -542,7 +548,7 @@
                   <v-divider class="my-4" />
                   
                   <!-- Automatic Payout Information -->
-                  <div v-if="pendingEarnings > 0" class="mt-4">
+                  <div v-if="parseFloat(pendingEarnings) > 0" class="mt-4">
                     <v-alert type="info" variant="tonal" density="compact" color="blue">
                       <div class="text-body-2">
                         <v-icon icon="mdi-information" size="small" class="mr-2"></v-icon>
@@ -730,14 +736,24 @@
               </v-card>
             </v-col>
             <v-col cols="12" md="3">
-              <v-card elevation="0" class="stat-card-earnings">
+              <v-card 
+                elevation="2" 
+                class="stat-card-earnings cursor-pointer hover-highlight"
+                @click="salaryRangeDialog = true"
+                style="transition: all 0.3s ease;"
+              >
                 <v-card-text class="pa-4">
                   <div class="d-flex align-center justify-space-between">
                     <div>
-                      <div class="text-caption text-grey">Hourly Rate</div>
-                      <div class="text-h5 font-weight-bold warning--text">${{ earningsReportData.hourlyRate }}</div>
+                      <div class="text-caption text-grey d-flex align-center">
+                        Preferred Salary Range
+                        <v-icon size="small" color="warning" class="ml-1">mdi-pencil</v-icon>
+                      </div>
+                      <div class="text-h5 font-weight-bold warning--text">
+                        {{ salaryRange.min && salaryRange.max ? `$${salaryRange.min} - $${salaryRange.max}` : 'Not Set' }}
+                      </div>
                       <div class="text-caption text-grey">
-                        Standard contractor rate
+                        {{ salaryRange.min && salaryRange.max ? 'Click to update' : 'Click to set your rate' }}
                       </div>
                     </div>
                     <v-avatar color="warning" size="48" variant="tonal">
@@ -787,13 +803,13 @@
                   
                   <div class="earnings-breakdown-detail mb-3">
                     <div class="d-flex justify-space-between">
-                      <span class="text-grey">Regular Hours ({{ earningsReportData.regularHours }} hrs × $28)</span>
+                      <span class="text-grey">Regular Hours ({{ earningsReportData.regularHours }} hrs)</span>
                       <span>${{ earningsReportData.regularEarnings }}</span>
                     </div>
                   </div>
                   <div class="earnings-breakdown-detail mb-3">
                     <div class="d-flex justify-space-between">
-                      <span class="text-grey">Overtime Hours ({{ earningsReportData.overtimeHours }} hrs × $42)</span>
+                      <span class="text-grey">Overtime Hours ({{ earningsReportData.overtimeHours }} hrs)</span>
                       <span>${{ earningsReportData.overtimeEarnings }}</span>
                     </div>
                   </div>
@@ -1060,6 +1076,130 @@
                       <v-checkbox v-model="isCustomTrainingCenter" label="Custom Training Center" density="compact" hide-details />
                     </v-col>
 
+                    <!-- Professional Certifications -->
+                    <v-col cols="12">
+                      <v-divider class="my-4" />
+                      <div class="d-flex align-center mb-4 mt-2">
+                        <v-icon color="success" size="28" class="mr-3">mdi-certificate</v-icon>
+                        <div>
+                          <h3 class="text-h6 font-weight-bold mb-1">Professional Certifications</h3>
+                          <p class="text-caption text-grey-darken-1 ma-0">Enhance your profile by adding professional credentials</p>
+                        </div>
+                        <v-chip size="small" color="blue-grey-lighten-4" class="ml-auto">Optional</v-chip>
+                      </div>
+                    </v-col>
+                    
+                    <!-- HHA Certification Card -->
+                    <v-col cols="12" md="4">
+                      <v-card 
+                        :elevation="profile.hasHHA ? 8 : 2" 
+                        :color="profile.hasHHA ? 'success' : 'grey-lighten-4'"
+                        class="pa-4 h-100 transition-swing cursor-pointer"
+                        hover
+                        @click="profile.hasHHA = !profile.hasHHA"
+                      >
+                        <div class="d-flex align-center justify-space-between">
+                          <div class="d-flex align-center">
+                            <v-icon 
+                              :color="profile.hasHHA ? 'white' : 'success'" 
+                              size="40" 
+                              class="mr-3"
+                            >
+                              mdi-hospital-box
+                            </v-icon>
+                            <div>
+                              <div :class="profile.hasHHA ? 'text-white font-weight-bold text-h6' : 'font-weight-bold text-h6'">
+                                HHA
+                              </div>
+                              <div :class="profile.hasHHA ? 'text-white text-body-2' : 'text-grey-darken-2 text-body-2'">
+                                Home Health Aide
+                              </div>
+                            </div>
+                          </div>
+                          <v-icon 
+                            :color="profile.hasHHA ? 'white' : 'success'" 
+                            size="32"
+                          >
+                            {{ profile.hasHHA ? 'mdi-checkbox-marked-circle' : 'mdi-checkbox-blank-circle-outline' }}
+                          </v-icon>
+                        </div>
+                      </v-card>
+                    </v-col>
+                    
+                    <!-- CNA Certification Card -->
+                    <v-col cols="12" md="4">
+                      <v-card 
+                        :elevation="profile.hasCNA ? 8 : 2" 
+                        :color="profile.hasCNA ? 'success' : 'grey-lighten-4'"
+                        class="pa-4 h-100 transition-swing cursor-pointer"
+                        hover
+                        @click="profile.hasCNA = !profile.hasCNA"
+                      >
+                        <div class="d-flex align-center justify-space-between">
+                          <div class="d-flex align-center">
+                            <v-icon 
+                              :color="profile.hasCNA ? 'white' : 'success'" 
+                              size="40" 
+                              class="mr-3"
+                            >
+                              mdi-stethoscope
+                            </v-icon>
+                            <div>
+                              <div :class="profile.hasCNA ? 'text-white font-weight-bold text-h6' : 'font-weight-bold text-h6'">
+                                CNA
+                              </div>
+                              <div :class="profile.hasCNA ? 'text-white text-body-2' : 'text-grey-darken-2 text-body-2'">
+                                Certified Nursing Assistant
+                              </div>
+                            </div>
+                          </div>
+                          <v-icon 
+                            :color="profile.hasCNA ? 'white' : 'success'" 
+                            size="32"
+                          >
+                            {{ profile.hasCNA ? 'mdi-checkbox-marked-circle' : 'mdi-checkbox-blank-circle-outline' }}
+                          </v-icon>
+                        </div>
+                      </v-card>
+                    </v-col>
+                    
+                    <!-- RN Certification Card -->
+                    <v-col cols="12" md="4">
+                      <v-card 
+                        :elevation="profile.hasRN ? 8 : 2" 
+                        :color="profile.hasRN ? 'success' : 'grey-lighten-4'"
+                        class="pa-4 h-100 transition-swing cursor-pointer"
+                        hover
+                        @click="profile.hasRN = !profile.hasRN"
+                      >
+                        <div class="d-flex align-center justify-space-between">
+                          <div class="d-flex align-center">
+                            <v-icon 
+                              :color="profile.hasRN ? 'white' : 'success'" 
+                              size="40" 
+                              class="mr-3"
+                            >
+                              mdi-medical-bag
+                            </v-icon>
+                            <div>
+                              <div :class="profile.hasRN ? 'text-white font-weight-bold text-h6' : 'font-weight-bold text-h6'">
+                                RN
+                              </div>
+                              <div :class="profile.hasRN ? 'text-white text-body-2' : 'text-grey-darken-2 text-body-2'">
+                                Registered Nurse
+                              </div>
+                            </div>
+                          </div>
+                          <v-icon 
+                            :color="profile.hasRN ? 'white' : 'success'" 
+                            size="32"
+                          >
+                            {{ profile.hasRN ? 'mdi-checkbox-marked-circle' : 'mdi-checkbox-blank-circle-outline' }}
+                          </v-icon>
+                        </div>
+                      </v-card>
+                    </v-col>
+
                     <v-col cols="12">
                       <v-textarea v-model="profile.bio" label="Bio" variant="outlined" rows="4" />
                     </v-col>
@@ -1273,6 +1413,72 @@
       </v-card>
     </v-dialog>
 
+    <!-- Salary Range Modal -->
+    <v-dialog v-model="salaryRangeDialog" max-width="500">
+      <v-card>
+        <v-card-title class="text-h5 bg-success text-white">
+          <v-icon class="mr-2">mdi-cash</v-icon>
+          Preferred Salary Range
+        </v-card-title>
+        <v-card-text class="pt-4">
+          <p class="text-body-1 mb-4">Set your preferred hourly rate range ($20 - $50)</p>
+          
+          <v-row>
+            <v-col cols="12" md="6">
+              <v-text-field
+                v-model.number="salaryRange.min"
+                label="Minimum Rate"
+                type="number"
+                prefix="$"
+                suffix="/hr"
+                variant="outlined"
+                :rules="[
+                  v => !!v || 'Minimum rate is required',
+                  v => v >= 20 || 'Minimum must be at least $20',
+                  v => v <= 50 || 'Maximum allowed is $50',
+                  v => v <= salaryRange.max || 'Min must be less than max'
+                ]"
+                min="20"
+                max="50"
+              />
+            </v-col>
+            <v-col cols="12" md="6">
+              <v-text-field
+                v-model.number="salaryRange.max"
+                label="Maximum Rate"
+                type="number"
+                prefix="$"
+                suffix="/hr"
+                variant="outlined"
+                :rules="[
+                  v => !!v || 'Maximum rate is required',
+                  v => v >= 20 || 'Minimum allowed is $20',
+                  v => v <= 50 || 'Maximum must be at most $50',
+                  v => v >= salaryRange.min || 'Max must be greater than min'
+                ]"
+                min="20"
+                max="50"
+              />
+            </v-col>
+          </v-row>
+
+          <v-alert type="info" variant="tonal" class="mt-2">
+            <div class="text-body-2">
+              <strong>Current Range:</strong> ${{ salaryRange.min || 20 }} - ${{ salaryRange.max || 50 }}/hr
+            </div>
+          </v-alert>
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer />
+          <v-btn color="grey" variant="text" @click="salaryRangeDialog = false">Cancel</v-btn>
+          <v-btn color="success" variant="elevated" @click="saveSalaryRange" :loading="savingSalaryRange">
+            <v-icon left>mdi-content-save</v-icon>
+            Save Range
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
     <!-- Notification Toast -->
     <notification-toast v-model="notification.show" :type="notification.type" :title="notification.title" :message="notification.message" :timeout="notification.timeout" />
   </dashboard-template>
@@ -1298,6 +1504,12 @@ const userEmailVerified = ref(false);
 
 const currentSection = ref(localStorage.getItem('caregiverSection') || 'dashboard');
 const contactDialog = ref(false);
+const salaryRangeDialog = ref(false);
+const savingSalaryRange = ref(false);
+const salaryRange = ref({
+  min: 20,
+  max: 50
+});
 const clientProfileModal = ref(false);
 const selectedClient = ref(null);
 const dayModal = ref(false);
@@ -1971,6 +2183,19 @@ const loadProfile = async () => {
       }
       
       const nameParts = data.user.name.split(' ');
+      
+      // Use user.caregiver for all fields including certifications
+      const caregiverData = data.user?.caregiver || data.caregiver || {};
+      
+      console.log('🔍 Loading certifications from API:', {
+        has_hha: caregiverData.has_hha,
+        hha_type: typeof caregiverData.has_hha,
+        has_cna: caregiverData.has_cna,
+        cna_type: typeof caregiverData.has_cna,
+        has_rn: caregiverData.has_rn,
+        rn_type: typeof caregiverData.has_rn
+      });
+      
       profile.value = {
         firstName: nameParts[0] || '',
         lastName: nameParts.slice(1).join(' ') || '',
@@ -1982,13 +2207,31 @@ const loadProfile = async () => {
         state: data.user.state || '',
         zip: data.user.zip_code || '',
         birthdate: data.user.date_of_birth || '',
-        experience: data.caregiver?.years_experience || '',
-        trainingCenter: data.caregiver?.training_center_name || '',
+        experience: caregiverData.years_experience || '',
+        trainingCenter: caregiverData.training_center_name || '',
         customTrainingCenter: '',
         trainingCertificate: null,
-        specializations: data.caregiver?.specializations || [],
-        bio: data.caregiver?.bio || ''
+        specializations: caregiverData.specializations || [],
+        bio: caregiverData.bio || '',
+        hasHHA: Boolean(caregiverData.has_hha),
+        hhaNumber: caregiverData.hha_number || '',
+        hasCNA: Boolean(caregiverData.has_cna),
+        cnaNumber: caregiverData.cna_number || '',
+        hasRN: Boolean(caregiverData.has_rn),
+        rnNumber: caregiverData.rn_number || ''
       };
+      
+      // Load salary range
+      salaryRange.value = {
+        min: caregiverData.preferred_hourly_rate_min || 20,
+        max: caregiverData.preferred_hourly_rate_max || 50
+      };
+      
+      console.log('✅ Profile loaded with certifications:', {
+        hasHHA: profile.value.hasHHA,
+        hasCNA: profile.value.hasCNA,
+        hasRN: profile.value.hasRN
+      });
       
       // Load training certificate if exists
       if (data.caregiver?.training_certificate) {
@@ -2211,15 +2454,24 @@ if (hasActiveClient) {
   } finally {
     isLoadingStats.value = false;
     
-    // Update Hourly Rate to standard contractor rate
+    // Update Hourly Rate to show preferred salary range
+    const salaryRangeText = salaryRange.value.min && salaryRange.value.max 
+      ? `$${salaryRange.value.min} - $${salaryRange.value.max}` 
+      : 'Not Set';
+    const salaryRangeSubtext = salaryRange.value.min && salaryRange.value.max 
+      ? 'Click to update' 
+      : 'Click to set your rate';
+    
     stats.value[1] = {
-      title: 'Hourly Rate',
-      value: '$28.00',
-      icon: 'mdi-currency-usd',
-      color: 'success',
-      change: 'Standard contractor rate',
-      changeColor: 'text-success',
-      changeIcon: 'mdi-check-circle'
+      title: 'Preferred Salary Range',
+      value: salaryRangeText,
+      icon: 'mdi-cash-clock',
+      color: 'warning',
+      change: salaryRangeSubtext,
+      changeColor: 'text-grey',
+      changeIcon: 'mdi-pencil',
+      clickable: true,
+      onClick: () => { salaryRangeDialog.value = true; }
     };
     
     // Calculate weekly earnings from time tracking
@@ -2243,8 +2495,8 @@ if (hasActiveClient) {
           changeIcon: changePercent >= 0 ? 'mdi-trending-up' : 'mdi-trending-down'
         };
         
-        // Update account balance (available balance = this week's earnings not yet paid out)
-        accountBalance.value = weeklyTotal.toFixed(2);
+        // Note: accountBalance will be updated from payment summary API
+        // which includes all pending earnings, not just this week
       }
       
       // Load previous week data
@@ -3057,7 +3309,13 @@ const profile = ref({
   customTrainingCenter: '',
   trainingCertificate: null,
   specializations: [],
-  bio: 'Demo caregiver account'
+  bio: 'Demo caregiver account',
+  hasHHA: false,
+  hhaNumber: '',
+  hasCNA: false,
+  cnaNumber: '',
+  hasRN: false,
+  rnNumber: ''
 });
 
 const age = computed(() => {
@@ -3147,6 +3405,104 @@ let earningsChartInstance = null;
 let servicesChartInstance = null;
 let clientsChartInstance = null;
 
+// Save Salary Range
+const saveSalaryRange = async () => {
+  try {
+    // Validate inputs
+    if (!salaryRange.value.min || !salaryRange.value.max) {
+      notification.value = {
+        show: true,
+        type: 'error',
+        title: 'Validation Error',
+        message: 'Please enter both minimum and maximum rates',
+        timeout: 3000
+      };
+      return;
+    }
+
+    const minRate = parseFloat(salaryRange.value.min);
+    const maxRate = parseFloat(salaryRange.value.max);
+
+    if (minRate < 20 || maxRate > 50) {
+      notification.value = {
+        show: true,
+        type: 'error',
+        title: 'Validation Error',
+        message: 'Rates must be between $20 and $50',
+        timeout: 3000
+      };
+      return;
+    }
+
+    if (minRate > maxRate) {
+      notification.value = {
+        show: true,
+        type: 'error',
+        title: 'Validation Error',
+        message: 'Minimum rate must be less than maximum rate',
+        timeout: 3000
+      };
+      return;
+    }
+
+    savingSalaryRange.value = true;
+
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+    if (!csrfToken) {
+      throw new Error('CSRF token not found');
+    }
+
+    const response = await fetch('/api/profile/update', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'X-CSRF-TOKEN': csrfToken
+      },
+      body: JSON.stringify({
+        user_type: 'caregiver',
+        preferredHourlyRateMin: minRate,
+        preferredHourlyRateMax: maxRate
+      })
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('Server response:', response.status, errorText);
+      throw new Error(`Server returned ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    if (data.success) {
+      notification.value = {
+        show: true,
+        type: 'success',
+        title: 'Success!',
+        message: 'Salary range updated successfully',
+        timeout: 3000
+      };
+      salaryRangeDialog.value = false;
+      
+      // Reload stats to reflect changes
+      await loadCaregiverStats();
+    } else {
+      throw new Error(data.message || 'Failed to update salary range');
+    }
+  } catch (error) {
+    console.error('Error saving salary range:', error);
+    notification.value = {
+      show: true,
+      type: 'error',
+      title: 'Error',
+      message: error.message || 'Failed to update salary range. Please try again.',
+      timeout: 3000
+    };
+  } finally {
+    savingSalaryRange.value = false;
+  }
+};
+
 const saveProfileChanges = async () => {
   try {
     // Check if there's a file to upload
@@ -3193,6 +3549,13 @@ if (profile.value.trainingCertificate) {
       if (profile.value.trainingCenter) formData.append('trainingCenter', profile.value.trainingCenter);
       if (profile.value.customTrainingCenter) formData.append('customTrainingCenter', profile.value.customTrainingCenter);
       if (profile.value.bio) formData.append('bio', profile.value.bio);
+      // Add certifications
+      formData.append('hasHHA', profile.value.hasHHA ? '1' : '0');
+      if (profile.value.hasHHA && profile.value.hhaNumber) formData.append('hhaNumber', profile.value.hhaNumber);
+      formData.append('hasCNA', profile.value.hasCNA ? '1' : '0');
+      if (profile.value.hasCNA && profile.value.cnaNumber) formData.append('cnaNumber', profile.value.cnaNumber);
+      formData.append('hasRN', profile.value.hasRN ? '1' : '0');
+      if (profile.value.hasRN && profile.value.rnNumber) formData.append('rnNumber', profile.value.rnNumber);
       
       // Append the file - check if it's a File object
       if (certificateFile && certificateFile instanceof File) {
@@ -3221,7 +3584,13 @@ if (profile.value.trainingCertificate) {
       // Use JSON for non-file updates
       const payload = {
         ...profile.value,
-        borough: profile.value.county
+        borough: profile.value.county,
+        hasHHA: profile.value.hasHHA,
+        hhaNumber: profile.value.hhaNumber,
+        hasCNA: profile.value.hasCNA,
+        cnaNumber: profile.value.cnaNumber,
+        hasRN: profile.value.hasRN,
+        rnNumber: profile.value.rnNumber
       };
       
       // Ensure phone is a string if present, or remove it if empty
@@ -4869,6 +5238,16 @@ onMounted(async () => {
   max-width: none !important;
   padding: 16px 20px !important;
   text-align: left !important;
+}
+
+.cursor-pointer {
+  cursor: pointer;
+}
+
+.hover-highlight:hover {
+  background-color: rgba(76, 175, 80, 0.08) !important;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 </style>
