@@ -30,8 +30,8 @@ class AdminController extends Controller
 
             $controller = $this;
             $data = $bookings->map(function($b) use ($controller) {
-                // Calculate caregivers needed based on hours per day
-                $caregiversNeeded = $controller->calculateCaregiversNeeded($b->duty_type);
+                // Use stored caregivers_needed if available, otherwise calculate from duty_type
+                $caregiversNeeded = $b->caregivers_needed ?? $controller->calculateCaregiversNeeded($b->duty_type);
                 
                 // Calculate assignment status based on actual assignments count
                 $assignedCount = $b->assignments ? $b->assignments->count() : 0;
@@ -57,6 +57,7 @@ class AdminController extends Controller
                     'county' => $b->county,
                     'service_date' => $b->service_date ? $b->service_date->toDateString() : null,
                     'start_time' => $b->start_time,
+                    'starting_time' => $b->start_time, // Alias for frontend compatibility
                     'duration_days' => $b->duration_days,
                     'hourly_rate' => $b->hourly_rate,
                     'total_budget' => $b->total_budget,
@@ -722,13 +723,20 @@ class AdminController extends Controller
         $validated = $request->validate([
             'caregiver_ids' => 'required|array',
             'assigned_rates' => 'required|array',
-            'assigned_rates.*' => 'required|numeric|min:20|max:50'
+            'assigned_rates.*' => 'required|numeric|min:0', // Basic validation, detailed check below
+            'caregivers_needed' => 'sometimes|integer|min:1'
         ]);
 
         // Validate booking exists
         $booking = \App\Models\Booking::find($bookingId);
         if (!$booking) {
             return response()->json(['success' => false, 'message' => 'Booking not found'], 404);
+        }
+
+        // Update caregivers_needed if provided
+        if (isset($validated['caregivers_needed']) && $validated['caregivers_needed'] != $booking->caregivers_needed) {
+            $booking->caregivers_needed = $validated['caregivers_needed'];
+            $booking->save();
         }
 
         // Validate caregivers exist and rates are within their preferred range

@@ -7,6 +7,106 @@
     :timeout="notification.timeout"
   />
 
+  <!-- Payment Processing Modal -->
+  <transition name="modal-fade">
+    <div v-if="paymentModal.show" class="payment-modal-overlay" @click.self="closeModal">
+      <div class="payment-modal">
+        <!-- Processing State -->
+        <div v-if="paymentModal.state === 'processing'" class="modal-content processing-state">
+          <div class="spinner-container">
+            <div class="payment-spinner"></div>
+          </div>
+          <h3 class="modal-title">Processing Payment</h3>
+          <p class="modal-description">Please wait while we securely process your payment...</p>
+          <div class="payment-details">
+            <div class="detail-row">
+              <span class="detail-label">Service:</span>
+              <span class="detail-value">{{ bookingDetails?.duty_type || 'Caregiving Service' }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Duration:</span>
+              <span class="detail-value">{{ bookingDetails?.duration_days || 15 }} days</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Amount:</span>
+              <span class="detail-value amount">${{ totalAmount.toFixed(2) }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Success State -->
+        <div v-if="paymentModal.state === 'success'" class="modal-content success-state">
+          <div class="success-animation">
+            <div class="checkmark-circle">
+              <svg class="checkmark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52">
+                <circle class="checkmark-circle-path" cx="26" cy="26" r="25" fill="none"/>
+                <path class="checkmark-check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8"/>
+              </svg>
+            </div>
+          </div>
+          <h3 class="modal-title">Payment Successful!</h3>
+          <p class="modal-description">Your booking has been confirmed.</p>
+          <div class="payment-details">
+            <div class="detail-row">
+              <span class="detail-label">Service:</span>
+              <span class="detail-value">{{ bookingDetails?.duty_type || 'Caregiving Service' }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Duration:</span>
+              <span class="detail-value">{{ bookingDetails?.duration_days || 15 }} days</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Amount Paid:</span>
+              <span class="detail-value amount">${{ totalAmount.toFixed(2) }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Confirmation:</span>
+              <span class="detail-value">{{ paymentModal.paymentIntentId }}</span>
+            </div>
+          </div>
+          
+          <!-- Action Buttons -->
+          <div class="modal-actions">
+            <button v-if="paymentModal.receiptUrl" class="modal-button receipt-button" @click="viewReceipt">
+              <i class="bi bi-receipt"></i>
+              View Receipt
+            </button>
+            <button class="modal-button dashboard-button" @click="goToDashboard">
+              <i class="bi bi-speedometer2"></i>
+              Go to Dashboard
+            </button>
+          </div>
+          
+          <p class="redirect-message">Auto-redirecting in {{ redirectCountdown }} seconds...</p>
+        </div>
+
+        <!-- Failure State -->
+        <div v-if="paymentModal.state === 'failed'" class="modal-content failed-state">
+          <div class="error-animation">
+            <div class="error-circle">
+              <svg class="error-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52">
+                <circle class="error-circle-path" cx="26" cy="26" r="25" fill="none"/>
+                <path class="error-cross" fill="none" d="M16 16 36 36 M36 16 16 36"/>
+              </svg>
+            </div>
+          </div>
+          <h3 class="modal-title">Payment Failed</h3>
+          <p class="modal-description error-text">{{ paymentModal.errorMessage }}</p>
+          <div class="modal-actions">
+            <button class="modal-button retry-button" @click="closeModal">
+              <i class="bi bi-arrow-clockwise"></i>
+              Try Again
+            </button>
+            <button class="modal-button contact-button" @click="contactSupport">
+              <i class="bi bi-headset"></i>
+              Contact Support
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </transition>
+
   <div class="checkout-container">
     <!-- Left Side: Order Summary -->
     <div class="order-summary-section">
@@ -169,6 +269,17 @@ const processing = ref(false);
 const isFormReady = ref(false);
 const customerEmail = ref('');
 const annualBilling = ref(false);
+
+// Payment Modal State
+const paymentModal = ref({
+  show: false,
+  state: 'processing', // 'processing', 'success', 'failed'
+  errorMessage: '',
+  paymentIntentId: '',
+  receiptUrl: ''
+});
+
+const redirectCountdown = ref(10);
 
 // Booking Data
 const bookingId = ref(null);
@@ -423,6 +534,14 @@ const handleSubmit = async () => {
   }
 
   processing.value = true;
+  
+  // Show processing modal
+  paymentModal.value = {
+    show: true,
+    state: 'processing',
+    errorMessage: '',
+    paymentIntentId: ''
+  };
 
   try {
     // Confirm the payment
@@ -441,20 +560,31 @@ const handleSubmit = async () => {
     });
 
     if (error) {
-      // Payment failed
-      showNotification('error', 'Payment Failed', error.message);
+      // Payment failed - show error modal
+      paymentModal.value = {
+        show: true,
+        state: 'failed',
+        errorMessage: error.message,
+        paymentIntentId: ''
+      };
       processing.value = false;
     } else if (paymentIntent && paymentIntent.status === 'succeeded') {
-      // Payment succeeded
+      // Payment succeeded - show success modal
       
       // Update booking status and get receipt URL
       const result = await updateBookingStatus(paymentIntent.id);
       
-      showNotification('success', 'Payment Successful', 'Your booking has been confirmed!');
+      paymentModal.value = {
+        show: true,
+        state: 'success',
+        errorMessage: '',
+        paymentIntentId: paymentIntent.id,
+        receiptUrl: result?.receipt_url || ''
+      };
       
-      // Open receipt in new tab if available
+      // Store receipt URL for later use (don't auto-open)
       if (result && result.receipt_url) {
-        window.open(result.receipt_url, '_blank');
+        localStorage.setItem(`receipt_${bookingId.value}`, result.receipt_url);
       }
       
       // Set flag to trigger dashboard refresh
@@ -462,13 +592,17 @@ const handleSubmit = async () => {
       localStorage.setItem('payment_booking_id', bookingId.value);
       localStorage.setItem('payment_timestamp', Date.now().toString());
       
-      // Redirect to dashboard after 3 seconds
-      setTimeout(() => {
-        window.location.href = '/client/dashboard';
-      }, 3000);
+      // Start countdown and redirect
+      startRedirectCountdown();
     }
   } catch (error) {
-    showNotification('error', 'Error', error.message || 'An unexpected error occurred');
+    // Unexpected error - show error modal
+    paymentModal.value = {
+      show: true,
+      state: 'failed',
+      errorMessage: error.message || 'An unexpected error occurred',
+      paymentIntentId: ''
+    };
     processing.value = false;
   }
 };
@@ -543,6 +677,38 @@ const showNotification = (type, title, message) => {
   };
 };
 
+const closeModal = () => {
+  if (paymentModal.value.state !== 'processing') {
+    paymentModal.value.show = false;
+    processing.value = false;
+  }
+};
+
+const startRedirectCountdown = () => {
+  redirectCountdown.value = 10;
+  const interval = setInterval(() => {
+    redirectCountdown.value--;
+    if (redirectCountdown.value <= 0) {
+      clearInterval(interval);
+      window.location.href = '/client/dashboard';
+    }
+  }, 1000);
+};
+
+const contactSupport = () => {
+  window.location.href = 'mailto:support@casprivatecare.com?subject=Payment Issue - Booking ' + bookingId.value;
+};
+
+const viewReceipt = () => {
+  if (paymentModal.value.receiptUrl) {
+    window.open(paymentModal.value.receiptUrl, '_blank');
+  }
+};
+
+const goToDashboard = () => {
+  window.location.href = '/client/dashboard';
+};
+
 const goBack = () => {
   window.location.href = '/client-dashboard';
 };
@@ -570,6 +736,389 @@ onMounted(async () => {
 </script>
 
 <style scoped>
+/* ============================================
+   PAYMENT MODAL STYLES
+   ============================================ */
+
+/* Modal Overlay */
+.payment-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 20px;
+}
+
+.payment-modal {
+  background: white;
+  border-radius: 16px;
+  max-width: 500px;
+  width: 100%;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  overflow: hidden;
+}
+
+.modal-content {
+  padding: 48px 40px;
+  text-align: center;
+}
+
+/* Modal Transitions */
+.modal-fade-enter-active,
+.modal-fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.modal-fade-enter-from,
+.modal-fade-leave-to {
+  opacity: 0;
+}
+
+.modal-fade-enter-active .payment-modal,
+.modal-fade-leave-active .payment-modal {
+  transition: transform 0.3s ease;
+}
+
+.modal-fade-enter-from .payment-modal,
+.modal-fade-leave-to .payment-modal {
+  transform: scale(0.9);
+}
+
+/* Processing State */
+.spinner-container {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 24px;
+}
+
+.payment-spinner {
+  width: 64px;
+  height: 64px;
+  border: 4px solid #e5e7eb;
+  border-top-color: #0F172A;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Success State */
+.success-animation {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 24px;
+}
+
+.checkmark-circle {
+  width: 80px;
+  height: 80px;
+}
+
+.checkmark {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  display: block;
+  stroke-width: 3;
+  stroke: #10b981;
+  stroke-miterlimit: 10;
+  animation: fill-success 0.4s ease-in-out 0.4s forwards, scale-success 0.3s ease-in-out 0.9s both;
+}
+
+.checkmark-circle-path {
+  stroke-dasharray: 166;
+  stroke-dashoffset: 166;
+  stroke-width: 3;
+  stroke-miterlimit: 10;
+  stroke: #10b981;
+  fill: none;
+  animation: stroke-success 0.6s cubic-bezier(0.65, 0, 0.45, 1) forwards;
+}
+
+.checkmark-check {
+  transform-origin: 50% 50%;
+  stroke-dasharray: 48;
+  stroke-dashoffset: 48;
+  stroke: #10b981;
+  stroke-width: 3;
+  animation: stroke-check 0.3s cubic-bezier(0.65, 0, 0.45, 1) 0.8s forwards;
+}
+
+@keyframes stroke-success {
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes stroke-check {
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes fill-success {
+  100% {
+    box-shadow: inset 0px 0px 0px 30px #10b981;
+  }
+}
+
+@keyframes scale-success {
+  0%, 100% {
+    transform: none;
+  }
+  50% {
+    transform: scale3d(1.1, 1.1, 1);
+  }
+}
+
+/* Error State */
+.error-animation {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 24px;
+}
+
+.error-circle {
+  width: 80px;
+  height: 80px;
+}
+
+.error-icon {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  display: block;
+  stroke-width: 3;
+  stroke: #ef4444;
+  stroke-miterlimit: 10;
+  animation: fill-error 0.4s ease-in-out 0.4s forwards, scale-error 0.3s ease-in-out 0.9s both;
+}
+
+.error-circle-path {
+  stroke-dasharray: 166;
+  stroke-dashoffset: 166;
+  stroke-width: 3;
+  stroke-miterlimit: 10;
+  stroke: #ef4444;
+  fill: none;
+  animation: stroke-error 0.6s cubic-bezier(0.65, 0, 0.45, 1) forwards;
+}
+
+.error-cross {
+  transform-origin: 50% 50%;
+  stroke-dasharray: 48;
+  stroke-dashoffset: 48;
+  stroke: #ef4444;
+  stroke-width: 3;
+  animation: stroke-cross 0.3s cubic-bezier(0.65, 0, 0.45, 1) 0.8s forwards;
+}
+
+@keyframes stroke-error {
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes stroke-cross {
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes fill-error {
+  100% {
+    box-shadow: inset 0px 0px 0px 30px #ef4444;
+  }
+}
+
+@keyframes scale-error {
+  0%, 100% {
+    transform: none;
+  }
+  50% {
+    transform: scale3d(1.1, 1.1, 1);
+  }
+}
+
+/* Modal Text */
+.modal-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: #0F172A;
+  margin-bottom: 12px;
+}
+
+.processing-state .modal-title {
+  color: #0F172A;
+}
+
+.success-state .modal-title {
+  color: #10b981;
+}
+
+.failed-state .modal-title {
+  color: #ef4444;
+}
+
+.modal-description {
+  font-size: 16px;
+  color: #64748b;
+  margin-bottom: 32px;
+  line-height: 1.5;
+}
+
+.error-text {
+  color: #ef4444;
+  font-weight: 500;
+}
+
+/* Payment Details in Modal */
+.payment-details {
+  background: #f8fafc;
+  border-radius: 12px;
+  padding: 20px;
+  margin-top: 24px;
+  text-align: left;
+}
+
+.detail-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.detail-row:last-child {
+  border-bottom: none;
+}
+
+.detail-label {
+  font-size: 14px;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.detail-value {
+  font-size: 14px;
+  color: #0F172A;
+  font-weight: 600;
+}
+
+.detail-value.amount {
+  color: #10b981;
+  font-size: 18px;
+}
+
+/* Redirect Message */
+.redirect-message {
+  margin-top: 20px;
+  font-size: 14px;
+  color: #64748b;
+  font-style: italic;
+}
+
+/* Modal Actions */
+.modal-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.modal-button {
+  flex: 1;
+  padding: 14px 24px;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: none;
+}
+
+.retry-button {
+  background: #0F172A;
+  color: white;
+}
+
+.retry-button:hover {
+  background: #1e293b;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.3);
+}
+
+.contact-button {
+  background: white;
+  color: #0F172A;
+  border: 2px solid #e2e8f0;
+}
+
+.contact-button:hover {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+  transform: translateY(-1px);
+}
+
+.receipt-button {
+  background: #10b981;
+  color: white;
+}
+
+.receipt-button:hover {
+  background: #059669;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.dashboard-button {
+  background: #0F172A;
+  color: white;
+}
+
+.dashboard-button:hover {
+  background: #1e293b;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.3);
+}
+
+/* Responsive Modal */
+@media (max-width: 640px) {
+  .payment-modal {
+    max-width: 90%;
+  }
+
+  .modal-content {
+    padding: 32px 24px;
+  }
+
+  .modal-title {
+    font-size: 20px;
+  }
+
+  .modal-actions {
+    flex-direction: column;
+  }
+
+  .modal-button {
+    width: 100%;
+  }
+}
+
 /* Container Layout */
 .checkout-container {
   display: grid;

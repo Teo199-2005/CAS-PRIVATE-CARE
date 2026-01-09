@@ -396,6 +396,120 @@ class AuthController extends Controller
         }
     }
 
+    public function sendOTP(Request $request)
+    {
+        $user = Auth::user();
+        
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'User not authenticated.'
+            ], 401);
+        }
+        
+        if ($user->email_verified_at) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Email is already verified.'
+            ], 400);
+        }
+        
+        // Generate 6-digit OTP
+        $otp = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+        $expiresAt = now()->addMinutes(10);
+        
+        // Store OTP in database
+        DB::table('email_verification_tokens')->updateOrInsert(
+            ['email' => $user->email],
+            [
+                'token' => hash('sha256', Str::random(64)),
+                'otp' => $otp,
+                'otp_expires_at' => $expiresAt,
+                'created_at' => now()
+            ]
+        );
+        
+        // Send OTP via email
+        try {
+            EmailService::sendOTPEmail($user, $otp);
+            return response()->json([
+                'success' => true,
+                'message' => 'OTP sent to your email address.'
+            ]);
+        } catch (\Exception $e) {
+            \Log::error("Failed to send OTP email: " . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to send OTP. Please try again later.'
+            ], 500);
+        }
+    }
+
+    public function verifyOTP(Request $request)
+    {
+        $validated = $request->validate([
+            'otp' => 'required|string|size:6'
+        ]);
+        
+        $user = Auth::user();
+        
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'User not authenticated.'
+            ], 401);
+        }
+        
+        if ($user->email_verified_at) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Email is already verified.'
+            ], 400);
+        }
+        
+        // Find OTP record
+        $verification = DB::table('email_verification_tokens')
+            ->where('email', $user->email)
+            ->first();
+        
+        if (!$verification || !$verification->otp) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No OTP found. Please request a new one.'
+            ], 400);
+        }
+        
+        // Check if OTP is expired
+        if (now()->isAfter(Carbon::parse($verification->otp_expires_at))) {
+            return response()->json([
+                'success' => false,
+                'message' => 'OTP has expired. Please request a new one.'
+            ], 400);
+        }
+        
+        // Verify OTP
+        if ($verification->otp !== $validated['otp']) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Invalid OTP. Please try again.'
+            ], 400);
+        }
+        
+        // Mark email as verified
+        $user->email_verified_at = now();
+        $user->save();
+        
+        // Delete verification token
+        DB::table('email_verification_tokens')
+            ->where('email', $user->email)
+            ->delete();
+        
+        return response()->json([
+            'success' => true,
+            'message' => 'Email verified successfully!'
+        ]);
+    }
+
     public function verifyEmail($token)
     {
         $hashedToken = hash('sha256', $token);

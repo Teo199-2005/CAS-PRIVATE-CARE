@@ -20,6 +20,9 @@
     <!-- Email Verification Banner -->
     <email-verification-banner :user-data="userData" />
 
+    <!-- Recurring Renewal Countdown Banner -->
+    <recurring-renewal-countdown @navigate-to-section="currentSection = $event" />
+
         <!-- Dashboard Section -->
         <div v-if="currentSection === 'dashboard'">
           <v-row class="mb-4">
@@ -344,7 +347,7 @@
                                     class="font-weight-bold"
                                     style="font-size: 0.55rem;"
                                   >
-                                    {{ booking.assignedCount || 0 }}/{{ booking.requiredCount || 1 }} Assigned
+                                    {{ booking.assignedCount || 0 }} Assigned
                                   </v-chip>
                                 </div>
                                 <v-progress-linear
@@ -1175,6 +1178,24 @@
         <!-- Payment Information Section -->
         <div v-if="currentSection === 'payment'">
           <v-row>
+            <!-- Saved Payment Methods - Full Width -->
+            <v-col cols="12">
+              <v-card elevation="0" class="mb-6">
+                <v-card-title class="card-header pa-8">
+                  <span class="section-title primary--text">Saved Payment Methods</span>
+                </v-card-title>
+                <v-card-text class="pa-8">
+                  <!-- Client Payment Methods Component -->
+                  <client-payment-methods />
+                </v-card-text>
+              </v-card>
+            </v-col>
+
+            <!-- Recurring Bookings Manager - Full Width -->
+            <v-col cols="12">
+              <recurring-bookings-manager :show-internal-header="false" />
+            </v-col>
+
             <!-- Payment History -->
             <v-col cols="12" md="8">
               <v-card elevation="0" class="mb-6">
@@ -1238,36 +1259,6 @@
                       </div>
                     </template>
                   </v-data-table>
-                </v-card-text>
-              </v-card>
-
-              <v-card elevation="0">
-                <v-card-title class="card-header pa-8">
-                  <span class="section-title primary--text">Payment Information</span>
-                </v-card-title>
-                <v-card-text class="pa-8">
-                  <v-alert type="info" variant="tonal" class="mb-4">
-                    <div class="d-flex align-start">
-                      <v-icon start>mdi-information</v-icon>
-                      <div>
-                        <div class="font-weight-bold mb-2">Secure Payment Processing</div>
-                        <ul style="margin-left: 20px; line-height: 1.8;">
-                          <li>All payments are processed securely through Stripe</li>
-                          <li>Card information is never stored on our servers</li>
-                          <li>You'll enter payment details when booking is approved</li>
-                          <li>Receipts are automatically generated after payment</li>
-                        </ul>
-                      </div>
-                    </div>
-                  </v-alert>
-
-                  <div class="d-flex align-center pa-4 rounded" style="background: rgba(var(--v-theme-primary), 0.05); border-left: 4px solid rgb(var(--v-theme-primary));">
-                    <v-icon color="primary" size="40" class="mr-4">mdi-shield-check</v-icon>
-                    <div>
-                      <div class="font-weight-bold">PCI-DSS Compliant</div>
-                      <div class="text-body-2 text-grey">Your payment information is protected with industry-standard encryption</div>
-                    </div>
-                  </div>
                 </v-card-text>
               </v-card>
             </v-col>
@@ -2166,6 +2157,208 @@
       </v-card>
     </v-dialog>
 
+    <!-- Payment Confirmation Modal -->
+    <v-dialog v-model="paymentDialog" max-width="600" persistent>
+      <v-card class="payment-confirmation-card" style="border-radius: 16px; overflow: hidden;">
+        <v-card-title class="pa-6" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+          <div class="d-flex align-center justify-space-between w-100">
+            <div class="d-flex align-center">
+              <v-icon size="28" class="mr-3">mdi-credit-card-check</v-icon>
+              <div>
+                <span style="font-size: 1.5rem; font-weight: 700;">Confirm Payment</span>
+                <div class="text-caption" style="opacity: 0.9;">Booking #{{ selectedBookingForPayment?.id }}</div>
+              </div>
+            </div>
+            <v-btn icon variant="text" @click="paymentDialog = false; selectedBookingForPayment = null; selectedPaymentMethod = null;" style="color: white;">
+              <v-icon>mdi-close</v-icon>
+            </v-btn>
+          </div>
+        </v-card-title>
+        
+        <v-card-text class="pa-6">
+          <!-- Booking Summary -->
+          <v-card class="mb-5" elevation="0" style="background: linear-gradient(135deg, #f5f3ff 0%, #ede9fe 100%); border: 1px solid #c4b5fd; border-radius: 12px;">
+            <v-card-text class="pa-4">
+              <div class="d-flex justify-space-between align-center mb-3">
+                <div class="d-flex align-center">
+                  <v-icon color="deep-purple" size="24" class="mr-2">mdi-medical-bag</v-icon>
+                  <span class="text-h6 font-weight-bold">{{ selectedBookingForPayment?.serviceType || selectedBookingForPayment?.service || 'Care Service' }}</span>
+                </div>
+                <div class="text-right">
+                  <div class="text-h4 font-weight-bold" style="color: #7c3aed;">${{ selectedBookingForPayment ? getBookingPrice(selectedBookingForPayment) : '0' }}</div>
+                </div>
+              </div>
+              
+              <v-divider class="my-3"></v-divider>
+              
+              <div class="booking-details">
+                <div class="d-flex align-center mb-2">
+                  <v-icon size="18" color="deep-purple" class="mr-2">mdi-calendar-range</v-icon>
+                  <span class="text-body-2">
+                    <strong>Duration:</strong> {{ selectedBookingForPayment?.durationDays || selectedBookingForPayment?.duration_days || selectedBookingForPayment?.duration || 1 }} day(s)
+                  </span>
+                </div>
+                <div class="d-flex align-center mb-2">
+                  <v-icon size="18" color="deep-purple" class="mr-2">mdi-clock-outline</v-icon>
+                  <span class="text-body-2">
+                    <strong>Hours per day:</strong> {{ selectedBookingForPayment?.hoursPerDay || selectedBookingForPayment?.hours_per_day || 8 }} hours
+                  </span>
+                </div>
+                <div class="d-flex align-center">
+                  <v-icon size="18" color="deep-purple" class="mr-2">mdi-calendar</v-icon>
+                  <span class="text-body-2">
+                    <strong>Service Date:</strong> {{ selectedBookingForPayment?.date || selectedBookingForPayment?.service_date || 'N/A' }}
+                  </span>
+                </div>
+              </div>
+            </v-card-text>
+          </v-card>
+
+          <!-- Loading State -->
+          <div v-if="loadingPaymentMethods" class="text-center py-8">
+            <v-progress-circular indeterminate color="deep-purple" size="48"></v-progress-circular>
+            <p class="text-grey mt-3">Loading payment methods...</p>
+          </div>
+
+          <!-- Payment Methods List -->
+          <div v-else>
+            <!-- Saved Payment Methods -->
+            <div v-if="savedPaymentMethods.length > 0">
+              <div class="text-subtitle-1 font-weight-bold mb-3 d-flex align-center">
+                <v-icon size="20" color="deep-purple" class="mr-2">mdi-credit-card-multiple</v-icon>
+                Select Payment Method
+              </div>
+              
+              <v-radio-group v-model="selectedPaymentMethod" class="mt-0">
+                <v-card
+                  v-for="pm in savedPaymentMethods"
+                  :key="pm.id"
+                  class="mb-3 payment-method-card"
+                  :class="{ 'selected-payment-method': selectedPaymentMethod === pm.id }"
+                  elevation="0"
+                  @click="selectedPaymentMethod = pm.id"
+                  style="cursor: pointer; border: 2px solid #e2e8f0; border-radius: 12px; transition: all 0.2s ease;"
+                  :style="selectedPaymentMethod === pm.id ? 'border-color: #7c3aed; background: #f5f3ff;' : ''"
+                >
+                  <v-card-text class="pa-4">
+                    <div class="d-flex align-center">
+                      <v-radio :value="pm.id" color="deep-purple"></v-radio>
+                      <v-icon size="32" :color="getCardBrandColor(pm.card.brand)" class="mx-3">mdi-credit-card</v-icon>
+                      <div class="flex-grow-1">
+                        <div class="font-weight-bold">{{ capitalize(pm.card.brand) }} •••• {{ pm.card.last4 }}</div>
+                        <div class="text-caption text-grey">Expires {{ pm.card.exp_month }}/{{ pm.card.exp_year }}</div>
+                      </div>
+                      <v-chip v-if="pm.id === savedPaymentMethods[0].id" color="success" size="small" variant="flat">
+                        <v-icon start size="14">mdi-star</v-icon>
+                        Default
+                      </v-chip>
+                    </div>
+                  </v-card-text>
+                </v-card>
+              </v-radio-group>
+
+              <v-divider class="my-4"></v-divider>
+
+              <div class="text-center">
+                <v-btn
+                  variant="outlined"
+                  color="deep-purple"
+                  prepend-icon="mdi-plus-circle"
+                  @click="goToAddPaymentMethod"
+                >
+                  Use a Different Card
+                </v-btn>
+              </div>
+            </div>
+
+            <!-- No Saved Payment Methods -->
+            <div v-else class="text-center py-6">
+              <v-icon size="64" color="deep-purple-lighten-3" class="mb-3">mdi-credit-card-off-outline</v-icon>
+              <div class="text-h6 font-weight-bold mb-2">No Saved Payment Methods</div>
+              <p class="text-grey mb-4">Add a payment method to complete your booking payment</p>
+              <v-btn
+                color="deep-purple"
+                size="large"
+                prepend-icon="mdi-credit-card-plus"
+                @click="goToAddPaymentMethod"
+              >
+                Add Payment Method
+              </v-btn>
+            </div>
+          </div>
+        </v-card-text>
+
+        <v-card-actions class="pa-6 pt-0" style="background: #fafafa;">
+          <v-btn
+            variant="outlined"
+            color="grey"
+            @click="paymentDialog = false; selectedBookingForPayment = null; selectedPaymentMethod = null;"
+            :disabled="processingPayment"
+          >
+            <v-icon start>mdi-close</v-icon>
+            Cancel
+          </v-btn>
+          <v-spacer />
+          <v-btn
+            v-if="savedPaymentMethods.length > 0"
+            color="deep-purple"
+            size="large"
+            prepend-icon="mdi-lock"
+            @click="processPaymentWithSavedMethod"
+            :loading="processingPayment"
+            :disabled="!selectedPaymentMethod || processingPayment"
+            class="px-8"
+            style="font-weight: 600;"
+          >
+            Pay ${{ selectedBookingForPayment ? getBookingPrice(selectedBookingForPayment) : '0' }}
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <!-- Payment Processing Modal -->
+    <v-dialog v-model="paymentProcessingDialog" max-width="500" persistent>
+      <v-card style="border-radius: 16px; overflow: hidden;">
+        <v-card-text class="pa-8 text-center">
+          <div v-if="paymentStatus === 'processing'">
+            <v-progress-circular
+              :size="80"
+              :width="6"
+              color="deep-purple"
+              indeterminate
+              class="mb-4"
+            ></v-progress-circular>
+            <h2 class="text-h5 font-weight-bold mb-2" style="color: #7c3aed;">Processing Payment</h2>
+            <p class="text-grey mb-0">{{ paymentMessage }}</p>
+          </div>
+          
+          <div v-else-if="paymentStatus === 'success'" class="success-animation">
+            <div class="checkmark-circle">
+              <v-icon size="80" color="success" class="checkmark-icon">mdi-check-circle</v-icon>
+            </div>
+            <h2 class="text-h5 font-weight-bold mb-2 mt-4" style="color: #10b981;">Payment Successful!</h2>
+            <p class="text-grey mb-0">{{ paymentMessage }}</p>
+          </div>
+          
+          <div v-else-if="paymentStatus === 'error'" class="error-animation">
+            <div class="error-circle">
+              <v-icon size="80" color="error" class="error-icon">mdi-close-circle</v-icon>
+            </div>
+            <h2 class="text-h5 font-weight-bold mb-2 mt-4" style="color: #ef4444;">Payment Failed</h2>
+            <p class="text-grey mb-2">{{ paymentMessage }}</p>
+            <v-btn
+              color="deep-purple"
+              variant="outlined"
+              class="mt-4"
+              @click="paymentProcessingDialog = false; paymentDialog = true;"
+            >
+              Try Again
+            </v-btn>
+          </div>
+        </v-card-text>
+      </v-card>
+    </v-dialog>
+
     <!-- Rating Modal -->
     <rating-modal
       v-model="ratingDialog"
@@ -2185,6 +2378,9 @@ import NotificationCenter from './shared/NotificationCenter.vue';
 import NotificationToast from './shared/NotificationToast.vue';
 import EmailVerificationBanner from './EmailVerificationBanner.vue';
 import RatingModal from './shared/RatingModal.vue';
+import ClientPaymentMethods from './ClientPaymentMethods.vue';
+import RecurringBookingsManager from './RecurringBookingsManager.vue';
+import RecurringRenewalCountdown from './RecurringRenewalCountdown.vue';
 import { useNotification } from '../composables/useNotification.js';
 import { useNYLocationData } from '../composables/useNYLocationData.js';
 
@@ -2195,7 +2391,7 @@ const props = defineProps({
   }
 });
 
-const { notification, success, error } = useNotification();
+const { notification, success, error, info, warning } = useNotification();
 const { counties, getCitiesForCounty, loadNYLocationData } = useNYLocationData();
 
 // Computed properties for user display
@@ -3041,6 +3237,24 @@ const getStatusColor = (status) => {
   return colors[status] || 'grey';
 };
 
+const capitalize = (str) => {
+  if (!str) return '';
+  return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+};
+
+const getCardBrandColor = (brand) => {
+  const colors = {
+    'visa': '#1A1F71',
+    'mastercard': '#EB001B',
+    'amex': '#006FCF',
+    'discover': '#FF6000',
+    'diners': '#0079BE',
+    'jcb': '#0E4C96',
+    'unionpay': '#E21836'
+  };
+  return colors[brand?.toLowerCase()] || '#667eea';
+};
+
 const logout = () => {
   window.location.href = '/login';
 };
@@ -3434,6 +3648,19 @@ const ratingDialog = ref(false);
 const selectedBookingForRating = ref(null);
 const caregiversToRate = ref([]);
 
+// Payment confirmation modal
+const paymentDialog = ref(false);
+const selectedBookingForPayment = ref(null);
+const savedPaymentMethods = ref([]);
+const selectedPaymentMethod = ref(null);
+const loadingPaymentMethods = ref(false);
+const processingPayment = ref(false);
+
+// Payment processing modal
+const paymentProcessingDialog = ref(false);
+const paymentStatus = ref('processing'); // 'processing', 'success', 'error'
+const paymentMessage = ref('');
+
 // Check if client can book (only 1 pending OR 1 approved allowed)
 const attemptBooking = () => {
   const hasPending = pendingBookings.value.length > 0;
@@ -3464,10 +3691,114 @@ const attemptBooking = () => {
   currentSection.value = 'book-form';
 };
 
-const goToPayment = (booking) => {
-  // Navigate to separate payment page
+const goToPayment = async (booking) => {
+  try {
+    
+    selectedBookingForPayment.value = booking;
+    loadingPaymentMethods.value = true;
+    paymentDialog.value = true;
+    
+    // Fetch saved payment methods
+    const response = await fetch('/api/stripe/payment-methods', {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+      },
+      credentials: 'same-origin'
+    });
+    
+    const data = await response.json();
+    savedPaymentMethods.value = data.payment_methods || [];
+    
+    // Auto-select first payment method if available
+    if (savedPaymentMethods.value.length > 0) {
+      selectedPaymentMethod.value = savedPaymentMethods.value[0].id;
+    }
+    
+    loadingPaymentMethods.value = false;
+  } catch (err) {
+    console.error('Error loading payment methods:', err);
+    loadingPaymentMethods.value = false;
+    error('Error loading payment methods. Please try again.', 'Error');
+    paymentDialog.value = false;
+  }
+};
+
+const processPaymentWithSavedMethod = async () => {
+  if (!selectedPaymentMethod.value) {
+    error('Please select a payment method', 'Error');
+    return;
+  }
+  
+  const booking = selectedBookingForPayment.value;
+  const paymentMethod = savedPaymentMethods.value.find(pm => pm.id === selectedPaymentMethod.value);
+  
+  // Close payment dialog and show processing modal
+  paymentDialog.value = false;
+  paymentProcessingDialog.value = true;
+  paymentStatus.value = 'processing';
+  paymentMessage.value = `Processing payment with card ending in ${paymentMethod.card.last4}...`;
+  processingPayment.value = true;
+  
+  try {
+    // Calculate the amount using getBookingPrice (returns formatted string, need to convert to cents)
+    const priceStr = getBookingPrice(booking);
+    const priceNum = parseFloat(priceStr.toString().replace(/,/g, '')) || 0;
+    const amountInCents = Math.round(priceNum * 100);
+    
+    const requestBody = {
+      payment_method_id: selectedPaymentMethod.value,
+      booking_id: booking.id,
+      amount: amountInCents
+    };
+    
+    // Charge the saved payment method
+    const chargeResponse = await fetch('/api/stripe/charge-saved-method', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+      },
+      credentials: 'same-origin',
+      body: JSON.stringify(requestBody)
+    });
+    
+    const chargeData = await chargeResponse.json();
+    
+    if (chargeData.success) {
+      // Show success animation
+      paymentStatus.value = 'success';
+      paymentMessage.value = chargeData.recurring_enabled 
+        ? 'Payment successful! Auto-renewal has been enabled for this contract.'
+        : 'Your booking has been paid successfully!';
+      
+      // Auto-close after 2.5 seconds and reload bookings
+      setTimeout(() => {
+        paymentProcessingDialog.value = false;
+        selectedBookingForPayment.value = null;
+        selectedPaymentMethod.value = null;
+        // Reload bookings to reflect payment status change
+        loadMyBookings();
+      }, 2500);
+    } else {
+      paymentStatus.value = 'error';
+      paymentMessage.value = chargeData.message || 'Payment failed. Please try a different card or add a new payment method.';
+    }
+  } catch (err) {
+    paymentStatus.value = 'error';
+    paymentMessage.value = 'Error processing payment. Please try again.';
+  } finally {
+    processingPayment.value = false;
+  }
+};
+
+const goToAddPaymentMethod = () => {
+  const booking = selectedBookingForPayment.value;
+  paymentDialog.value = false;
   window.location.href = `/payment?booking_id=${booking.id}`;
 };
+
 
 const processPayment = () => {
   // Prototype: Show success message
@@ -3755,12 +4086,16 @@ const getTotalCost = () => {
 const getBookingPrice = (booking) => {
   if (!booking) return '0';
   
-  // Extract hours from duty type (e.g., "8 Hours Duty" -> 8)
-  const hoursMatch = booking.dutyType?.match(/(\d+)/) || booking.duty_type?.match(/(\d+)/);
-  const hoursPerDay = hoursMatch ? parseInt(hoursMatch[1]) : 8;
+  // Prioritize existing hoursPerDay property, then extract from duty type
+  let hoursPerDay = booking.hoursPerDay || booking.hours_per_day;
+  if (!hoursPerDay) {
+    // Extract hours from duty type (e.g., "8 Hours Duty" -> 8)
+    const hoursMatch = booking.dutyType?.match(/(\d+)/) || booking.duty_type?.match(/(\d+)/);
+    hoursPerDay = hoursMatch ? parseInt(hoursMatch[1]) : 8;
+  }
   
-  // Get duration days
-  const days = booking.durationDays || booking.duration_days || 15;
+  // Get duration days - prioritize existing duration property
+  const days = booking.duration || booking.durationDays || booking.duration_days || 15;
   
   // Use the actual hourly rate from the booking (which includes referral discount if applied)
   // If not available, fall back to price property or calculate using default rate
@@ -7076,5 +7411,124 @@ const initSpendingChart = () => {
 .chevron-btn {
   margin-left: auto;
 }
+
+/* Payment Confirmation Modal */
+.payment-confirmation-card {
+  border-radius: 16px !important;
+  overflow: hidden;
+}
+
+.payment-method-card {
+  transition: all 0.3s ease;
+  border-radius: 12px !important;
+}
+
+.payment-method-card:hover {
+  border-color: #667eea !important;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
+  transform: translateY(-2px);
+}
+
+.selected-payment-method {
+  border-color: #667eea !important;
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
+  box-shadow: 0 4px 16px rgba(102, 126, 234, 0.2);
+}
+
+.booking-summary {
+  animation: fadeIn 0.5s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Payment Processing Modal Animations */
+.success-animation {
+  animation: successFadeIn 0.5s ease;
+}
+
+.checkmark-circle {
+  animation: scaleIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.checkmark-icon {
+  animation: checkmarkPulse 0.6s ease 0.3s;
+}
+
+@keyframes successFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes scaleIn {
+  0% {
+    opacity: 0;
+    transform: scale(0);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes checkmarkPulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+}
+
+.error-animation {
+  animation: errorShake 0.5s ease;
+}
+
+.error-circle {
+  animation: scaleIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.error-icon {
+  animation: errorPulse 0.6s ease 0.3s;
+}
+
+@keyframes errorShake {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  10%, 30%, 50%, 70%, 90% {
+    transform: translateX(-5px);
+  }
+  20%, 40%, 60%, 80% {
+    transform: translateX(5px);
+  }
+}
+
+@keyframes errorPulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+}
 </style>
+
 

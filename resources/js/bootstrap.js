@@ -3,6 +3,9 @@ window.axios = axios;
 
 window.axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
 
+// Enable credentials for session-based authentication
+window.axios.defaults.withCredentials = true;
+
 // Get CSRF token from meta tag
 const token = document.head.querySelector('meta[name="csrf-token"]');
 if (token) {

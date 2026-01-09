@@ -23,7 +23,9 @@
         }
     @endphp
     <div id="client-dashboard-app">
-        <client-dashboard :user-data='@json($user)'></client-dashboard>
+        <dashboard-wrapper :is-admin="false">
+            <client-dashboard :user-data='@json($user)'></client-dashboard>
+        </dashboard-wrapper>
     </div>
 </body>
 </html>

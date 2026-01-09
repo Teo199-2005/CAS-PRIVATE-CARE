@@ -567,12 +567,15 @@ class DashboardController extends Controller
                     'id' => $user->id,
                     'name' => $user->name,
                     'email' => $user->email,
+                    'phone' => $user->phone,
                     'type' => ucfirst($user->user_type),
                     'status' => $user->status ?? 'Active',
                     'joined' => $user->created_at->format('M Y'),
                     'caregiver' => $user->caregiver ? [
                         'id' => $user->caregiver->id,
-                        'rating' => $user->caregiver->rating
+                        'rating' => $user->caregiver->rating,
+                        'preferred_hourly_rate_min' => $user->caregiver->preferred_hourly_rate_min,
+                        'preferred_hourly_rate_max' => $user->caregiver->preferred_hourly_rate_max
                     ] : null
                 ];
             })

@@ -4,124 +4,191 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Hash;
-use Stripe\Stripe;
-use Stripe\Customer;
-use Stripe\PaymentMethod;
-use Stripe\SetupIntent;
-use Stripe\PaymentIntent;
-use App\Models\User;
+use Illuminate\Support\Facades\Log;
+use Stripe\StripeClient;
 use App\Models\Booking;
-use App\Models\TimeTracking;
 
 class ClientPaymentController extends Controller
 {
+    protected StripeClient $stripe;
+
     public function __construct()
     {
-        Stripe::setApiKey(config('stripe.secret'));
+        $this->stripe = new StripeClient(env('STRIPE_SECRET'));
     }
 
-    /**
-     * Get all saved payment methods for the current client
-     */
-    public function getPaymentMethods(Request $request)
+    protected function ensureCustomer($user)
+    {
+        try {
+            // Check if user already has a Stripe customer ID
+            if (!empty($user->stripe_customer_id)) {
+                Log::info('Using existing Stripe customer ID: ' . $user->stripe_customer_id);
+                return $user->stripe_customer_id;
+            }
+
+            Log::info('Creating new Stripe customer for user: ' . $user->id);
+
+            // Create new Stripe customer
+            $customer = $this->stripe->customers->create([
+                'email' => $user->email,
+                'name' => $user->name ?? $user->email,
+                'metadata' => [
+                    'user_id' => $user->id,
+                    'user_type' => $user->user_type ?? 'client'
+                ]
+            ]);
+
+            Log::info('Stripe customer created: ' . $customer->id);
+
+            // Try to save the customer ID to the user record
+            try {
+                $user->stripe_customer_id = $customer->id;
+                $user->save();
+                Log::info('Stripe customer ID saved to user record');
+            } catch (\Throwable $e) {
+                Log::warning('Unable to save stripe_customer_id to user: ' . $e->getMessage());
+                // Don't fail the request, just log the warning
+            }
+
+            return $customer->id;
+        } catch (\Stripe\Exception\ApiErrorException $e) {
+            Log::error('Stripe API error creating customer: ' . $e->getMessage());
+            throw $e;
+        } catch (\Exception $e) {
+            Log::error('Error ensuring customer: ' . $e->getMessage());
+            throw $e;
+        }
+    }
+
+    // Create a SetupIntent client secret for the frontend to collect a payment method
+    public function createSetupIntent(Request $request)
     {
         try {
             $user = Auth::user();
-            
             if (!$user) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'User not authenticated'
-                ], 401);
+                Log::warning('Setup intent: No authenticated user');
+                return response()->json(['message' => 'Unauthenticated'], 401);
             }
 
-            // Get or create Stripe customer
-            $stripeCustomerId = $this->getOrCreateStripeCustomer($user);
+            Log::info('Creating setup intent for user: ' . $user->id . ' (' . $user->email . ')');
 
-            // Retrieve all payment methods for this customer
-            $paymentMethods = PaymentMethod::all([
-                'customer' => $stripeCustomerId,
-                'type' => 'card',
+            // Check Stripe configuration
+            if (empty(env('STRIPE_SECRET'))) {
+                Log::error('STRIPE_SECRET is not configured');
+                return response()->json(['message' => 'Payment system not configured'], 500);
+            }
+
+            $customerId = $this->ensureCustomer($user);
+            
+            Log::info('Customer ID obtained: ' . $customerId);
+
+            $intent = $this->stripe->setupIntents->create([
+                'customer' => $customerId,
+                'usage' => 'off_session',
+                'payment_method_types' => ['card'], // Explicitly specify card payments
             ]);
+
+            Log::info('Setup intent created successfully: ' . $intent->id);
 
             return response()->json([
                 'success' => true,
-                'payment_methods' => $paymentMethods->data,
-                'customer_id' => $stripeCustomerId
+                'client_secret' => $intent->client_secret
             ]);
-
-        } catch (\Exception $e) {
-            \Log::error('Error fetching payment methods: ' . $e->getMessage());
+        } catch (\Stripe\Exception\ApiErrorException $e) {
+            Log::error('Stripe API error in setup intent: ' . $e->getMessage(), [
+                'error_type' => get_class($e),
+                'error_code' => $e->getStripeCode(),
+                'user_id' => Auth::id()
+            ]);
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to load payment methods',
-                'error' => $e->getMessage()
+                'message' => 'Stripe API error: ' . $e->getMessage()
+            ], 500);
+        } catch (\Exception $e) {
+            Log::error('Setup intent creation failed: ' . $e->getMessage(), [
+                'exception' => get_class($e),
+                'trace' => $e->getTraceAsString(),
+                'user_id' => Auth::id()
+            ]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to create setup intent: ' . $e->getMessage()
             ], 500);
         }
     }
 
     /**
-     * Create a Payment Intent for checkout (NEW - with Payment Element)
+     * Create a PaymentIntent for a booking payment
+     * This is used when the client wants to pay for a booking
      */
     public function createPaymentIntent(Request $request)
     {
-        $request->validate([
-            'booking_id' => 'required|integer',
-            'amount' => 'required|numeric|min:1', // Minimum 1 cent (Stripe minimum is 50 cents)
-            'currency' => 'nullable|string',
-            'customer_email' => 'nullable|string|email'
-        ]);
-
         try {
             $user = Auth::user();
-            
             if (!$user) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'User not authenticated'
-                ], 401);
+                Log::warning('Payment intent: No authenticated user');
+                return response()->json(['message' => 'Unauthenticated'], 401);
             }
 
-            // Get booking
-            $booking = Booking::find($request->booking_id);
-            if (!$booking) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Booking not found'
-                ], 404);
+            Log::info('Creating payment intent for user: ' . $user->id . ' (' . $user->email . ')');
+
+            $request->validate([
+                'booking_id' => 'required|integer|exists:bookings,id',
+                'amount' => 'required|integer|min:100', // Amount in cents
+            ]);
+
+            $bookingId = $request->booking_id;
+            $amount = $request->amount;
+
+            // Get the booking
+            $booking = Booking::findOrFail($bookingId);
+
+            // Verify booking belongs to user (client_id in bookings refers to user_id)
+            if ($booking->client_id !== $user->id) {
+                Log::warning('Unauthorized payment attempt', [
+                    'user_id' => $user->id,
+                    'booking_id' => $bookingId,
+                    'booking_client_id' => $booking->client_id
+                ]);
+                return response()->json(['message' => 'Unauthorized - booking does not belong to you'], 403);
             }
 
-            // Verify booking belongs to user
-            if ($booking->client_id != $user->id) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Unauthorized access to booking'
-                ], 403);
+            // Check if already paid
+            if ($booking->payment_status === 'paid') {
+                return response()->json(['message' => 'Booking has already been paid'], 400);
             }
 
-            // Ensure amount meets Stripe minimum (50 cents)
-            $amountInCents = max(50, (int)$request->amount);
+            // Check Stripe configuration
+            if (empty(env('STRIPE_SECRET'))) {
+                Log::error('STRIPE_SECRET is not configured');
+                return response()->json(['message' => 'Payment system not configured'], 500);
+            }
 
-            // Get or create Stripe customer
-            $stripeCustomerId = $this->getOrCreateStripeCustomer($user);
+            $customerId = $this->ensureCustomer($user);
 
-            // Create Payment Intent
-            $paymentIntent = PaymentIntent::create([
-                'amount' => $amountInCents, // Amount in cents
-                'currency' => $request->currency ?? 'usd',
-                'customer' => $stripeCustomerId,
-                'description' => "Payment for Booking #{$booking->id} - {$booking->duty_type}",
+            Log::info('Creating payment intent', [
+                'customer_id' => $customerId,
+                'amount' => $amount,
+                'booking_id' => $bookingId
+            ]);
+
+            // Create the payment intent
+            $paymentIntent = $this->stripe->paymentIntents->create([
+                'amount' => $amount,
+                'currency' => 'usd',
+                'customer' => $customerId,
                 'metadata' => [
-                    'booking_id' => $booking->id,
-                    'client_id' => $user->id,
-                    'client_name' => $user->name,
+                    'booking_id' => $bookingId,
+                    'user_id' => $user->id,
+                    'client_id' => $user->id // Same as user_id (booking.client_id = user.id)
                 ],
                 'automatic_payment_methods' => [
-                    'enabled' => true, // Enable all payment methods (Card, Link, etc.)
+                    'enabled' => true,
                 ],
-                'receipt_email' => $request->customer_email ?? $user->email,
+                'description' => 'Booking #' . $bookingId . ' - ' . $booking->service_type,
             ]);
+
+            Log::info('Payment intent created: ' . $paymentIntent->id);
 
             return response()->json([
                 'success' => true,
@@ -129,288 +196,332 @@ class ClientPaymentController extends Controller
                 'payment_intent_id' => $paymentIntent->id
             ]);
 
-        } catch (\Exception $e) {
-            \Log::error('Error creating payment intent: ' . $e->getMessage());
+        } catch (\Stripe\Exception\ApiErrorException $e) {
+            Log::error('Stripe API error creating payment intent: ' . $e->getMessage(), [
+                'error_type' => get_class($e),
+                'error_code' => $e->getStripeCode(),
+                'user_id' => Auth::id()
+            ]);
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to create payment intent',
-                'error' => $e->getMessage()
+                'message' => 'Stripe API error: ' . $e->getMessage()
+            ], 500);
+        } catch (\Exception $e) {
+            Log::error('Payment intent creation failed: ' . $e->getMessage(), [
+                'exception' => get_class($e),
+                'trace' => $e->getTraceAsString(),
+                'user_id' => Auth::id()
+            ]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to create payment intent: ' . $e->getMessage()
             ], 500);
         }
     }
 
-    /**
-     * Create a SetupIntent for adding new payment method
-     */
-    public function createSetupIntent(Request $request)
+    // List saved payment methods (cards)
+    public function listPaymentMethods(Request $request)
     {
-        try {
-            $user = Auth::user();
-            
-            if (!$user) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'User not authenticated'
-                ], 401);
-            }
+        $user = Auth::user();
+        if (!$user) return response()->json(['message' => 'Unauthenticated'], 401);
 
-            // Get or create Stripe customer
-            $stripeCustomerId = $this->getOrCreateStripeCustomer($user);
+        $customerId = $this->ensureCustomer($user);
 
-            // Create SetupIntent
-            $setupIntent = SetupIntent::create([
-                'customer' => $stripeCustomerId,
-                'payment_method_types' => ['card'],
-            ]);
-
-            return response()->json([
-                'success' => true,
-                'client_secret' => $setupIntent->client_secret,
-                'setup_intent_id' => $setupIntent->id
-            ]);
-
-        } catch (\Exception $e) {
-            \Log::error('Error creating setup intent: ' . $e->getMessage());
-            return response()->json([
-                'success' => false,
-                'message' => 'Failed to create setup intent',
-                'error' => $e->getMessage()
-            ], 500);
-        }
-    }
-
-    /**
-     * Attach payment method to customer
-     */
-    public function attachPaymentMethod(Request $request)
-    {
-        $request->validate([
-            'payment_method_id' => 'required|string'
+        $methods = $this->stripe->paymentMethods->all([
+            'customer' => $customerId,
+            'type' => 'card',
         ]);
 
+        // Return both 'data' and 'payment_methods' for compatibility
+        return response()->json([
+            'success' => true,
+            'data' => $methods->data,
+            'payment_methods' => $methods->data
+        ]);
+    }
+
+    // Attach a payment method (from SetupIntent) to the customer and set as default
+    public function attachPaymentMethod(Request $request)
+    {
+        $request->validate(['payment_method' => 'required|string']);
+
+        $user = Auth::user();
+        if (!$user) return response()->json(['message' => 'Unauthenticated'], 401);
+
+        $customerId = $this->ensureCustomer($user);
+
         try {
-            $user = Auth::user();
-            
-            if (!$user) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'User not authenticated'
-                ], 401);
-            }
+            $pm = $this->stripe->paymentMethods->attach($request->payment_method, [
+                'customer' => $customerId,
+            ]);
 
-            // Get or create Stripe customer
-            $stripeCustomerId = $this->getOrCreateStripeCustomer($user);
-
-            // Attach payment method to customer
-            $paymentMethod = PaymentMethod::retrieve($request->payment_method_id);
-            $paymentMethod->attach(['customer' => $stripeCustomerId]);
-
-            // Set as default payment method
-            Customer::update($stripeCustomerId, [
+            $this->stripe->customers->update($customerId, [
                 'invoice_settings' => [
-                    'default_payment_method' => $request->payment_method_id,
+                    'default_payment_method' => $pm->id,
                 ],
             ]);
 
-            return response()->json([
-                'success' => true,
-                'message' => 'Payment method saved successfully',
-                'payment_method' => $paymentMethod
-            ]);
-
+            return response()->json(['payment_method' => $pm]);
         } catch (\Exception $e) {
-            \Log::error('Error attaching payment method: ' . $e->getMessage());
-            return response()->json([
-                'success' => false,
-                'message' => 'Failed to save payment method',
-                'error' => $e->getMessage()
-            ], 500);
+            Log::error('attachPaymentMethod error: ' . $e->getMessage());
+            return response()->json(['error' => $e->getMessage()], 400);
+        }
+    }
+
+    // Detach a payment method
+    public function detachPaymentMethod(Request $request, $pmId)
+    {
+        $user = Auth::user();
+        if (!$user) return response()->json(['message' => 'Unauthenticated'], 401);
+
+        try {
+            $detached = $this->stripe->paymentMethods->detach($pmId);
+            return response()->json(['detached' => $detached]);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 400);
         }
     }
 
     /**
-     * Charge a saved payment method
+     * Charge a saved payment method for a booking
+     * POST /api/stripe/charge-saved-method
      */
     public function chargeSavedMethod(Request $request)
     {
-        $request->validate([
-            'booking_id' => 'required|integer',
-            'payment_method_id' => 'required|string',
-            'password' => 'required|string',
-            'amount' => 'required|numeric|min:0.50'
-        ]);
+        $user = Auth::user();
+        if (!$user) {
+            return response()->json(['success' => false, 'message' => 'Unauthenticated'], 401);
+        }
 
         try {
-            $user = Auth::user();
-            
-            if (!$user) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'User not authenticated'
-                ], 401);
-            }
+            $request->validate([
+                'payment_method_id' => 'required|string',
+                'booking_id' => 'required|integer|exists:bookings,id',
+                'amount' => 'required|integer|min:100', // Amount in cents
+            ]);
 
-            // Verify password
-            if (!Hash::check($request->password, $user->password)) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Incorrect password'
-                ], 401);
-            }
-
-            // Get booking
-            $booking = Booking::find($request->booking_id);
-            if (!$booking) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Booking not found'
-                ], 404);
-            }
+            // Get the booking
+            $booking = Booking::findOrFail($request->booking_id);
 
             // Verify booking belongs to user
-            if ($booking->client_id != $user->id) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Unauthorized access to booking'
-                ], 403);
+            if ($booking->client_id !== $user->id) {
+                Log::warning('Unauthorized charge attempt', [
+                    'user_id' => $user->id,
+                    'booking_id' => $request->booking_id,
+                ]);
+                return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
             }
 
-            // Get Stripe customer
-            $stripeCustomerId = $this->getOrCreateStripeCustomer($user);
+            // Check if already paid
+            if ($booking->payment_status === 'paid') {
+                return response()->json(['success' => false, 'message' => 'Booking has already been paid'], 400);
+            }
 
-            // Create Payment Intent
-            $amountInCents = round($request->amount * 100);
-            
-            $paymentIntent = PaymentIntent::create([
-                'amount' => $amountInCents,
+            $customerId = $this->ensureCustomer($user);
+
+            Log::info('Charging saved payment method', [
+                'user_id' => $user->id,
+                'booking_id' => $request->booking_id,
+                'payment_method_id' => $request->payment_method_id,
+                'amount' => $request->amount
+            ]);
+
+            // Create and confirm Payment Intent with saved payment method
+            $paymentIntent = $this->stripe->paymentIntents->create([
+                'amount' => $request->amount,
                 'currency' => 'usd',
-                'customer' => $stripeCustomerId,
+                'customer' => $customerId,
                 'payment_method' => $request->payment_method_id,
                 'off_session' => true,
                 'confirm' => true,
-                'description' => "Payment for Booking #{$booking->id} - {$booking->duty_type}",
                 'metadata' => [
-                    'booking_id' => $booking->id,
-                    'client_id' => $user->id,
-                    'client_name' => $user->name,
-                ]
+                    'booking_id' => $request->booking_id,
+                    'user_id' => $user->id,
+                    'client_id' => $user->id
+                ],
+                'description' => 'Booking #' . $request->booking_id . ' - ' . $booking->service_type,
             ]);
 
-            // Update booking payment status
+            Log::info('Payment processed successfully', [
+                'payment_intent_id' => $paymentIntent->id,
+                'booking_id' => $request->booking_id,
+                'status' => $paymentIntent->status
+            ]);
+
+            // Update booking payment status and enable recurring by default
             $booking->update([
                 'payment_status' => 'paid',
                 'stripe_payment_intent_id' => $paymentIntent->id,
-                'payment_date' => now()
+                'payment_date' => now(),
+                'recurring_service' => true, // Auto-enable recurring for paid bookings
+                'auto_pay_enabled' => true, // Enable auto-pay with saved card
+                'recurring_status' => 'active', // Set recurring status to active
             ]);
 
-            // Create time tracking entry for payment record
-            TimeTracking::create([
-                'caregiver_id' => $booking->caregiver_id,
+            // Create payment record
+            \App\Models\Payment::create([
+                'client_id' => $user->id,
                 'booking_id' => $booking->id,
-                'clock_in' => $booking->start_date,
-                'clock_out' => $booking->end_date,
-                'total_hours' => $booking->hours ?? 0,
-                'hourly_rate' => $booking->hourly_rate ?? 40,
-                'total_earned' => $request->amount,
+                'transaction_id' => $paymentIntent->id,
+                'amount' => $request->amount / 100,
                 'status' => 'completed',
-                'payment_status' => 'paid',
-                'payment_method' => 'stripe',
-                'stripe_payment_intent_id' => $paymentIntent->id
+                'payment_method' => 'credit_card',
+                'notes' => 'Booking payment using saved card for #' . $booking->id,
+                'paid_at' => now(),
             ]);
 
             return response()->json([
                 'success' => true,
-                'message' => 'Payment processed successfully',
+                'message' => 'Payment successful! Auto-renewal has been enabled for this contract.',
                 'payment_intent_id' => $paymentIntent->id,
-                'amount_charged' => $request->amount
+                'recurring_enabled' => true
             ]);
 
         } catch (\Stripe\Exception\CardException $e) {
-            // Card was declined
-            \Log::error('Card declined: ' . $e->getMessage());
+            Log::error('Stripe card error: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
-                'message' => 'Card declined: ' . $e->getError()->message
+                'message' => 'Card declined: ' . $e->getMessage()
             ], 400);
-
-        } catch (\Exception $e) {
-            \Log::error('Error charging saved payment method: ' . $e->getMessage());
+        } catch (\Stripe\Exception\ApiErrorException $e) {
+            Log::error('Stripe API error: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to process payment',
-                'error' => $e->getMessage()
+                'message' => 'Payment failed: ' . $e->getMessage()
+            ], 500);
+        } catch (\Exception $e) {
+            Log::error('Payment processing error: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Payment failed: ' . $e->getMessage()
             ], 500);
         }
     }
 
-    /**
-     * Delete a saved payment method
-     */
-    public function deletePaymentMethod(Request $request)
+    // Create a subscription for a booking (creates price and subscription)
+    public function createSubscription(Request $request)
     {
         $request->validate([
-            'payment_method_id' => 'required|string'
+            'booking_id' => 'required|integer|exists:bookings,id',
+            'amount' => 'required|integer|min:100', // In cents
+            'interval' => 'required|string|in:month,week,year'
         ]);
 
-        try {
-            $user = Auth::user();
-            
-            if (!$user) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'User not authenticated'
-                ], 401);
-            }
+        $user = Auth::user();
+        if (!$user) return response()->json(['message' => 'Unauthenticated'], 401);
 
-            // Detach payment method
-            $paymentMethod = PaymentMethod::retrieve($request->payment_method_id);
-            $paymentMethod->detach();
+        $booking = Booking::findOrFail($request->booking_id);
+        
+        // Verify the booking belongs to this client
+        if ($booking->client_id !== $user->id) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        // Check if booking already has a subscription
+        if ($booking->stripe_subscription_id) {
+            return response()->json(['message' => 'Booking already has an active subscription'], 400);
+        }
+
+        $customerId = $this->ensureCustomer($user);
+
+        try {
+            // Create a product and price for this booking
+            $product = $this->stripe->products->create([
+                'name' => 'Caregiving Service - Booking #' . $booking->id,
+                'description' => 'Recurring payment for booking #' . $booking->id,
+                'metadata' => [
+                    'booking_id' => $booking->id,
+                    'client_id' => $user->id
+                ]
+            ]);
+
+            $price = $this->stripe->prices->create([
+                'product' => $product->id,
+                'unit_amount' => $request->amount,
+                'currency' => 'usd',
+                'recurring' => [
+                    'interval' => $request->interval,
+                ],
+                'metadata' => [
+                    'booking_id' => $booking->id
+                ]
+            ]);
+
+            // Create subscription
+            $subscription = $this->stripe->subscriptions->create([
+                'customer' => $customerId,
+                'items' => [['price' => $price->id]],
+                'expand' => ['latest_invoice.payment_intent'],
+                'metadata' => [
+                    'booking_id' => $booking->id,
+                    'client_id' => $user->id
+                ]
+            ]);
+
+            // Update booking with subscription info
+            $booking->update([
+                'stripe_subscription_id' => $subscription->id,
+                'stripe_price_id' => $price->id,
+                'payment_type' => 'recurring',
+                'auto_pay_enabled' => true,
+                'next_payment_date' => $subscription->current_period_end 
+                    ? date('Y-m-d H:i:s', $subscription->current_period_end) 
+                    : null
+            ]);
+
+            Log::info('Subscription created for booking', [
+                'booking_id' => $booking->id,
+                'subscription_id' => $subscription->id
+            ]);
 
             return response()->json([
                 'success' => true,
-                'message' => 'Payment method removed successfully'
+                'subscription' => $subscription,
+                'booking' => $booking->fresh()
             ]);
-
         } catch (\Exception $e) {
-            \Log::error('Error deleting payment method: ' . $e->getMessage());
-            return response()->json([
-                'success' => false,
-                'message' => 'Failed to remove payment method',
-                'error' => $e->getMessage()
-            ], 500);
+            Log::error('createSubscription error: ' . $e->getMessage());
+            return response()->json(['message' => $e->getMessage()], 400);
         }
     }
 
-    /**
-     * Get or create Stripe customer for user
-     */
-    private function getOrCreateStripeCustomer(User $user)
+    // Cancel a subscription
+    public function cancelSubscription(Request $request, $subscriptionId)
     {
-        // Check if user already has a Stripe customer ID
-        if ($user->stripe_customer_id) {
-            try {
-                // Verify the customer exists in Stripe
-                Customer::retrieve($user->stripe_customer_id);
-                return $user->stripe_customer_id;
-            } catch (\Exception $e) {
-                // Customer doesn't exist, create a new one
-                \Log::warning("Stripe customer {$user->stripe_customer_id} not found, creating new one");
-            }
+        $user = Auth::user();
+        if (!$user) return response()->json(['message' => 'Unauthenticated'], 401);
+
+        // Find booking with this subscription
+        $booking = Booking::where('stripe_subscription_id', $subscriptionId)
+            ->where('client_id', $user->id)
+            ->first();
+
+        if (!$booking) {
+            return response()->json(['message' => 'Subscription not found or unauthorized'], 404);
         }
 
-        // Create new Stripe customer
-        $customer = Customer::create([
-            'email' => $user->email,
-            'name' => $user->name,
-            'metadata' => [
-                'user_id' => $user->id,
-                'role' => $user->role
-            ]
-        ]);
+        try {
+            $sub = $this->stripe->subscriptions->cancel($subscriptionId, []);
+            
+            // Update booking
+            $booking->update([
+                'auto_pay_enabled' => false,
+                'payment_type' => 'one-time'
+            ]);
 
-        // Save customer ID to user record
-        $user->update(['stripe_customer_id' => $customer->id]);
+            Log::info('Subscription canceled for booking', [
+                'booking_id' => $booking->id,
+                'subscription_id' => $subscriptionId
+            ]);
 
-        return $customer->id;
+            return response()->json([
+                'success' => true,
+                'canceled' => $sub,
+                'booking' => $booking->fresh()
+            ]);
+        } catch (\Exception $e) {
+            Log::error('cancelSubscription error: ' . $e->getMessage());
+            return response()->json(['message' => $e->getMessage()], 400);
+        }
     }
 }

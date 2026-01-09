@@ -10,7 +10,9 @@
 </head>
 <body>
     <div id="caregiver-dashboard-app">
-        <caregiver-dashboard></caregiver-dashboard>
+        <dashboard-wrapper :is-admin="false">
+            <caregiver-dashboard></caregiver-dashboard>
+        </dashboard-wrapper>
     </div>
 </body>
 </html>

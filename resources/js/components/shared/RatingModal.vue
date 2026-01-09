@@ -14,51 +14,102 @@
       </v-card-title>
 
       <v-card-text class="pa-6">
-        <!-- Service Info -->
-        <div class="service-info mb-6">
-          <div class="d-flex align-center mb-3">
-            <v-icon color="primary" class="mr-2">mdi-medical-bag</v-icon>
-            <span class="text-h6">{{ booking?.service_type || 'Service' }}</span>
-          </div>
-          <div class="text-body-2 text-grey">
-            <v-icon size="16" class="mr-1">mdi-calendar</v-icon>
-            {{ formatDate(booking?.service_date) }}
-          </div>
-        </div>
-
-        <!-- Select Caregiver (if multiple) -->
-        <v-select
-          v-if="caregivers.length > 1"
-          v-model="selectedCaregiver"
-          :items="caregivers"
-          item-title="name"
-          item-value="id"
-          label="Select Caregiver to Review"
-          variant="outlined"
-          class="mb-4"
-          prepend-inner-icon="mdi-account"
-        >
-          <template v-slot:item="{ props, item }">
-            <v-list-item v-bind="props" :title="item.raw.name">
-              <template v-slot:prepend>
-                <v-avatar color="primary" size="32">
-                  <span class="text-white">{{ item.raw.name?.charAt(0) }}</span>
-                </v-avatar>
-              </template>
-            </v-list-item>
-          </template>
-        </v-select>
-
-        <div v-if="caregivers.length === 1" class="selected-caregiver mb-4">
-          <div class="d-flex align-center pa-3" style="background: #f3f4f6; border-radius: 8px;">
-            <v-avatar color="primary" size="40" class="mr-3">
-              <span class="text-white text-h6">{{ caregivers[0].name?.charAt(0) }}</span>
-            </v-avatar>
-            <div>
-              <div class="font-weight-bold">{{ caregivers[0].name }}</div>
-              <div class="text-caption text-grey">Your Caregiver</div>
+        <!-- Booking Details Card -->
+        <v-card class="mb-6" elevation="0" style="background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); border: 1px solid #bae6fd;">
+          <v-card-text class="pa-4">
+            <div class="d-flex align-center mb-3">
+              <v-icon color="primary" size="24" class="mr-2">mdi-medical-bag</v-icon>
+              <span class="text-h6 font-weight-bold">{{ booking?.serviceType || booking?.service_type || 'Service' }}</span>
             </div>
+            
+            <v-divider class="my-3"></v-divider>
+            
+            <div class="booking-details">
+              <div class="d-flex align-center mb-2">
+                <v-icon size="18" color="primary" class="mr-2">mdi-calendar</v-icon>
+                <span class="text-body-2">
+                  <strong>Service Date:</strong> {{ formatDate(booking?.service_date || booking?.date) }}
+                </span>
+              </div>
+              
+              <div class="d-flex align-center mb-2" v-if="booking?.dutyType || booking?.duty_type">
+                <v-icon size="18" color="primary" class="mr-2">mdi-clock-outline</v-icon>
+                <span class="text-body-2">
+                  <strong>Duration:</strong> {{ booking?.dutyType || booking?.duty_type }}
+                </span>
+              </div>
+              
+              <div class="d-flex align-center mb-2" v-if="booking?.durationDays || booking?.duration_days">
+                <v-icon size="18" color="primary" class="mr-2">mdi-calendar-range</v-icon>
+                <span class="text-body-2">
+                  <strong>Total Days:</strong> {{ booking?.durationDays || booking?.duration_days }} day(s)
+                </span>
+              </div>
+              
+              <div class="d-flex align-center mb-2" v-if="booking?.location || booking?.borough">
+                <v-icon size="18" color="primary" class="mr-2">mdi-map-marker</v-icon>
+                <span class="text-body-2">
+                  <strong>Location:</strong> {{ booking?.location || booking?.borough }}
+                </span>
+              </div>
+              
+              <div class="d-flex align-center" v-if="booking?.price || booking?.total_price">
+                <v-icon size="18" color="success" class="mr-2">mdi-currency-usd</v-icon>
+                <span class="text-body-2">
+                  <strong>Total Cost:</strong> ${{ formatPrice(booking?.price || booking?.total_price) }}
+                </span>
+              </div>
+            </div>
+          </v-card-text>
+        </v-card>
+
+        <!-- Assigned Caregivers Section -->
+        <div class="caregivers-section mb-5">
+          <div class="text-subtitle-1 font-weight-bold mb-3 d-flex align-center">
+            <v-icon color="amber" class="mr-2">mdi-account-heart</v-icon>
+            {{ caregivers.length > 1 ? 'Select Caregiver to Review' : 'Your Caregiver' }}
           </div>
+          
+          <!-- Multiple Caregivers - Dropdown -->
+          <v-select
+            v-if="caregivers.length > 1"
+            v-model="selectedCaregiver"
+            :items="caregivers"
+            item-title="name"
+            item-value="id"
+            label="Choose a caregiver"
+            variant="outlined"
+            class="mb-2"
+            prepend-inner-icon="mdi-account"
+          >
+            <template v-slot:item="{ props, item }">
+              <v-list-item v-bind="props" :title="item.raw.name">
+                <template v-slot:prepend>
+                  <v-avatar color="amber" size="32">
+                    <span class="text-white">{{ item.raw.name?.charAt(0) }}</span>
+                  </v-avatar>
+                </template>
+              </v-list-item>
+            </template>
+          </v-select>
+
+          <!-- Single Caregiver - Card -->
+          <v-card v-else-if="caregivers.length === 1" class="selected-caregiver" elevation="2">
+            <v-card-text class="d-flex align-center pa-4">
+              <v-avatar color="amber" size="48" class="mr-4">
+                <span class="text-white text-h6">{{ caregivers[0].name?.charAt(0) }}</span>
+              </v-avatar>
+              <div>
+                <div class="text-h6 font-weight-bold">{{ caregivers[0].name }}</div>
+                <div class="text-caption text-grey">Assigned Caregiver</div>
+              </div>
+            </v-card-text>
+          </v-card>
+          
+          <!-- No Caregivers -->
+          <v-alert v-else type="info" variant="tonal" class="mb-0">
+            No caregivers assigned to this booking yet.
+          </v-alert>
         </div>
 
         <!-- Rating Stars -->
@@ -194,6 +245,12 @@ const formatDate = (date) => {
     month: 'long',
     day: 'numeric'
   });
+};
+
+const formatPrice = (price) => {
+  if (!price) return '0.00';
+  const numPrice = typeof price === 'string' ? parseFloat(price) : price;
+  return numPrice.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 };
 
 const submit = async () => {

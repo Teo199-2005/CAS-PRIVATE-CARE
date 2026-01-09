@@ -153,8 +153,18 @@ class BookingController extends Controller
             // Parse duty_type to extract hours if needed
             $dutyType = $request->duty_type ?: '8 Hours';
             
+            // Calculate hours per day from duty_type (e.g., "8 Hours per Day" => 8)
+            $hoursPerDay = 8; // default
+            if (preg_match('/(\d+)\s*Hours?/i', $dutyType, $matches)) {
+                $hoursPerDay = (int)$matches[1];
+            }
+            
+            // Calculate total budget: hours per day × duration days × hourly rate
+            $durationDays = $request->duration_days ?: 15;
+            $totalBudget = $hoursPerDay * $durationDays * $hourlyRate;
+            
             // Use database transaction to ensure data consistency
-            $booking = DB::transaction(function() use ($request, $clientId, $dutyType, $startTime, $hourlyRate, $referralCodeId, $referralDiscountApplied, $user) {
+            $booking = DB::transaction(function() use ($request, $clientId, $dutyType, $startTime, $hourlyRate, $referralCodeId, $referralDiscountApplied, $user, $durationDays, $totalBudget) {
                 return Booking::create([
                     'client_id' => $clientId,
                     'service_type' => $request->service_type ?: 'Caregiver',
@@ -164,8 +174,9 @@ class BookingController extends Controller
                     'county' => $request->county,
                     'service_date' => $request->service_date ?: now()->addDay(),
                     'start_time' => $startTime,
-                    'duration_days' => $request->duration_days ?: 15,
+                    'duration_days' => $durationDays,
                     'hourly_rate' => $hourlyRate,
+                    'total_budget' => $totalBudget,
                     'gender_preference' => $request->gender_preference ?: 'no_preference',
                     'specific_skills' => $request->specific_skills ?: [],
                     'client_age' => $request->client_age,

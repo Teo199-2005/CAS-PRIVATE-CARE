@@ -12,6 +12,7 @@ class Payment extends Model
     protected $fillable = [
         'booking_id',
         'client_id',
+        'user_id',
         'caregiver_id',
         'amount',
         'platform_fee',
@@ -19,6 +20,9 @@ class Payment extends Model
         'payment_method',
         'status',
         'transaction_id',
+        'stripe_payment_intent_id',
+        'currency',
+        'description',
         'paid_at',
         'notes'
     ];

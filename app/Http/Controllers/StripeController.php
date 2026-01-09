@@ -91,6 +91,131 @@ class StripeController extends Controller
     }
 
     /**
+     * Process payment using a payment method
+     * POST /api/stripe/setup-intent
+     * Used by PaymentPage.vue to charge the card for a booking
+     */
+    public function processPaymentWithMethod(Request $request)
+    {
+        $user = Auth::user();
+        
+        if (!$user) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized'], 401);
+        }
+
+        try {
+            $request->validate([
+                'payment_method_id' => 'required|string',
+                'booking_id' => 'required|integer',
+                'amount' => 'required|integer|min:100', // Amount in cents
+            ]);
+
+            $stripe = new \Stripe\StripeClient(config('stripe.secret_key'));
+            
+            // Ensure customer exists
+            if (!$user->stripe_customer_id) {
+                $customer = $stripe->customers->create([
+                    'email' => $user->email,
+                    'name' => $user->name ?? $user->email,
+                    'metadata' => ['user_id' => $user->id]
+                ]);
+                $user->stripe_customer_id = $customer->id;
+                $user->save();
+            }
+
+            // Get the booking
+            $booking = \App\Models\Booking::findOrFail($request->booking_id);
+
+            // Verify booking belongs to user (client_id in bookings refers to user_id)
+            if ($booking->client_id !== $user->id) {
+                Log::warning('Unauthorized payment attempt', [
+                    'user_id' => $user->id,
+                    'booking_id' => $request->booking_id,
+                    'booking_client_id' => $booking->client_id
+                ]);
+                return response()->json(['success' => false, 'message' => 'Unauthorized - This booking does not belong to you'], 403);
+            }
+
+            // Attach payment method to customer (if not already)
+            try {
+                $stripe->paymentMethods->attach(
+                    $request->payment_method_id,
+                    ['customer' => $user->stripe_customer_id]
+                );
+            } catch (\Stripe\Exception\CardException $e) {
+                // Payment method may already be attached, continue
+                Log::info('Payment method attach skipped: ' . $e->getMessage());
+            }
+
+            // Create and confirm Payment Intent
+            $paymentIntent = $stripe->paymentIntents->create([
+                'amount' => $request->amount,
+                'currency' => 'usd',
+                'customer' => $user->stripe_customer_id,
+                'payment_method' => $request->payment_method_id,
+                'off_session' => true,
+                'confirm' => true,
+                'metadata' => [
+                    'booking_id' => $request->booking_id,
+                    'user_id' => $user->id,
+                    'client_id' => $user->id // Same as user_id (booking.client_id = user.id)
+                ],
+                'description' => 'Booking #' . $request->booking_id . ' - ' . $booking->service_type,
+            ]);
+
+            Log::info('Payment processed successfully', [
+                'payment_intent_id' => $paymentIntent->id,
+                'booking_id' => $request->booking_id,
+                'amount' => $request->amount
+            ]);
+
+            // Update booking payment status
+            $booking->update([
+                'payment_status' => 'paid',
+                'stripe_payment_intent_id' => $paymentIntent->id,
+                'payment_date' => now(),
+            ]);
+
+            // Create payment record
+            \App\Models\Payment::create([
+                'client_id' => $user->id,
+                'booking_id' => $booking->id,
+                'transaction_id' => $paymentIntent->id,
+                'amount' => $request->amount / 100, // Convert from cents
+                'status' => 'completed',
+                'payment_method' => 'credit_card',
+                'notes' => 'Booking payment for #' . $booking->id,
+                'paid_at' => now(),
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Payment processed successfully',
+                'payment_intent_id' => $paymentIntent->id
+            ]);
+
+        } catch (\Stripe\Exception\CardException $e) {
+            Log::error('Stripe card error: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Card declined: ' . $e->getMessage()
+            ], 400);
+        } catch (\Stripe\Exception\ApiErrorException $e) {
+            Log::error('Stripe API error: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Payment failed: ' . $e->getMessage()
+            ], 500);
+        } catch (\Exception $e) {
+            Log::error('Payment processing error: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Payment failed: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
      * Get client's saved payment methods
      * GET /api/stripe/payment-methods
      */

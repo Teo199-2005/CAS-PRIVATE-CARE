@@ -599,6 +599,100 @@
               </v-card>
             </v-col>
           </v-row>
+
+          <!-- Past Bookings Section -->
+          <v-row>
+            <v-col cols="12">
+              <v-card elevation="0">
+                <v-card-title class="card-header pa-8 d-flex justify-space-between align-center">
+                  <div>
+                    <span class="section-title success--text">Past Bookings</span>
+                    <div class="text-caption text-grey mt-1">View your completed contract details and time tracking history</div>
+                  </div>
+                  <v-chip color="primary" variant="outlined">
+                    {{ pastBookings.length }} Total Bookings
+                  </v-chip>
+                </v-card-title>
+                <v-card-text class="pa-0">
+                  <v-data-table 
+                    :headers="pastBookingsHeaders" 
+                    :items="pastBookings" 
+                    :items-per-page="10"
+                    class="elevation-0"
+                  >
+                    <template v-slot:item.client="{ item }">
+                      <div class="d-flex align-center py-2">
+                        <v-avatar color="primary" size="32" class="mr-3">
+                          <span class="text-caption">{{ item.client.substring(0, 2).toUpperCase() }}</span>
+                        </v-avatar>
+                        <div>
+                          <div class="font-weight-medium">{{ item.client }}</div>
+                          <div class="text-caption text-grey">{{ item.service_type }}</div>
+                        </div>
+                      </div>
+                    </template>
+
+                    <template v-slot:item.dates="{ item }">
+                      <div>
+                        <div class="font-weight-medium">{{ item.start_date }}</div>
+                        <div class="text-caption text-grey">{{ item.duration }}</div>
+                      </div>
+                    </template>
+
+                    <template v-slot:item.hours="{ item }">
+                      <div class="text-center">
+                        <div class="font-weight-bold text-h6 success--text">{{ item.total_hours }}</div>
+                        <div class="text-caption text-grey">hours logged</div>
+                      </div>
+                    </template>
+
+                    <template v-slot:item.rate="{ item }">
+                      <v-chip color="success" size="small" variant="elevated">
+                        <v-icon start size="14">mdi-cash</v-icon>
+                        ${{ item.assigned_rate }}/hr
+                      </v-chip>
+                    </template>
+
+                    <template v-slot:item.earnings="{ item }">
+                      <div class="text-right">
+                        <div class="font-weight-bold text-h6 success--text">${{ item.total_earnings }}</div>
+                        <div class="text-caption text-grey">{{ item.total_hours }}h × ${{ item.assigned_rate }}</div>
+                      </div>
+                    </template>
+
+                    <template v-slot:item.status="{ item }">
+                      <v-chip :color="item.payment_status === 'Paid' ? 'success' : 'warning'" size="small">
+                        {{ item.payment_status }}
+                      </v-chip>
+                    </template>
+
+                    <template v-slot:item.actions="{ item }">
+                      <v-btn 
+                        size="small" 
+                        color="primary" 
+                        variant="text" 
+                        icon="mdi-eye"
+                        @click="viewBookingDetails(item)"
+                      >
+                        <v-icon>mdi-eye</v-icon>
+                        <v-tooltip activator="parent" location="top">View Details</v-tooltip>
+                      </v-btn>
+                    </template>
+
+                    <template v-slot:no-data>
+                      <div class="text-center py-12">
+                        <v-icon size="80" color="grey-lighten-1" class="mb-4">mdi-calendar-blank</v-icon>
+                        <h3 class="text-h6 mb-2 text-grey">No Past Bookings</h3>
+                        <p class="text-body-2 text-grey">
+                          Your completed bookings will appear here with time tracking details.
+                        </p>
+                      </div>
+                    </template>
+                  </v-data-table>
+                </v-card-text>
+              </v-card>
+            </v-col>
+          </v-row>
         </div>
 
         <!-- Transaction History Section -->
@@ -3071,6 +3165,20 @@ const transactionHeaders = [
   { title: 'Actions', key: 'actions', sortable: false },
 ];
 
+// Past Bookings Headers
+const pastBookingsHeaders = [
+  { title: 'Client & Service', key: 'client', sortable: true },
+  { title: 'Contract Period', key: 'dates', sortable: true },
+  { title: 'Hours Logged', key: 'hours', align: 'center', sortable: true },
+  { title: 'Hourly Rate', key: 'rate', align: 'center', sortable: true },
+  { title: 'Total Earnings', key: 'earnings', align: 'end', sortable: true },
+  { title: 'Payment Status', key: 'status', sortable: true },
+  { title: 'Actions', key: 'actions', align: 'center', sortable: false },
+];
+
+// Past Bookings Data - loaded from API
+const pastBookings = ref([]);
+
 const filteredTransactions = computed(() => {
   return transactions.value.filter(t => {
     const matchesType = transactionType.value === 'All' || t.type === transactionType.value;
@@ -3174,6 +3282,27 @@ const loadPaymentMethods = async () => {
   // This function is now replaced by loadPaymentData which loads everything
   // Keeping for backward compatibility but it will be called by loadPaymentData
   await loadPaymentData();
+};
+
+// Load Past Bookings from API
+const loadPastBookings = async () => {
+  try {
+    const response = await fetch('/api/caregiver/past-bookings');
+    const data = await response.json();
+    
+    if (data.success && data.bookings) {
+      pastBookings.value = data.bookings;
+    }
+  } catch (error) {
+    console.error('Error loading past bookings:', error);
+    pastBookings.value = [];
+  }
+};
+
+// View booking details
+const viewBookingDetails = (booking) => {
+  // Could open a modal with detailed booking information
+  console.log('View booking details:', booking);
 };
 
 const downloadReceipt = (item) => {
@@ -3821,6 +3950,7 @@ onMounted(async () => {
     loadEarningsReportData(); // Load earnings report data
     loadScheduleEvents(); // Load schedule events from database
     await loadPaymentData(); // Load payment data dynamically from database (NO HARDCODED DATA)
+    await loadPastBookings(); // Load past bookings with time tracking details
   }
   loadNotifications();
   loadAvailableClients();

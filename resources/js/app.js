@@ -15,9 +15,14 @@ import AdminDashboard from './components/AdminDashboard.vue';
 import AdminSettings from './components/AdminSettings.vue';
 import MarketingDashboard from './components/MarketingDashboard.vue';
 import TrainingDashboard from './components/TrainingDashboard.vue';
-import PaymentPage from './components/PaymentPageStripeElements.vue'; // ✅ NEW: Stripe Payment Element (like Cursor Pro)
-import StripeConnectOnboarding from './components/StripeConnectOnboarding.vue'; // ✅ NEW: Styled Stripe Connect Onboarding
-import CustomBankOnboarding from './components/CustomBankOnboarding.vue'; // ✅ NEW: Custom Bank Form (Full Control)
+import PaymentPage from './components/PaymentPageStripeElements.vue';
+import StripeConnectOnboarding from './components/StripeConnectOnboarding.vue';
+import CustomBankOnboarding from './components/CustomBankOnboarding.vue';
+import ClientPaymentSetup from './components/ClientPaymentSetup.vue';
+import LinkPaymentMethod from './components/LinkPaymentMethod.vue';
+import ConnectPaymentMethod from './components/ConnectPaymentMethod.vue';
+import EmailVerificationModal from './components/EmailVerificationModal.vue';
+import DashboardWrapper from './components/DashboardWrapper.vue';
 
 const vuetify = createVuetify({
     components,
@@ -45,6 +50,7 @@ if (document.getElementById('client-dashboard-app')) {
     const app = createApp({
         components: {
             ClientDashboard,
+            DashboardWrapper,
         },
     });
     app.use(vuetify);
@@ -55,6 +61,7 @@ if (document.getElementById('caregiver-dashboard-app')) {
     const app = createApp({
         components: {
             CaregiverDashboard,
+            DashboardWrapper,
         },
     });
     app.use(vuetify);
@@ -85,6 +92,7 @@ if (document.getElementById('marketing-dashboard-app')) {
     const app = createApp({
         components: {
             MarketingDashboard,
+            DashboardWrapper,
         },
     });
     app.use(vuetify);
@@ -95,6 +103,7 @@ if (document.getElementById('training-dashboard-app')) {
     const app = createApp({
         components: {
             TrainingDashboard,
+            DashboardWrapper,
         },
     });
     app.use(vuetify);
@@ -149,4 +158,34 @@ if (document.getElementById('training-bank-onboarding-app')) {
     });
     app.use(vuetify);
     app.mount('#training-bank-onboarding-app');
+}
+
+if (document.getElementById('client-payment-setup-app')) {
+    const app = createApp({
+        components: {
+            ClientPaymentSetup,
+        },
+    });
+    app.use(vuetify);
+    app.mount('#client-payment-setup-app');
+}
+
+if (document.getElementById('link-payment-app')) {
+    const app = createApp({
+        components: {
+            LinkPaymentMethod,
+        },
+    });
+    app.use(vuetify);
+    app.mount('#link-payment-app');
+}
+
+if (document.getElementById('connect-payment-app')) {
+    const app = createApp({
+        components: {
+            ConnectPaymentMethod,
+        },
+    });
+    app.use(vuetify);
+    app.mount('#connect-payment-app');
 }

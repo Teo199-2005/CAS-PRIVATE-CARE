@@ -120,9 +120,10 @@ class ReviewController extends Controller
             }
 
             // Get assigned caregivers
+            // For completed bookings, get all assigned caregivers (status: 'assigned' or 'completed')
             $assignments = DB::table('booking_assignments')
                 ->where('booking_id', $bookingId)
-                ->where('status', 'completed')
+                ->whereIn('status', ['assigned', 'completed'])
                 ->get();
 
             $caregiversToReview = [];

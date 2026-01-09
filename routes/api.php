@@ -9,6 +9,12 @@ use App\Models\Caregiver;
 use App\Models\BookingAssignment;
 use App\Models\Booking;
 use Illuminate\Support\Facades\DB;
+use App\Http\Controllers\StripeWebhookController;
+
+// ============================================
+// STRIPE WEBHOOK (No Auth, No Rate Limit)
+// ============================================
+Route::post('/webhooks/stripe', [StripeWebhookController::class, 'handleWebhook']);
 
 // ============================================
 // PUBLIC API ROUTES (Rate Limited - 60/min)
@@ -279,6 +285,16 @@ Route::get('/bookings/{id}', [\App\Http\Controllers\BookingController::class, 'g
 
 // Booking payment status update
 Route::post('/bookings/update-payment-status', [\App\Http\Controllers\BookingController::class, 'updatePaymentStatus']);
+
+// Client payment management (Stripe)
+Route::middleware('auth')->group(function () {
+    Route::post('/client/payments/setup-intent', [\App\Http\Controllers\ClientPaymentController::class, 'createSetupIntent']);
+    Route::get('/client/payments/methods', [\App\Http\Controllers\ClientPaymentController::class, 'listPaymentMethods']);
+    Route::post('/client/payments/attach', [\App\Http\Controllers\ClientPaymentController::class, 'attachPaymentMethod']);
+    Route::post('/client/payments/detach/{pmId}', [\App\Http\Controllers\ClientPaymentController::class, 'detachPaymentMethod']);
+    Route::post('/client/subscriptions', [\App\Http\Controllers\ClientPaymentController::class, 'createSubscription']);
+    Route::post('/client/subscriptions/{id}/cancel', [\App\Http\Controllers\ClientPaymentController::class, 'cancelSubscription']);
+});
 
 Route::post('/bookings/{id}/unassign', function ($id, Request $request) {
     try {

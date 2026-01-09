@@ -10,7 +10,9 @@
 </head>
 <body>
     <div id="marketing-dashboard-app">
-        <marketing-dashboard></marketing-dashboard>
+        <dashboard-wrapper :is-admin="false">
+            <marketing-dashboard></marketing-dashboard>
+        </dashboard-wrapper>
     </div>
 </body>
 </html>

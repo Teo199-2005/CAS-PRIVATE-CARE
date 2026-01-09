@@ -4163,48 +4163,19 @@
                       color="success"
                       class="mb-2"
                     />
-                    
-                    <!-- Profit Preview -->
-                    <div class="pa-2 mt-2" style="background: #e8f5e9; border-radius: 4px; border-left: 3px solid #4caf50;">
-                      <div class="text-caption">
-                        <div class="d-flex justify-space-between mb-1">
-                          <span class="text-grey-darken-1">Profit:</span>
-                          <span class="font-weight-bold" style="color: #2e7d32;">
-                            ${{ calculateProfit(caregiverId) }}
-                          </span>
-                        </div>
-                        <div class="text-grey" style="font-size: 10px;">
-                          (${{ selectedBooking?.hourlyRate || 45 }} - ${{ assignedRates[caregiverId] || 0 }}) × {{ selectedBooking?.hoursPerDay || 8 }}h × {{ selectedBooking?.durationDays || 1 }}d
-                        </div>
-                      </div>
-                    </div>
                   </v-card>
                 </v-col>
               </v-row>
               
-              <!-- Total Profit Summary -->
+              <!-- Schedule Note -->
               <v-divider class="my-4" />
-              <v-card elevation="0" class="pa-3" style="background: linear-gradient(135deg, #e8f5e9 0%, #f1f8e9 100%); border-radius: 8px;">
-                <div class="d-flex align-center justify-space-between">
-                  <div class="d-flex align-center">
-                    <v-avatar size="40" color="success" class="mr-3">
-                      <v-icon size="20" color="white">mdi-chart-line</v-icon>
-                    </v-avatar>
-                    <div>
-                      <div class="text-caption text-grey-darken-1">TOTAL EARNINGS</div>
-                      <div class="text-h6 font-weight-bold" style="color: #2e7d32;">Total Agency Profit</div>
-                    </div>
-                  </div>
-                  <div class="text-right">
-                    <div class="text-h4 font-weight-bold" style="color: #2e7d32;">
-                      ${{ calculateTotalProfit() }}
-                    </div>
-                    <div class="text-caption text-grey">
-                      {{ selectedBooking?.durationDays || 0 }} days
-                    </div>
-                  </div>
+              
+              <v-alert type="info" variant="tonal" density="compact" class="mb-0">
+                <div class="text-caption">
+                  <v-icon size="16" class="mr-1">mdi-information</v-icon>
+                  <strong>Next Step:</strong> After assignment, use the "Weekly Schedule" tab to assign caregivers to specific days. Profit calculations will be available after scheduling is complete.
                 </div>
-              </v-card>
+              </v-alert>
             </v-card-text>
           </v-card>
 
@@ -6253,7 +6224,9 @@ const loadUsers = async () => {
           verified: true,
           borough: 'Manhattan',
           phone: u.phone || '(646) 282-8282',
-          certificate: hasCertificate ? `${u.name.replace(' ', '_')}_Training_Certificate.pdf` : null
+          certificate: hasCertificate ? `${u.name.replace(' ', '_')}_Training_Certificate.pdf` : null,
+          preferred_hourly_rate_min: u.caregiver?.preferred_hourly_rate_min || null,
+          preferred_hourly_rate_max: u.caregiver?.preferred_hourly_rate_max || null
         };
       });
     
@@ -9396,20 +9369,38 @@ const getCaregiverById = (id) => {
 };
 
 const calculateProfit = (caregiverId) => {
+  // Calculate what this caregiver will be paid
+  // Assume work is split evenly among all assigned caregivers
   const rate = parseFloat(assignedRates.value[caregiverId] || 0);
-  const clientRate = parseFloat(selectedBooking.value?.hourlyRate || 45);
   const hours = parseFloat(selectedBooking.value?.hoursPerDay || 8);
-  const days = parseFloat(selectedBooking.value?.durationDays || 1);
-  const profit = (clientRate - rate) * hours * days;
-  return profit.toFixed(2);
+  const totalDays = parseFloat(selectedBooking.value?.durationDays || 1);
+  const numAssigned = assignSelectedCaregivers.value.length || 1;
+  
+  // If multiple caregivers assigned, split the days among them
+  const daysPerCaregiver = totalDays / numAssigned;
+  const caregiverPayout = rate * hours * daysPerCaregiver;
+  
+  return caregiverPayout.toFixed(2);
 };
 
 const calculateTotalProfit = () => {
-  let total = 0;
+  // Total client payment (based on ORIGINAL booking's caregivers needed)
+  const clientRate = parseFloat(selectedBooking.value?.hourlyRate || 45);
+  const hours = parseFloat(selectedBooking.value?.hoursPerDay || 8);
+  const days = parseFloat(selectedBooking.value?.durationDays || 1);
+  // Use ONLY the original booking's caregiversNeeded, NOT customCaregiversNeeded
+  const caregiversNeeded = selectedBooking.value?.caregiversNeeded || 1;
+  const totalClientPayment = clientRate * hours * days * caregiversNeeded;
+  
+  // Total caregiver payouts (sum of all selected caregivers)
+  let totalCaregiverPayouts = 0;
   assignSelectedCaregivers.value.forEach(caregiverId => {
-    total += parseFloat(calculateProfit(caregiverId));
+    totalCaregiverPayouts += parseFloat(calculateProfit(caregiverId));
   });
-  return total.toFixed(2);
+  
+  // Profit = Client pays - Caregivers get paid
+  const profit = totalClientPayment - totalCaregiverPayouts;
+  return profit.toFixed(2);
 };
 
 const filteredAssignCaregivers = computed(() => {
@@ -10185,7 +10176,8 @@ const confirmAssignCaregivers = async () => {
       },
       body: JSON.stringify({ 
         caregiver_ids: assignSelectedCaregivers.value,
-        assigned_rates: assignedRates.value
+        assigned_rates: assignedRates.value,
+        caregivers_needed: customCaregiversNeeded.value || selectedBooking.value.caregiversNeeded
       })
     });
     
@@ -10205,6 +10197,12 @@ const confirmAssignCaregivers = async () => {
     
     if (booking) {
       booking.assignedCount = assignSelectedCaregivers.value.length;
+      
+      // Update caregiversNeeded if it was customized
+      if (customCaregiversNeeded.value && customCaregiversNeeded.value !== booking.caregiversNeeded) {
+        booking.caregiversNeeded = customCaregiversNeeded.value;
+      }
+      
       // Update assignment status based on caregiver count
       if (assignSelectedCaregivers.value.length === 0) {
         booking.assignmentStatus = 'unassigned';

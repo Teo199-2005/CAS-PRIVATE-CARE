@@ -11,6 +11,7 @@ class Booking extends Model
 
     protected $fillable = [
         'client_id',
+        'parent_booking_id',
         'service_type',
         'duty_type',
         'borough',
@@ -20,6 +21,7 @@ class Booking extends Model
         'start_time',
         'duration_days',
         'hourly_rate',
+        'hours_per_day',
         'total_budget',
         'payment_method',
         'gender_preference',
@@ -32,6 +34,10 @@ class Booking extends Model
         'transportation_needed',
         'recurring_service',
         'recurring_schedule',
+        'recurring_count',
+        'recurring_status',
+        'recurring_failed_attempts',
+        'last_recurring_charge_date',
         'day_schedules',
         'urgency_level',
         'street_address',
@@ -40,13 +46,19 @@ class Booking extends Model
         'status',
         'assignment_status',
         'assigned_hourly_rate',
+        'assigned_caregiver_id',
         'submitted_at',
         'referral_code_id',
         'referral_discount_applied',
         'payment_status',
         'stripe_payment_intent_id',
         'payment_intent_id',
-        'payment_date'
+        'payment_date',
+        'stripe_subscription_id',
+        'payment_type',
+        'auto_pay_enabled',
+        'next_payment_date',
+        'stripe_price_id'
     ];
 
     protected $casts = [
@@ -54,14 +66,61 @@ class Booking extends Model
         'start_time' => 'datetime:H:i',
         'transportation_needed' => 'boolean',
         'recurring_service' => 'boolean',
+        'auto_pay_enabled' => 'boolean',
         'specific_skills' => 'array',
         'medical_conditions' => 'array',
-        'day_schedules' => 'array'
+        'day_schedules' => 'array',
+        'last_recurring_charge_date' => 'datetime',
+        'next_payment_date' => 'datetime',
     ];
 
     public function client()
     {
         return $this->belongsTo(User::class, 'client_id');
+    }
+
+    /**
+     * Get the parent booking (if this is a recurring booking)
+     */
+    public function parentBooking()
+    {
+        return $this->belongsTo(Booking::class, 'parent_booking_id');
+    }
+
+    /**
+     * Get child bookings (recurring bookings created from this one)
+     */
+    public function childBookings()
+    {
+        return $this->hasMany(Booking::class, 'parent_booking_id');
+    }
+
+    /**
+     * Get the original/root booking in a recurring chain
+     */
+    public function getRootBookingAttribute()
+    {
+        $booking = $this;
+        while ($booking->parent_booking_id) {
+            $booking = $booking->parentBooking;
+        }
+        return $booking;
+    }
+
+    /**
+     * Check if this is a recurring booking (has parent)
+     */
+    public function getIsRecurringChildAttribute()
+    {
+        return !is_null($this->parent_booking_id);
+    }
+
+    /**
+     * Get booking end date
+     */
+    public function getEndDateAttribute()
+    {
+        return $this->service_date->addDays($this->duration_days ?? 15);
     }
 
     public function referralCode()

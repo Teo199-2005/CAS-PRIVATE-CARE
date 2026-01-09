@@ -51,4 +51,9 @@ return [
         'redirect' => env('APP_URL', 'http://127.0.0.1:8000') . '/auth/facebook/callback',
     ],
 
+    'stripe' => [
+        'key' => env('STRIPE_KEY'),
+        'secret' => env('STRIPE_SECRET'),
+    ],
+
 ];

@@ -15,6 +15,9 @@ return Application::configure(basePath: dirname(__DIR__))
         // Register global middleware
         $middleware->append(\App\Http\Middleware\SecurityHeaders::class);
         
+        // Enable session authentication for API routes
+        $middleware->statefulApi();
+        
         // Register route middleware aliases
         $middleware->alias([
             'user.type' => \App\Http\Middleware\EnsureUserType::class,

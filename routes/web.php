@@ -81,6 +81,19 @@ Route::post('/reset-password', [\App\Http\Controllers\AuthController::class, 're
 Route::post('/email/verification-notification', [\App\Http\Controllers\AuthController::class, 'sendVerificationEmail'])->middleware('auth')->name('verification.send');
 Route::get('/verify-email/{token}', [\App\Http\Controllers\AuthController::class, 'verifyEmail'])->name('verification.verify');
 
+// OTP Verification Routes
+Route::middleware(['auth'])->prefix('api/auth')->group(function () {
+    Route::post('/send-otp', [\App\Http\Controllers\AuthController::class, 'sendOTP']);
+    Route::post('/verify-otp', [\App\Http\Controllers\AuthController::class, 'verifyOTP']);
+    Route::get('/verification-status', function() {
+        $user = auth()->user();
+        return response()->json([
+            'verified' => $user && $user->email_verified_at ? true : false,
+            'email' => $user ? $user->email : null
+        ]);
+    });
+});
+
 // Public API Routes (no authentication required)
 Route::prefix('api')->middleware(['web'])->group(function () {
     // ZIP code lookup (public)
@@ -174,6 +187,17 @@ Route::get('/client/dashboard', function () {
         }
         return view('client-dashboard-vue');
     })->name('client.dashboard');
+    
+    // Client Payment Setup Page - Link Payment Methods
+    Route::get('/client/payment-setup', function () {
+        if (!auth()->check()) {
+            return redirect('/login');
+        }
+        if (auth()->user()->user_type !== 'client') {
+            return redirect('/client/dashboard');
+        }
+        return view('client-payment-setup');
+    })->name('client.payment.setup');
     
     // Payment Page - accessible by authenticated clients
     Route::get('/payment', function () {
@@ -355,6 +379,24 @@ Route::get('/caregiver/dashboard-vue', function () {
         }
         return view('connect-bank-account');
     })->name('connect.bank.account');
+
+    // Link Payment Method Page - Clients only
+    Route::get('/link-payment-method', function () {
+        $user = auth()->user();
+        if (!$user || $user->user_type !== 'client') {
+            return redirect('/login');
+        }
+        return view('link-payment-method');
+    })->name('link.payment.method');
+
+    // Connect Payment Method Page - Clients only (Standalone Page)
+    Route::get('/connect-payment-method', function () {
+        $user = auth()->user();
+        if (!$user || $user->user_type !== 'client') {
+            return redirect('/login');
+        }
+        return view('client-connect-payment');
+    })->name('connect.payment.method');
 
     // Stripe Connect Onboarding Page - Caregivers only
     Route::get('/stripe-connect-onboarding', function () {
@@ -594,6 +636,57 @@ Route::prefix('api')->middleware(['web', 'auth'])->group(function () {
     Route::get('/client/stats', [\App\Http\Controllers\DashboardController::class, 'clientStats']);
     Route::get('/client/available-years', [\App\Http\Controllers\DashboardController::class, 'clientAvailableYears']);
     Route::get('/client/spending-data', [\App\Http\Controllers\DashboardController::class, 'clientSpendingData']);
+    
+    // Recurring Bookings Management
+    Route::prefix('client/recurring')->group(function() {
+        Route::get('/', [\App\Http\Controllers\RecurringBookingController::class, 'index']);
+        Route::get('/upcoming-renewals', [\App\Http\Controllers\RecurringBookingController::class, 'getUpcomingRenewals']);
+        Route::get('/{bookingId}', [\App\Http\Controllers\RecurringBookingController::class, 'show']);
+        Route::post('/{bookingId}/enable', [\App\Http\Controllers\RecurringBookingController::class, 'enableAutoPay']);
+        Route::post('/{bookingId}/cancel', [\App\Http\Controllers\RecurringBookingController::class, 'cancelRecurring']);
+        Route::post('/{bookingId}/pause', [\App\Http\Controllers\RecurringBookingController::class, 'pauseRecurring']);
+        Route::post('/{bookingId}/resume', [\App\Http\Controllers\RecurringBookingController::class, 'resumeRecurring']);
+        Route::get('/{bookingId}/next-charge', [\App\Http\Controllers\RecurringBookingController::class, 'getNextChargeDate']);
+    });
+
+    // Temporary debug route (remove in production)
+    Route::get('/debug/client/recurring', function(\Illuminate\Http\Request $request) {
+        $user = auth()->user();
+
+        $bookings = \App\Models\Booking::where('client_id', $user?->id ?: $request->query('client_id'))
+            ->whereIn('status', ['completed', 'approved', 'confirmed', 'in_progress'])
+            ->whereNotNull('payment_status')
+            ->where('payment_status', 'paid')
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        $filtered = $bookings->filter(function($b) {
+            return $b->recurring_service && $b->auto_pay_enabled && ($b->recurring_status === 'active' || $b->recurring_status === 'paused');
+        })->values();
+
+        return response()->json([
+            'authenticated' => (bool) $user,
+            'user' => $user ? ['id' => $user->id, 'email' => $user->email ?? null, 'name' => $user->name ?? null] : null,
+            'all_found_count' => $bookings->count(),
+            'all_ids' => $bookings->pluck('id'),
+            'filtered_count' => $filtered->count(),
+            'filtered_ids' => $filtered->pluck('id'),
+            'sample' => $filtered->take(5)->map(function($b) {
+                return [
+                    'id' => $b->id,
+                    'status' => $b->status,
+                    'payment_status' => $b->payment_status,
+                    'recurring_service' => (int)$b->recurring_service,
+                    'auto_pay_enabled' => (int)$b->auto_pay_enabled,
+                    'recurring_status' => $b->recurring_status,
+                ];
+            })
+        ]);
+    });
+    
+    // Admin: Recurring Bookings Monitor
+    Route::get('/admin/recurring-bookings', [\App\Http\Controllers\RecurringBookingController::class, 'adminIndex']);
+    
     Route::get('/client/top-caregivers', function(\Illuminate\Http\Request $request) {
         $clientId = $request->query('client_id') ?: auth()->id();
         
@@ -756,6 +849,85 @@ Route::prefix('api')->middleware(['web', 'auth'])->group(function () {
                     ? round($timeTrackings->avg('hours_worked') ?? 0, 2) 
                     : 0,
             ]
+        ]);
+    });
+    
+    // Caregiver past bookings with time tracking details
+    Route::get('/caregiver/past-bookings', function(\Illuminate\Http\Request $request) {
+        $user = auth()->user();
+        if (!$user || $user->user_type !== 'caregiver') {
+            return response()->json(['success' => false, 'bookings' => []]);
+        }
+        
+        $caregiver = \App\Models\Caregiver::where('user_id', $user->id)->first();
+        if (!$caregiver) {
+            return response()->json(['success' => false, 'bookings' => []]);
+        }
+        
+        // Get all booking assignments for this caregiver
+        $assignments = \App\Models\BookingAssignment::where('caregiver_id', $caregiver->id)
+            ->with(['booking.client.user'])
+            ->get();
+        
+        $bookingsData = [];
+        
+        foreach ($assignments as $assignment) {
+            $booking = $assignment->booking;
+            if (!$booking) continue;
+            
+            // Get time trackings for this booking and caregiver
+            $timeTrackings = \App\Models\TimeTracking::where('booking_id', $booking->id)
+                ->where('caregiver_id', $caregiver->id)
+                ->get();
+            
+            $totalHours = $timeTrackings->sum('hours_worked');
+            $totalEarnings = $timeTrackings->sum('caregiver_earnings');
+            
+            // Determine payment status
+            $paidCount = $timeTrackings->where('payment_status', 'paid')->count();
+            $pendingCount = $timeTrackings->where('payment_status', 'pending')->count();
+            
+            if ($totalHours == 0) {
+                $paymentStatus = 'No Hours';
+            } elseif ($paidCount == $timeTrackings->count()) {
+                $paymentStatus = 'Paid';
+            } elseif ($pendingCount == $timeTrackings->count()) {
+                $paymentStatus = 'Pending';
+            } else {
+                $paymentStatus = 'Partial';
+            }
+            
+            // Get assigned hourly rate
+            $assignedRate = $assignment->assigned_hourly_rate ?? 28.00;
+            
+            // Calculate contract dates
+            $startDate = \Carbon\Carbon::parse($booking->service_date);
+            $endDate = $startDate->copy()->addDays($booking->duration_days - 1);
+            
+            $bookingsData[] = [
+                'id' => $booking->id,
+                'client' => $booking->client->user->name ?? $booking->client->name ?? 'Unknown Client',
+                'service_type' => ucfirst($booking->service_type ?? 'Caregiver'),
+                'start_date' => $startDate->format('M d, Y'),
+                'end_date' => $endDate->format('M d, Y'),
+                'duration' => $booking->duration_days . ' days',
+                'total_hours' => number_format($totalHours, 1),
+                'assigned_rate' => number_format($assignedRate, 2),
+                'total_earnings' => number_format($totalEarnings, 2),
+                'payment_status' => $paymentStatus,
+                'sessions_count' => $timeTrackings->count(),
+                'booking_status' => $booking->status ?? 'completed',
+            ];
+        }
+        
+        // Sort by start date (most recent first)
+        usort($bookingsData, function($a, $b) {
+            return strtotime($b['start_date']) - strtotime($a['start_date']);
+        });
+        
+        return response()->json([
+            'success' => true,
+            'bookings' => $bookingsData
         ]);
     });
     
@@ -1109,8 +1281,8 @@ Route::prefix('api')->middleware(['web', 'auth'])->group(function () {
         
         Route::get('/admin/top-performers', [\App\Http\Controllers\AdminController::class, 'getTopPerformers']);
         Route::get('/admin/recent-activity', [\App\Http\Controllers\AdminController::class, 'getRecentActivity']);
-    // All bookings for admin
-    Route::get('/admin/bookings', [\App\Http\Controllers\AdminController::class, 'getAllBookings']);
+        // All bookings for admin
+        Route::get('/admin/bookings', [\App\Http\Controllers\AdminController::class, 'getAllBookings']);
         Route::get('/admin/time-tracking', [\App\Http\Controllers\TimeTrackingController::class, 'getAdminTimeTracking']);
         
         // Referral code management (admin)
@@ -1423,10 +1595,12 @@ Route::middleware(['auth'])->prefix('api/stripe')->group(function () {
     Route::post('/create-setup-intent', [App\Http\Controllers\ClientPaymentController::class, 'createSetupIntent']);
     Route::post('/attach-payment-method', [App\Http\Controllers\ClientPaymentController::class, 'attachPaymentMethod']);
     Route::post('/charge-saved-method', [App\Http\Controllers\ClientPaymentController::class, 'chargeSavedMethod']);
+    Route::get('/payment-methods', [App\Http\Controllers\ClientPaymentController::class, 'listPaymentMethods']);
     Route::delete('/delete-payment-method', [App\Http\Controllers\ClientPaymentController::class, 'deletePaymentMethod']);
     
     // Legacy Client Payment Methods (keep for backward compatibility)
     Route::get('/setup-intent', [App\Http\Controllers\StripeController::class, 'createSetupIntent']);
+    Route::post('/setup-intent', [App\Http\Controllers\StripeController::class, 'processPaymentWithMethod']);
     Route::post('/save-payment-method', [App\Http\Controllers\StripeController::class, 'savePaymentMethod']);
     
     // Caregiver/Partner Bank Connection
