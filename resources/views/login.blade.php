@@ -12,6 +12,14 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+    <!--
+        Prevent aggressive caching of the login page.
+        This helps when logging out and logging in as a different account in the same browser session.
+    -->
+    <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <style>
         * {
             margin: 0;
@@ -631,21 +639,6 @@
             }
         }
         
-        function fillDemo(type) {
-            if (type === 'client') {
-                document.getElementById('email').value = 'client@demo.com';
-            } else if (type === 'caregiver') {
-                document.getElementById('email').value = 'caregiver@demo.com';
-            } else if (type === 'admin') {
-                document.getElementById('email').value = 'admin@demo.com';
-            } else if (type === 'marketing') {
-                document.getElementById('email').value = 'marketing@demo.com';
-            } else if (type === 'training') {
-                document.getElementById('email').value = 'training@demo.com';
-            }
-            document.getElementById('password').value = 'password123';
-        }
-        
         function openForgotPasswordModal(event) {
             event.preventDefault();
             document.getElementById('forgotPasswordModal').style.display = 'flex';
@@ -760,6 +753,32 @@
                     localStorage.removeItem('rememberedEmail');
                 }
             });
+
+            // ------------------------------------------------------------
+            // Login page auto-refresh / session-sync helpers
+            // ------------------------------------------------------------
+            // 1) Force a one-time reload when returning to /login via back button (bfcache)
+            //    to avoid stale page state.
+            try {
+                window.addEventListener('pageshow', function (event) {
+                    if (event.persisted) {
+                        window.location.reload();
+                    }
+                });
+            } catch (_) {}
+
+            // 2) If the user keeps the login page open for a while, refresh it periodically.
+            //    This avoids CSRF/session edge cases when switching accounts.
+            //    (Kept conservative to reduce annoyance.)
+            const AUTO_REFRESH_MINUTES = 3;
+            setInterval(() => {
+                // Don't refresh if the user is typing
+                const active = document.activeElement;
+                const isTyping = active && (active.id === 'email' || active.id === 'password');
+                if (!isTyping) {
+                    window.location.reload();
+                }
+            }, AUTO_REFRESH_MINUTES * 60 * 1000);
         });
     </script>
 </body>

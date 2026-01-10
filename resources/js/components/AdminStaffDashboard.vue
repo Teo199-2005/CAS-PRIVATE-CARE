@@ -27,9 +27,6 @@
       <v-btn color="success" size="x-large" prepend-icon="mdi-email-send" class="admin-btn ml-2" @click="testEmailDialog = true">Test Email</v-btn>
     </template>
 
-    <!-- Email Verification Banner -->
-    <email-verification-banner />
-
     <!-- Dashboard Section -->
     <div v-if="currentSection === 'dashboard'">
       <v-row class="mb-4">
@@ -1984,10 +1981,36 @@
               </div>
             </v-card-title>
             <v-card-text class="pa-8">
-              <v-text-field label="Current Password" variant="outlined" :type="showCurrentPassword ? 'text' : 'password'" :append-inner-icon="showCurrentPassword ? 'mdi-eye-off' : 'mdi-eye'" @click:append-inner="showCurrentPassword = !showCurrentPassword" class="mb-4" />
-              <v-text-field label="New Password" variant="outlined" :type="showNewPassword ? 'text' : 'password'" :append-inner-icon="showNewPassword ? 'mdi-eye-off' : 'mdi-eye'" @click:append-inner="showNewPassword = !showNewPassword" hint="8 minimum characters" persistent-hint class="mb-4" />
-              <v-text-field label="Confirm New Password" variant="outlined" :type="showConfirmPassword ? 'text' : 'password'" :append-inner-icon="showConfirmPassword ? 'mdi-eye-off' : 'mdi-eye'" @click:append-inner="showConfirmPassword = !showConfirmPassword" class="mb-4" />
-              <v-btn color="error" block size="large">Change Password</v-btn>
+              <v-text-field 
+                v-model="passwordData.currentPassword"
+                label="Current Password" 
+                variant="outlined" 
+                :type="showCurrentPassword ? 'text' : 'password'" 
+                :append-inner-icon="showCurrentPassword ? 'mdi-eye-off' : 'mdi-eye'" 
+                @click:append-inner="showCurrentPassword = !showCurrentPassword" 
+                class="mb-4" 
+              />
+              <v-text-field 
+                v-model="passwordData.newPassword"
+                label="New Password" 
+                variant="outlined" 
+                :type="showNewPassword ? 'text' : 'password'" 
+                :append-inner-icon="showNewPassword ? 'mdi-eye-off' : 'mdi-eye'" 
+                @click:append-inner="showNewPassword = !showNewPassword" 
+                hint="8 minimum characters" 
+                persistent-hint 
+                class="mb-4" 
+              />
+              <v-text-field 
+                v-model="passwordData.confirmPassword"
+                label="Confirm New Password" 
+                variant="outlined" 
+                :type="showConfirmPassword ? 'text' : 'password'" 
+                :append-inner-icon="showConfirmPassword ? 'mdi-eye-off' : 'mdi-eye'" 
+                @click:append-inner="showConfirmPassword = !showConfirmPassword" 
+                class="mb-4" 
+              />
+              <v-btn color="error" block size="large" @click="changePassword">Change Password</v-btn>
             </v-card-text>
           </v-card>
         </v-col>
@@ -3972,13 +3995,11 @@ import DashboardTemplate from './DashboardTemplate.vue';
 import StatCard from './shared/StatCard.vue';
 import NotificationToast from './shared/NotificationToast.vue';
 import NotificationCenter from './shared/NotificationCenter.vue';
-import EmailVerificationBanner from './EmailVerificationBanner.vue';
 import { useNotification } from '../composables/useNotification';
 
 const { notification, success, error, warning, info } = useNotification();
 
 const currentSection = ref(localStorage.getItem('adminSection') || 'dashboard');
-const userEmailVerified = ref(false);
 const settingsTab = ref('system');
 const addUserDialog = ref(false);
 const viewCaregiverDialog = ref(false);
@@ -4248,6 +4269,90 @@ const profileData = ref({
   department: 'System Administration',
   role: 'Admin Staff',
 });
+
+// Password change data
+const passwordData = ref({
+  currentPassword: '',
+  newPassword: '',
+  confirmPassword: ''
+});
+
+// ZIP code resolution caching and deduplication
+const zipCityStateCache = new Map();
+const processingZips = new Set();
+
+/**
+ * Normalize a ZIP code to 5 digits
+ */
+const normalizeZip5 = (zipLike) => {
+  if (!zipLike) return '';
+  const zip = String(zipLike).trim();
+  return zip.length >= 5 ? zip.substring(0, 5) : zip;
+};
+
+/**
+ * Resolve a single ZIP code to "City, ST" format via /api/zipcode-lookup/{zip}
+ * Uses frontend cache to avoid repeated API calls.
+ */
+const resolveZipCityState = async (zipLike) => {
+  const zip5 = normalizeZip5(zipLike);
+  if (!zip5 || zip5.length !== 5) return '';
+  
+  // Check cache first
+  if (zipCityStateCache.has(zip5)) {
+    return zipCityStateCache.get(zip5);
+  }
+  
+  // Prevent duplicate requests for the same ZIP
+  if (processingZips.has(zip5)) {
+    // Wait for the existing request to complete
+    await new Promise(resolve => setTimeout(resolve, 100));
+    return zipCityStateCache.get(zip5) || '';
+  }
+  
+  processingZips.add(zip5);
+  
+  try {
+    const response = await fetch(`/api/zipcode-lookup/${zip5}`);
+    const data = await response.json();
+    
+    if (data.success && data.location) {
+      zipCityStateCache.set(zip5, data.location);
+      processingZips.delete(zip5);
+      return data.location;
+    }
+  } catch (error) {
+    console.error('ZIP lookup error:', error);
+  }
+  
+  processingZips.delete(zip5);
+  zipCityStateCache.set(zip5, '');
+  return '';
+};
+
+/**
+ * Batch resolve ZIP codes for an array of items.
+ * Updates place_indicator field via Vue reactivity (spread + splice).
+ */
+const resolveAllZipCodes = async (items, arrayRef) => {
+  if (!items || items.length === 0) return;
+  
+  // Fire all lookups in parallel (non-blocking)
+  const promises = items.map(async (item, index) => {
+    if (!item.zip_code) return;
+    
+    const location = await resolveZipCityState(item.zip_code);
+    
+    if (location && arrayRef.value[index]) {
+      // Force Vue reactivity by creating a new object reference
+      const updated = { ...arrayRef.value[index], place_indicator: location };
+      arrayRef.value.splice(index, 1, updated);
+    }
+  });
+  
+  // Wait for all to complete
+  await Promise.all(promises);
+};
 
 // Profile for header
 const profile = ref({
@@ -4528,18 +4633,16 @@ const users = ref([]);
 
 const loadUsers = async () => {
   try {
-    const response = await fetch('/api/admin/users');
-    const data = await response.json();
-    users.value = data.users;
+    // Load caregivers from admin endpoint
+    const caregiversResponse = await fetch('/api/admin/caregivers');
+    const caregiversData = await caregiversResponse.json();
+    const caregiverUsers = caregiversData.caregivers || [];
     
-    const caregiverUsers = data.users.filter(u => u.type === 'Caregiver');
-    
-    caregivers.value = caregiverUsers
-      .filter(u => u.caregiver && u.caregiver.id)
+    const mappedCaregivers = caregiverUsers
       .map((u, index) => {
         const hasCertificate = index < 15;
         return {
-          id: u.caregiver.id,
+          id: u.caregiver?.id,
           userId: u.id,
           name: u.name,
           email: u.email,
@@ -4548,23 +4651,68 @@ const loadUsers = async () => {
           clients: 0,
           joined: u.joined,
           verified: true,
-          borough: 'Manhattan',
+          // Prefer canonical field `zip_code`, fall back to `zip` if present
+          zip_code: u.zip_code || u.zip || '',
+          // No guessing: place_indicator will be resolved via /api/zipcode-lookup.
+          // Keep legacy location empty so the table doesn't show misleading data.
+          location: '',
+          // Accurate place indicator (City, ST) filled in lazily via /api/zipcode-lookup
+          place_indicator: (u.zip_code || u.zip) ? 'Loading...' : '',
           phone: u.phone || '(646) 282-8282',
-          certificate: hasCertificate ? `${u.name.replace(' ', '_')}_Training_Certificate.pdf` : null
+          certificate: hasCertificate ? `${u.name.replace(' ', '_')}_Training_Certificate.pdf` : null,
+          preferred_hourly_rate_min: u.caregiver?.preferred_hourly_rate_min || null,
+          preferred_hourly_rate_max: u.caregiver?.preferred_hourly_rate_max || null
         };
       });
     
-    clients.value = data.users.filter(u => u.type === 'Client').map(u => ({
-      id: u.id,
-      name: u.name,
-      email: u.email,
-      status: u.status,
-      bookings: 0,
-      totalSpent: '$0',
-      joined: u.joined,
-      verified: true
-    }));
+    caregivers.value = mappedCaregivers;
+    
+    // Resolve all ZIP codes and force Vue reactivity update
+    resolveAllZipCodes(mappedCaregivers, caregivers);
+
+    // Try to load the full users list (used across other tabs). If it returns HTML (login page),
+    // do NOT wipe already-loaded caregivers — just keep existing data.
+    let allUsers = [];
+    try {
+      const response = await fetch('/api/admin/users');
+      const text = await response.text();
+      if (text && text.trim().startsWith('{')) {
+        const data = JSON.parse(text);
+        allUsers = data.users || [];
+        users.value = allUsers;
+      }
+    } catch (_) {
+      // ignore
+    }
+
+    // Build other tables ONLY if we actually got JSON users.
+    if (allUsers.length > 0) {
+      clients.value = allUsers.filter(u => u.type === 'Client').map(u => {
+        const item = {
+          id: u.id,
+          name: u.name,
+          email: u.email,
+          status: u.status,
+          bookings: 0,
+          totalSpent: '$0',
+          joined: u.joined,
+          verified: true,
+          zip_code: u.zip_code || u.zip || '',
+          location: '',
+          place_indicator: (u.zip_code || u.zip) ? 'Loading...' : ''
+        };
+        return item;
+      });
+      // Batch resolve ZIP locations for clients
+      resolveAllZipCodes(clients.value, clients);
+    }
   } catch (error) {
+    console.error('Error loading users:', error);
+    // Set empty arrays to avoid undefined errors
+    // Keep existing values if partial load succeeded; only reset if truly undefined
+    users.value = users.value || [];
+    caregivers.value = caregivers.value || [];
+    clients.value = clients.value || [];
   }
 };
 
@@ -4637,22 +4785,24 @@ const zipCodeMap = {
   '10701': 'Yonkers, NY', '10703': 'Yonkers, NY', '10704': 'Yonkers, NY', '10705': 'Yonkers, NY', '10706': 'Yonkers, NY', '10707': 'Yonkers, NY', '10708': 'Yonkers, NY', '10709': 'Yonkers, NY', '10710': 'Yonkers, NY'
 };
 
-const lookupBookingZipCode = () => {
-  const zip = bookingForm.value.zipcode;
-  if (zip && zip.length === 5 && /^\d{5}$/.test(zip)) {
-    bookingZipLocation.value = zipCodeMap[zip] || 'New York, NY';
-  } else {
+const lookupBookingZipCode = async () => {
+  const zip = normalizeZip5(bookingForm.value.zipcode);
+  if (!zip) {
     bookingZipLocation.value = '';
+    return;
   }
+
+  bookingZipLocation.value = await resolveZipCityState(zip);
 };
 
-const lookupTrainingCenterZipCode = () => {
-  const zip = trainingCenterFormData.value.zip_code;
-  if (zip && zip.length === 5 && /^\d{5}$/.test(zip)) {
-    trainingCenterZipLocation.value = zipCodeMap[zip] || 'New York, NY';
-  } else {
+const lookupTrainingCenterZipCode = async () => {
+  const zip = normalizeZip5(trainingCenterFormData.value.zip_code);
+  if (!zip) {
     trainingCenterZipLocation.value = '';
+    return;
   }
+
+  trainingCenterZipLocation.value = await resolveZipCityState(zip);
 };
 
 // Phone number formatting function - NY format (XXX) XXX-XXXX
@@ -4700,33 +4850,36 @@ const filterLettersOnly = (value) => {
 };
 
 const clientZipLocation = ref('');
-const lookupClientZipCode = () => {
-  const zip = clientForm.value.zip_code;
-  if (zip && zip.length === 5 && /^\d{5}$/.test(zip)) {
-    clientZipLocation.value = zipCodeMap[zip] || 'New York, NY';
-  } else {
+const lookupClientZipCode = async () => {
+  const zip = normalizeZip5(clientForm.value.zip_code);
+  if (!zip) {
     clientZipLocation.value = '';
+    return;
   }
+
+  clientZipLocation.value = await resolveZipCityState(zip);
 };
 
 const caregiverZipLocation = ref('');
-const lookupCaregiverZipCode = () => {
-  const zip = caregiverForm.value.zip_code;
-  if (zip && zip.length === 5 && /^\d{5}$/.test(zip)) {
-    caregiverZipLocation.value = zipCodeMap[zip] || 'New York, NY';
-  } else {
+const lookupCaregiverZipCode = async () => {
+  const zip = normalizeZip5(caregiverForm.value.zip_code);
+  if (!zip) {
     caregiverZipLocation.value = '';
+    return;
   }
+
+  caregiverZipLocation.value = await resolveZipCityState(zip);
 };
 
 const marketingStaffZipLocation = ref('');
-const lookupMarketingStaffZipCode = () => {
-  const zip = marketingStaffFormData.value.zip_code;
-  if (zip && zip.length === 5 && /^\d{5}$/.test(zip)) {
-    marketingStaffZipLocation.value = zipCodeMap[zip] || 'New York, NY';
-  } else {
+const lookupMarketingStaffZipCode = async () => {
+  const zip = normalizeZip5(marketingStaffFormData.value.zip_code);
+  if (!zip) {
     marketingStaffZipLocation.value = '';
+    return;
   }
+
+  marketingStaffZipLocation.value = await resolveZipCityState(zip);
 };
 
 const bookingForm = ref({
@@ -5653,6 +5806,7 @@ if (!response.ok) {
     // Update caregiver statuses based on assignments
     updateCaregiverStatuses();
   } catch (error) {
+    console.error('Error loading bookings:', {
       message: error.message,
       stack: error.stack,
       name: error.name
@@ -5826,17 +5980,71 @@ const saveProfile = async () => {
       })
     });
     
-    if (response.ok) {
+    const data = await response.json();
+    
+    if (response.ok && data.success) {
       success('Profile changes saved successfully!');
       // Update the header name
       profile.value.firstName = profileData.value.firstName;
       profile.value.lastName = profileData.value.lastName;
     } else {
-      const data = await response.json();
-      error('Error: ' + (data.message || 'Failed to save profile'));
+      error('Error: ' + (data.error || data.message || 'Failed to save profile'));
     }
   } catch (err) {
+    console.error('Save profile error:', err);
     error('Failed to save profile. Please try again.');
+  }
+};
+
+const changePassword = async () => {
+  try {
+    if (!passwordData.value.currentPassword) {
+      error('Current password is required', 'Validation Error');
+      return;
+    }
+    
+    if (!passwordData.value.newPassword) {
+      error('New password is required', 'Validation Error');
+      return;
+    }
+    
+    if (passwordData.value.newPassword.length < 8) {
+      error('New password must be at least 8 characters', 'Validation Error');
+      return;
+    }
+    
+    if (passwordData.value.newPassword !== passwordData.value.confirmPassword) {
+      error('Passwords do not match', 'Validation Error');
+      return;
+    }
+    
+    const response = await fetch('/api/profile/change-password', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+      },
+      body: JSON.stringify({
+        currentPassword: passwordData.value.currentPassword,
+        newPassword: passwordData.value.newPassword,
+        confirmPassword: passwordData.value.confirmPassword
+      })
+    });
+    
+    const data = await response.json();
+    
+    if (response.ok && data.success) {
+      success('Password changed successfully!');
+      // Clear form
+      passwordData.value.currentPassword = '';
+      passwordData.value.newPassword = '';
+      passwordData.value.confirmPassword = '';
+    } else {
+      error('Error: ' + (data.error || data.message || 'Failed to change password'));
+    }
+  } catch (err) {
+    console.error('Change password error:', err);
+    error('Failed to change password. Please try again.');
   }
 };
 
@@ -6606,6 +6814,7 @@ const saveTrainingCenter = async () => {
       ? `/api/admin/training-centers/${editingTrainingCenter.value.id}`
       : '/api/admin/training-centers';
     
+    console.log('Saving training center:', {
       isEdit: !!editingTrainingCenter.value,
       id: editingTrainingCenter.value?.id,
       url: url,
@@ -8031,6 +8240,7 @@ const saveSchedule = async () => {
   savingSchedule.value = true;
   
   try {
+    console.log('Saving schedule:', {
       bookingId: scheduleBooking.value.id,
       caregiverId: scheduleCaregiver.value.id,
       days: selectedDays.value,

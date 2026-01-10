@@ -228,15 +228,129 @@ class AdminController extends Controller
 
     public function updateUser(Request $request, $id)
     {
+    $id = (int) $id;
+    $user = User::with('caregiver')->findOrFail($id);
+
         $validated = $request->validate([
             'name' => 'sometimes|string|max:255',
-            'email' => 'sometimes|email|max:255',
-            'status' => 'sometimes|in:Active,Inactive,Suspended'
+            // IMPORTANT: ignore the route param id (the record being updated)
+            // to avoid false "email already taken" when the payload contains the same email.
+            'email' => 'sometimes|email|max:255|unique:users,email,' . $id,
+            'phone' => ['sometimes', 'nullable', new ValidPhoneNumber, 'max:20'],
+            'date_of_birth' => 'sometimes|nullable|date|before:today|after:1900-01-01',
+            'address' => 'sometimes|nullable|string|max:255',
+            'state' => 'sometimes|nullable|string|max:50',
+            'county' => 'sometimes|nullable|string|max:100',
+            'city' => 'sometimes|nullable|string|max:100',
+            'borough' => 'sometimes|nullable|string|max:100',
+            'zip_code' => ['sometimes', 'nullable', 'string', 'regex:/^\d{5}(-\d{4})?$/'],
+            'status' => 'sometimes|in:Active,Inactive,Suspended',
+
+            // training center selection from admin caregiver edit modal
+            // (string name of a user_type training_center/training)
+            'training_center' => 'sometimes|nullable|string|max:255',
+
+            // caregiver-specific fields (optional)
+            'years_experience' => 'sometimes|nullable|integer|min:0|max:50',
+            'bio' => 'sometimes|nullable|string|max:1000',
+            'preferred_hourly_rate_min' => 'sometimes|nullable|numeric|min:0',
+            'preferred_hourly_rate_max' => 'sometimes|nullable|numeric|min:0',
+            'has_hha' => 'sometimes|boolean',
+            'hha_number' => 'sometimes|nullable|string|max:255',
+            'has_cna' => 'sometimes|boolean',
+            'cna_number' => 'sometimes|nullable|string|max:255',
+            'has_rn' => 'sometimes|boolean',
+            'rn_number' => 'sometimes|nullable|string|max:255',
         ]);
-        
-        $user = User::findOrFail($id);
-        $user->update($validated);
-        return response()->json(['success' => true, 'user' => $user]);
+
+        if (isset($validated['bio'])) {
+            $validated['bio'] = strip_tags($validated['bio']);
+        }
+
+        // Update the User table fields.
+        // IMPORTANT: some installs/DBs may not have every optional column (e.g. `county`).
+        // Only write columns that exist to avoid SQLSTATE[42S22] "Unknown column".
+        $existingUserColumns = [];
+        try {
+            $existingUserColumns = DB::getSchemaBuilder()->getColumnListing('users');
+        } catch (\Exception $e) {
+            // If schema inspection fails, fall back to a minimal safe set.
+            $existingUserColumns = ['name','email','phone','date_of_birth','address','city','borough','state','zip_code','status'];
+        }
+
+        $userUpdate = [];
+        foreach (['name','email','phone','date_of_birth','address','state','county','city','borough','zip_code','status'] as $field) {
+            if (!in_array($field, $existingUserColumns, true)) {
+                continue;
+            }
+            if (array_key_exists($field, $validated)) {
+                $userUpdate[$field] = $validated[$field];
+            }
+        }
+        if (!empty($userUpdate)) {
+            $user->update($userUpdate);
+        }
+
+        // Update caregiver table fields if applicable
+        if ($user->user_type === 'caregiver') {
+            $caregiver = $user->caregiver ?: Caregiver::firstOrCreate(['user_id' => $user->id]);
+
+            $caregiverUpdate = [];
+            if (array_key_exists('years_experience', $validated)) $caregiverUpdate['years_experience'] = $validated['years_experience'];
+            if (array_key_exists('bio', $validated)) $caregiverUpdate['bio'] = $validated['bio'];
+            if (array_key_exists('preferred_hourly_rate_min', $validated)) $caregiverUpdate['preferred_hourly_rate_min'] = $validated['preferred_hourly_rate_min'];
+            if (array_key_exists('preferred_hourly_rate_max', $validated)) $caregiverUpdate['preferred_hourly_rate_max'] = $validated['preferred_hourly_rate_max'];
+            if (array_key_exists('has_hha', $validated)) $caregiverUpdate['has_hha'] = (bool) $validated['has_hha'];
+            if (array_key_exists('hha_number', $validated)) $caregiverUpdate['hha_number'] = $validated['hha_number'];
+            if (array_key_exists('has_cna', $validated)) $caregiverUpdate['has_cna'] = (bool) $validated['has_cna'];
+            if (array_key_exists('cna_number', $validated)) $caregiverUpdate['cna_number'] = $validated['cna_number'];
+            if (array_key_exists('has_rn', $validated)) $caregiverUpdate['has_rn'] = (bool) $validated['has_rn'];
+            if (array_key_exists('rn_number', $validated)) $caregiverUpdate['rn_number'] = $validated['rn_number'];
+
+            // Map the selected training center name to caregiver.training_center_id.
+            // If it's not a known center, treat it as a custom center.
+            if (array_key_exists('training_center', $validated)) {
+                $tcName = trim((string) ($validated['training_center'] ?? ''));
+
+                if ($tcName === '') {
+                    $caregiverUpdate['training_center_id'] = null;
+                    $caregiverUpdate['has_training_center'] = false;
+                    // column is enum(['pending','approved','rejected'])
+                    $caregiverUpdate['training_center_approval_status'] = null;
+                    if (DB::getSchemaBuilder()->hasColumn('caregivers', 'custom_training_center')) {
+                        $caregiverUpdate['custom_training_center'] = null;
+                    }
+                } else {
+                    $centerUser = User::whereIn('user_type', ['training_center', 'training'])
+                        ->where('name', $tcName)
+                        ->first();
+
+                    if ($centerUser) {
+                        $caregiverUpdate['training_center_id'] = $centerUser->id;
+                        $caregiverUpdate['has_training_center'] = true;
+                        $caregiverUpdate['training_center_approval_status'] = 'approved';
+                        if (DB::getSchemaBuilder()->hasColumn('caregivers', 'custom_training_center')) {
+                            $caregiverUpdate['custom_training_center'] = null;
+                        }
+                    } else {
+                        // Not found in list -> store as custom if schema supports it
+                        $caregiverUpdate['training_center_id'] = null;
+                        $caregiverUpdate['has_training_center'] = true;
+                        // Treat custom center as pending (enum-safe)
+                        $caregiverUpdate['training_center_approval_status'] = 'pending';
+                        if (DB::getSchemaBuilder()->hasColumn('caregivers', 'custom_training_center')) {
+                            $caregiverUpdate['custom_training_center'] = $tcName;
+                        }
+                    }
+                }
+            }
+
+            if (!empty($caregiverUpdate)) {
+                $caregiver->update($caregiverUpdate);
+            }
+        }
+
+        return response()->json(['success' => true, 'user' => $user->fresh(['caregiver'])]);
     }
 
     public function updateUserStatus(Request $request, $id)
@@ -1779,12 +1893,12 @@ class AdminController extends Controller
             ->get();
         
         $commissions = $trainingCenters->map(function($user) {
-            // Get total and pending commissions from time_trackings
-            $totalCommission = \App\Models\TimeTracking::where('training_center_id', $user->id)
+            // Get total and pending commissions from time_trackings (using training_center_user_id)
+            $totalCommission = \App\Models\TimeTracking::where('training_center_user_id', $user->id)
                 ->sum('training_center_commission');
             
-            $pendingCommission = \App\Models\TimeTracking::where('training_center_id', $user->id)
-                ->whereNull('training_commission_paid_at')
+            $pendingCommission = \App\Models\TimeTracking::where('training_center_user_id', $user->id)
+                ->where('training_paid', 0)
                 ->sum('training_center_commission');
             
             $paidCommission = $totalCommission - $pendingCommission;
@@ -2090,4 +2204,134 @@ class AdminController extends Controller
 
         return response()->json(['success' => true]);
     }
+    /**`n     * Get all users with their related data
+     */
+    public function getUsers()
+    {
+        try {
+            $users = User::with(['caregiver', 'client'])->orderBy('created_at', 'desc')->get();
+            
+            $usersData = $users->map(function($u) {
+                $data = [
+                    'id' => $u->id,
+                    'name' => $u->name,
+                    'email' => $u->email,
+                    'phone' => $u->phone,
+                    'type' => ucfirst($u->user_type),
+                    'status' => $u->status ?? 'Active',
+                    'joined' => $u->created_at ? $u->created_at->format('M Y') : null,
+                    'zip_code' => $u->zip_code,
+                    'city' => $u->city,
+                    'state' => $u->state,
+                    'county' => $u->county,
+                    'borough' => $u->borough,
+                ];
+                
+                if ($u->user_type === 'caregiver' && $u->caregiver) {
+                    $data['caregiver'] = [
+                        'id' => $u->caregiver->id,
+                        'rating' => $u->caregiver->rating,
+                        'preferred_hourly_rate_min' => $u->caregiver->preferred_hourly_rate_min,
+                        'preferred_hourly_rate_max' => $u->caregiver->preferred_hourly_rate_max,
+                    ];
+                }
+                
+                return $data;
+            });
+            
+            return response()->json(['users' => $usersData]);
+        } catch (\Exception $e) {
+            Log::error('Error in getUsers: ' . $e->getMessage());
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Minimal caregivers list for admin dashboard table.
+     *
+     * Contract:
+     * - Returns JSON always.
+     * - Includes canonical `zip_code` from `users.zip_code`.
+     */
+    public function getCaregivers()
+    {
+        try {
+            $caregivers = User::query()
+                ->where('user_type', 'caregiver')
+                ->with('caregiver')
+                ->orderBy('created_at', 'desc')
+                ->get();
+
+            $data = $caregivers
+                ->filter(fn($u) => $u->caregiver && $u->caregiver->id)
+                ->map(function ($u) {
+                    return [
+                        'id' => $u->id,
+                        'name' => $u->name,
+                        'email' => $u->email,
+                        'phone' => $u->phone,
+                        'zip_code' => $u->zip_code,
+                        'joined' => $u->created_at ? $u->created_at->format('M Y') : null,
+                        'caregiver' => [
+                            'id' => $u->caregiver->id,
+                            'rating' => $u->caregiver->rating,
+                            'preferred_hourly_rate_min' => $u->caregiver->preferred_hourly_rate_min,
+                            'preferred_hourly_rate_max' => $u->caregiver->preferred_hourly_rate_max,
+                        ],
+                    ];
+                })
+                ->values();
+
+            return response()->json(['caregivers' => $data]);
+        } catch (\Exception $e) {
+            Log::error('Error in getCaregivers: ' . $e->getMessage());
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Admin caregiver profile for modal.
+     * Returns JSON: { user: {...}, caregiver: {...} }
+     */
+    public function getCaregiverProfile($userId)
+    {
+        try {
+            $user = User::with('caregiver')->where('user_type', 'caregiver')->findOrFail($userId);
+            $caregiver = $user->caregiver;
+
+            return response()->json([
+                'user' => [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'phone' => $user->phone,
+                    'zip_code' => $user->zip_code,
+                    'borough' => $user->borough,
+                    'county' => $user->county,
+                    'city' => $user->city,
+                    'state' => $user->state,
+                    'email_verified_at' => $user->email_verified_at,
+                    'created_at' => $user->created_at,
+                ],
+                'caregiver' => $caregiver ? [
+                    'id' => $caregiver->id,
+                    'rating' => $caregiver->rating,
+                    'preferred_hourly_rate_min' => $caregiver->preferred_hourly_rate_min,
+                    'preferred_hourly_rate_max' => $caregiver->preferred_hourly_rate_max,
+                    'has_hha' => (bool) $caregiver->has_hha,
+                    'hha_number' => $caregiver->hha_number,
+                    'has_cna' => (bool) $caregiver->has_cna,
+                    'cna_number' => $caregiver->cna_number,
+                    'has_rn' => (bool) $caregiver->has_rn,
+                    'rn_number' => $caregiver->rn_number,
+                    'bio' => $caregiver->bio,
+                    'training_certificate' => $caregiver->training_certificate,
+                ] : null,
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error in getCaregiverProfile: ' . $e->getMessage());
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
+
 }

@@ -24,14 +24,16 @@ class Payment extends Model
         'currency',
         'description',
         'paid_at',
-        'notes'
+    'notes',
+    'processing_fee',
     ];
 
     protected $casts = [
         'amount' => 'decimal:2',
         'platform_fee' => 'decimal:2',
         'caregiver_amount' => 'decimal:2',
-        'paid_at' => 'datetime'
+    'paid_at' => 'datetime',
+    'processing_fee' => 'decimal:2',
     ];
 
     public function booking()

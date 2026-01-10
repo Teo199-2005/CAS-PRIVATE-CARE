@@ -692,8 +692,8 @@ const lookupProfileZipCode = async () => {
     } catch (error) {
     }
     
-    // Fallback to static map
-    profileZipLocation.value = zipCodeMap[zip] || 'New York, NY';
+  // Fallback to static map (avoid misleading default like "New York, NY")
+  profileZipLocation.value = zipCodeMap[zip] || '';
   } else {
     profileZipLocation.value = '';
   }

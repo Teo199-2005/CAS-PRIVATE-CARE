@@ -12,6 +12,27 @@ class ClientPaymentController extends Controller
 {
     protected StripeClient $stripe;
 
+    /**
+     * Stripe processing fee rates (business rules)
+     * Domestic (US): 2.9% + $0.30
+     * International: 4.9% + $0.30
+     */
+    private float $stripeFeeDomestic = 0.029;
+    private float $stripeFeeInternational = 0.049;
+    private float $stripeFixedFee = 0.30;
+
+    private function calculateProcessingFee(float $targetAmount, string $cardCountry = 'US'): float
+    {
+        $rate = strtoupper($cardCountry) === 'US' ? $this->stripeFeeDomestic : $this->stripeFeeInternational;
+        $gross = ($targetAmount + $this->stripeFixedFee) / (1 - $rate);
+        return round($gross - $targetAmount, 2);
+    }
+
+    private function calculateAdjustedTotal(float $targetAmount, string $cardCountry = 'US'): float
+    {
+        return round($targetAmount + $this->calculateProcessingFee($targetAmount, $cardCountry), 2);
+    }
+
     public function __construct()
     {
         $this->stripe = new StripeClient(env('STRIPE_SECRET'));
@@ -58,6 +79,40 @@ class ClientPaymentController extends Controller
             Log::error('Error ensuring customer: ' . $e->getMessage());
             throw $e;
         }
+    }
+
+    /**
+     * Extract hours per day from duty_type text.
+     * Examples: "8 Hours", "12 hours", "24 Hours", "8 Hours per Day"
+     */
+    private function extractHoursFromDutyType(?string $dutyType): int
+    {
+        if (!$dutyType) return 8;
+
+        if (preg_match('/(\d{1,2})\s*(hour|hours)/i', $dutyType, $matches)) {
+            $h = (int) $matches[1];
+            return $h > 0 ? $h : 8;
+        }
+
+        return 8;
+    }
+
+    /**
+     * Booking service total (before Stripe processing fee).
+     */
+    private function calculateBookingTotal(Booking $booking): float
+    {
+        $hours = $this->extractHoursFromDutyType($booking->duty_type);
+        $days = (int) ($booking->duration_days ?: 0);
+        $rate = (float) ($booking->hourly_rate ?: 0);
+
+        $total = $hours * $days * $rate;
+
+        if (!empty($booking->referral_discount_applied)) {
+            $total -= $hours * $days * (float) $booking->referral_discount_applied;
+        }
+
+        return (float) $total;
     }
 
     // Create a SetupIntent client secret for the frontend to collect a payment method
@@ -297,6 +352,7 @@ class ClientPaymentController extends Controller
             $request->validate([
                 'payment_method_id' => 'required|string',
                 'booking_id' => 'required|integer|exists:bookings,id',
+                // amount (cents) is ignored for security; totals are calculated server-side
                 'amount' => 'required|integer|min:100', // Amount in cents
             ]);
 
@@ -319,16 +375,34 @@ class ClientPaymentController extends Controller
 
             $customerId = $this->ensureCustomer($user);
 
+            // Calculate target total server-side
+            $targetAmount = (float) $this->calculateBookingTotal($booking);
+
+            // Determine card country (best-effort). If unavailable, default US.
+            $cardCountry = 'US';
+            try {
+                $pm = $this->stripe->paymentMethods->retrieve($request->payment_method_id, []);
+                if ($pm && isset($pm->card) && isset($pm->card->country) && is_string($pm->card->country)) {
+                    $cardCountry = strtoupper($pm->card->country);
+                }
+            } catch (\Exception $e) {
+                // keep default
+            }
+
+            $processingFee = $this->calculateProcessingFee($targetAmount, $cardCountry);
+            $adjustedAmount = $this->calculateAdjustedTotal($targetAmount, $cardCountry);
+            $amountInCents = (int) round($adjustedAmount * 100);
+
             Log::info('Charging saved payment method', [
                 'user_id' => $user->id,
                 'booking_id' => $request->booking_id,
                 'payment_method_id' => $request->payment_method_id,
-                'amount' => $request->amount
+                'amount' => $amountInCents
             ]);
 
             // Create and confirm Payment Intent with saved payment method
             $paymentIntent = $this->stripe->paymentIntents->create([
-                'amount' => $request->amount,
+                'amount' => $amountInCents,
                 'currency' => 'usd',
                 'customer' => $customerId,
                 'payment_method' => $request->payment_method_id,
@@ -363,7 +437,8 @@ class ClientPaymentController extends Controller
                 'client_id' => $user->id,
                 'booking_id' => $booking->id,
                 'transaction_id' => $paymentIntent->id,
-                'amount' => $request->amount / 100,
+                'amount' => $amountInCents / 100,
+                'processing_fee' => $processingFee,
                 'status' => 'completed',
                 'payment_method' => 'credit_card',
                 'notes' => 'Booking payment using saved card for #' . $booking->id,

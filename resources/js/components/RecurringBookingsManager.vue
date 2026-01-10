@@ -330,7 +330,7 @@ const showHeader = computed(() => props.showInternalHeader);
 const loadRecurringBookings = async () => {
   loading.value = true;
   try {
-  const response = await axios.get('/api/client/recurring');
+  const response = await axios.get('/client/recurring');
     if (response.data && response.data.success) {
       recurringBookings.value = response.data.recurring_bookings || [];
     } else {
@@ -361,7 +361,7 @@ const loadRecurringBookings = async () => {
 const pauseRecurring = async (booking) => {
   actionLoading.value = booking.id;
   try {
-  await axios.post(`/api/client/recurring/${booking.id}/pause`);
+  await axios.post(`/client/recurring/${booking.id}/pause`);
     await loadRecurringBookings();
     success('Auto-renewal paused successfully', 'Paused');
   } catch (e) {
@@ -374,7 +374,7 @@ const pauseRecurring = async (booking) => {
 const resumeRecurring = async (booking) => {
   actionLoading.value = booking.id;
   try {
-  await axios.post(`/api/client/recurring/${booking.id}/resume`);
+  await axios.post(`/client/recurring/${booking.id}/resume`);
     await loadRecurringBookings();
     success('Auto-renewal resumed successfully', 'Resumed');
   } catch (e) {
@@ -394,7 +394,7 @@ const confirmCancel = async () => {
   
   cancelLoading.value = true;
   try {
-  await axios.post(`/api/client/recurring/${selectedBooking.value.id}/cancel`);
+  await axios.post(`/client/recurring/${selectedBooking.value.id}/cancel`);
     cancelDialog.value = false;
     await loadRecurringBookings();
     success('Recurring payments cancelled', 'Cancelled');
@@ -411,7 +411,7 @@ const viewDetails = async (booking) => {
   loadingHistory.value = true;
   
   try {
-  const response = await axios.get(`/api/client/recurring/${booking.id}`);
+  const response = await axios.get(`/client/recurring/${booking.id}`);
     bookingChain.value = response.data.chain || [];
     totalPaid.value = response.data.total_paid || 0;
     totalRenewals.value = response.data.total_renewals || 0;

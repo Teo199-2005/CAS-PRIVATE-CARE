@@ -473,12 +473,20 @@
         }
 
         .zip-location-display {
-            margin-top: -8px;
-            font-size: 0.75rem;
-            color: #000000;
+            margin-top: 0.5rem;
+            font-size: 0.95rem;
+            color: #64748b;
             font-weight: 600;
-            line-height: 1.2;
+            line-height: 1.35;
             display: block;
+        }
+
+        .zip-location-display.is-loading {
+            color: #94a3b8;
+        }
+
+        .zip-location-display.is-error {
+            color: #dc2626;
         }
 
         .password-strength {
@@ -921,11 +929,11 @@
 
             /* ZIP code location display */
             .zip-location-display {
-                margin-top: -8px;
-                font-size: 0.75rem;
-                color: #000000;
+                margin-top: 0.5rem;
+                font-size: 0.95rem;
+                color: #64748b;
                 font-weight: 600;
-                line-height: 1.2;
+                line-height: 1.35;
                 display: block;
             }
 
@@ -1629,7 +1637,7 @@
         }
 
         .auth-container.partner-registration .zip-location-display {
-            color: #000000;
+            color: #64748b;
         }
 
         .auth-container.partner-registration .password-strength-fill.good {
@@ -1821,7 +1829,7 @@
             background: white;
             border-radius: 24px;
             padding: 4rem;
-            max-width: 1100px;
+            max-width: 1200px;
             width: 100%;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3), 
                         0 0 0 1px rgba(245, 158, 11, 0.1),
@@ -1869,9 +1877,10 @@
 
         .partner-type-options {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1.5rem;
+            grid-template-columns: repeat(3, minmax(260px, 1fr));
+            gap: 2rem;
             margin-bottom: 2rem;
+            align-items: stretch;
         }
 
         .partner-type-option {
@@ -2013,7 +2022,7 @@
 
         @media (min-width: 1200px) {
             .partner-type-options {
-                grid-template-columns: repeat(5, 1fr);
+                grid-template-columns: repeat(3, 1fr);
             }
         }
 
@@ -2337,7 +2346,7 @@
                     <div class="option-icon client">
                         <i class="bi bi-person-heart"></i>
                     </div>
-                    <div class="option-title">I need a caregiver, housekeeping, or personal assistant</div>
+                    <div class="option-title">I need a caregiver</div>
                     <div class="option-description">Start your free search for care in your area.</div>
                     <button class="option-button" onclick="event.stopPropagation(); selectRegistrationType('client')">Find care</button>
                 </div>
@@ -2346,7 +2355,7 @@
                         <i class="bi bi-people"></i>
                     </div>
                     <div class="option-title">I want to be a partner</div>
-                    <div class="option-description">Join our network of independent caregivers, housekeeping, personal assistants, marketing partners, and training centers.</div>
+                    <div class="option-description">Join our network of independent caregivers, marketing partners, and training centers.</div>
                     <button class="option-button partner" onclick="event.stopPropagation(); showPartnerTypeModal()">Become a partner</button>
                 </div>
             </div>
@@ -2373,20 +2382,6 @@
                     </div>
                     <div class="partner-type-title">Caregiver</div>
                     <button class="partner-type-button" onclick="event.stopPropagation(); selectPartnerType('caregiver')">Select</button>
-                </div>
-                <div class="partner-type-option" data-partner-type="housekeeping" onclick="selectPartnerType('housekeeping')">
-                    <div class="partner-type-icon">
-                        <i class="bi bi-house-door"></i>
-                    </div>
-                    <div class="partner-type-title">Housekeeping</div>
-                    <button class="partner-type-button" onclick="event.stopPropagation(); selectPartnerType('housekeeping')">Select</button>
-                </div>
-                <div class="partner-type-option" data-partner-type="personal_assistant" onclick="selectPartnerType('personal_assistant')">
-                    <div class="partner-type-icon">
-                        <i class="bi bi-person-badge"></i>
-                    </div>
-                    <div class="partner-type-title">Personal Assistant</div>
-                    <button class="partner-type-button" onclick="event.stopPropagation(); selectPartnerType('personal_assistant')">Select</button>
                 </div>
                 <div class="partner-type-option" data-partner-type="marketing_partner" onclick="selectPartnerType('marketing_partner')">
                     <div class="partner-type-icon">
@@ -2472,8 +2467,8 @@
 
             <div class="form-group">
                 <label for="zip_code">ZIP Code</label>
-                <input type="text" id="zip_code" name="zip_code" class="form-input" placeholder="Enter ZIP code" value="{{ old('zip_code') }}" required autocomplete="postal-code" aria-required="true" pattern="[0-9]{5}" maxlength="5" inputmode="numeric">
-                <div id="zip-location-display" class="zip-location-display"></div>
+                <input type="text" id="zip_code" name="zip_code" class="form-input" placeholder="e.g., 10001" value="{{ old('zip_code') }}" required autocomplete="postal-code" aria-required="true" pattern="[0-9]{5}" maxlength="5" inputmode="numeric">
+                <div id="zip-location-display" class="zip-location-display" style="display:none;">Enter a 5-digit ZIP to auto-fill the city/state.</div>
                 @error('zip_code')
                     <div class="error-message">{{ $message }}</div>
                 @enderror
@@ -2769,14 +2764,12 @@
         // Map partner types to display names
         const partnerTypeNames = {
             'caregiver': 'Caregiver',
-            'housekeeping': 'Housekeeping',
-            'personal_assistant': 'Personal Assistant',
             'marketing_partner': 'Marketing Partner',
             'training_center': 'Training Center'
         };
         
         // Valid partner types
-        const validPartnerTypes = ['caregiver', 'housekeeping', 'personal_assistant', 'marketing_partner', 'training_center'];
+    const validPartnerTypes = ['caregiver', 'marketing_partner', 'training_center'];
         
         // Function to show partner registration form
         function showPartnerRegistrationForm(partnerType) {
@@ -3063,10 +3056,17 @@
                 
                 if (zip && zip.length === 5 && /^\d{5}$/.test(zip)) {
                     try {
+            zipLocationDisplay.classList.remove('is-error');
+            zipLocationDisplay.classList.add('is-loading');
+            zipLocationDisplay.textContent = 'Looking up location…';
+            zipLocationDisplay.style.display = 'block';
+
                         const response = await fetch(`/api/zipcode-lookup/${zip}`);
                         if (response.ok) {
                             const data = await response.json();
                             if (data.success && data.location) {
+                zipLocationDisplay.classList.remove('is-loading');
+                zipLocationDisplay.classList.remove('is-error');
                                 zipLocationDisplay.textContent = data.location;
                                 zipLocationDisplay.style.display = 'block';
                                 return;
@@ -3076,13 +3076,17 @@
                         console.error('ZIP code lookup failed:', error);
                     }
                     
-                    // Hide display if lookup fails
-                    zipLocationDisplay.style.display = 'none';
-                    zipLocationDisplay.textContent = '';
+            // Show a helpful message if lookup fails / not found
+            zipLocationDisplay.classList.remove('is-loading');
+            zipLocationDisplay.classList.add('is-error');
+            zipLocationDisplay.textContent = 'ZIP not found. Double-check the 5 digits.';
+            zipLocationDisplay.style.display = 'block';
                 } else {
-                    // Hide display if ZIP code is invalid
-                    zipLocationDisplay.style.display = 'none';
-                    zipLocationDisplay.textContent = '';
+            // Show helper text while typing
+            zipLocationDisplay.classList.remove('is-loading');
+            zipLocationDisplay.classList.remove('is-error');
+            zipLocationDisplay.textContent = 'Enter a 5-digit ZIP to auto-fill the city/state.';
+            zipLocationDisplay.style.display = (zip && zip.length > 0) ? 'block' : 'none';
                 }
             }
             
@@ -3101,8 +3105,10 @@
                         lookupZipCodeLocation(value);
                     } else {
                         if (zipLocationDisplay) {
-                            zipLocationDisplay.style.display = 'none';
-                            zipLocationDisplay.textContent = '';
+                            zipLocationDisplay.classList.remove('is-loading');
+                            zipLocationDisplay.classList.remove('is-error');
+                            zipLocationDisplay.textContent = 'Enter a 5-digit ZIP to auto-fill the city/state.';
+                            zipLocationDisplay.style.display = value.length ? 'block' : 'none';
                         }
                     }
                 });

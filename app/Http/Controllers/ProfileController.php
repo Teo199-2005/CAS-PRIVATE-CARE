@@ -129,7 +129,9 @@ class ProfileController extends Controller
                 'city' => 'nullable|string',
                 'borough' => 'nullable|string',
                 'state' => 'nullable|string',
+                // accept either 'zip' (frontend older endpoints) or 'zip_code' (newer endpoints)
                 'zip' => ['nullable','string','regex:/^\\d{5}(-\\d{4})?$/'],
+                'zip_code' => ['nullable','string','regex:/^\\d{5}(-\\d{4})?$/'],
                 'ein' => 'nullable|string',
                 'experience' => 'nullable|integer',
                 'trainingCenter' => 'nullable|string',
@@ -180,7 +182,9 @@ class ProfileController extends Controller
         if (isset($validated['city'])) $updateData['city'] = $validated['city'];
         if (isset($validated['borough'])) $updateData['borough'] = $validated['borough'];
         if (isset($validated['state'])) $updateData['state'] = $validated['state'];
-        if (isset($validated['zip'])) $updateData['zip_code'] = $validated['zip'];
+    // Accept either incoming key and normalize to users.zip_code
+    if (isset($validated['zip'])) $updateData['zip_code'] = $validated['zip'];
+    if (isset($validated['zip_code'])) $updateData['zip_code'] = $validated['zip_code'];
         if (isset($validated['ein'])) $updateData['ein'] = $validated['ein'];
         if (isset($validated['department'])) $updateData['department'] = $validated['department'];
         if (isset($validated['role'])) $updateData['role'] = $validated['role'];
@@ -192,7 +196,19 @@ class ProfileController extends Controller
             $user->update($updateData);
         }
 
-        // Ensure caregiver record exists
+        // Only handle caregiver-specific fields if user is actually a caregiver
+        $isCaregiver = $user->user_type === 'caregiver' || $user->user_type === 'Caregiver';
+        
+        if (!$isCaregiver) {
+            // For non-caregivers (admin, client, etc.), just return success
+            return response()->json([
+                'success' => true,
+                'message' => 'Profile updated successfully',
+                'user' => $user->fresh()
+            ]);
+        }
+
+        // Ensure caregiver record exists (only for caregivers)
         if (!$user->caregiver) {
             \App\Models\Caregiver::create([
                 'user_id' => $user->id,

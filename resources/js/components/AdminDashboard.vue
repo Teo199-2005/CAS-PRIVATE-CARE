@@ -27,8 +27,8 @@
       <v-btn color="success" size="x-large" prepend-icon="mdi-email-send" class="admin-btn ml-2" @click="testEmailDialog = true">Test Email</v-btn>
     </template>
 
-    <!-- Email Verification Banner -->
-    <email-verification-banner />
+  <!-- Email Verification Banner (not needed for company admin) -->
+  <email-verification-banner v-if="false" />
 
     <!-- Dashboard Section -->
     <div v-if="currentSection === 'dashboard'">
@@ -436,6 +436,13 @@
           </v-btn>
         </v-card-title>
         <v-data-table v-model="selectedCaregivers" :headers="caregiverHeaders" :items="filteredCaregivers" :items-per-page="10" show-select item-value="userId" class="elevation-0" density="compact">
+          <template v-slot:item.zip_code="{ item }">
+            {{ item.zip_code || 'Unknown ZIP' }}
+          </template>
+          <template v-slot:item.location="{ item }">
+            <span style="display:none">{{ ensureItemPlaceIndicator(item) }}</span>
+            {{ item.place_indicator || item.location || 'Unknown ZIP' }}
+          </template>
           <template v-slot:item.status="{ item }">
             <v-chip :color="getUserStatusColor(item.status)" size="small" class="font-weight-bold" :prepend-icon="getStatusIcon(item.status)">{{ item.status }}</v-chip>
           </template>
@@ -465,7 +472,7 @@
     </div>
 
     <!-- View Caregiver Details Dialog -->
-    <v-dialog v-model="viewCaregiverDialog" max-width="800">
+    <v-dialog v-model="viewCaregiverDialog" max-width="800" scrollable>
       <v-card v-if="viewingCaregiver">
         <v-card-title class="pa-6" style="background: #dc2626; color: white;">
           <div class="d-flex align-center justify-space-between w-100">
@@ -473,7 +480,7 @@
             <v-btn icon="mdi-close" variant="text" style="color: white;" @click="viewCaregiverDialog = false"></v-btn>
           </div>
         </v-card-title>
-        <v-card-text class="pa-6">
+        <v-card-text class="pa-6" style="max-height: 60vh; overflow-y: auto;">
           <v-row>
             <v-col cols="12" class="text-center mb-4">
               <v-avatar size="120" color="success" class="mb-3">
@@ -513,22 +520,83 @@
           <v-row>
             <v-col cols="12" md="6">
               <div class="detail-section">
+                <div class="detail-label">First Name</div>
+                <div class="detail-value">{{ viewingCaregiver.first_name || (viewingCaregiver.name ? viewingCaregiver.name.split(' ')[0] : '') || 'N/A' }}</div>
+              </div>
+            </v-col>
+            <v-col cols="12" md="6">
+              <div class="detail-section">
+                <div class="detail-label">Last Name</div>
+                <div class="detail-value">{{ viewingCaregiver.last_name || (viewingCaregiver.name ? viewingCaregiver.name.split(' ').slice(1).join(' ') : '') || 'N/A' }}</div>
+              </div>
+            </v-col>
+            <v-col cols="12" md="6">
+              <div class="detail-section">
                 <div class="detail-label">Email</div>
-                <div class="detail-value">{{ viewingCaregiver.email }}</div>
+                <div class="detail-value">{{ viewingCaregiver.email || 'N/A' }}</div>
               </div>
             </v-col>
             <v-col cols="12" md="6">
               <div class="detail-section">
                 <div class="detail-label">Phone</div>
-                <div class="detail-value">{{ viewingCaregiver.phone }}</div>
+                <div class="detail-value">{{ viewingCaregiver.phone || 'N/A' }}</div>
+              </div>
+            </v-col>
+
+            <v-col cols="12" md="6">
+              <div class="detail-section">
+                <div class="detail-label">Birthdate</div>
+                <div class="detail-value">{{ viewingCaregiver.birthdate || 'N/A' }}</div>
               </div>
             </v-col>
             <v-col cols="12" md="6">
               <div class="detail-section">
-                <div class="detail-label">Borough</div>
-                <div class="detail-value">{{ viewingCaregiver.borough }}</div>
+                <div class="detail-label">Age</div>
+                <div class="detail-value">{{ viewingCaregiver.age || 'N/A' }}</div>
               </div>
             </v-col>
+
+            <v-col cols="12" md="6">
+              <div class="detail-section">
+                <div class="detail-label">Address</div>
+                <div class="detail-value">{{ viewingCaregiver.address || 'N/A' }}</div>
+              </div>
+            </v-col>
+            <v-col cols="12" md="6">
+              <div class="detail-section">
+                <div class="detail-label">State</div>
+                <div class="detail-value">{{ viewingCaregiver.state || 'N/A' }}</div>
+              </div>
+            </v-col>
+
+            <v-col cols="12" md="6">
+              <div class="detail-section">
+                <div class="detail-label">County/Borough</div>
+                <div class="detail-value">{{ viewingCaregiver.county || viewingCaregiver.borough || 'N/A' }}</div>
+              </div>
+            </v-col>
+            <v-col cols="12" md="6">
+              <div class="detail-section">
+                <div class="detail-label">City</div>
+                <div class="detail-value">{{ viewingCaregiver.city || 'N/A' }}</div>
+              </div>
+            </v-col>
+
+            <v-col cols="12" md="6">
+              <div class="detail-section">
+                <div class="detail-label">ZIP Code</div>
+                <div class="detail-value">{{ viewingCaregiver.zip_code || 'Unknown ZIP' }}</div>
+              </div>
+            </v-col>
+            <v-col cols="12" md="6">
+              <div class="detail-section">
+                <div class="detail-label">Location</div>
+                <div class="detail-value">
+                  {{ viewingCaregiver.place_indicator || viewingCaregiver.location || 'Unknown ZIP' }}
+                </div>
+              </div>
+            </v-col>
+
             <v-col cols="12" md="6">
               <div class="detail-section">
                 <div class="detail-label">Clients Served</div>
@@ -750,6 +818,18 @@
             </v-col>
             <v-col cols="12" md="6">
               <div class="detail-section">
+                <div class="detail-label">Zip Code</div>
+                <div class="detail-value">{{ viewingClient.zip_code || viewingClient.zip || 'Unknown ZIP' }}</div>
+              </div>
+            </v-col>
+            <v-col cols="12" md="6">
+              <div class="detail-section">
+                <div class="detail-label">Location</div>
+                <div class="detail-value">{{ viewingClient.place_indicator || viewingClient.location || 'Unknown ZIP' }}</div>
+              </div>
+            </v-col>
+            <v-col cols="12" md="6">
+              <div class="detail-section">
                 <div class="detail-label">Status</div>
                 <div class="detail-value">
                   <v-chip :color="getUserStatusColor(viewingClient.status)" size="small">
@@ -822,6 +902,13 @@
           </v-btn>
         </v-card-title>
         <v-data-table v-model="selectedClients" :headers="clientHeaders" :items="filteredClients" :items-per-page="10" show-select item-value="id" class="elevation-0" density="compact">
+          <template v-slot:item.zip_code="{ item }">
+            {{ item.zip_code || 'Unknown ZIP' }}
+          </template>
+          <template v-slot:item.location="{ item }">
+            <span style="display:none">{{ ensureItemPlaceIndicator(item) }}</span>
+            {{ item.place_indicator || item.location || 'Unknown ZIP' }}
+          </template>
           <template v-slot:item.status="{ item }">
             <v-chip :color="getUserStatusColor(item.status)" size="small" class="font-weight-bold" :prepend-icon="getStatusIcon(item.status)">{{ item.status }}</v-chip>
           </template>
@@ -859,6 +946,13 @@
           </v-btn>
         </v-card-title>
         <v-data-table v-model="selectedMarketingStaff" :headers="marketingStaffHeaders" :items="filteredMarketingStaff" :items-per-page="10" show-select item-value="id" class="elevation-0" density="compact">
+          <template v-slot:item.zip_code="{ item }">
+            {{ item.zip_code || 'Unknown ZIP' }}
+          </template>
+          <template v-slot:item.location="{ item }">
+            <span style="display:none">{{ ensureItemPlaceIndicator(item) }}</span>
+            {{ item.place_indicator || item.location || 'Unknown ZIP' }}
+          </template>
           <template v-slot:item.referralCode="{ item }">
             <v-chip color="primary" size="small" class="font-weight-bold">
               <v-icon size="14" class="mr-1">mdi-ticket-percent</v-icon>
@@ -926,6 +1020,18 @@
               <div class="detail-section">
                 <div class="detail-label">Phone</div>
                 <div class="detail-value">{{ viewingMarketingStaff.phone }}</div>
+              </div>
+            </v-col>
+            <v-col cols="12" md="6">
+              <div class="detail-section">
+                <div class="detail-label">Zip Code</div>
+                <div class="detail-value">{{ viewingMarketingStaff.zip_code || viewingMarketingStaff.zip || 'Unknown ZIP' }}</div>
+              </div>
+            </v-col>
+            <v-col cols="12" md="6">
+              <div class="detail-section">
+                <div class="detail-label">Location</div>
+                <div class="detail-value">{{ viewingMarketingStaff.place_indicator || viewingMarketingStaff.location || 'Unknown ZIP' }}</div>
               </div>
             </v-col>
           </v-row>
@@ -1122,6 +1228,10 @@
           class="elevation-0" 
           density="compact"
         >
+          <template v-slot:item.location="{ item }">
+            <span style="display:none">{{ ensureItemPlaceIndicator(item) }}</span>
+            {{ item.place_indicator || item.location || 'Unknown ZIP' }}
+          </template>
           <template v-slot:item.email_verified="{ item }">
             <v-chip :color="item.email_verified === 'Yes' ? 'success' : 'warning'" size="small">
               <v-icon size="14" class="mr-1">{{ item.email_verified === 'Yes' ? 'mdi-check-circle' : 'mdi-alert-circle' }}</v-icon>
@@ -1199,6 +1309,12 @@
               <div class="detail-section">
                 <div class="detail-label">Joined Date</div>
                 <div class="detail-value">{{ viewingAdminStaff.joined }}</div>
+              </div>
+            </v-col>
+            <v-col cols="12" md="6">
+              <div class="detail-section">
+                <div class="detail-label">Location</div>
+                <div class="detail-value">{{ viewingAdminStaff.place_indicator || viewingAdminStaff.location || 'Unknown ZIP' }}</div>
               </div>
             </v-col>
           </v-row>
@@ -1370,6 +1486,13 @@
           </v-btn>
         </v-card-title>
         <v-data-table v-model="selectedTrainingCenters" :headers="trainingCenterHeaders" :items="filteredTrainingCenters" :items-per-page="10" show-select item-value="id" class="elevation-0" density="compact">
+          <template v-slot:item.location="{ item }">
+            <span style="display:none">{{ ensureItemPlaceIndicator(item) }}</span>
+            {{ item.place_indicator || item.location || 'Unknown ZIP' }}
+          </template>
+          <template v-slot:item.zip_code="{ item }">
+            {{ item.zip_code || 'Unknown ZIP' }}
+          </template>
           <template v-slot:item.caregiverCount="{ item }">
             <v-chip color="info" size="small">
               <v-icon size="14" class="mr-1">mdi-account-heart</v-icon>
@@ -1434,6 +1557,18 @@
               <div class="detail-section">
                 <div class="detail-label">Phone</div>
                 <div class="detail-value">{{ viewingTrainingCenter.phone }}</div>
+              </div>
+            </v-col>
+            <v-col cols="12" md="6">
+              <div class="detail-section">
+                <div class="detail-label">Zip Code</div>
+                <div class="detail-value">{{ viewingTrainingCenter.zip_code || viewingTrainingCenter.zip || 'Unknown ZIP' }}</div>
+              </div>
+            </v-col>
+            <v-col cols="12" md="6">
+              <div class="detail-section">
+                <div class="detail-label">Location</div>
+                <div class="detail-value">{{ viewingTrainingCenter.place_indicator || viewingTrainingCenter.location || 'Unknown ZIP' }}</div>
               </div>
             </v-col>
             <v-col cols="12" md="6">
@@ -1571,7 +1706,7 @@
                     <v-icon>mdi-map-marker</v-icon>
                   </template>
                 </v-text-field>
-                <div v-if="trainingCenterZipLocation" style="font-weight: 600; color: #000000; margin-top: -8px; font-size: 0.75rem; line-height: 1.2;">
+                <div v-if="trainingCenterZipLocation" style="font-weight: 600; color: #64748b; margin-top: 0.5rem; font-size: 0.95rem; line-height: 1.35;">
                   {{ trainingCenterZipLocation }}
                 </div>
               </v-col>
@@ -3297,10 +3432,36 @@
               </div>
             </v-card-title>
             <v-card-text class="pa-8">
-              <v-text-field label="Current Password" variant="outlined" :type="showCurrentPassword ? 'text' : 'password'" :append-inner-icon="showCurrentPassword ? 'mdi-eye-off' : 'mdi-eye'" @click:append-inner="showCurrentPassword = !showCurrentPassword" class="mb-4" />
-              <v-text-field label="New Password" variant="outlined" :type="showNewPassword ? 'text' : 'password'" :append-inner-icon="showNewPassword ? 'mdi-eye-off' : 'mdi-eye'" @click:append-inner="showNewPassword = !showNewPassword" hint="8 minimum characters" persistent-hint class="mb-4" />
-              <v-text-field label="Confirm New Password" variant="outlined" :type="showConfirmPassword ? 'text' : 'password'" :append-inner-icon="showConfirmPassword ? 'mdi-eye-off' : 'mdi-eye'" @click:append-inner="showConfirmPassword = !showConfirmPassword" class="mb-4" />
-              <v-btn color="error" block size="large">Change Password</v-btn>
+              <v-text-field 
+                v-model="passwordData.currentPassword"
+                label="Current Password" 
+                variant="outlined" 
+                :type="showCurrentPassword ? 'text' : 'password'" 
+                :append-inner-icon="showCurrentPassword ? 'mdi-eye-off' : 'mdi-eye'" 
+                @click:append-inner="showCurrentPassword = !showCurrentPassword" 
+                class="mb-4" 
+              />
+              <v-text-field 
+                v-model="passwordData.newPassword"
+                label="New Password" 
+                variant="outlined" 
+                :type="showNewPassword ? 'text' : 'password'" 
+                :append-inner-icon="showNewPassword ? 'mdi-eye-off' : 'mdi-eye'" 
+                @click:append-inner="showNewPassword = !showNewPassword" 
+                hint="8 minimum characters" 
+                persistent-hint 
+                class="mb-4" 
+              />
+              <v-text-field 
+                v-model="passwordData.confirmPassword"
+                label="Confirm New Password" 
+                variant="outlined" 
+                :type="showConfirmPassword ? 'text' : 'password'" 
+                :append-inner-icon="showConfirmPassword ? 'mdi-eye-off' : 'mdi-eye'" 
+                @click:append-inner="showConfirmPassword = !showConfirmPassword" 
+                class="mb-4" 
+              />
+              <v-btn color="error" block size="large" @click="changePassword">Change Password</v-btn>
             </v-card-text>
           </v-card>
         </v-col>
@@ -3675,7 +3836,7 @@
                 <div class="flex-grow-1">
                   <div class="caregiver-name-large">{{ caregiver.name }}</div>
                   <div class="caregiver-details">{{ caregiver.email }} • {{ caregiver.phone || '(646) 282-8282' }}</div>
-                  <div class="caregiver-borough">{{ caregiver.borough }}</div>
+                  <div class="caregiver-location">{{ caregiver.zip_code }} - {{ caregiver.location }}</div>
                 </div>
               </div>
             </div>
@@ -3802,6 +3963,30 @@
               <v-col cols="12" md="6">
                 <v-select v-if="!caregiverForm.isCustomTrainingCenter" v-model="caregiverForm.trainingCenter" :items="caregiverTrainingCenters" label="Training Center" variant="outlined" />
                 <v-text-field v-else v-model="caregiverForm.customTrainingCenter" label="Custom Training Center" variant="outlined" />
+              </v-col>
+              <v-col cols="12" md="6">
+                <v-text-field v-model="caregiverForm.preferred_hourly_rate_min" label="Preferred Hourly Rate (Min)" variant="outlined" type="number" />
+              </v-col>
+              <v-col cols="12" md="6">
+                <v-text-field v-model="caregiverForm.preferred_hourly_rate_max" label="Preferred Hourly Rate (Max)" variant="outlined" type="number" />
+              </v-col>
+              <v-col cols="12" md="4">
+                <v-checkbox v-model="caregiverForm.has_hha" label="HHA" density="compact" hide-details />
+              </v-col>
+              <v-col cols="12" md="8" v-if="caregiverForm.has_hha">
+                <v-text-field v-model="caregiverForm.hha_number" label="HHA Certificate #" variant="outlined" />
+              </v-col>
+              <v-col cols="12" md="4">
+                <v-checkbox v-model="caregiverForm.has_cna" label="CNA" density="compact" hide-details />
+              </v-col>
+              <v-col cols="12" md="8" v-if="caregiverForm.has_cna">
+                <v-text-field v-model="caregiverForm.cna_number" label="CNA Certificate #" variant="outlined" />
+              </v-col>
+              <v-col cols="12" md="4">
+                <v-checkbox v-model="caregiverForm.has_rn" label="RN" density="compact" hide-details />
+              </v-col>
+              <v-col cols="12" md="8" v-if="caregiverForm.has_rn">
+                <v-text-field v-model="caregiverForm.rn_number" label="RN License #" variant="outlined" />
               </v-col>
               <v-col cols="12" md="6">
                 <v-file-input v-model="caregiverForm.trainingCertificate" label="Training Certificate" variant="outlined" accept=".pdf,.jpg,.jpeg,.png" prepend-icon="mdi-certificate" hint="Accepted formats: PDF, JPG, PNG (Max 5MB)" persistent-hint />
@@ -4200,7 +4385,7 @@
                       {{ caregiver.clients }} Clients
                       <span class="mx-2">•</span>
                       <v-icon size="14" class="mr-1">mdi-map-marker</v-icon>
-                      {{ caregiver.borough }}
+                      {{ caregiver.zip_code }} - {{ caregiver.location }}
                       <span class="mx-2">•</span>
                       <v-icon size="14" class="mr-1">mdi-cash</v-icon>
                       ${{ caregiver.preferred_hourly_rate_min || 20 }}-${{ caregiver.preferred_hourly_rate_max || 50 }}/hr
@@ -5586,20 +5771,18 @@ const caregiverForm = ref({
   isCustomTrainingCenter: false,
   trainingCertificate: null, 
   bio: '', 
+  preferred_hourly_rate_min: null,
+  preferred_hourly_rate_max: null,
+  has_hha: false,
+  hha_number: '',
+  has_cna: false,
+  cna_number: '',
+  has_rn: false,
+  rn_number: '',
   status: 'Active' 
 });
 
-const caregiverTrainingCenters = [
-  'NYC Healthcare Training Institute',
-  'American Red Cross',
-  'National Association for Home Care & Hospice',
-  'Certified Nursing Assistant Training Center',
-  'Home Health Aide Training Academy',
-  'Metropolitan Healthcare Training',
-  'Brooklyn Healthcare Institute',
-  'Queens Medical Training Center',
-  'Bronx Community Health Training'
-];
+// caregiverTrainingCenters is loaded dynamically via loadCaregiverTrainingCenters()
 
 const announcementData = ref({
   title: '',
@@ -5687,16 +5870,17 @@ const caregiverHeaders = [
   { title: 'Name', key: 'name' },
   { title: 'Email', key: 'email' },
   { title: 'Phone', key: 'phone' },
-  { title: 'Borough', key: 'borough' },
+  { title: 'Zip Code', key: 'zip_code' },
+  { title: 'Location', key: 'location' },
   { title: 'Status', key: 'status' },
   { title: 'Rating', key: 'rating' },
-  { title: 'Clients', key: 'clients' },
   { title: 'Actions', key: 'actions', sortable: false },
 ];
 
 const clientHeaders = [
   { title: 'Name', key: 'name' },
   { title: 'Email', key: 'email' },
+  { title: 'Zip Code', key: 'zip_code' },
   { title: 'Status', key: 'status' },
   { title: 'Bookings', key: 'bookings' },
   { title: 'Total Spent', key: 'totalSpent' },
@@ -5715,6 +5899,7 @@ const payingCommission = ref(null);
 const marketingStaffHeaders = [
   { title: 'Name', key: 'name' },
   { title: 'Email', key: 'email' },
+  { title: 'Zip Code', key: 'zip_code' },
   { title: 'Referral Code', key: 'referralCode' },
   { title: 'Clients Acquired', key: 'clientsAcquired' },
   { title: 'Total Hours', key: 'totalHours' },
@@ -5773,10 +5958,35 @@ const trainingCenterFormData = ref({
   status: 'Active'
 });
 const trainingCenterZipLocation = ref('');
+
+// Use the same training center list pattern as the caregiver profile (API-backed)
+const caregiverTrainingCenters = ref([]);
+const loadCaregiverTrainingCenters = async () => {
+  try {
+    const response = await fetch('/api/training-centers', {
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include'
+    });
+
+    const data = await response.json().catch(() => ({}));
+    // Accept a few possible shapes
+    const centers = Array.isArray(data) ? data : (data.centers || data.training_centers || []);
+    caregiverTrainingCenters.value = (centers || [])
+      .map(c => (typeof c === 'string' ? c : (c.name || c.title || '')))
+      .map(s => String(s || '').trim())
+      .filter(Boolean);
+  } catch (e) {
+    caregiverTrainingCenters.value = [];
+  }
+};
 const trainingCenterHeaders = [
   { title: 'Name', key: 'name' },
   { title: 'Email', key: 'email' },
   { title: 'Phone', key: 'phone' },
+  { title: 'Zip Code', key: 'zip_code' },
   { title: 'Caregivers', key: 'caregiverCount' },
   { title: 'Total Hours', key: 'totalHours' },
   { title: 'Commission Earned', key: 'commissionEarned' },
@@ -5809,6 +6019,13 @@ const profileData = ref({
   phone: '(646) 282-8282',
   department: 'System Administration',
   role: 'Super Admin',
+});
+
+// Password change data
+const passwordData = ref({
+  currentPassword: '',
+  newPassword: '',
+  confirmPassword: ''
 });
 
 // Profile for header
@@ -6202,18 +6419,16 @@ const users = ref([]);
 
 const loadUsers = async () => {
   try {
-    const response = await fetch('/api/admin/users');
-    const data = await response.json();
-    users.value = data.users;
+    // Use dedicated endpoint to avoid any HTML redirect responses and keep payload minimal
+    const caregiversResponse = await fetch('/api/admin/caregivers');
+    const caregiversData = await caregiversResponse.json();
+    const caregiverUsers = caregiversData.caregivers || [];
     
-    const caregiverUsers = data.users.filter(u => u.type === 'Caregiver');
-    
-    caregivers.value = caregiverUsers
-      .filter(u => u.caregiver && u.caregiver.id)
+    const mappedCaregivers = caregiverUsers
       .map((u, index) => {
         const hasCertificate = index < 15;
         return {
-          id: u.caregiver.id,
+          id: u.caregiver?.id,
           userId: u.id,
           name: u.name,
           email: u.email,
@@ -6222,7 +6437,13 @@ const loadUsers = async () => {
           clients: 0,
           joined: u.joined,
           verified: true,
-          borough: 'Manhattan',
+          // Prefer canonical field `zip_code`, fall back to `zip` if present
+          zip_code: u.zip_code || u.zip || '',
+          // No guessing: place_indicator will be resolved via /api/zipcode-lookup.
+          // Keep legacy location empty so the table doesn't show misleading data.
+          location: '',
+          // Accurate place indicator (City, ST) filled in lazily via /api/zipcode-lookup
+          place_indicator: (u.zip_code || u.zip) ? 'Loading...' : '',
           phone: u.phone || '(646) 282-8282',
           certificate: hasCertificate ? `${u.name.replace(' ', '_')}_Training_Certificate.pdf` : null,
           preferred_hourly_rate_min: u.caregiver?.preferred_hourly_rate_min || null,
@@ -6230,22 +6451,54 @@ const loadUsers = async () => {
         };
       });
     
-    clients.value = data.users.filter(u => u.type === 'Client').map(u => ({
-      id: u.id,
-      name: u.name,
-      email: u.email,
-      status: u.status,
-      bookings: 0,
-      totalSpent: '$0',
-      joined: u.joined,
-      verified: true
-    }));
+    caregivers.value = mappedCaregivers;
+    
+    // Resolve all ZIP codes and force Vue reactivity update
+    resolveAllZipCodes(mappedCaregivers, caregivers);
+
+    // Try to load the full users list (used across other tabs). If it returns HTML (login page),
+    // do NOT wipe already-loaded caregivers — just keep existing data.
+    let allUsers = [];
+    try {
+      const response = await fetch('/api/admin/users');
+      const text = await response.text();
+      if (text && text.trim().startsWith('{')) {
+        const data = JSON.parse(text);
+        allUsers = data.users || [];
+        users.value = allUsers;
+      }
+    } catch (_) {
+      // ignore
+    }
+
+    // Build other tables ONLY if we actually got JSON users.
+    if (allUsers.length > 0) {
+      clients.value = allUsers.filter(u => u.type === 'Client').map(u => {
+        const item = {
+          id: u.id,
+          name: u.name,
+          email: u.email,
+          status: u.status,
+          bookings: 0,
+          totalSpent: '$0',
+          joined: u.joined,
+          verified: true,
+          zip_code: u.zip_code || u.zip || '',
+          location: '',
+          place_indicator: (u.zip_code || u.zip) ? 'Loading...' : ''
+        };
+        return item;
+      });
+      // Batch resolve ZIP locations for clients
+      resolveAllZipCodes(clients.value, clients);
+    }
   } catch (error) {
     console.error('Error loading users:', error);
     // Set empty arrays to avoid undefined errors
-    users.value = [];
-    caregivers.value = [];
-    clients.value = [];
+    // Keep existing values if partial load succeeded; only reset if truly undefined
+    users.value = users.value || [];
+    caregivers.value = caregivers.value || [];
+    clients.value = clients.value || [];
   }
 };
 
@@ -6320,22 +6573,24 @@ const zipCodeMap = {
   '10701': 'Yonkers, NY', '10703': 'Yonkers, NY', '10704': 'Yonkers, NY', '10705': 'Yonkers, NY', '10706': 'Yonkers, NY', '10707': 'Yonkers, NY', '10708': 'Yonkers, NY', '10709': 'Yonkers, NY', '10710': 'Yonkers, NY'
 };
 
-const lookupBookingZipCode = () => {
-  const zip = bookingForm.value.zipcode;
-  if (zip && zip.length === 5 && /^\d{5}$/.test(zip)) {
-    bookingZipLocation.value = zipCodeMap[zip] || 'New York, NY';
-  } else {
+const lookupBookingZipCode = async () => {
+  const zip = normalizeZip5(bookingForm.value.zipcode);
+  if (!zip) {
     bookingZipLocation.value = '';
+    return;
   }
+
+  bookingZipLocation.value = await resolveZipCityState(zip);
 };
 
-const lookupTrainingCenterZipCode = () => {
-  const zip = trainingCenterFormData.value.zip_code;
-  if (zip && zip.length === 5 && /^\d{5}$/.test(zip)) {
-    trainingCenterZipLocation.value = zipCodeMap[zip] || 'New York, NY';
-  } else {
+const lookupTrainingCenterZipCode = async () => {
+  const zip = normalizeZip5(trainingCenterFormData.value.zip_code);
+  if (!zip) {
     trainingCenterZipLocation.value = '';
+    return;
   }
+
+  trainingCenterZipLocation.value = await resolveZipCityState(zip);
 };
 
 // Phone number formatting function - NY format (XXX) XXX-XXXX
@@ -6383,33 +6638,36 @@ const filterLettersOnly = (value) => {
 };
 
 const clientZipLocation = ref('');
-const lookupClientZipCode = () => {
-  const zip = clientForm.value.zip_code;
-  if (zip && zip.length === 5 && /^\d{5}$/.test(zip)) {
-    clientZipLocation.value = zipCodeMap[zip] || 'New York, NY';
-  } else {
+const lookupClientZipCode = async () => {
+  const zip = normalizeZip5(clientForm.value.zip_code);
+  if (!zip) {
     clientZipLocation.value = '';
+    return;
   }
+
+  clientZipLocation.value = await resolveZipCityState(zip);
 };
 
 const caregiverZipLocation = ref('');
-const lookupCaregiverZipCode = () => {
-  const zip = caregiverForm.value.zip_code;
-  if (zip && zip.length === 5 && /^\d{5}$/.test(zip)) {
-    caregiverZipLocation.value = zipCodeMap[zip] || 'New York, NY';
-  } else {
+const lookupCaregiverZipCode = async () => {
+  const zip = normalizeZip5(caregiverForm.value.zip_code);
+  if (!zip) {
     caregiverZipLocation.value = '';
+    return;
   }
+
+  caregiverZipLocation.value = await resolveZipCityState(zip);
 };
 
 const marketingStaffZipLocation = ref('');
-const lookupMarketingStaffZipCode = () => {
-  const zip = marketingStaffFormData.value.zip_code;
-  if (zip && zip.length === 5 && /^\d{5}$/.test(zip)) {
-    marketingStaffZipLocation.value = zipCodeMap[zip] || 'New York, NY';
-  } else {
+const lookupMarketingStaffZipCode = async () => {
+  const zip = normalizeZip5(marketingStaffFormData.value.zip_code);
+  if (!zip) {
     marketingStaffZipLocation.value = '';
+    return;
   }
+
+  marketingStaffZipLocation.value = await resolveZipCityState(zip);
 };
 
 const bookingForm = ref({
@@ -7715,17 +7973,71 @@ const saveProfile = async () => {
       })
     });
     
-    if (response.ok) {
+    const data = await response.json();
+    
+    if (response.ok && data.success) {
       success('Profile changes saved successfully!');
       // Update the header name
       profile.value.firstName = profileData.value.firstName;
       profile.value.lastName = profileData.value.lastName;
     } else {
-      const data = await response.json();
-      error('Error: ' + (data.message || 'Failed to save profile'));
+      error('Error: ' + (data.error || data.message || 'Failed to save profile'));
     }
   } catch (err) {
+    console.error('Save profile error:', err);
     error('Failed to save profile. Please try again.');
+  }
+};
+
+const changePassword = async () => {
+  try {
+    if (!passwordData.value.currentPassword) {
+      error('Current password is required', 'Validation Error');
+      return;
+    }
+    
+    if (!passwordData.value.newPassword) {
+      error('New password is required', 'Validation Error');
+      return;
+    }
+    
+    if (passwordData.value.newPassword.length < 8) {
+      error('New password must be at least 8 characters', 'Validation Error');
+      return;
+    }
+    
+    if (passwordData.value.newPassword !== passwordData.value.confirmPassword) {
+      error('Passwords do not match', 'Validation Error');
+      return;
+    }
+    
+    const response = await fetch('/api/profile/change-password', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+      },
+      body: JSON.stringify({
+        currentPassword: passwordData.value.currentPassword,
+        newPassword: passwordData.value.newPassword,
+        confirmPassword: passwordData.value.confirmPassword
+      })
+    });
+    
+    const data = await response.json();
+    
+    if (response.ok && data.success) {
+      success('Password changed successfully!');
+      // Clear form
+      passwordData.value.currentPassword = '';
+      passwordData.value.newPassword = '';
+      passwordData.value.confirmPassword = '';
+    } else {
+      error('Error: ' + (data.error || data.message || 'Failed to change password'));
+    }
+  } catch (err) {
+    console.error('Change password error:', err);
+    error('Failed to change password. Please try again.');
   }
 };
 
@@ -8046,6 +8358,13 @@ const viewingClient = ref(null);
 const viewClientDetails = (client) => {
   viewingClient.value = client;
   viewClientDialog.value = true;
+
+  // Resolve place indicator for details view
+  if (viewingClient.value) {
+    viewingClient.value.zip_code = viewingClient.value.zip_code || viewingClient.value.zip || '';
+    viewingClient.value.place_indicator = viewingClient.value.place_indicator || '';
+    ensureItemPlaceIndicator(viewingClient.value);
+  }
 };
 
 const updateClientStatus = async (client) => {
@@ -8123,7 +8442,16 @@ const loadMarketingStaff = async () => {
   try {
     const response = await fetch('/api/admin/marketing-staff');
     const data = await response.json();
-    marketingStaff.value = data.staff || [];
+    marketingStaff.value = (data.staff || []).map(s => {
+      const item = {
+        ...s,
+        zip_code: s.zip_code || s.zip || '',
+        location: '',
+        place_indicator: ''
+      };
+      ensureItemPlaceIndicator(item);
+      return item;
+    });
   } catch (err) {
   }
 };
@@ -8199,6 +8527,13 @@ const payTrainingCommission = async (item) => {
 const viewMarketingStaffDetails = (staff) => {
   viewingMarketingStaff.value = staff;
   viewMarketingStaffDialog.value = true;
+
+  // Resolve place indicator for details view
+  if (viewingMarketingStaff.value) {
+    viewingMarketingStaff.value.zip_code = viewingMarketingStaff.value.zip_code || viewingMarketingStaff.value.zip || '';
+    viewingMarketingStaff.value.place_indicator = viewingMarketingStaff.value.place_indicator || '';
+    ensureItemPlaceIndicator(viewingMarketingStaff.value);
+  }
 };
 
 const openMarketingStaffDialog = (staff = null) => {
@@ -8320,7 +8655,16 @@ const loadAdminStaff = async () => {
   try {
     const response = await fetch('/api/admin/admin-staff');
     const data = await response.json();
-    adminStaff.value = data.staff || [];
+    adminStaff.value = (data.staff || []).map(s => {
+      const item = {
+        ...s,
+        zip_code: s.zip_code || s.zip || '',
+        location: '',
+        place_indicator: ''
+      };
+      ensureItemPlaceIndicator(item);
+      return item;
+    });
   } catch (err) {
     adminStaff.value = [];
   }
@@ -8329,6 +8673,12 @@ const loadAdminStaff = async () => {
 const viewAdminStaffDetails = (staff) => {
   viewingAdminStaff.value = staff;
   viewAdminStaffDialog.value = true;
+
+  if (viewingAdminStaff.value) {
+    viewingAdminStaff.value.zip_code = viewingAdminStaff.value.zip_code || viewingAdminStaff.value.zip || '';
+    viewingAdminStaff.value.place_indicator = viewingAdminStaff.value.place_indicator || '';
+    ensureItemPlaceIndicator(viewingAdminStaff.value);
+  }
 };
 
 const openAdminStaffDialog = (staff = null) => {
@@ -8485,8 +8835,17 @@ const loadTrainingCenters = async () => {
     }
     
     const data = await response.json();
-    
-    trainingCenters.value = data.centers || [];
+
+    trainingCenters.value = (data.centers || []).map(c => {
+      const item = {
+        ...c,
+        zip_code: c.zip_code || c.zip || '',
+        location: '',
+        place_indicator: ''
+      };
+      ensureItemPlaceIndicator(item);
+      return item;
+    });
     
     if (trainingCenters.value.length === 0) {
     }
@@ -8498,6 +8857,12 @@ const loadTrainingCenters = async () => {
 const viewTrainingCenterDetails = async (center) => {
   viewingTrainingCenter.value = { ...center };
   viewTrainingCenterDialog.value = true;
+
+  if (viewingTrainingCenter.value) {
+    viewingTrainingCenter.value.zip_code = viewingTrainingCenter.value.zip_code || viewingTrainingCenter.value.zip || '';
+    viewingTrainingCenter.value.place_indicator = viewingTrainingCenter.value.place_indicator || '';
+    ensureItemPlaceIndicator(viewingTrainingCenter.value);
+  }
   
   // Load caregivers for this center
   try {
@@ -8641,7 +9006,11 @@ const openCaregiverDialog = (caregiver = null) => {
     editingCaregiver.value = true;
     const nameParts = (caregiver.name || '').split(' ');
     caregiverForm.value = {
-      id: caregiver.id || caregiver.userId,
+  // IMPORTANT: the update endpoint is /api/admin/users/{id} and expects the *users.id*.
+  // Our caregiver row object includes both `userId` (users.id) and `id` (caregiver.id).
+  // Using caregiver.id here causes updates to target the wrong user and triggers
+  // "email already taken" because that email belongs to a different user.
+  id: caregiver.userId || caregiver.id,
       firstName: nameParts[0] || '',
       lastName: nameParts.slice(1).join(' ') || '',
       email: caregiver.email || '',
@@ -8654,11 +9023,19 @@ const openCaregiverDialog = (caregiver = null) => {
       zip_code: caregiver.zip_code || '',
       password: '',
       experience: caregiver.years_experience || caregiver.experience || '',
-      trainingCenter: caregiver.training_center || '',
+  trainingCenter: caregiver.training_center_name || caregiver.training_center || '',
       customTrainingCenter: '',
       isCustomTrainingCenter: false,
       trainingCertificate: null,
       bio: caregiver.bio || '',
+  preferred_hourly_rate_min: caregiver.preferred_hourly_rate_min ?? caregiver.caregiver?.preferred_hourly_rate_min ?? null,
+  preferred_hourly_rate_max: caregiver.preferred_hourly_rate_max ?? caregiver.caregiver?.preferred_hourly_rate_max ?? null,
+  has_hha: Boolean(caregiver.has_hha ?? caregiver.caregiver?.has_hha),
+  hha_number: caregiver.hha_number || caregiver.caregiver?.hha_number || '',
+  has_cna: Boolean(caregiver.has_cna ?? caregiver.caregiver?.has_cna),
+  cna_number: caregiver.cna_number || caregiver.caregiver?.cna_number || '',
+  has_rn: Boolean(caregiver.has_rn ?? caregiver.caregiver?.has_rn),
+  rn_number: caregiver.rn_number || caregiver.caregiver?.rn_number || '',
       status: caregiver.status || 'Active'
     };
     if (caregiver.zip_code) {
@@ -8684,6 +9061,14 @@ const openCaregiverDialog = (caregiver = null) => {
       isCustomTrainingCenter: false,
       trainingCertificate: null, 
       bio: '', 
+  preferred_hourly_rate_min: null,
+  preferred_hourly_rate_max: null,
+  has_hha: false,
+  hha_number: '',
+  has_cna: false,
+  cna_number: '',
+  has_rn: false,
+  rn_number: '',
       status: 'Active' 
     };
     caregiverZipLocation.value = '';
@@ -8810,6 +9195,14 @@ const saveCaregiver = async () => {
       years_experience: caregiverForm.value.experience || null,
       training_center: caregiverForm.value.isCustomTrainingCenter ? caregiverForm.value.customTrainingCenter : caregiverForm.value.trainingCenter || null,
       bio: caregiverForm.value.bio || null,
+  preferred_hourly_rate_min: caregiverForm.value.preferred_hourly_rate_min ?? null,
+  preferred_hourly_rate_max: caregiverForm.value.preferred_hourly_rate_max ?? null,
+  has_hha: Boolean(caregiverForm.value.has_hha),
+  hha_number: caregiverForm.value.hha_number || null,
+  has_cna: Boolean(caregiverForm.value.has_cna),
+  cna_number: caregiverForm.value.cna_number || null,
+  has_rn: Boolean(caregiverForm.value.has_rn),
+  rn_number: caregiverForm.value.rn_number || null,
       status: caregiverForm.value.status,
       user_type: 'caregiver'
     };
@@ -8822,12 +9215,14 @@ const saveCaregiver = async () => {
       method,
       headers: {
         'Content-Type': 'application/json',
-        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+  'Accept': 'application/json',
+  'X-Requested-With': 'XMLHttpRequest',
+  'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
       },
       body: JSON.stringify(formData)
     });
     
-    if (response.ok) {
+  if (response.ok) {
       success(editingCaregiver.value ? 'Caregiver updated successfully!' : 'Caregiver added successfully!', editingCaregiver.value ? 'Caregiver Updated' : 'Caregiver Added');
       loadUsers();
       closeCaregiverDialog();
@@ -9231,11 +9626,174 @@ let data;
 };
 
 const viewCaregiverDetails = async (caregiver) => {
-  viewingCaregiver.value = caregiver;
+  // Open dialog immediately and show a loading state (null -> template will tolerate)
   viewCaregiverDialog.value = true;
+  viewingCaregiver.value = null;
+
+  try {
+    // Determine the user id (mapped item uses userId)
+    const userId = caregiver.userId || caregiver.user_id || caregiver.id;
+
+    // Fetch full caregiver profile from admin JSON endpoint (avoids /api/profile HTML/login redirects)
+    const resp = await fetch(`/api/admin/caregivers/${userId}`);
+    const text = await resp.text();
+    if (!text || !text.trim().startsWith('{')) {
+      // fallback to the passed-in item
+      viewingCaregiver.value = caregiver;
+      await loadCaregiverReviews(caregiver.id || caregiver.userId || caregiver.caregiverId);
+      return;
+    }
+    const data = JSON.parse(text);
+
+    if (!data || !data.user) {
+      // fallback to the passed-in item
+      viewingCaregiver.value = caregiver;
+      // Attempt to load reviews with whatever id we have
+      await loadCaregiverReviews(caregiver.id || caregiver.userId || caregiver.caregiverId);
+      return;
+    }
+
+    const u = data.user;
+    const c = data.caregiver || {};
+
+  // Place indicator from ZIP (City, ST). No more "guesses".
+  const zipVal = String(u.zip_code || u.zip || '');
+  const placeIndicator = await resolveZipCityState(zipVal);
+  const location = placeIndicator;
+
+    // Merge into viewingCaregiver object used by the modal template
+    viewingCaregiver.value = {
+      id: c.id || caregiver.id,
+      userId: u.id,
+      name: u.name,
+      first_name: (u.first_name || u.firstName || null),
+      last_name: (u.last_name || u.lastName || null),
+      email: u.email,
+      phone: u.phone || caregiver.phone || '',
+      birthdate: u.date_of_birth ? new Date(u.date_of_birth).toLocaleDateString() : (u.birthdate ? String(u.birthdate) : ''),
+      age: (() => {
+        const dob = u.date_of_birth || u.birthdate;
+        if (!dob) return '';
+        const d = new Date(dob);
+        if (Number.isNaN(d.getTime())) return '';
+        const today = new Date();
+        let a = today.getFullYear() - d.getFullYear();
+        const m = today.getMonth() - d.getMonth();
+        if (m < 0 || (m === 0 && today.getDate() < d.getDate())) a--;
+        return a;
+      })(),
+      address: u.address || '',
+      state: u.state || 'New York',
+      county: u.county || u.borough || '',
+      city: u.city || '',
+      zip_code: u.zip_code || u.zip || '',
+      borough: u.borough || u.county || '',
+      place_indicator: placeIndicator,
+      location: location,
+      clients: c.clients_served || caregiver.clients || 0,
+      joined: u.created_at ? new Date(u.created_at).toLocaleDateString() : (caregiver.joined || ''),
+      verified: Boolean(u.email_verified_at),
+      rating: c.rating || caregiver.rating || 0,
+      preferred_hourly_rate_min: c.preferred_hourly_rate_min || caregiver.preferred_hourly_rate_min || 20,
+      preferred_hourly_rate_max: c.preferred_hourly_rate_max || caregiver.preferred_hourly_rate_max || 50,
+      has_hha: Boolean(c.has_hha),
+      hha_number: c.hha_number || c.hhaNumber || null,
+      has_cna: Boolean(c.has_cna),
+      cna_number: c.cna_number || c.cnaNumber || null,
+      has_rn: Boolean(c.has_rn),
+      rn_number: c.rn_number || c.rnNumber || null,
+      certificate: c.training_certificate ? (c.training_certificate.startsWith('/') ? c.training_certificate : '/storage/' + c.training_certificate) : (caregiver.certificate || null),
+      bio: c.bio || caregiver.bio || ''
+    };
+
+    // Load caregiver reviews using the caregiver record id if available
+    const caregiverIdForReviews = c.id || caregiver.id || caregiver.userId;
+    await loadCaregiverReviews(caregiverIdForReviews);
+  } catch (err) {
+    // On error, show the passed-in caregiver and attempt to load reviews
+    viewingCaregiver.value = caregiver;
+    await loadCaregiverReviews(caregiver.id || caregiver.userId || caregiver.caregiverId);
+  }
+};
+
+// ------------------------------------------------------------
+// ZIP -> City/State place indicator (Admin tables)
+// - Uses the same public /api/zipcode-lookup/{zip} endpoint as registration.
+// - Caches results to avoid hammering the endpoint when tables paginate/sort.
+// ------------------------------------------------------------
+const zipCityStateCache = new Map();
+const normalizeZip5 = (z) => {
+  const zip = String(z || '').trim();
+  const m = zip.match(/^(\d{5})/);
+  return m ? m[1] : '';
+};
+const resolveZipCityState = async (zipLike) => {
+  const zip = normalizeZip5(zipLike);
+  if (!zip) return '';
+  if (zipCityStateCache.has(zip)) return zipCityStateCache.get(zip);
+
+  try {
+    const resp = await fetch(`/api/zipcode-lookup/${zip}`);
+    if (resp.ok) {
+      const data = await resp.json();
+      const location = String(
+        (data && (data.place || data.location)) ||
+        (data && data.city && (data.state || data.state_abbreviation) ? `${data.city}, ${data.state || data.state_abbreviation}` : '') ||
+        ''
+      ).trim();
+      zipCityStateCache.set(zip, location);
+      return location;
+    }
+  } catch (_) {
+    // ignore network errors; we just won't show an indicator
+  }
+
+  zipCityStateCache.set(zip, '');
+  return '';
+};
+
+const ensureItemPlaceIndicator = async (item) => {
+  // This function is deprecated - use resolveAllZipCodes instead
+  return;
+};
+
+// Track which ZIPs are currently being processed to avoid duplicate requests
+const processingZips = new Set();
+
+// Batch resolve all ZIP codes for a list of items and force Vue reactivity update
+const resolveAllZipCodes = async (items, arrayRef) => {
+  if (!items || items.length === 0 || !arrayRef || !arrayRef.value) return;
   
-  // Load caregiver reviews
-  await loadCaregiverReviews(caregiver.caregiverId);
+  // Process each item asynchronously
+  items.forEach((item, index) => {
+    const zip = item.zip_code || item.zip || '';
+    if (!zip) return;
+    
+    // Skip if already resolved to a real value (not empty, not "Loading...")
+    if (item.place_indicator && item.place_indicator !== 'Loading...') return;
+    
+    // Skip if already being processed
+    const cacheKey = `${zip}-${index}`;
+    if (processingZips.has(cacheKey)) return;
+    processingZips.add(cacheKey);
+    
+    // Resolve asynchronously
+    resolveZipCityState(zip).then(loc => {
+      processingZips.delete(cacheKey);
+      // Update the array item to trigger Vue reactivity
+      if (arrayRef.value && arrayRef.value[index]) {
+        const updated = { ...arrayRef.value[index], place_indicator: loc || 'Unknown ZIP' };
+        arrayRef.value.splice(index, 1, updated);
+      }
+    }).catch(() => {
+      processingZips.delete(cacheKey);
+      // On error, mark as Unknown ZIP
+      if (arrayRef.value && arrayRef.value[index]) {
+        const updated = { ...arrayRef.value[index], place_indicator: 'Unknown ZIP' };
+        arrayRef.value.splice(index, 1, updated);
+      }
+    });
+  });
 };
 
 const loadCaregiverReviews = async (caregiverId) => {
@@ -10355,10 +10913,7 @@ caregivers.value.forEach((caregiver, index) => {
   const phones = ['(646) 282-8282', '(646) 282-8282', '(646) 282-8282'];
   caregiver.phone = phones[index] || '(646) 282-8282';
   }
-  if (!caregiver.borough) {
-    const boroughsList = ['Manhattan', 'Brooklyn', 'Queens'];
-    caregiver.borough = boroughsList[index] || 'Manhattan';
-  }
+
 });
 
 const filteredAndSortedCaregivers = computed(() => {
@@ -10366,7 +10921,7 @@ const filteredAndSortedCaregivers = computed(() => {
     const matchesSearch = !caregiverSearch.value || 
       caregiver.name.toLowerCase().includes(caregiverSearch.value.toLowerCase()) ||
       caregiver.email.toLowerCase().includes(caregiverSearch.value.toLowerCase());
-    const matchesBorough = boroughFilter.value === 'All' || caregiver.borough === boroughFilter.value;
+    const matchesBorough = boroughFilter.value === 'All' || caregiver.location === boroughFilter.value;
     return matchesSearch && matchesBorough;
   });
 
@@ -11039,6 +11594,7 @@ onMounted(() => {
   loadMarketingStaff();
   loadAdminStaff();
   loadTrainingCenters();
+  loadCaregiverTrainingCenters();
   loadQuickCaregivers();
   
   // Load payment & financial data from database
@@ -12429,7 +12985,7 @@ setInterval(() => {
   color: #6b7280;
 }
 
-.caregiver-borough {
+.caregiver-location {
   font-size: 0.75rem;
   color: #9ca3af;
   font-weight: 500;

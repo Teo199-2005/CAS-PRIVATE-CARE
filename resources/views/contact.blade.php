@@ -503,7 +503,7 @@
                                     <select id="service_type" name="service_type" class="form-select" required>
                                         <option value="">Select a service type</option>
                                         <option value="elderly-care">Elderly Care</option>
-                                        <option value="housekeeping">Housekeeping</option>
+                                        <option value="companion-care">Companion Care</option>
                                         <option value="personal-care">Personal Care</option>
                                         <option value="special-needs">Special Needs Care</option>
                                         <option value="training">Training Center</option>

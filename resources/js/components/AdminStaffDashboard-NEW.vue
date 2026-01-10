@@ -4606,6 +4606,43 @@ const bookingDateFilter = ref('All Time');
 const addBookingDialog = ref(false);
 const bookingZipLocation = ref('');
 
+// ZIP -> City/State (API-backed, cached). No guessing.
+const zipCityStateCache = new Map();
+const normalizeZip5 = (zipLike) => {
+  if (!zipLike) return '';
+  const zip = String(zipLike).trim();
+  const m = zip.match(/^(\d{5})/);
+  return m ? m[1] : '';
+};
+
+const resolveZipCityState = async (zipLike) => {
+  const zip = normalizeZip5(zipLike);
+  if (!zip) return '';
+
+  if (zipCityStateCache.has(zip)) return zipCityStateCache.get(zip);
+
+  try {
+    const resp = await fetch(`/api/zipcode-lookup/${zip}`, {
+      headers: { Accept: 'application/json' },
+    });
+
+    if (!resp.ok) {
+      zipCityStateCache.set(zip, '');
+      return '';
+    }
+
+    const data = await resp.json();
+    const city = (data?.city || '').trim();
+    const state = (data?.state || '').trim();
+    const cityState = city && state ? `${city}, ${state}` : '';
+    zipCityStateCache.set(zip, cityState);
+    return cityState;
+  } catch (e) {
+    zipCityStateCache.set(zip, '');
+    return '';
+  }
+};
+
 // ZIP Code to City/State lookup mapping for NY (comprehensive mapping)
 const zipCodeMap = {
   '10001': 'Manhattan, NY', '10002': 'Manhattan, NY', '10003': 'Manhattan, NY', '10004': 'Manhattan, NY', '10005': 'Manhattan, NY', '10006': 'Manhattan, NY', '10007': 'Manhattan, NY', '10009': 'Manhattan, NY', '10010': 'Manhattan, NY', '10011': 'Manhattan, NY', '10012': 'Manhattan, NY', '10013': 'Manhattan, NY', '10014': 'Manhattan, NY', '10016': 'Manhattan, NY', '10017': 'Manhattan, NY', '10018': 'Manhattan, NY', '10019': 'Manhattan, NY', '10020': 'Manhattan, NY', '10021': 'Manhattan, NY', '10022': 'Manhattan, NY', '10023': 'Manhattan, NY', '10024': 'Manhattan, NY', '10025': 'Manhattan, NY', '10026': 'Manhattan, NY', '10027': 'Manhattan, NY', '10028': 'Manhattan, NY', '10029': 'Manhattan, NY', '10030': 'Manhattan, NY', '10031': 'Manhattan, NY', '10032': 'Manhattan, NY', '10033': 'Manhattan, NY', '10034': 'Manhattan, NY', '10035': 'Manhattan, NY', '10036': 'Manhattan, NY', '10037': 'Manhattan, NY', '10038': 'Manhattan, NY', '10039': 'Manhattan, NY', '10040': 'Manhattan, NY', '10044': 'Manhattan, NY', '10065': 'Manhattan, NY', '10069': 'Manhattan, NY', '10075': 'Manhattan, NY', '10128': 'Manhattan, NY', '10280': 'Manhattan, NY',
@@ -4619,22 +4656,24 @@ const zipCodeMap = {
   '10701': 'Yonkers, NY', '10703': 'Yonkers, NY', '10704': 'Yonkers, NY', '10705': 'Yonkers, NY', '10706': 'Yonkers, NY', '10707': 'Yonkers, NY', '10708': 'Yonkers, NY', '10709': 'Yonkers, NY', '10710': 'Yonkers, NY'
 };
 
-const lookupBookingZipCode = () => {
-  const zip = bookingForm.value.zipcode;
-  if (zip && zip.length === 5 && /^\d{5}$/.test(zip)) {
-    bookingZipLocation.value = zipCodeMap[zip] || 'New York, NY';
-  } else {
+const lookupBookingZipCode = async () => {
+  const zip = normalizeZip5(bookingForm.value.zipcode);
+  if (!zip) {
     bookingZipLocation.value = '';
+    return;
   }
+
+  bookingZipLocation.value = await resolveZipCityState(zip);
 };
 
-const lookupTrainingCenterZipCode = () => {
-  const zip = trainingCenterFormData.value.zip_code;
-  if (zip && zip.length === 5 && /^\d{5}$/.test(zip)) {
-    trainingCenterZipLocation.value = zipCodeMap[zip] || 'New York, NY';
-  } else {
+const lookupTrainingCenterZipCode = async () => {
+  const zip = normalizeZip5(trainingCenterFormData.value.zip_code);
+  if (!zip) {
     trainingCenterZipLocation.value = '';
+    return;
   }
+
+  trainingCenterZipLocation.value = await resolveZipCityState(zip);
 };
 
 // Phone number formatting function - NY format (XXX) XXX-XXXX
@@ -4682,33 +4721,36 @@ const filterLettersOnly = (value) => {
 };
 
 const clientZipLocation = ref('');
-const lookupClientZipCode = () => {
-  const zip = clientForm.value.zip_code;
-  if (zip && zip.length === 5 && /^\d{5}$/.test(zip)) {
-    clientZipLocation.value = zipCodeMap[zip] || 'New York, NY';
-  } else {
+const lookupClientZipCode = async () => {
+  const zip = normalizeZip5(clientForm.value.zip_code);
+  if (!zip) {
     clientZipLocation.value = '';
+    return;
   }
+
+  clientZipLocation.value = await resolveZipCityState(zip);
 };
 
 const caregiverZipLocation = ref('');
-const lookupCaregiverZipCode = () => {
-  const zip = caregiverForm.value.zip_code;
-  if (zip && zip.length === 5 && /^\d{5}$/.test(zip)) {
-    caregiverZipLocation.value = zipCodeMap[zip] || 'New York, NY';
-  } else {
+const lookupCaregiverZipCode = async () => {
+  const zip = normalizeZip5(caregiverForm.value.zip_code);
+  if (!zip) {
     caregiverZipLocation.value = '';
+    return;
   }
+
+  caregiverZipLocation.value = await resolveZipCityState(zip);
 };
 
 const marketingStaffZipLocation = ref('');
-const lookupMarketingStaffZipCode = () => {
-  const zip = marketingStaffFormData.value.zip_code;
-  if (zip && zip.length === 5 && /^\d{5}$/.test(zip)) {
-    marketingStaffZipLocation.value = zipCodeMap[zip] || 'New York, NY';
-  } else {
+const lookupMarketingStaffZipCode = async () => {
+  const zip = normalizeZip5(marketingStaffFormData.value.zip_code);
+  if (!zip) {
     marketingStaffZipLocation.value = '';
+    return;
   }
+
+  marketingStaffZipLocation.value = await resolveZipCityState(zip);
 };
 
 const bookingForm = ref({

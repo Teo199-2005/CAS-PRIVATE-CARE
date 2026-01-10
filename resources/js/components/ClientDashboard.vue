@@ -856,16 +856,7 @@
                     </v-card>
                   </div>
                   
-                  <div class="action-buttons">
-                    <v-btn 
-                      variant="flat" 
-                      size="x-large" 
-                      class="demo-fill-btn" 
-                      @click="fillDemoData"
-                    >
-                      <v-icon start>mdi-auto-fix</v-icon>
-                      Demo Fill
-                    </v-btn>
+          <div class="action-buttons">
                     <v-btn 
                       variant="outlined" 
                       size="x-large" 
@@ -880,9 +871,10 @@
                       size="x-large" 
                       class="submit-btn" 
                       @click="submitBooking"
+            :disabled="isSubmittingBooking"
                     >
                       <v-icon start>mdi-check</v-icon>
-                      Submit Request
+            {{ isSubmittingBooking ? 'Submitting…' : 'Submit Request' }}
                     </v-btn>
                   </div>
                   <div class="security-notice">
@@ -2185,7 +2177,32 @@
                   <span class="text-h6 font-weight-bold">{{ selectedBookingForPayment?.serviceType || selectedBookingForPayment?.service || 'Care Service' }}</span>
                 </div>
                 <div class="text-right">
-                  <div class="text-h4 font-weight-bold" style="color: #7c3aed;">${{ selectedBookingForPayment ? getBookingPrice(selectedBookingForPayment) : '0' }}</div>
+                  <div class="text-h4 font-weight-bold" style="color: #7c3aed;">${{ selectedBookingTotalDue.toFixed(2) }}</div>
+                  <div class="text-caption" style="opacity: 0.85;">Includes Processing Fee</div>
+                </div>
+              </div>
+
+              <div class="mt-3" style="font-size: 0.95rem;">
+                <div class="d-flex justify-space-between mb-1">
+                  <span class="text-grey">Subtotal</span>
+                  <span class="font-weight-medium">${{ selectedBookingBaseAmount.toFixed(2) }}</span>
+                </div>
+                <div class="d-flex justify-space-between mb-1">
+                  <span class="text-grey d-flex align-center">
+                    Processing Fee
+                    <v-icon
+                      size="16"
+                      class="ml-1"
+                      color="deep-purple"
+                      :title="processingFeeTooltipText"
+                      style="cursor: help;"
+                    >mdi-help-circle</v-icon>
+                  </span>
+                  <span class="font-weight-medium">${{ selectedBookingProcessingFee.toFixed(2) }}</span>
+                </div>
+                <div class="d-flex justify-space-between mt-2" style="border-top: 1px solid rgba(124,58,237,0.2); padding-top: 8px;">
+                  <span class="font-weight-bold">Total Due Today</span>
+                  <span class="font-weight-bold" style="color: #7c3aed;">${{ selectedBookingTotalDue.toFixed(2) }}</span>
                 </div>
               </div>
               
@@ -2310,7 +2327,7 @@
             class="px-8"
             style="font-weight: 600;"
           >
-            Pay ${{ selectedBookingForPayment ? getBookingPrice(selectedBookingForPayment) : '0' }}
+            Pay ${{ selectedBookingTotalDue.toFixed(2) }}
           </v-btn>
         </v-card-actions>
       </v-card>
@@ -2730,8 +2747,8 @@ const lookupZipCode = async () => {
     } catch (error) {
     }
     
-    // Fallback to static map
-    zipCodeLocation.value = zipCodeMap[zip] || 'New York, NY';
+  // Fallback to static map (avoid misleading default like "New York, NY")
+  zipCodeLocation.value = zipCodeMap[zip] || '';
   } else {
     zipCodeLocation.value = '';
   }
@@ -2753,8 +2770,8 @@ const lookupProfileZipCode = async () => {
     } catch (error) {
     }
     
-    // Fallback to static map
-    profileZipLocation.value = zipCodeMap[zip] || 'New York, NY';
+  // Fallback to static map (avoid misleading default like "New York, NY")
+  profileZipLocation.value = zipCodeMap[zip] || '';
   } else {
     profileZipLocation.value = '';
   }
@@ -3277,6 +3294,14 @@ const pendingBookings = ref([]);
 const confirmedBookings = ref([]);
 const loadingBookings = ref(true);
 
+// Prevent accidental double-submit of booking requests (double click / slow network)
+const isSubmittingBooking = ref(false);
+const bookingSubmitIdempotencyKey = ref(
+  (typeof crypto !== 'undefined' && crypto.randomUUID)
+    ? crypto.randomUUID()
+    : String(Date.now()) + '-' + Math.random().toString(16).slice(2)
+);
+
 const loadMyBookings = async () => {
   try {
     loadingBookings.value = true;
@@ -3465,6 +3490,11 @@ const formatTimeTo12Hour = (time24) => {
 };
 
 const submitBooking = async () => {
+  if (isSubmittingBooking.value) {
+    return;
+  }
+
+  isSubmittingBooking.value = true;
   try {
     // CHECK BOOKING LIMITS: Only allow 1 pending OR 1 approved booking at a time
     const hasPending = pendingBookings.value.length > 0;
@@ -3475,7 +3505,7 @@ const submitBooking = async () => {
         'You have a pending booking that needs to be reviewed by our admin team first. You can submit a new booking once the current one is approved or rejected.',
         'Cannot Submit Booking'
       );
-      return;
+  return;
     }
     
     if (hasApproved) {
@@ -3524,7 +3554,7 @@ const submitBooking = async () => {
         'Please select at least 3 days of the week for your service. This ensures consistent care and better availability of qualified caregivers.',
         'Minimum Days Required'
       );
-      return;
+  return;
     }
     
     if (enabledDays.length > 0) {
@@ -3545,7 +3575,9 @@ const submitBooking = async () => {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+  'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+  // Client-side idempotency to prevent accidental double-click submissions
+  'X-Idempotency-Key': bookingSubmitIdempotencyKey.value
       },
       body: JSON.stringify({
         service_type: bookingData.value.serviceType,
@@ -3615,6 +3647,13 @@ const submitBooking = async () => {
     }
   } catch (error) {
     alert('Error submitting booking. Please try again.');
+  } finally {
+    // Reset submit lock and idempotency key for the next submission
+    isSubmittingBooking.value = false;
+    bookingSubmitIdempotencyKey.value =
+      (typeof crypto !== 'undefined' && crypto.randomUUID)
+        ? crypto.randomUUID()
+        : String(Date.now()) + '-' + Math.random().toString(16).slice(2);
   }
 };
 
@@ -3660,6 +3699,45 @@ const processingPayment = ref(false);
 const paymentProcessingDialog = ref(false);
 const paymentStatus = ref('processing'); // 'processing', 'success', 'error'
 const paymentMessage = ref('');
+
+// Stripe processing fee pass-through (display-only in dashboard; backend computes actual charge)
+const stripeFeeDomestic = 0.029;
+const stripeFeeInternational = 0.049;
+const stripeFixedFee = 0.30;
+
+const selectedPaymentMethodCountry = computed(() => {
+  const pm = savedPaymentMethods.value.find(p => p.id === selectedPaymentMethod.value);
+  const country = pm?.card?.country;
+  return (country && typeof country === 'string') ? country.toUpperCase() : 'US';
+});
+
+const selectedBookingBaseAmount = computed(() => {
+  if (!selectedBookingForPayment.value) return 0;
+  const priceStr = getBookingPrice(selectedBookingForPayment.value);
+  const num = parseFloat(String(priceStr).replace(/,/g, ''));
+  return Number.isFinite(num) ? num : 0;
+});
+
+const selectedBookingProcessingFee = computed(() => {
+  const target = selectedBookingBaseAmount.value;
+  if (!target || target <= 0) return 0;
+
+  const country = selectedPaymentMethodCountry.value;
+  const rate = country !== 'US' ? stripeFeeInternational : stripeFeeDomestic;
+  const adjusted = (target + stripeFixedFee) / (1 - rate);
+  const fee = adjusted - target;
+  return Math.round(fee * 100) / 100;
+});
+
+const selectedBookingTotalDue = computed(() => {
+  return Math.round((selectedBookingBaseAmount.value + selectedBookingProcessingFee.value) * 100) / 100;
+});
+
+const processingFeeTooltipText = computed(() => {
+  const country = selectedPaymentMethodCountry.value;
+  const rate = country !== 'US' ? stripeFeeInternational : stripeFeeDomestic;
+  return `Processing Fee covers Stripe card fees (rate ${(rate * 100).toFixed(1)}% + $${stripeFixedFee.toFixed(2)}). This keeps your service total unchanged.`;
+});
 
 // Check if client can book (only 1 pending OR 1 approved allowed)
 const attemptBooking = () => {
@@ -3742,10 +3820,9 @@ const processPaymentWithSavedMethod = async () => {
   processingPayment.value = true;
   
   try {
-    // Calculate the amount using getBookingPrice (returns formatted string, need to convert to cents)
-    const priceStr = getBookingPrice(booking);
-    const priceNum = parseFloat(priceStr.toString().replace(/,/g, '')) || 0;
-    const amountInCents = Math.round(priceNum * 100);
+  // Send an amount in cents to satisfy backend validation.
+  // Note: backend computes the actual charge server-side (includes processing fee).
+  const amountInCents = Math.round(selectedBookingTotalDue.value * 100);
     
     const requestBody = {
       payment_method_id: selectedPaymentMethod.value,
@@ -4743,96 +4820,6 @@ const applyReferralCode = async () => {
       // Removed duplicate error toast - inline alert is shown instead
     }
   }
-};
-
-const fillDemoData = () => {
-  const dutyTypes = ['8 Hours per Day', '12 Hours per Day', '24 Hours per Day'];
-  const genderPrefs = ['no_preference', 'male', 'female'];
-  const mobilityLevels = ['independent', 'needs_assistance', 'wheelchair_bound', 'bedridden'];
-  const addresses = ['123 Main St', '456 Oak Ave', '789 Pine Rd', '321 Elm St', '654 Maple Dr', '890 Broadway', '567 Park Ave', '432 Madison Ave', '111 Lexington Ave', '999 5th Ave'];
-  const apartments = ['Apt 4B', 'Unit 12', 'Suite 305', '2nd Floor', 'Penthouse', 'Apt 3A', 'Unit 8', 'Suite 201', '1st Floor'];
-  const notes = [
-    'Patient prefers morning care routine',
-    'Needs assistance with medication reminders', 
-    'Enjoys classical music and reading',
-    'Requires help with meal preparation',
-    'Prefers quiet and calm environment',
-    'Likes to take walks in the afternoon',
-    'Needs help with bathing and dressing',
-    'Requires assistance with mobility exercises'
-  ];
-  
-  // NY ZIP codes for demo
-  const nyZipCodes = ['10001', '10002', '10003', '10004', '10005', '11201', '11203', '11204', '11205', '11206', '11354', '11355', '11375', '10451', '10452', '10301', '10302', '11101', '11501', '10501', '10701'];
-  
-  // Time ranges for day selection
-  const timeRanges = [
-    { start: '08:00', end: '16:00' },
-    { start: '09:00', end: '17:00' },
-    { start: '10:00', end: '18:00' },
-    { start: '07:00', end: '15:00' },
-    { start: '06:00', end: '14:00' }
-  ];
-
-  const rand = (arr) => arr[Math.floor(Math.random() * arr.length)];
-  const randNum = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
-  const futureDate = () => {
-    const date = new Date();
-    date.setDate(date.getDate() + randNum(1, 30));
-    return date.toISOString().split('T')[0];
-  };
-  
-  const randomTime = () => {
-    const hour = randNum(6, 10).toString().padStart(2, '0');
-    const minute = rand([0, 15, 30, 45]).toString().padStart(2, '0');
-    return `${hour}:${minute}`;
-  };
-  
-  // Randomly select days (at least 3 days)
-  const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
-  const numDaysToSelect = randNum(3, 7);
-  const selectedDaysArray = days.sort(() => 0.5 - Math.random()).slice(0, numDaysToSelect);
-  const timeRange = rand(timeRanges);
-  
-  // Build selectedDays object
-  const selectedDaysObj = {
-    sunday: { enabled: selectedDaysArray.includes('sunday'), startTime: timeRange.start, endTime: timeRange.end },
-    monday: { enabled: selectedDaysArray.includes('monday'), startTime: timeRange.start, endTime: timeRange.end },
-    tuesday: { enabled: selectedDaysArray.includes('tuesday'), startTime: timeRange.start, endTime: timeRange.end },
-    wednesday: { enabled: selectedDaysArray.includes('wednesday'), startTime: timeRange.start, endTime: timeRange.end },
-    thursday: { enabled: selectedDaysArray.includes('thursday'), startTime: timeRange.start, endTime: timeRange.end },
-    friday: { enabled: selectedDaysArray.includes('friday'), startTime: timeRange.start, endTime: timeRange.end },
-    saturday: { enabled: selectedDaysArray.includes('saturday'), startTime: timeRange.start, endTime: timeRange.end }
-  };
-  
-  const zipcode = rand(nyZipCodes);
-
-  bookingData.value = {
-    serviceType: 'Caregiver',
-    dutyType: rand(dutyTypes),
-    zipcode: zipcode,
-    date: futureDate(),
-    startingTime: randomTime(),
-    durationDays: rand([15, 30, 60, 90]),
-    selectedDays: selectedDaysObj,
-    genderPreference: rand(genderPrefs),
-    specificSkills: skillsList.slice(0, randNum(1, 4)),
-    clientAge: randNum(25, 95).toString(),
-    mobilityLevel: rand(mobilityLevels),
-    medicalConditions: medicalConditionsList.slice(0, randNum(0, 3)),
-    transportationNeeded: Math.random() > 0.5,
-    streetAddress: rand(addresses),
-    apartmentUnit: Math.random() > 0.3 ? rand(apartments) : '',
-    notes: rand(notes),
-    referralCode: Math.random() > 0.7 ? rand(['SAVE10', 'WELCOME20', 'FRIEND15', 'CARE25']) : ''
-  };
-  
-  // Trigger ZIP code lookup after data is set
-  nextTick(() => {
-    lookupZipCode();
-  });
-  
-  success('Demo data filled! Review and adjust as needed.');
 };
 
 watch(bookingTab, (newVal) => {
@@ -6634,23 +6621,6 @@ const initSpendingChart = () => {
   font-size: 1rem !important;
 }
 
-.demo-fill-btn,
-.demo-fill-btn.v-btn {
-  background: linear-gradient(135deg, #6b7280 0%, #9ca3af 100%) !important;
-  color: white !important;
-  border: none !important;
-  letter-spacing: 0.5px !important;
-  box-shadow: 0 4px 12px rgba(107, 114, 128, 0.25) !important;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
-}
-
-.demo-fill-btn:hover,
-.demo-fill-btn.v-btn:hover {
-  box-shadow: 0 8px 20px rgba(107, 114, 128, 0.35), 0 4px 8px rgba(107, 114, 128, 0.2) !important;
-  transform: translateY(-2px) !important;
-  background: linear-gradient(135deg, #5b6573 0%, #8b92a0 100%) !important;
-}
-
 .submit-btn,
 .submit-btn.v-btn {
   background: linear-gradient(135deg, #0B4FA2 0%, #2563eb 100%) !important;
@@ -7145,7 +7115,6 @@ const initSpendingChart = () => {
     margin-bottom: 1rem !important;
   }
 
-  .demo-fill-btn,
   .submit-btn,
   .cancel-btn {
     width: 100% !important;

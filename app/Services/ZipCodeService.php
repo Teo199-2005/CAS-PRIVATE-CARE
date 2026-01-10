@@ -28,10 +28,17 @@ class ZipCodeService
             return $cached;
         }
 
-        // Try to use a free ZIP code API
-        // Option 1: Use Zippopotam.us (free, no API key required)
+        // OPTIMIZATION: Check static map FIRST for instant response
+        $staticMap = self::getStaticZipCodeMap();
+        if (isset($staticMap[$zipCode])) {
+            $location = $staticMap[$zipCode];
+            Cache::put($cacheKey, $location, now()->addDays(30));
+            return $location;
+        }
+
+        // If not in static map, try external API as fallback
         try {
-            $response = Http::timeout(3)->get("https://api.zippopotam.us/us/{$zipCode}");
+            $response = Http::timeout(2)->get("https://api.zippopotam.us/us/{$zipCode}");
             
             if ($response->successful()) {
                 $data = $response->json();
@@ -53,25 +60,9 @@ class ZipCodeService
             Log::debug("ZIP code API lookup failed for {$zipCode}: " . $e->getMessage());
         }
 
-        // Fallback: Use static mapping for common NY ZIP codes
-        $staticMap = self::getStaticZipCodeMap();
-        if (isset($staticMap[$zipCode])) {
-            $location = $staticMap[$zipCode];
-            Cache::put($cacheKey, $location, now()->addDays(30));
-            return $location;
-        }
-
-        // If ZIP code starts with NY ranges but not in our map, return generic NY
-        $firstTwo = substr($zipCode, 0, 2);
-        $nyRanges = ['10', '11', '12', '13', '14'];
-        
-        if (in_array($firstTwo, $nyRanges)) {
-            $location = "New York, NY";
-            Cache::put($cacheKey, $location, now()->addDays(30));
-            return $location;
-        }
-
-        return null;
+    // Don't guess a generic city/state. Returning a wrong location is worse than no location.
+    // Let the caller/UI handle the "not found" state.
+    return null;
     }
 
     /**

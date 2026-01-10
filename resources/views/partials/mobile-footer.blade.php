@@ -25,8 +25,7 @@
             <h4>Our Services</h4>
             <div class="mobile-links-grid">
                 <a href="{{ url('/caregiver-new-york') }}">Caregivers</a>
-                <a href="{{ url('/') }}#services">Housekeeping</a>
-                <a href="{{ url('/') }}#services">Personal Assistant</a>
+                <a href="{{ url('/') }}#services">Care Options</a>
                 <a href="{{ url('/contractor-partner') }}">1099 Partners</a>
             </div>
         </div>

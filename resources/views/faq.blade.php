@@ -311,7 +311,7 @@
                 <div class="faq-section-content">
                     <div class="faq-item">
                         <h3>What services do you provide?</h3>
-                        <p>We offer comprehensive care services including: Elderly Care (personal care, meal preparation, medication reminders, companionship), Housekeeping (cleaning, laundry, home organization), Personal Care (daily living assistance, personal hygiene support), and Special Needs Care (personalized support for individuals with unique requirements). All our caregivers are verified and background-checked.</p>
+                        <p>We focus on in-home caregiving services, including: Elderly Care (personal care support, meal preparation, medication reminders, companionship), Companion Care (conversation, supervision, light daily support), Personal Care (daily living assistance and personal hygiene support), and Special Needs Care (personalized support for individuals with unique requirements). All caregivers are verified and background-checked.</p>
                     </div>
                     
                     <div class="faq-item">

@@ -95,7 +95,7 @@ Route::middleware(['auth'])->prefix('api/auth')->group(function () {
 });
 
 // Public API Routes (no authentication required)
-Route::prefix('api')->middleware(['web'])->group(function () {
+Route::prefix('api')->middleware(['web'])->withoutMiddleware([\Illuminate\Auth\Middleware\Authenticate::class])->group(function () {
     // ZIP code lookup (public)
     Route::get('/zipcode-lookup/{zip}', function($zip) {
         // Validate ZIP code format
@@ -105,52 +105,32 @@ Route::prefix('api')->middleware(['web'])->group(function () {
                 'error' => 'Invalid ZIP code format'
             ], 400);
         }
-        
-        // ZIP code to location mapping for New York
-        $zipCodeMap = [
-            '10001' => 'Manhattan, NY', '10002' => 'Manhattan, NY', '10003' => 'Manhattan, NY', '10004' => 'Manhattan, NY',
-            '10005' => 'Manhattan, NY', '10006' => 'Manhattan, NY', '10007' => 'Manhattan, NY', '10009' => 'Manhattan, NY',
-            '10010' => 'Manhattan, NY', '10011' => 'Manhattan, NY', '10012' => 'Manhattan, NY', '10013' => 'Manhattan, NY',
-            '10014' => 'Manhattan, NY', '10016' => 'Manhattan, NY', '10017' => 'Manhattan, NY', '10018' => 'Manhattan, NY',
-            '10019' => 'Manhattan, NY', '10020' => 'Manhattan, NY', '10021' => 'Manhattan, NY', '10022' => 'Manhattan, NY',
-            '10023' => 'Manhattan, NY', '10024' => 'Manhattan, NY', '10025' => 'Manhattan, NY', '10026' => 'Manhattan, NY',
-            '10027' => 'Manhattan, NY', '10028' => 'Manhattan, NY', '10029' => 'Manhattan, NY', '10030' => 'Manhattan, NY',
-            '10031' => 'Manhattan, NY', '10032' => 'Manhattan, NY', '10033' => 'Manhattan, NY', '10034' => 'Manhattan, NY',
-            '10035' => 'Manhattan, NY', '10036' => 'Manhattan, NY', '10037' => 'Manhattan, NY', '10038' => 'Manhattan, NY',
-            '10039' => 'Manhattan, NY', '10040' => 'Manhattan, NY', '10044' => 'Manhattan, NY', '10065' => 'Manhattan, NY',
-            '10069' => 'Manhattan, NY', '10075' => 'Manhattan, NY', '10128' => 'Manhattan, NY', '10280' => 'Manhattan, NY',
-            '11201' => 'Brooklyn, NY', '11203' => 'Brooklyn, NY', '11204' => 'Brooklyn, NY', '11205' => 'Brooklyn, NY',
-            '11206' => 'Brooklyn, NY', '11207' => 'Brooklyn, NY', '11208' => 'Brooklyn, NY', '11209' => 'Brooklyn, NY',
-            '11210' => 'Brooklyn, NY', '11211' => 'Brooklyn, NY', '11212' => 'Brooklyn, NY', '11213' => 'Brooklyn, NY',
-            '11214' => 'Brooklyn, NY', '11215' => 'Brooklyn, NY', '11216' => 'Brooklyn, NY', '11217' => 'Brooklyn, NY',
-            '11218' => 'Brooklyn, NY', '11219' => 'Brooklyn, NY', '11220' => 'Brooklyn, NY', '11221' => 'Brooklyn, NY',
-            '11222' => 'Brooklyn, NY', '11223' => 'Brooklyn, NY', '11224' => 'Brooklyn, NY', '11225' => 'Brooklyn, NY',
-            '11226' => 'Brooklyn, NY', '11228' => 'Brooklyn, NY', '11229' => 'Brooklyn, NY', '11230' => 'Brooklyn, NY',
-            '11231' => 'Brooklyn, NY', '11232' => 'Brooklyn, NY', '11233' => 'Brooklyn, NY', '11234' => 'Brooklyn, NY',
-            '11235' => 'Brooklyn, NY', '11236' => 'Brooklyn, NY', '11237' => 'Brooklyn, NY', '11238' => 'Brooklyn, NY',
-            '11239' => 'Brooklyn, NY',
-            '11354' => 'Flushing, NY', '11355' => 'Flushing, NY', '11356' => 'Flushing, NY', '11357' => 'Flushing, NY',
-            '11358' => 'Flushing, NY', '11360' => 'Bayside, NY', '11361' => 'Bayside, NY', '11362' => 'Bayside, NY',
-            '11363' => 'Bayside, NY', '11364' => 'Bayside, NY', '11365' => 'Fresh Meadows, NY', '11366' => 'Fresh Meadows, NY',
-            '11367' => 'Fresh Meadows, NY', '11368' => 'Corona, NY', '11369' => 'East Elmhurst, NY', '11370' => 'Elmhurst, NY',
-            '11371' => 'Elmhurst, NY', '11372' => 'Jackson Heights, NY', '11373' => 'Jackson Heights, NY', '11374' => 'Rego Park, NY',
-            '11375' => 'Forest Hills, NY', '11377' => 'Woodside, NY', '11378' => 'Maspeth, NY', '11379' => 'Middle Village, NY',
-            '11385' => 'Ridgewood, NY',
-            '10451' => 'Bronx, NY', '10452' => 'Bronx, NY', '10453' => 'Bronx, NY', '10454' => 'Bronx, NY',
-            '10455' => 'Bronx, NY', '10456' => 'Bronx, NY', '10457' => 'Bronx, NY', '10458' => 'Bronx, NY',
-            '10459' => 'Bronx, NY', '10460' => 'Bronx, NY', '10461' => 'Bronx, NY', '10462' => 'Bronx, NY',
-            '10463' => 'Bronx, NY', '10464' => 'Bronx, NY', '10465' => 'Bronx, NY', '10466' => 'Bronx, NY',
-            '10467' => 'Bronx, NY', '10468' => 'Bronx, NY', '10469' => 'Bronx, NY', '10470' => 'Bronx, NY',
-            '10471' => 'Bronx, NY', '10472' => 'Bronx, NY', '10473' => 'Bronx, NY', '10474' => 'Bronx, NY',
-            '10475' => 'Bronx, NY',
-            '10301' => 'Staten Island, NY', '10302' => 'Staten Island, NY', '10303' => 'Staten Island, NY',
-            '10304' => 'Staten Island, NY', '10305' => 'Staten Island, NY', '10306' => 'Staten Island, NY',
-            '10307' => 'Staten Island, NY', '10308' => 'Staten Island, NY', '10309' => 'Staten Island, NY',
-            '10310' => 'Staten Island, NY', '10311' => 'Staten Island, NY', '10312' => 'Staten Island, NY',
-            '10314' => 'Staten Island, NY'
-        ];
-        
-        $location = $zipCodeMap[$zip] ?? 'New York, NY';
+
+        // Use our internal ZIP service, but avoid returning generic "New York, NY" for unknown ZIPs.
+        // This keeps UI indicators accurate (e.g., 14604 => Rochester, NY).
+        $location = \App\Services\ZipCodeService::lookupZipCode($zip);
+
+        if (!$location || $location === 'New York, NY') {
+            // Try static map directly (covers Rochester/Buffalo/Syracuse/etc.)
+            try {
+                $ref = new \ReflectionClass(\App\Services\ZipCodeService::class);
+                $method = $ref->getMethod('getStaticZipCodeMap');
+                $method->setAccessible(true);
+                $staticMap = $method->invoke(null);
+                if (isset($staticMap[$zip])) {
+                    $location = $staticMap[$zip];
+                }
+            } catch (\Throwable $e) {
+                // If reflection fails, fall through to not-found response
+            }
+        }
+
+        if (!$location || $location === 'New York, NY') {
+            return response()->json([
+                'success' => false,
+                'error' => 'ZIP code not found'
+            ], 404);
+        }
         
         return response()->json([
             'success' => true,
@@ -499,71 +479,9 @@ Route::post('/profile/update', [ProfileController::class, 'update']);
 Route::get('/available-clients', [CaregiverController::class, 'availableClients']);
 });
 
-// Public API Routes (no authentication required)
-Route::prefix('api')->middleware(['web'])->group(function () {
-    // ZIP code lookup (public)
-    Route::get('/zipcode-lookup/{zip}', function($zip) {
-        // Validate ZIP code format
-        if (!preg_match('/^\d{5}$/', $zip)) {
-            return response()->json([
-                'success' => false,
-                'error' => 'Invalid ZIP code format'
-            ], 400);
-        }
-        
-        // ZIP code to location mapping for New York
-        $zipCodeMap = [
-            '10001' => 'Manhattan, NY', '10002' => 'Manhattan, NY', '10003' => 'Manhattan, NY', '10004' => 'Manhattan, NY',
-            '10005' => 'Manhattan, NY', '10006' => 'Manhattan, NY', '10007' => 'Manhattan, NY', '10009' => 'Manhattan, NY',
-            '10010' => 'Manhattan, NY', '10011' => 'Manhattan, NY', '10012' => 'Manhattan, NY', '10013' => 'Manhattan, NY',
-            '10014' => 'Manhattan, NY', '10016' => 'Manhattan, NY', '10017' => 'Manhattan, NY', '10018' => 'Manhattan, NY',
-            '10019' => 'Manhattan, NY', '10020' => 'Manhattan, NY', '10021' => 'Manhattan, NY', '10022' => 'Manhattan, NY',
-            '10023' => 'Manhattan, NY', '10024' => 'Manhattan, NY', '10025' => 'Manhattan, NY', '10026' => 'Manhattan, NY',
-            '10027' => 'Manhattan, NY', '10028' => 'Manhattan, NY', '10029' => 'Manhattan, NY', '10030' => 'Manhattan, NY',
-            '10031' => 'Manhattan, NY', '10032' => 'Manhattan, NY', '10033' => 'Manhattan, NY', '10034' => 'Manhattan, NY',
-            '10035' => 'Manhattan, NY', '10036' => 'Manhattan, NY', '10037' => 'Manhattan, NY', '10038' => 'Manhattan, NY',
-            '10039' => 'Manhattan, NY', '10040' => 'Manhattan, NY', '10044' => 'Manhattan, NY', '10065' => 'Manhattan, NY',
-            '10069' => 'Manhattan, NY', '10075' => 'Manhattan, NY', '10128' => 'Manhattan, NY', '10280' => 'Manhattan, NY',
-            '11201' => 'Brooklyn, NY', '11203' => 'Brooklyn, NY', '11204' => 'Brooklyn, NY', '11205' => 'Brooklyn, NY',
-            '11206' => 'Brooklyn, NY', '11207' => 'Brooklyn, NY', '11208' => 'Brooklyn, NY', '11209' => 'Brooklyn, NY',
-            '11210' => 'Brooklyn, NY', '11211' => 'Brooklyn, NY', '11212' => 'Brooklyn, NY', '11213' => 'Brooklyn, NY',
-            '11214' => 'Brooklyn, NY', '11215' => 'Brooklyn, NY', '11216' => 'Brooklyn, NY', '11217' => 'Brooklyn, NY',
-            '11218' => 'Brooklyn, NY', '11219' => 'Brooklyn, NY', '11220' => 'Brooklyn, NY', '11221' => 'Brooklyn, NY',
-            '11222' => 'Brooklyn, NY', '11223' => 'Brooklyn, NY', '11224' => 'Brooklyn, NY', '11225' => 'Brooklyn, NY',
-            '11226' => 'Brooklyn, NY', '11228' => 'Brooklyn, NY', '11229' => 'Brooklyn, NY', '11230' => 'Brooklyn, NY',
-            '11231' => 'Brooklyn, NY', '11232' => 'Brooklyn, NY', '11233' => 'Brooklyn, NY', '11234' => 'Brooklyn, NY',
-            '11235' => 'Brooklyn, NY', '11236' => 'Brooklyn, NY', '11237' => 'Brooklyn, NY', '11238' => 'Brooklyn, NY',
-            '11239' => 'Brooklyn, NY',
-            '11354' => 'Flushing, NY', '11355' => 'Flushing, NY', '11356' => 'Flushing, NY', '11357' => 'Flushing, NY',
-            '11358' => 'Flushing, NY', '11360' => 'Bayside, NY', '11361' => 'Bayside, NY', '11362' => 'Bayside, NY',
-            '11363' => 'Bayside, NY', '11364' => 'Bayside, NY', '11365' => 'Fresh Meadows, NY', '11366' => 'Fresh Meadows, NY',
-            '11367' => 'Fresh Meadows, NY', '11368' => 'Corona, NY', '11369' => 'East Elmhurst, NY', '11370' => 'Elmhurst, NY',
-            '11371' => 'Elmhurst, NY', '11372' => 'Jackson Heights, NY', '11373' => 'Jackson Heights, NY', '11374' => 'Rego Park, NY',
-            '11375' => 'Forest Hills, NY', '11377' => 'Woodside, NY', '11378' => 'Maspeth, NY', '11379' => 'Middle Village, NY',
-            '11385' => 'Ridgewood, NY',
-            '10451' => 'Bronx, NY', '10452' => 'Bronx, NY', '10453' => 'Bronx, NY', '10454' => 'Bronx, NY',
-            '10455' => 'Bronx, NY', '10456' => 'Bronx, NY', '10457' => 'Bronx, NY', '10458' => 'Bronx, NY',
-            '10459' => 'Bronx, NY', '10460' => 'Bronx, NY', '10461' => 'Bronx, NY', '10462' => 'Bronx, NY',
-            '10463' => 'Bronx, NY', '10464' => 'Bronx, NY', '10465' => 'Bronx, NY', '10466' => 'Bronx, NY',
-            '10467' => 'Bronx, NY', '10468' => 'Bronx, NY', '10469' => 'Bronx, NY', '10470' => 'Bronx, NY',
-            '10471' => 'Bronx, NY', '10472' => 'Bronx, NY', '10473' => 'Bronx, NY', '10474' => 'Bronx, NY',
-            '10475' => 'Bronx, NY',
-            '10301' => 'Staten Island, NY', '10302' => 'Staten Island, NY', '10303' => 'Staten Island, NY',
-            '10304' => 'Staten Island, NY', '10305' => 'Staten Island, NY', '10306' => 'Staten Island, NY',
-            '10307' => 'Staten Island, NY', '10308' => 'Staten Island, NY', '10309' => 'Staten Island, NY',
-            '10310' => 'Staten Island, NY', '10311' => 'Staten Island, NY', '10312' => 'Staten Island, NY',
-            '10314' => 'Staten Island, NY'
-        ];
-        
-        $location = $zipCodeMap[$zip] ?? 'New York, NY';
-        
-        return response()->json([
-            'success' => true,
-            'location' => $location,
-            'zip' => $zip
-        ]);
-    });
-});
+// NOTE: Duplicate public /api/zipcode-lookup routes used to live here.
+// Keep only the single definition near the top of this file that explicitly
+// excludes auth middleware so registration can call it without redirecting to /login.
 
 // API Routes with Authentication
 Route::prefix('api')->middleware(['web', 'auth'])->group(function () {
@@ -607,6 +525,12 @@ Route::prefix('api')->middleware(['web', 'auth'])->group(function () {
     Route::post('/bookings', [\App\Http\Controllers\BookingController::class, 'store'])->middleware('throttle:10,1');
     Route::get('/bookings', [\App\Http\Controllers\BookingController::class, 'index']);
     Route::get('/bookings/{booking}', [\App\Http\Controllers\BookingController::class, 'show']);
+    // JSON-safe alias for Stripe checkout and other JS clients.
+    Route::get('/bookings/{booking}/json', function (\App\Models\Booking $booking) {
+        return response()->json([
+            'booking' => $booking->load(['client', 'assignedCaregiver'])
+        ]);
+    });
     Route::put('/bookings/{booking}', [\App\Http\Controllers\BookingController::class, 'update']);
     Route::delete('/bookings/{booking}', [\App\Http\Controllers\BookingController::class, 'destroy']);
     Route::get('/bookings/{id}/assignments', [\App\Http\Controllers\BookingController::class, 'getAssignments']);
@@ -1067,135 +991,25 @@ Route::prefix('api')->middleware(['web', 'auth'])->group(function () {
         ]);
     });
     
-    // ZIP code lookup (public)
-    Route::get('/zipcode-lookup/{zip}', function($zip) {
-        // Validate ZIP code format
-        if (!preg_match('/^\d{5}$/', $zip)) {
-            return response()->json([
-                'success' => false,
-                'error' => 'Invalid ZIP code format'
-            ], 400);
-        }
-        
-        // ZIP code to location mapping for New York
-        $zipCodeMap = [
-            '10001' => 'Manhattan, NY', '10002' => 'Manhattan, NY', '10003' => 'Manhattan, NY', '10004' => 'Manhattan, NY',
-            '10005' => 'Manhattan, NY', '10006' => 'Manhattan, NY', '10007' => 'Manhattan, NY', '10009' => 'Manhattan, NY',
-            '10010' => 'Manhattan, NY', '10011' => 'Manhattan, NY', '10012' => 'Manhattan, NY', '10013' => 'Manhattan, NY',
-            '10014' => 'Manhattan, NY', '10016' => 'Manhattan, NY', '10017' => 'Manhattan, NY', '10018' => 'Manhattan, NY',
-            '10019' => 'Manhattan, NY', '10020' => 'Manhattan, NY', '10021' => 'Manhattan, NY', '10022' => 'Manhattan, NY',
-            '10023' => 'Manhattan, NY', '10024' => 'Manhattan, NY', '10025' => 'Manhattan, NY', '10026' => 'Manhattan, NY',
-            '10027' => 'Manhattan, NY', '10028' => 'Manhattan, NY', '10029' => 'Manhattan, NY', '10030' => 'Manhattan, NY',
-            '10031' => 'Manhattan, NY', '10032' => 'Manhattan, NY', '10033' => 'Manhattan, NY', '10034' => 'Manhattan, NY',
-            '10035' => 'Manhattan, NY', '10036' => 'Manhattan, NY', '10037' => 'Manhattan, NY', '10038' => 'Manhattan, NY',
-            '10039' => 'Manhattan, NY', '10040' => 'Manhattan, NY', '10044' => 'Manhattan, NY', '10065' => 'Manhattan, NY',
-            '10069' => 'Manhattan, NY', '10075' => 'Manhattan, NY', '10128' => 'Manhattan, NY', '10280' => 'Manhattan, NY',
-            '11201' => 'Brooklyn, NY', '11203' => 'Brooklyn, NY', '11204' => 'Brooklyn, NY', '11205' => 'Brooklyn, NY',
-            '11206' => 'Brooklyn, NY', '11207' => 'Brooklyn, NY', '11208' => 'Brooklyn, NY', '11209' => 'Brooklyn, NY',
-            '11210' => 'Brooklyn, NY', '11211' => 'Brooklyn, NY', '11212' => 'Brooklyn, NY', '11213' => 'Brooklyn, NY',
-            '11214' => 'Brooklyn, NY', '11215' => 'Brooklyn, NY', '11216' => 'Brooklyn, NY', '11217' => 'Brooklyn, NY',
-            '11218' => 'Brooklyn, NY', '11219' => 'Brooklyn, NY', '11220' => 'Brooklyn, NY', '11221' => 'Brooklyn, NY',
-            '11222' => 'Brooklyn, NY', '11223' => 'Brooklyn, NY', '11224' => 'Brooklyn, NY', '11225' => 'Brooklyn, NY',
-            '11226' => 'Brooklyn, NY', '11228' => 'Brooklyn, NY', '11229' => 'Brooklyn, NY', '11230' => 'Brooklyn, NY',
-            '11231' => 'Brooklyn, NY', '11232' => 'Brooklyn, NY', '11233' => 'Brooklyn, NY', '11234' => 'Brooklyn, NY',
-            '11235' => 'Brooklyn, NY', '11236' => 'Brooklyn, NY', '11237' => 'Brooklyn, NY', '11238' => 'Brooklyn, NY',
-            '11239' => 'Brooklyn, NY',
-            '11354' => 'Flushing, NY', '11355' => 'Flushing, NY', '11356' => 'Flushing, NY', '11357' => 'Flushing, NY',
-            '11358' => 'Flushing, NY', '11360' => 'Bayside, NY', '11361' => 'Bayside, NY', '11362' => 'Bayside, NY',
-            '11363' => 'Bayside, NY', '11364' => 'Bayside, NY', '11365' => 'Fresh Meadows, NY', '11366' => 'Fresh Meadows, NY',
-            '11367' => 'Fresh Meadows, NY', '11368' => 'Corona, NY', '11369' => 'East Elmhurst, NY', '11370' => 'Elmhurst, NY',
-            '11371' => 'Elmhurst, NY', '11372' => 'Jackson Heights, NY', '11373' => 'Jackson Heights, NY', '11374' => 'Rego Park, NY',
-            '11375' => 'Forest Hills, NY', '11377' => 'Woodside, NY', '11378' => 'Maspeth, NY', '11379' => 'Middle Village, NY',
-            '11385' => 'Ridgewood, NY',
-            '10451' => 'Bronx, NY', '10452' => 'Bronx, NY', '10453' => 'Bronx, NY', '10454' => 'Bronx, NY',
-            '10455' => 'Bronx, NY', '10456' => 'Bronx, NY', '10457' => 'Bronx, NY', '10458' => 'Bronx, NY',
-            '10459' => 'Bronx, NY', '10460' => 'Bronx, NY', '10461' => 'Bronx, NY', '10462' => 'Bronx, NY',
-            '10463' => 'Bronx, NY', '10464' => 'Bronx, NY', '10465' => 'Bronx, NY', '10466' => 'Bronx, NY',
-            '10467' => 'Bronx, NY', '10468' => 'Bronx, NY', '10469' => 'Bronx, NY', '10470' => 'Bronx, NY',
-            '10471' => 'Bronx, NY', '10472' => 'Bronx, NY', '10473' => 'Bronx, NY', '10474' => 'Bronx, NY',
-            '10475' => 'Bronx, NY',
-            '10301' => 'Staten Island, NY', '10302' => 'Staten Island, NY', '10303' => 'Staten Island, NY',
-            '10304' => 'Staten Island, NY', '10305' => 'Staten Island, NY', '10306' => 'Staten Island, NY',
-            '10307' => 'Staten Island, NY', '10308' => 'Staten Island, NY', '10309' => 'Staten Island, NY',
-            '10310' => 'Staten Island, NY', '10311' => 'Staten Island, NY', '10312' => 'Staten Island, NY',
-            '10314' => 'Staten Island, NY'
-        ];
-        
-        $location = $zipCodeMap[$zip] ?? 'New York, NY';
-        
-        return response()->json([
-            'success' => true,
-            'location' => $location,
-            'zip' => $zip
-        ]);
-    });
+    // NOTE: This legacy /api/zipcode-lookup implementation returned a blanket fallback
+    // like "New York, NY" for unknown ZIPs and caused wrong UI indicators (e.g., 14604).
+    // It has been disabled in favor of the single canonical route earlier in this file.
+    // Route::get('/zipcode-lookup/{zip}', function($zip) { ... });
 });
 
-// Public API Routes (no authentication required)  
+// NOTE: Duplicate /api/zipcode-lookup routes existed below; they caused wrong fallbacks like
+// 14604 => "New York, NY". Keep exactly ONE implementation earlier that uses ZipCodeService.
+
+/*
 Route::prefix('api')->middleware(['web'])->group(function () {
-    // ZIP code lookup (public)
     Route::get('/zipcode-lookup/{zip}', function($zip) {
-        // Validate ZIP code format
-        if (!preg_match('/^\d{5}$/', $zip)) {
-            return response()->json([
-                'success' => false,
-                'error' => 'Invalid ZIP code format'
-            ], 400);
-        }
-        
-        // ZIP code to location mapping for New York
-        $zipCodeMap = [
-            '10001' => 'Manhattan, NY', '10002' => 'Manhattan, NY', '10003' => 'Manhattan, NY', '10004' => 'Manhattan, NY',
-            '10005' => 'Manhattan, NY', '10006' => 'Manhattan, NY', '10007' => 'Manhattan, NY', '10009' => 'Manhattan, NY',
-            '10010' => 'Manhattan, NY', '10011' => 'Manhattan, NY', '10012' => 'Manhattan, NY', '10013' => 'Manhattan, NY',
-            '10014' => 'Manhattan, NY', '10016' => 'Manhattan, NY', '10017' => 'Manhattan, NY', '10018' => 'Manhattan, NY',
-            '10019' => 'Manhattan, NY', '10020' => 'Manhattan, NY', '10021' => 'Manhattan, NY', '10022' => 'Manhattan, NY',
-            '10023' => 'Manhattan, NY', '10024' => 'Manhattan, NY', '10025' => 'Manhattan, NY', '10026' => 'Manhattan, NY',
-            '10027' => 'Manhattan, NY', '10028' => 'Manhattan, NY', '10029' => 'Manhattan, NY', '10030' => 'Manhattan, NY',
-            '10031' => 'Manhattan, NY', '10032' => 'Manhattan, NY', '10033' => 'Manhattan, NY', '10034' => 'Manhattan, NY',
-            '10035' => 'Manhattan, NY', '10036' => 'Manhattan, NY', '10037' => 'Manhattan, NY', '10038' => 'Manhattan, NY',
-            '10039' => 'Manhattan, NY', '10040' => 'Manhattan, NY', '10044' => 'Manhattan, NY', '10065' => 'Manhattan, NY',
-            '10069' => 'Manhattan, NY', '10075' => 'Manhattan, NY', '10128' => 'Manhattan, NY', '10280' => 'Manhattan, NY',
-            '11201' => 'Brooklyn, NY', '11203' => 'Brooklyn, NY', '11204' => 'Brooklyn, NY', '11205' => 'Brooklyn, NY',
-            '11206' => 'Brooklyn, NY', '11207' => 'Brooklyn, NY', '11208' => 'Brooklyn, NY', '11209' => 'Brooklyn, NY',
-            '11210' => 'Brooklyn, NY', '11211' => 'Brooklyn, NY', '11212' => 'Brooklyn, NY', '11213' => 'Brooklyn, NY',
-            '11214' => 'Brooklyn, NY', '11215' => 'Brooklyn, NY', '11216' => 'Brooklyn, NY', '11217' => 'Brooklyn, NY',
-            '11218' => 'Brooklyn, NY', '11219' => 'Brooklyn, NY', '11220' => 'Brooklyn, NY', '11221' => 'Brooklyn, NY',
-            '11222' => 'Brooklyn, NY', '11223' => 'Brooklyn, NY', '11224' => 'Brooklyn, NY', '11225' => 'Brooklyn, NY',
-            '11226' => 'Brooklyn, NY', '11228' => 'Brooklyn, NY', '11229' => 'Brooklyn, NY', '11230' => 'Brooklyn, NY',
-            '11231' => 'Brooklyn, NY', '11232' => 'Brooklyn, NY', '11233' => 'Brooklyn, NY', '11234' => 'Brooklyn, NY',
-            '11235' => 'Brooklyn, NY', '11236' => 'Brooklyn, NY', '11237' => 'Brooklyn, NY', '11238' => 'Brooklyn, NY',
-            '11239' => 'Brooklyn, NY',
-            '11354' => 'Flushing, NY', '11355' => 'Flushing, NY', '11356' => 'Flushing, NY', '11357' => 'Flushing, NY',
-            '11358' => 'Flushing, NY', '11360' => 'Bayside, NY', '11361' => 'Bayside, NY', '11362' => 'Bayside, NY',
-            '11363' => 'Bayside, NY', '11364' => 'Bayside, NY', '11365' => 'Fresh Meadows, NY', '11366' => 'Fresh Meadows, NY',
-            '11367' => 'Fresh Meadows, NY', '11368' => 'Corona, NY', '11369' => 'East Elmhurst, NY', '11370' => 'Elmhurst, NY',
-            '11371' => 'Elmhurst, NY', '11372' => 'Jackson Heights, NY', '11373' => 'Jackson Heights, NY', '11374' => 'Rego Park, NY',
-            '11375' => 'Forest Hills, NY', '11377' => 'Woodside, NY', '11378' => 'Maspeth, NY', '11379' => 'Middle Village, NY',
-            '11385' => 'Ridgewood, NY',
-            '10451' => 'Bronx, NY', '10452' => 'Bronx, NY', '10453' => 'Bronx, NY', '10454' => 'Bronx, NY',
-            '10455' => 'Bronx, NY', '10456' => 'Bronx, NY', '10457' => 'Bronx, NY', '10458' => 'Bronx, NY',
-            '10459' => 'Bronx, NY', '10460' => 'Bronx, NY', '10461' => 'Bronx, NY', '10462' => 'Bronx, NY',
-            '10463' => 'Bronx, NY', '10464' => 'Bronx, NY', '10465' => 'Bronx, NY', '10466' => 'Bronx, NY',
-            '10467' => 'Bronx, NY', '10468' => 'Bronx, NY', '10469' => 'Bronx, NY', '10470' => 'Bronx, NY',
-            '10471' => 'Bronx, NY', '10472' => 'Bronx, NY', '10473' => 'Bronx, NY', '10474' => 'Bronx, NY',
-            '10475' => 'Bronx, NY',
-            '10301' => 'Staten Island, NY', '10302' => 'Staten Island, NY', '10303' => 'Staten Island, NY',
-            '10304' => 'Staten Island, NY', '10305' => 'Staten Island, NY', '10306' => 'Staten Island, NY',
-            '10307' => 'Staten Island, NY', '10308' => 'Staten Island, NY', '10309' => 'Staten Island, NY',
-            '10310' => 'Staten Island, NY', '10311' => 'Staten Island, NY', '10312' => 'Staten Island, NY',
-            '10314' => 'Staten Island, NY'
-        ];
-        
-        $location = $zipCodeMap[$zip] ?? 'New York, NY';
-        
-        return response()->json([
-            'success' => true,
-            'location' => $location,
-            'zip' => $zip
-        ]);
+        // ...duplicate legacy implementation (disabled)...
     });
-    
+});
+*/
+
+// Remaining public endpoints
+Route::prefix('api')->middleware(['web'])->group(function () {
     // Location data (public)
     Route::get('/location-data', function() {
         $jsonPath = storage_path('app/data/ny_accurate_counties.json');
@@ -1204,7 +1018,7 @@ Route::prefix('api')->middleware(['web'])->group(function () {
         }
         return response()->json(['error' => 'Location data not found'], 404);
     });
-    
+
     // Check if email exists (public)
     Route::get('/check-email-exists/{email}', function($email) {
         $exists = \App\Models\User::where('email', $email)->exists();

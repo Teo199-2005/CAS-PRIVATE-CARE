@@ -4,12 +4,14 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Services\NYLocationService;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Hash;
 use App\Models\User;
 use App\Models\Caregiver;
 use App\Models\BookingAssignment;
 use App\Models\Booking;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\StripeWebhookController;
+use App\Services\ZipCodeService;
 
 // ============================================
 // STRIPE WEBHOOK (No Auth, No Rate Limit)
@@ -20,6 +22,40 @@ Route::post('/webhooks/stripe', [StripeWebhookController::class, 'handleWebhook'
 // PUBLIC API ROUTES (Rate Limited - 60/min)
 // ============================================
 Route::middleware(['throttle:60,1'])->group(function () {
+
+// ============================================
+// Public ZIP lookup (NY-only, no guessing)
+// Source of truth for all ZIP place indicators.
+// ============================================
+Route::get('/zipcode-lookup/{zip}', function (string $zip) {
+    $zip = preg_replace('/\D+/', '', $zip);
+    if (!preg_match('/^\d{5}$/', $zip)) {
+        return response()->json(['message' => 'Invalid ZIP'], 422);
+    }
+
+    $location = ZipCodeService::lookupZipCode($zip);
+    if (!$location) {
+        // No guessing allowed
+        return response()->json(['message' => 'Unknown ZIP'], 404);
+    }
+
+    // Location is in "City, NY" format
+    [$city, $state] = array_pad(explode(',', $location, 2), 2, '');
+    $city = trim((string) $city);
+    $state = strtoupper(trim((string) $state)) ?: 'NY';
+
+    // Backward compatible response:
+    // - some parts of the app expect { city, state } or { place }
+    // - older code expects { success, location }
+    return response()->json([
+        'success' => true,
+        'zip' => $zip,
+        'city' => $city,
+        'state' => $state,
+        'place' => "{$city}, {$state}",
+        'location' => "{$city}, {$state}",
+    ]);
+});
 
 // Profile avatar upload
 Route::post('/user/{id}/avatar', function ($id, Request $request) {
@@ -234,6 +270,92 @@ Route::get('/profile', function (Request $request) {
             'preferred_hourly_rate_max' => $caregiver->preferred_hourly_rate_max
         ] : null
     ]);
+});
+
+// Update admin profile
+Route::post('/profile/update', function (Request $request) {
+    try {
+        // For demo, get admin user (in production, use auth()->user())
+        $user = User::where('user_type', 'admin')->first();
+        
+        if (!$user) {
+            return response()->json(['error' => 'User not found'], 404);
+        }
+        
+        $validated = $request->validate([
+            'firstName' => 'required|string|max:255',
+            'lastName' => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email,' . $user->id,
+            'phone' => 'nullable|string|max:20',
+            'department' => 'nullable|string|max:100',
+            'role' => 'nullable|string|max:100'
+        ]);
+        
+        // Use DB update to avoid any model events or relationships
+        DB::table('users')
+            ->where('id', $user->id)
+            ->update([
+                'name' => $validated['firstName'] . ' ' . $validated['lastName'],
+                'email' => $validated['email'],
+                'phone' => $validated['phone'] ?? $user->phone,
+                'department' => $validated['department'] ?? $user->department,
+                'role' => $validated['role'] ?? $user->role,
+                'updated_at' => now()
+            ]);
+        
+        // Refresh user to get updated data
+        $user = $user->fresh();
+        
+        return response()->json([
+            'success' => true,
+            'message' => 'Profile updated successfully',
+            'user' => $user
+        ]);
+    } catch (\Illuminate\Validation\ValidationException $e) {
+        return response()->json(['errors' => $e->errors()], 422);
+    } catch (\Exception $e) {
+        return response()->json(['error' => 'Failed to update profile: ' . $e->getMessage()], 500);
+    }
+});
+
+// Change password
+Route::post('/profile/change-password', function (Request $request) {
+    try {
+        // For demo, get admin user (in production, use auth()->user())
+        $user = User::where('user_type', 'admin')->first();
+        
+        if (!$user) {
+            return response()->json(['error' => 'User not found'], 404);
+        }
+        
+        $validated = $request->validate([
+            'currentPassword' => 'required|string',
+            'newPassword' => 'required|string|min:8',
+            'confirmPassword' => 'required|string|same:newPassword'
+        ]);
+        
+        // Verify current password
+        if (!Hash::check($validated['currentPassword'], $user->password)) {
+            return response()->json(['error' => 'Current password is incorrect'], 422);
+        }
+        
+        // Use DB update to avoid any model events or relationships
+        DB::table('users')
+            ->where('id', $user->id)
+            ->update([
+                'password' => Hash::make($validated['newPassword']),
+                'updated_at' => now()
+            ]);
+        
+        return response()->json([
+            'success' => true,
+            'message' => 'Password changed successfully'
+        ]);
+    } catch (\Illuminate\Validation\ValidationException $e) {
+        return response()->json(['errors' => $e->errors()], 422);
+    } catch (\Exception $e) {
+        return response()->json(['error' => 'Failed to change password: ' . $e->getMessage()], 500);
+    }
 });
 
 Route::get('/ny-counties', function () {
@@ -1235,3 +1357,25 @@ Route::middleware(['throttle:10,1'])->group(function () {
         // Admin booking approval logic
     });
 });
+
+
+// Admin: get all users
+Route::get('/admin/users', [\App\Http\Controllers\AdminController::class, 'getUsers']);
+
+// Admin: create/update/delete users (used by AdminDashboard modals)
+Route::post('/admin/users', [\App\Http\Controllers\AdminController::class, 'storeUser']);
+Route::put('/admin/users/{id}', [\App\Http\Controllers\AdminController::class, 'updateUser']);
+Route::patch('/admin/users/{id}', [\App\Http\Controllers\AdminController::class, 'updateUser']);
+Route::delete('/admin/users/{id}', [\App\Http\Controllers\AdminController::class, 'deleteUser']);
+
+// Admin: get training commissions
+Route::get('/admin/training-commissions', [\App\Http\Controllers\AdminController::class, 'getTrainingCommissions']);
+
+// Admin: caregivers list (minimal payload) used by AdminDashboard caregivers table
+Route::get('/admin/caregivers', [\App\Http\Controllers\AdminController::class, 'getCaregivers']);
+
+// Admin: single caregiver full profile for the details modal
+Route::get('/admin/caregivers/{userId}', [\App\Http\Controllers\AdminController::class, 'getCaregiverProfile']);
+
+// Public list of training centers (used by caregiver & admin caregiver forms)
+Route::get('/training-centers', [\App\Http\Controllers\AdminController::class, 'getTrainingCenters']);

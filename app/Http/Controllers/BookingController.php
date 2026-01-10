@@ -15,6 +15,35 @@ use Illuminate\Validation\ValidationException;
 
 class BookingController extends Controller
 {
+    /**
+     * Stripe processing fee rates (as of current business rules)
+     * Domestic (US): 2.9% + $0.30
+     * International: 4.9% + $0.30
+     */
+    private float $stripeFeeDomestic = 0.029;
+    private float $stripeFeeInternational = 0.049;
+    private float $stripeFixedFee = 0.30;
+
+    /**
+     * Computes the Stripe pass-through "Processing Fee" so that:
+     *   (gross - (gross * rate + fixed)) = target
+     * i.e. business receives `targetAmount` after Stripe charges.
+     */
+    private function calculateProcessingFee(float $targetAmount, string $cardCountry = 'US'): float
+    {
+        $rate = strtoupper($cardCountry) === 'US' ? $this->stripeFeeDomestic : $this->stripeFeeInternational;
+        $gross = ($targetAmount + $this->stripeFixedFee) / (1 - $rate);
+        $fee = $gross - $targetAmount;
+
+        // Defensive rounding to cents
+        return round($fee, 2);
+    }
+
+    private function calculateAdjustedTotal(float $targetAmount, string $cardCountry = 'US'): float
+    {
+        return round($targetAmount + $this->calculateProcessingFee($targetAmount, $cardCountry), 2);
+    }
+
     public function index()
     {
         $clientId = Auth::id();
@@ -524,7 +553,9 @@ class BookingController extends Controller
         $validated = $request->validate([
             'booking_id' => 'required|integer',
             'payment_intent_id' => 'required|string',
-            'status' => 'required|string|in:paid,completed'
+            'status' => 'required|string|in:paid,completed',
+            // Used to calculate Stripe processing fee pass-through (US vs International)
+            'card_country' => 'nullable|string|size:2'
         ]);
 
         try {
@@ -541,11 +572,19 @@ class BookingController extends Controller
             }
             // If not authenticated, allow (payment_intent_id verification is sufficient)
 
+            // Base (service) total from booking fields
+            $targetAmount = (float) $this->calculateBookingTotal($booking);
+            $cardCountry = $validated['card_country'] ?? 'US';
+            $processingFee = $this->calculateProcessingFee($targetAmount, $cardCountry);
+            $adjustedAmount = $this->calculateAdjustedTotal($targetAmount, $cardCountry);
+
             // Create payment record
             $payment = \App\Models\Payment::create([
                 'booking_id' => $booking->id,
                 'client_id' => $booking->client_id,
-                'amount' => $this->calculateBookingTotal($booking),
+                // amount = what client was charged (service + processing fee)
+                'amount' => $adjustedAmount,
+                'processing_fee' => $processingFee,
                 'platform_fee' => $this->calculatePlatformFee($booking),
                 'caregiver_amount' => 0,
                 'payment_method' => 'stripe',
@@ -585,7 +624,7 @@ class BookingController extends Controller
         }
     }
 
-    private function calculateBookingTotal($booking)
+    public function calculateBookingTotal($booking)
     {
         $hours = $this->extractHours($booking->duty_type);
         $total = $hours * $booking->duration_days * $booking->hourly_rate;

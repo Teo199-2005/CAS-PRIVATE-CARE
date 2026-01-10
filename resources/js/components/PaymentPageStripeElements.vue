@@ -161,6 +161,17 @@
           <span class="price-label">Subtotal</span>
           <span class="price-value">${{ subtotal.toFixed(2) }}</span>
         </div>
+        <div class="price-row">
+          <span class="price-label">
+            Processing Fee
+            <i
+              class="bi bi-question-circle"
+              :title="processingFeeTooltip"
+              style="margin-left: 6px; cursor: help; opacity: 0.85;"
+            ></i>
+          </span>
+          <span class="price-value">${{ processingFee.toFixed(2) }}</span>
+        </div>
         <div class="price-row" v-if="taxAmount > 0">
           <span class="price-label">Tax <i class="bi bi-info-circle" title="Sales tax"></i></span>
           <span class="price-value">${{ taxAmount.toFixed(2) }}</span>
@@ -312,8 +323,30 @@ const taxAmount = computed(() => {
   return 0;
 });
 
+// Stripe processing fee pass-through (so CAS receives subtotal after Stripe fees)
+const lastCardCountry = ref('US');
+const stripeFeeDomestic = 0.029;
+const stripeFeeInternational = 0.049;
+const fixedFee = 0.30;
+
+const processingFee = computed(() => {
+  const targetAmount = subtotal.value + taxAmount.value;
+  if (!targetAmount || targetAmount <= 0) return 0;
+
+  const rate = (lastCardCountry.value || 'US') !== 'US' ? stripeFeeInternational : stripeFeeDomestic;
+  const adjustedPrice = (targetAmount + fixedFee) / (1 - rate);
+  const fee = adjustedPrice - targetAmount;
+  return Math.round(fee * 100) / 100;
+});
+
+const processingFeeTooltip = computed(() => {
+  const country = lastCardCountry.value || 'US';
+  const rate = country !== 'US' ? stripeFeeInternational : stripeFeeDomestic;
+  return `Processing Fee covers Stripe card fees (rate ${(rate * 100).toFixed(1)}% + $${fixedFee.toFixed(2)}). This keeps your service total unchanged.`;
+});
+
 const totalAmount = computed(() => {
-  return subtotal.value + taxAmount.value;
+  return subtotal.value + taxAmount.value + processingFee.value;
 });
 
 // Helper function to extract hours from duty type string
@@ -570,6 +603,16 @@ const handleSubmit = async () => {
       processing.value = false;
     } else if (paymentIntent && paymentIntent.status === 'succeeded') {
       // Payment succeeded - show success modal
+
+      // Try to detect issuing country for fee calculation
+      try {
+        const country = paymentIntent?.payment_method_details?.card?.country;
+        if (country && typeof country === 'string') {
+          lastCardCountry.value = country.toUpperCase();
+        }
+      } catch (_) {
+        // ignore
+      }
       
       // Update booking status and get receipt URL
       const result = await updateBookingStatus(paymentIntent.id);
@@ -613,10 +656,12 @@ const handleSubmit = async () => {
 
 const updateBookingStatus = async (paymentIntentId) => {
   try {
+    const cardCountry = lastCardCountry.value || 'US';
     const response = await axios.post('/api/bookings/update-payment-status', {
       booking_id: bookingId.value,
       payment_intent_id: paymentIntentId,
-      status: 'paid'
+      status: 'paid',
+      card_country: cardCountry
     });
     
     // Store receipt URL if available
@@ -638,7 +683,16 @@ const updateBookingStatus = async (paymentIntentId) => {
 const loadBookingDetails = async () => {
   try {
     console.log('Loading booking details for ID:', bookingId.value);
-    const response = await axios.get(`/api/bookings/${bookingId.value}`);
+
+    // Ensure this request uses the user's existing session cookie and expects JSON.
+    // Some auth failures return an HTML login page; forcing JSON prevents Vue from
+    // trying to parse HTML and gives us a clear message.
+  const response = await axios.get(`/api/bookings/${bookingId.value}/json`, {
+      withCredentials: true,
+      headers: {
+        'Accept': 'application/json'
+      }
+    });
     console.log('API Response:', response.data);
     
     bookingDetails.value = response.data.booking || response.data;

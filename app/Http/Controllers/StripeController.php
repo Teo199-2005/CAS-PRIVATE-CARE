@@ -8,10 +8,32 @@ use App\Models\User;
 use App\Models\Caregiver;
 use App\Models\TimeTracking;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class StripeController extends Controller
 {
     protected $stripeService;
+
+    /**
+     * Stripe processing fee rates (business rules)
+     * Domestic (US): 2.9% + $0.30
+     * International: 4.9% + $0.30
+     */
+    private float $stripeFeeDomestic = 0.029;
+    private float $stripeFeeInternational = 0.049;
+    private float $stripeFixedFee = 0.30;
+
+    private function calculateProcessingFee(float $targetAmount, string $cardCountry = 'US'): float
+    {
+        $rate = strtoupper($cardCountry) === 'US' ? $this->stripeFeeDomestic : $this->stripeFeeInternational;
+        $gross = ($targetAmount + $this->stripeFixedFee) / (1 - $rate);
+        return round($gross - $targetAmount, 2);
+    }
+
+    private function calculateAdjustedTotal(float $targetAmount, string $cardCountry = 'US'): float
+    {
+        return round($targetAmount + $this->calculateProcessingFee($targetAmount, $cardCountry), 2);
+    }
 
     public function __construct(StripePaymentService $stripeService)
     {
@@ -107,6 +129,7 @@ class StripeController extends Controller
             $request->validate([
                 'payment_method_id' => 'required|string',
                 'booking_id' => 'required|integer',
+                // amount (cents) is ignored for security; totals are calculated server-side
                 'amount' => 'required|integer|min:100', // Amount in cents
             ]);
 
@@ -147,9 +170,27 @@ class StripeController extends Controller
                 Log::info('Payment method attach skipped: ' . $e->getMessage());
             }
 
+            // Calculate target total server-side
+            $targetAmount = (float) app(\App\Http\Controllers\BookingController::class)->calculateBookingTotal($booking);
+
+            // Determine card country (best-effort before charge). If unavailable, default US.
+            $cardCountry = 'US';
+            try {
+                $pm = $stripe->paymentMethods->retrieve($request->payment_method_id, []);
+                if ($pm && isset($pm->card) && isset($pm->card->country) && is_string($pm->card->country)) {
+                    $cardCountry = strtoupper($pm->card->country);
+                }
+            } catch (\Exception $e) {
+                // keep default
+            }
+
+            $processingFee = $this->calculateProcessingFee($targetAmount, $cardCountry);
+            $adjustedAmount = $this->calculateAdjustedTotal($targetAmount, $cardCountry);
+            $amountInCents = (int) round($adjustedAmount * 100);
+
             // Create and confirm Payment Intent
             $paymentIntent = $stripe->paymentIntents->create([
-                'amount' => $request->amount,
+                'amount' => $amountInCents,
                 'currency' => 'usd',
                 'customer' => $user->stripe_customer_id,
                 'payment_method' => $request->payment_method_id,
@@ -166,7 +207,7 @@ class StripeController extends Controller
             Log::info('Payment processed successfully', [
                 'payment_intent_id' => $paymentIntent->id,
                 'booking_id' => $request->booking_id,
-                'amount' => $request->amount
+                'amount' => $amountInCents
             ]);
 
             // Update booking payment status
@@ -181,7 +222,8 @@ class StripeController extends Controller
                 'client_id' => $user->id,
                 'booking_id' => $booking->id,
                 'transaction_id' => $paymentIntent->id,
-                'amount' => $request->amount / 100, // Convert from cents
+                'amount' => $amountInCents / 100, // Convert from cents
+                'processing_fee' => $processingFee,
                 'status' => 'completed',
                 'payment_method' => 'credit_card',
                 'notes' => 'Booking payment for #' . $booking->id,

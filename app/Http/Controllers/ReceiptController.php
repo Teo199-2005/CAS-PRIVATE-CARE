@@ -69,6 +69,7 @@ class ReceiptController extends Controller
             'hourlyRate' => $hourlyRate,
             'subtotal' => $subtotal,
             'tax' => $tax,
+            'processingFee' => 0,
             'total' => $total,
             'hasDiscount' => $hasDiscount,
             'originalRate' => $originalRate,
@@ -150,6 +151,7 @@ class ReceiptController extends Controller
             'hourlyRate' => $hourlyRate,
             'subtotal' => $subtotal,
             'tax' => $tax,
+            'processingFee' => 0,
             'total' => $total,
             'hasDiscount' => $hasDiscount,
             'originalRate' => $originalRate,
@@ -207,6 +209,11 @@ class ReceiptController extends Controller
                     <td class="text-center font-bold">-$' . number_format($data['savedAmount'], 2) . '</td>
                 </tr>';
             $savingsRow = '<tr><td>Referral Savings:</td><td style="text-align: right;">-$' . number_format($data['savedAmount'], 2) . '</td></tr>';
+        }
+
+        $processingFeeRow = '';
+        if (!empty($data['processingFee']) && (float) $data['processingFee'] > 0) {
+            $processingFeeRow = '<tr><td>Processing Fee:</td><td style="text-align: right;">$' . number_format((float) $data['processingFee'], 2) . '</td></tr>';
         }
         
         return '<!DOCTYPE html>
@@ -379,6 +386,7 @@ class ReceiptController extends Controller
                 <td class="text-right">$' . number_format($data['tax'], 2) . '</td>
             </tr>
             ' . $savingsRow . '
+            ' . $processingFeeRow . '
             <tr class="total">
                 <td><strong>TOTAL PAID:</strong></td>
                 <td class="text-right"><strong>$' . number_format($data['total'], 2) . '</strong></td>
@@ -422,6 +430,12 @@ class ReceiptController extends Controller
     // New method for payment receipts using the booking-receipt template
     public function generatePaymentReceipt($bookingId)
     {
+        // If a payment exists, we prefer using it for accurate totals (includes processing fee)
+        $payment = \App\Models\Payment::where('booking_id', $bookingId)
+            ->where('status', 'completed')
+            ->latest('paid_at')
+            ->first();
+
         // Load booking with all relationships
         $booking = Booking::with(['client', 'assignments.caregiver.user'])
             ->findOrFail($bookingId);
@@ -448,10 +462,11 @@ class ReceiptController extends Controller
         $hoursPerDay = isset($matches[1]) ? (int)$matches[1] : 8;
         
         $totalHours = $durationDays * $hoursPerDay;
-        $subtotal = $totalHours * $hourlyRate;
+    $subtotal = $totalHours * $hourlyRate;
         $taxRate = 0; // Healthcare services are tax-exempt in NY
         $tax = 0;
-        $total = $subtotal + $tax;
+    $processingFee = $payment && $payment->processing_fee ? (float) $payment->processing_fee : 0.0;
+    $total = $subtotal + $tax + $processingFee;
         
         // Get assigned caregivers
         $caregivers = $booking->assignments->map(function($assignment) {
@@ -488,6 +503,7 @@ class ReceiptController extends Controller
             'caregiverName' => $caregivers,
             'subtotal' => $subtotal,
             'tax' => $tax,
+            'processingFee' => $processingFee,
             'total' => $total,
         ]);
         
