@@ -37,6 +37,7 @@ class PaymentService
             'client_id' => $booking->client_id,
             'caregiver_id' => $caregiverId,
             'amount' => $totalAmount,
+            'processing_fee' => 0, // No processing fee for manual/legacy payments
             'platform_fee' => $platformFee,
             'caregiver_amount' => $caregiverAmount,
             'payment_method' => $booking->payment_method ?? 'credit_card',

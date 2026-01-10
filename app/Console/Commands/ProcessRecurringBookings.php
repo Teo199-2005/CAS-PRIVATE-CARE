@@ -152,17 +152,22 @@ class ProcessRecurringBookings extends Command
         // Calculate the new start date (day after original ends)
         $newStartDate = $this->getBookingEndDate($originalBooking)->addDay();
         
-        // Calculate the amount to charge
+        // Calculate the service cost (base amount)
         $hours = $this->extractHours($originalBooking->duty_type);
         $rate = $originalBooking->hourly_rate ?? 45;
         $days = $originalBooking->duration_days ?? 15;
-        $amount = $hours * $days * $rate;
+        $serviceAmount = $hours * $days * $rate;
+        
+        // Calculate processing fee (Stripe: 2.9% + $0.30 for US cards)
+        $processingFee = ($serviceAmount + 0.30) / (1 - 0.029) - $serviceAmount;
+        $processingFee = round($processingFee, 2);
+        $totalToCharge = $serviceAmount + $processingFee;
 
         // Step 1: Create the new booking first (as pending payment)
         $newBooking = $this->createNewBooking($originalBooking, $newStartDate);
         
-        // Step 2: Charge the client
-        $chargeResult = $this->chargeClient($client, $newBooking, $amount);
+        // Step 2: Charge the client (total includes processing fee)
+        $chargeResult = $this->chargeClient($client, $newBooking, $totalToCharge);
         
         if (!$chargeResult['success']) {
             // Update booking with failed status
@@ -199,11 +204,11 @@ class ProcessRecurringBookings extends Command
             'recurring_count' => ($originalBooking->recurring_count ?? 0) + 1,
         ]);
 
-        // Step 5: Create payment record
-        $this->createPaymentRecord($newBooking, $amount, $chargeResult['payment_intent_id']);
+        // Step 5: Create payment record with processing fee
+        $this->createPaymentRecord($newBooking, $serviceAmount, $processingFee, $chargeResult['payment_intent_id']);
 
-        // Step 6: Send success notification
-        $this->sendSuccessNotification($client, $newBooking, $amount);
+        // Step 6: Send success notification (show total charged including processing fee)
+        $this->sendSuccessNotification($client, $newBooking, $totalToCharge);
 
         // Step 7: Try to auto-assign the same caregiver(s)
         $this->autoAssignCaregivers($originalBooking, $newBooking);
@@ -211,7 +216,7 @@ class ProcessRecurringBookings extends Command
         return [
             'success' => true,
             'new_booking_id' => $newBooking->id,
-            'amount_charged' => $amount,
+            'amount_charged' => $totalToCharge,
             'payment_intent_id' => $chargeResult['payment_intent_id']
         ];
     }
@@ -327,17 +332,18 @@ class ProcessRecurringBookings extends Command
     /**
      * Create payment record in database
      */
-    private function createPaymentRecord($booking, $amount, $paymentIntentId)
+    private function createPaymentRecord($booking, $serviceAmount, $processingFee, $paymentIntentId)
     {
         $hours = $this->extractHours($booking->duty_type);
         $days = $booking->duration_days ?? 15;
-        $platformFee = $amount * 0.10; // 10% platform fee
-        $caregiverAmount = $amount * 0.90;
+        $platformFee = $serviceAmount * 0.10; // 10% platform fee on service amount
+        $caregiverAmount = $serviceAmount * 0.90;
 
         return Payment::create([
             'booking_id' => $booking->id,
             'client_id' => $booking->client_id,
-            'amount' => $amount,
+            'amount' => $serviceAmount,
+            'processing_fee' => $processingFee,
             'platform_fee' => $platformFee,
             'caregiver_amount' => $caregiverAmount,
             'status' => 'completed',

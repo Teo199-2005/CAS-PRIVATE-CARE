@@ -582,8 +582,8 @@ class BookingController extends Controller
             $payment = \App\Models\Payment::create([
                 'booking_id' => $booking->id,
                 'client_id' => $booking->client_id,
-                // amount = what client was charged (service + processing fee)
-                'amount' => $adjustedAmount,
+                // amount = service cost only (excluding processing fee)
+                'amount' => $targetAmount,
                 'processing_fee' => $processingFee,
                 'platform_fee' => $this->calculatePlatformFee($booking),
                 'caregiver_amount' => 0,

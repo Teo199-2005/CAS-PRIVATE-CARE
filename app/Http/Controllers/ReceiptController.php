@@ -526,6 +526,12 @@ class ReceiptController extends Controller
     
     public function downloadPaymentReceipt($bookingId)
     {
+        // If a payment exists, we prefer using it for accurate totals (includes processing fee)
+        $payment = \App\Models\Payment::where('booking_id', $bookingId)
+            ->where('status', 'completed')
+            ->latest('paid_at')
+            ->first();
+
         // Same as generatePaymentReceipt but force download
         $booking = Booking::with(['client', 'assignments.caregiver.user'])
             ->findOrFail($bookingId);
@@ -551,7 +557,8 @@ class ReceiptController extends Controller
         $subtotal = $totalHours * $hourlyRate;
         $taxRate = 0; // Healthcare services are tax-exempt in NY
         $tax = 0;
-        $total = $subtotal + $tax;
+        $processingFee = $payment && $payment->processing_fee ? (float) $payment->processing_fee : 0.0;
+        $total = $subtotal + $tax + $processingFee;
         
         $caregivers = $booking->assignments->map(function($assignment) {
             return $assignment->caregiver->user->name ?? 'Not Assigned';
@@ -587,6 +594,7 @@ class ReceiptController extends Controller
             'caregiverName' => $caregivers,
             'subtotal' => $subtotal,
             'tax' => $tax,
+            'processingFee' => $processingFee,
             'total' => $total,
         ]);
         
