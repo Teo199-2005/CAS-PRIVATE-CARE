@@ -11,8 +11,8 @@
     
     <p>Click the button below to reset your password:</p>
     
-    <div style="text-align: center;">
-        <a href="{{ $resetUrl }}" class="button">Reset Password</a>
+    <div style="text-align: center; margin: 30px 0;">
+        <a href="{{ $resetUrl }}" style="display: inline-block; padding: 14px 32px; background-color: #2563eb; color: #ffffff !important; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 16px; box-shadow: 0 2px 4px rgba(37, 99, 235, 0.3);">Reset Password</a>
     </div>
     
     <p>Or copy and paste this link into your browser:</p>

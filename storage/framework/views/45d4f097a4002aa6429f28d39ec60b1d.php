@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@yield('title', 'CAS Private Care')</title>
+    <title><?php echo $__env->yieldContent('title', 'CAS Private Care'); ?></title>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
@@ -80,16 +80,17 @@
         </div>
         
         <div class="content">
-            @yield('content')
+            <?php echo $__env->yieldContent('content'); ?>
         </div>
         
         <div class="footer">
             <p>This email was sent by CAS Private Care LLC.</p>
             <p>If you did not expect this email, please ignore it or contact our support team.</p>
-            <p>&copy; {{ date('Y') }} CAS Private Care. All rights reserved.</p>
+            <p>&copy; <?php echo e(date('Y')); ?> CAS Private Care. All rights reserved.</p>
         </div>
     </div>
 </body>
 </html>
 
 
+<?php /**PATH C:\Users\Cocotantan\Downloads\--CAS WEBSITE-- - Copy (4)\resources\views/emails/layout.blade.php ENDPATH**/ ?>
