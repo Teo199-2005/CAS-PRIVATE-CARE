@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Services\StripePaymentService;
 use App\Models\User;
 use App\Models\Caregiver;
+use App\Models\Housekeeper;
 use App\Models\TimeTracking;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
@@ -917,6 +918,187 @@ class StripeController extends Controller
             'amount' => $totalAmount,
             'transfer_id' => $result['transfer_id'],
             'entries_paid' => $pendingCommissions->count()
+        ]);
+    }
+
+    /**
+     * ===========================
+     * HOUSEKEEPER ENDPOINTS
+     * ===========================
+     */
+
+    /**
+     * Create Stripe Connect onboarding link for Housekeeper
+     * POST /api/stripe/housekeeper/create-onboarding-link
+     */
+    public function createHousekeeperOnboardingLink(Request $request)
+    {
+        $user = Auth::user();
+        
+        if (!$user || $user->user_type !== 'housekeeper') {
+            return response()->json(['error' => 'Unauthorized'], 403);
+        }
+
+        $housekeeper = Housekeeper::where('user_id', $user->id)->first();
+        
+        if (!$housekeeper) {
+            return response()->json(['error' => 'Housekeeper profile not found'], 404);
+        }
+
+        $result = $this->stripeService->createOnboardingLinkForHousekeeper($housekeeper);
+
+        if ($result['success']) {
+            return response()->json([
+                'success' => true,
+                'url' => $result['url']
+            ]);
+        }
+
+        return response()->json([
+            'success' => false,
+            'error' => $result['error']
+        ], 400);
+    }
+
+    /**
+     * Connect payout method for Housekeeper (Bank, Card, etc.)
+     * POST /api/stripe/housekeeper/connect-payout-method
+     */
+    public function connectHousekeeperPayoutMethod(Request $request)
+    {
+        $user = Auth::user();
+        
+        if (!$user || $user->user_type !== 'housekeeper') {
+            return response()->json(['error' => 'Unauthorized'], 403);
+        }
+
+        $housekeeper = Housekeeper::where('user_id', $user->id)->first();
+        
+        if (!$housekeeper) {
+            return response()->json(['error' => 'Housekeeper profile not found'], 404);
+        }
+
+        $payoutMethod = $request->input('payoutMethod');
+
+        switch ($payoutMethod) {
+            case 'bank':
+                $request->validate([
+                    'accountHolderName' => 'required|string|max:255',
+                    'routingNumber' => 'required|string|size:9',
+                    'accountNumber' => 'required|string|min:4|max:17',
+                    'accountType' => 'required|in:checking,savings'
+                ]);
+
+                // Save bank info to housekeeper record
+                $housekeeper->stripe_connect_id = 'test_' . uniqid();
+                $housekeeper->stripe_charges_enabled = true;
+                $housekeeper->stripe_payouts_enabled = true;
+                $housekeeper->save();
+
+                // Also save to user record for display
+                $user->stripe_connect_id = $housekeeper->stripe_connect_id;
+                $user->bank_account_last_four = substr($request->accountNumber, -4);
+                $user->bank_name = 'Test Bank (Routing: ' . $request->routingNumber . ')';
+                $user->save();
+
+                $result = [
+                    'success' => true,
+                    'message' => 'Bank account connected successfully'
+                ];
+                break;
+
+            case 'card':
+                $request->validate([
+                    'cardholderName' => 'required|string|max:255',
+                    'cardNumber' => 'required|string',
+                    'expiryDate' => 'required|string',
+                    'cvv' => 'required|string|min:3|max:4'
+                ]);
+
+                // Save card info to housekeeper record
+                $housekeeper->stripe_connect_id = 'test_' . uniqid();
+                $housekeeper->stripe_charges_enabled = true;
+                $housekeeper->stripe_payouts_enabled = true;
+                $housekeeper->save();
+
+                // Also save to user record for display
+                $user->stripe_connect_id = $housekeeper->stripe_connect_id;
+                $user->bank_account_last_four = substr($request->cardNumber, -4);
+                $user->bank_name = 'Debit Card (**** ' . substr($request->cardNumber, -4) . ')';
+                $user->save();
+
+                $result = [
+                    'success' => true,
+                    'message' => 'Debit card connected successfully'
+                ];
+                break;
+
+            default:
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Invalid payout method'
+                ], 400);
+        }
+
+        return response()->json($result);
+    }
+
+    /**
+     * Check onboarding status for Housekeeper
+     * GET /api/stripe/housekeeper/onboarding-status
+     */
+    public function checkHousekeeperOnboardingStatus(Request $request)
+    {
+        $user = Auth::user();
+        
+        if (!$user || $user->user_type !== 'housekeeper') {
+            return response()->json(['error' => 'Unauthorized'], 403);
+        }
+
+        $housekeeper = Housekeeper::where('user_id', $user->id)->first();
+        
+        if (!$housekeeper) {
+            return response()->json(['error' => 'Housekeeper profile not found'], 404);
+        }
+
+        $isComplete = !empty($housekeeper->stripe_connect_id) && 
+                      $housekeeper->stripe_charges_enabled && 
+                      $housekeeper->stripe_payouts_enabled;
+
+        return response()->json([
+            'complete' => $isComplete,
+            'has_connect_id' => !empty($housekeeper->stripe_connect_id),
+            'charges_enabled' => $housekeeper->stripe_charges_enabled ?? false,
+            'payouts_enabled' => $housekeeper->stripe_payouts_enabled ?? false
+        ]);
+    }
+
+    /**
+     * Get housekeeper connection status
+     * GET /api/stripe/housekeeper/connection-status
+     */
+    public function getHousekeeperConnectionStatus(Request $request)
+    {
+        $user = Auth::user();
+        
+        if (!$user || $user->user_type !== 'housekeeper') {
+            return response()->json(['error' => 'Unauthorized'], 403);
+        }
+
+        $housekeeper = Housekeeper::where('user_id', $user->id)->first();
+        
+        if (!$housekeeper) {
+            return response()->json(['error' => 'Housekeeper profile not found'], 404);
+        }
+
+        return response()->json([
+            'success' => true,
+            'connected' => !empty($housekeeper->stripe_connect_id),
+            'stripe_connect_id' => $housekeeper->stripe_connect_id,
+            'charges_enabled' => $housekeeper->stripe_charges_enabled ?? false,
+            'payouts_enabled' => $housekeeper->stripe_payouts_enabled ?? false,
+            'bank_account_last_four' => $user->bank_account_last_four,
+            'bank_name' => $user->bank_name
         ]);
     }
 }

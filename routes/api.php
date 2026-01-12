@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Hash;
 use App\Models\User;
 use App\Models\Caregiver;
+use App\Models\Housekeeper;
 use App\Models\BookingAssignment;
 use App\Models\Booking;
 use Illuminate\Support\Facades\DB;
@@ -57,44 +58,7 @@ Route::get('/zipcode-lookup/{zip}', function (string $zip) {
     ]);
 });
 
-// Profile avatar upload
-Route::post('/user/{id}/avatar', function ($id, Request $request) {
-    try {
-        $user = User::findOrFail($id);
-        
-        if (!$request->hasFile('avatar')) {
-            return response()->json(['error' => 'No avatar file provided'], 400);
-        }
-        
-        $file = $request->file('avatar');
-        
-        // Validate file
-        $request->validate([
-            'avatar' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048'
-        ]);
-        
-        // Delete old avatar if exists
-        if ($user->avatar && Storage::disk('public')->exists($user->avatar)) {
-            Storage::disk('public')->delete($user->avatar);
-        }
-        
-        // Store new avatar
-        $path = $file->store('avatars', 'public');
-        
-        // Update user
-        $user->update(['avatar' => $path]);
-        
-        return response()->json([
-            'success' => true,
-            'avatar' => '/storage/' . $path,
-            'message' => 'Avatar uploaded successfully'
-        ]);
-    } catch (\Illuminate\Validation\ValidationException $e) {
-        return response()->json(['error' => $e->errors()], 422);
-    } catch (\Exception $e) {
-        return response()->json(['error' => 'Failed to upload avatar: ' . $e->getMessage()], 500);
-    }
-});
+
 
 // Application Status Endpoints (for checking approval status)
 Route::get('/caregiver/application-status', function (Request $request) {
@@ -393,10 +357,19 @@ Route::get('/ny-cities/{county}', function (string $county) {
 // Apply caching to stats endpoints (5 minute cache)
 Route::middleware('cache.api:5')->group(function () {
     Route::get('/caregiver/{id}/stats', [\App\Http\Controllers\DashboardController::class, 'caregiverStats']);
+    Route::get('/housekeeper/{id}/stats', [\App\Http\Controllers\HousekeeperController::class, 'stats']);
     Route::get('/admin/stats', [\App\Http\Controllers\DashboardController::class, 'adminStats']);
     Route::get('/admin/platform-metrics', [\App\Http\Controllers\Api\PlatformMetricsController::class, 'index']);
     Route::get('/admin/quick-caregivers', [\App\Http\Controllers\DashboardController::class, 'quickCaregivers']);
 });
+
+// Housekeeper-specific API routes
+Route::get('/housekeeper/available-clients', [\App\Http\Controllers\HousekeeperController::class, 'getAvailableClients']);
+Route::post('/housekeeper/apply-client/{id}', [\App\Http\Controllers\HousekeeperController::class, 'applyForClient']);
+Route::get('/housekeeper/{id}/earnings', [\App\Http\Controllers\HousekeeperController::class, 'getEarningsReport']);
+
+// Admin: Get all housekeepers
+Route::get('/admin/housekeepers', [\App\Http\Controllers\AdminController::class, 'getHousekeepers']);
 
 Route::post('/admin/platform-metrics/clear-cache', [\App\Http\Controllers\Api\PlatformMetricsController::class, 'clearCache']);
 // Admin: get all bookings (full details)
@@ -1373,6 +1346,9 @@ Route::get('/admin/training-commissions', [\App\Http\Controllers\AdminController
 
 // Admin: caregivers list (minimal payload) used by AdminDashboard caregivers table
 Route::get('/admin/caregivers', [\App\Http\Controllers\AdminController::class, 'getCaregivers']);
+
+// Admin: housekeepers list (minimal payload) used by AdminDashboard housekeepers table
+Route::get('/housekeepers', [\App\Http\Controllers\DashboardController::class, 'housekeepers']);
 
 // Admin: single caregiver full profile for the details modal
 Route::get('/admin/caregivers/{userId}', [\App\Http\Controllers\AdminController::class, 'getCaregiverProfile']);

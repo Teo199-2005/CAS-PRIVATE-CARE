@@ -3,12 +3,13 @@
 namespace App\Services;
 
 use App\Models\Caregiver;
+use App\Models\Housekeeper;
 use App\Models\ReferralCode;
 
 class PricingService
 {
     /**
-     * Pricing breakdown constants
+     * Pricing breakdown constants - CAREGIVERS
      * 
      * Client pays $45/hr (without referral) or $40/hr (with referral)
      */
@@ -25,6 +26,20 @@ class PricingService
     const CLIENT_RATE_NO_REFERRAL = 45.00;   // Client pays $45/hr without referral
     const CLIENT_RATE_WITH_REFERRAL = 40.00; // Client pays $40/hr with referral
     const REFERRAL_DISCOUNT = 5.00;          // $5/hr discount with referral
+    
+    /**
+     * Pricing breakdown constants - HOUSEKEEPERS
+     * 
+     * Client pays SAME as caregivers: $45/hr (without referral) or $40/hr (with referral)
+     * Admin assigns the housekeeper's hourly rate when making assignment
+     * Agency profit = Client Rate - Assigned Rate - Marketing (if referral)
+     * Simpler structure: no training centers for housekeepers
+     */
+    const HOUSEKEEPER_DEFAULT_RATE = 20.00;            // Default housekeeper rate (admin can override)
+    const HOUSEKEEPER_CLIENT_RATE_NO_REFERRAL = 45.00; // Client pays $45/hr (same as caregivers)
+    const HOUSEKEEPER_CLIENT_RATE_WITH_REFERRAL = 40.00; // Client pays $40/hr (same as caregivers)
+    const HOUSEKEEPER_REFERRAL_DISCOUNT = 5.00;        // $5/hr discount (same as caregivers)
+    const HOUSEKEEPER_MARKETING_RATE = 1.00;           // Marketing gets $1/hr (if referral code used)
     
     /**
      * Calculate pricing breakdown for a booking/session
@@ -152,6 +167,113 @@ class PricingService
                 'Training Center' => $hasTrainingCenter ? ('$' . number_format(self::TRAINING_CENTER_RATE, 2) . '/hr') : 'Included in Agency',
             ],
             'total' => '$' . number_format($clientRate, 2) . '/hr',
+        ];
+    }
+    
+    // ============================================
+    // HOUSEKEEPER PRICING METHODS
+    // ============================================
+    
+    /**
+     * Calculate pricing breakdown for a housekeeping booking/session
+     * Agency profit = Client Rate - Assigned Rate - Marketing (if referral)
+     * 
+     * @param float $hours Number of hours worked
+     * @param float $assignedRate The hourly rate assigned by admin (what housekeeper earns)
+     * @param bool $hasReferral Whether a referral code was used
+     * @return array Breakdown of payments
+     */
+    public static function calculateHousekeeperBreakdown(float $hours, float $assignedRate, bool $hasReferral = false): array
+    {
+        $clientRate = $hasReferral ? self::HOUSEKEEPER_CLIENT_RATE_WITH_REFERRAL : self::HOUSEKEEPER_CLIENT_RATE_NO_REFERRAL;
+        $clientTotal = $hours * $clientRate;
+        
+        $housekeeperTotal = $hours * $assignedRate;
+        
+        // Marketing gets $1/hr only if referral code was used
+        $marketingTotal = $hasReferral ? ($hours * self::HOUSEKEEPER_MARKETING_RATE) : 0;
+        
+        // Agency gets remainder: Client Rate - Assigned Rate - Marketing
+        $agencyRate = $clientRate - $assignedRate - ($hasReferral ? self::HOUSEKEEPER_MARKETING_RATE : 0);
+        $agencyTotal = $hours * $agencyRate;
+        
+        return [
+            'hours' => $hours,
+            'has_referral' => $hasReferral,
+            'client_rate' => $clientRate,
+            'client_total' => round($clientTotal, 2),
+            'breakdown' => [
+                'housekeeper' => [
+                    'rate' => $assignedRate,
+                    'total' => round($housekeeperTotal, 2),
+                ],
+                'agency' => [
+                    'rate' => round($agencyRate, 2),
+                    'total' => round($agencyTotal, 2),
+                ],
+                'marketing' => [
+                    'rate' => $hasReferral ? self::HOUSEKEEPER_MARKETING_RATE : 0,
+                    'total' => round($marketingTotal, 2),
+                ],
+            ],
+            // Verification: all parts should equal client total
+            'verification_total' => round($housekeeperTotal + $agencyTotal + $marketingTotal, 2),
+        ];
+    }
+    
+    /**
+     * Get the housekeeper client hourly rate (SAME as caregivers: $45 or $40 with referral)
+     */
+    public static function getHousekeeperClientRate(bool $hasReferral = false): float
+    {
+        return $hasReferral ? self::HOUSEKEEPER_CLIENT_RATE_WITH_REFERRAL : self::HOUSEKEEPER_CLIENT_RATE_NO_REFERRAL;
+    }
+    
+    /**
+     * Get default housekeeper hourly rate (admin can assign different rate)
+     */
+    public static function getHousekeeperDefaultRate(): float
+    {
+        return self::HOUSEKEEPER_DEFAULT_RATE;
+    }
+    
+    /**
+     * Calculate agency rate based on assigned housekeeper rate
+     * Agency gets: Client Rate - Assigned Rate - Marketing (if referral)
+     */
+    public static function getHousekeeperAgencyRate(float $assignedRate, bool $hasReferral = false): float
+    {
+        $clientRate = self::getHousekeeperClientRate($hasReferral);
+        $marketingRate = $hasReferral ? self::HOUSEKEEPER_MARKETING_RATE : 0;
+        return $clientRate - $assignedRate - $marketingRate;
+    }
+    
+    /**
+     * Get housekeeper referral discount amount (same as caregivers)
+     */
+    public static function getHousekeeperReferralDiscount(): float
+    {
+        return self::HOUSEKEEPER_REFERRAL_DISCOUNT;
+    }
+    
+    /**
+     * Get housekeeper pricing summary for display
+     */
+    public static function getHousekeeperPricingSummary(float $assignedRate = null, bool $hasReferral = false): array
+    {
+        $rate = $assignedRate ?? self::HOUSEKEEPER_DEFAULT_RATE;
+        $clientRate = self::getHousekeeperClientRate($hasReferral);
+        $agencyRate = self::getHousekeeperAgencyRate($rate, $hasReferral);
+        
+        return [
+            'client_rate' => $clientRate,
+            'breakdown' => [
+                'Housekeeper' => '$' . number_format($rate, 2) . '/hr (admin assigned)',
+                'Agency' => '$' . number_format($agencyRate, 2) . '/hr',
+                'Marketing' => $hasReferral ? ('$' . number_format(self::HOUSEKEEPER_MARKETING_RATE, 2) . '/hr') : 'N/A',
+            ],
+            'total' => '$' . number_format($clientRate, 2) . '/hr',
+            'discount' => $hasReferral ? ('$' . number_format(self::HOUSEKEEPER_REFERRAL_DISCOUNT, 2) . '/hr') : 'None',
         ];
     }
 }

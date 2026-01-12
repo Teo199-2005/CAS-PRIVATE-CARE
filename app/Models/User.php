@@ -93,4 +93,12 @@ class User extends Authenticatable
     {
         return $this->hasManyThrough(Payment::class, Booking::class, 'client_id', 'booking_id');
     }
+
+    /**
+     * Get the housekeeper profile associated with the user.
+     */
+    public function housekeeper()
+    {
+        return $this->hasOne(Housekeeper::class);
+    }
 }

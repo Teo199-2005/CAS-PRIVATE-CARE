@@ -99,7 +99,7 @@
                 <h1 class="header-title mb-2" :class="headerTitleClass">{{ headerTitle }}</h1>
                 <p class="header-subtitle" :class="headerSubtitleClass">{{ headerSubtitle }}</p>
               </div>
-              <div class="user-info-card" :class="userRoleClass" :style="userRole === 'caregiver' ? 'flex: 1; justify-content: flex-end;' : ''">
+              <div class="user-info-card" :class="userRoleClass" :style="(userRole === 'caregiver' || userRole === 'housekeeper') ? 'flex: 1; justify-content: flex-end;' : ''">
                 <div class="user-info-inner d-flex align-center">
                   <div class="avatar-wrapper">
                     <v-avatar :color="roleAvatarColor" size="60" class="user-avatar elevation-3">
@@ -247,6 +247,7 @@ const userRoleClass = computed(() => {
 const roleAvatarColor = computed(() => {
   const colors = {
     'caregiver': '#2E7D32',  // Green
+    'housekeeper': '#2E7D32',  // Green
     'admin': '#C62828',      // Red
     'client': '#1565C0',     // Blue
     'marketing': '#6A1B9A',  // Purple
@@ -258,6 +259,7 @@ const roleAvatarColor = computed(() => {
 const roleTextClass = computed(() => {
   const classes = {
     'caregiver': 'text-green',
+    'housekeeper': 'text-green',
     'admin': 'text-red',
     'client': 'text-blue',
     'marketing': 'text-purple',
@@ -269,6 +271,7 @@ const roleTextClass = computed(() => {
 const roleStatusClass = computed(() => {
   const classes = {
     'caregiver': 'status-green',
+    'housekeeper': 'status-green',
     'admin': 'status-red',
     'client': 'status-blue',
     'marketing': 'status-purple',
@@ -280,6 +283,7 @@ const roleStatusClass = computed(() => {
 const roleBadgeColor = computed(() => {
   const colors = {
     'caregiver': 'success',
+    'housekeeper': 'success',
     'admin': 'error',
     'client': 'primary',
     'marketing': 'deep-purple',
@@ -291,6 +295,7 @@ const roleBadgeColor = computed(() => {
 const roleIcon = computed(() => {
   const icons = {
     'caregiver': 'mdi-heart-pulse',
+    'housekeeper': 'mdi-home-heart',
     'admin': 'mdi-shield-crown',
     'client': 'mdi-account-star',
     'marketing': 'mdi-bullhorn',
@@ -302,6 +307,7 @@ const roleIcon = computed(() => {
 const roleDisplayName = computed(() => {
   const names = {
     'caregiver': 'Caregiver',
+    'housekeeper': 'Housekeeper',
     'admin': 'Administrator',
     'client': 'Premium Client',
     'marketing': 'Marketing Staff',
@@ -314,6 +320,7 @@ const roleDisplayName = computed(() => {
 const headerRoleClass = computed(() => {
   const classes = {
     'caregiver': 'header-caregiver',
+    'housekeeper': 'header-housekeeper',
     'admin': 'header-admin',
     'client': 'header-client',
     'marketing': 'header-marketing',
@@ -325,6 +332,7 @@ const headerRoleClass = computed(() => {
 const headerTitleClass = computed(() => {
   const classes = {
     'caregiver': 'title-green',
+    'housekeeper': 'title-green',
     'admin': 'title-red',
     'client': 'title-blue',
     'marketing': 'title-purple',
@@ -336,6 +344,7 @@ const headerTitleClass = computed(() => {
 const headerSubtitleClass = computed(() => {
   const classes = {
     'caregiver': 'subtitle-green',
+    'housekeeper': 'subtitle-green',
     'admin': 'subtitle-red',
     'client': 'subtitle-blue',
     'marketing': 'subtitle-purple',
@@ -466,6 +475,20 @@ const mobileNavItems = computed(() => {
 .active-nav :deep(.v-list-item-title) {
   color: white !important;
   font-weight: 600 !important;
+}
+
+.disabled-nav {
+  opacity: 0.4 !important;
+  pointer-events: none !important;
+  cursor: not-allowed !important;
+}
+
+.disabled-nav :deep(.v-list-item__prepend) {
+  color: #9e9e9e !important;
+}
+
+.disabled-nav :deep(.v-list-item-title) {
+  color: #9e9e9e !important;
 }
 
 .badge-chip {
@@ -615,6 +638,10 @@ const mobileNavItems = computed(() => {
 
 /* Role-specific header backgrounds */
 .header-caregiver {
+  background: linear-gradient(135deg, #ffffff 0%, #f0fdf4 100%) !important;
+}
+
+.header-housekeeper {
   background: linear-gradient(135deg, #ffffff 0%, #f0fdf4 100%) !important;
 }
 
@@ -1838,6 +1865,14 @@ const mobileNavItems = computed(() => {
   border-bottom: none !important;
 }
 
+/* Housekeeper Dashboard - Green */
+.v-app[data-user-role="housekeeper"] .v-dialog .v-card .card-header,
+.v-app[data-user-role="housekeeper"] .v-dialog .v-card > .v-card-title:first-child {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+  color: white !important;
+  border-bottom: none !important;
+}
+
 /* Marketing Dashboard - Grey */
 .v-app[data-user-role="marketing"] .v-dialog .v-card .card-header,
 .v-app[data-user-role="marketing"] .v-dialog .v-card > .v-card-title:first-child {
@@ -1914,6 +1949,13 @@ const mobileNavItems = computed(() => {
 .v-app[data-user-role="caregiver"] .v-dialog .v-text-field .v-field--focused,
 .v-app[data-user-role="caregiver"] .v-dialog .v-select .v-field--focused,
 .v-app[data-user-role="caregiver"] .v-dialog .v-textarea .v-field--focused {
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.15), 0 2px 4px rgba(16, 185, 129, 0.1) !important;
+}
+
+/* Housekeeper Dashboard - Green focus */
+.v-app[data-user-role="housekeeper"] .v-dialog .v-text-field .v-field--focused,
+.v-app[data-user-role="housekeeper"] .v-dialog .v-select .v-field--focused,
+.v-app[data-user-role="housekeeper"] .v-dialog .v-textarea .v-field--focused {
   box-shadow: 0 4px 12px rgba(16, 185, 129, 0.15), 0 2px 4px rgba(16, 185, 129, 0.1) !important;
 }
 

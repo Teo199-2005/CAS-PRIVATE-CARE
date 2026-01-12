@@ -11,6 +11,8 @@ class TimeTracking extends Model
     
     protected $fillable = [
         'caregiver_id',
+        'housekeeper_id',
+        'provider_type',
         'client_id',
         'clock_in_time',
         'clock_out_time',
@@ -46,6 +48,25 @@ class TimeTracking extends Model
     public function caregiver()
     {
         return $this->belongsTo(Caregiver::class);
+    }
+
+    /**
+     * Get the housekeeper for this time tracking.
+     */
+    public function housekeeper()
+    {
+        return $this->belongsTo(Housekeeper::class);
+    }
+
+    /**
+     * Get the provider (caregiver or housekeeper).
+     */
+    public function provider()
+    {
+        if ($this->provider_type === 'housekeeper' && $this->housekeeper_id) {
+            return $this->housekeeper;
+        }
+        return $this->caregiver;
     }
 
     public function client()

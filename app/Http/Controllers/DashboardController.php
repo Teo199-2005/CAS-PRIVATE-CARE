@@ -228,10 +228,13 @@ class DashboardController extends Controller
         // Use PricingService for consistent rates
         $clientRate = PricingService::getClientRate($hasReferral);
         
+        // Housekeeping services use dedicated pricing with referral support
+        if (in_array($serviceType, ['Housekeeping', 'House Cleaning'])) {
+            return PricingService::getHousekeeperClientRate($hasReferral);
+        }
+        
         // Non-care services have different rates
         $nonCareRates = [
-            'Housekeeping' => 25,
-            'House Cleaning' => 25,
             'Personal Assistant' => 30
         ];
         
@@ -336,6 +339,48 @@ class DashboardController extends Controller
         ]);
     }
     
+    public function housekeepers(): JsonResponse
+    {
+        $housekeepers = \App\Models\Housekeeper::with('user')
+            ->get()
+            ->map(function($housekeeper) {
+                // Use user's uploaded avatar if available, otherwise use stock image
+                $avatar = null;
+                if ($housekeeper->user && $housekeeper->user->avatar) {
+                    $avatar = $housekeeper->user->avatar;
+                    // Ensure proper path format
+                    if (!str_starts_with($avatar, '/') && !str_starts_with($avatar, 'http')) {
+                        $avatar = '/storage/' . $avatar;
+                    }
+                }
+                
+                return [
+                    'id' => $housekeeper->id,
+                    'user_id' => $housekeeper->user_id,
+                    'name' => $housekeeper->user->name,
+                    'specialty' => is_array($housekeeper->specializations) ? implode(' & ', $housekeeper->specializations) : 'General Cleaning',
+                    'rating' => (float) $housekeeper->rating,
+                    'reviews' => $housekeeper->total_reviews,
+                    'experience' => $housekeeper->years_experience,
+                    'certifications' => is_array($housekeeper->certifications) ? implode(', ', $housekeeper->certifications) : 'Licensed Housekeeper',
+                    'availability' => $housekeeper->availability_status,
+                    'image' => $avatar ?: $this->getHousekeeperImage($housekeeper->gender, $housekeeper->id),
+                    'avatar' => $avatar,
+                    'hasCustomAvatar' => !empty($avatar),
+                    'initials' => $this->getInitials($housekeeper->user->name),
+                    'phone' => $housekeeper->user->phone ?: '(212) 555-' . str_pad($housekeeper->id, 4, '0', STR_PAD_LEFT),
+                    'email' => $housekeeper->user->email,
+                    'bio' => $housekeeper->bio,
+                    'skills' => $housekeeper->skills,
+                    'hourly_rate' => $housekeeper->hourly_rate
+                ];
+            });
+            
+        return response()->json([
+            'housekeepers' => $housekeepers
+        ]);
+    }
+    
     private function getInitials($name)
     {
         $words = explode(' ', trim($name));
@@ -356,6 +401,7 @@ class DashboardController extends Controller
         $totalAdmins = \App\Models\User::where('user_type', 'admin')->count();
         $totalMarketing = \App\Models\User::where('user_type', 'marketing')->count();
         $totalTraining = \App\Models\User::where('user_type', 'training')->count();
+        $totalHousekeepers = \App\Models\User::where('user_type', 'housekeeper')->count();
         
         // Get active bookings (approved/confirmed/in_progress AND has completed payment)
         $activeBookings = Booking::with('payments')
@@ -407,6 +453,7 @@ class DashboardController extends Controller
             'total_users' => $totalUsers,
             'total_clients' => $totalClients,
             'total_caregivers' => $totalCaregivers,
+            'total_housekeepers' => $totalHousekeepers,
             'total_admins' => $totalAdmins,
             'total_marketing' => $totalMarketing,
             'total_training' => $totalTraining,
@@ -759,4 +806,11 @@ class DashboardController extends Controller
             return $maleImages[($id - 1) % count($maleImages)];
         }
     }
+
+    private function getHousekeeperImage($gender, $id)
+    {
+        // Use same images as caregivers for housekeepers
+        return $this->getCaregiverImage($gender, $id);
+    }
 }
+

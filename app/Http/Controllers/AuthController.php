@@ -32,7 +32,7 @@ class AuthController extends Controller
             $user = Auth::user();
 
             // Check if contractor/partner is rejected (ONLY block rejected accounts)
-            $partnerTypes = ['caregiver', 'marketing', 'training_center'];
+            $partnerTypes = ['caregiver', 'housekeeper', 'marketing', 'training_center'];
             if (in_array($user->user_type, $partnerTypes) && $user->status === 'rejected') {
                 Auth::logout();
                 $request->session()->invalidate();
@@ -54,6 +54,8 @@ class AuthController extends Controller
                 return redirect('/admin/dashboard-vue');
             } elseif ($user->user_type === 'caregiver') {
                 return redirect('/caregiver/dashboard-vue');
+            } elseif ($user->user_type === 'housekeeper') {
+                return redirect('/housekeeper/dashboard-vue');
             } elseif ($user->user_type === 'marketing') {
                 return redirect('/marketing/dashboard-vue');
             } elseif (in_array($user->user_type, ['training', 'training_center'])) {
@@ -76,8 +78,8 @@ class AuthController extends Controller
             'phone' => ['required', new ValidNYPhoneNumber],
             'zip_code' => ['required', 'string', 'regex:/^\d{5}$/', 'max:5'],
             'password' => session('oauth_user') ? 'nullable' : 'required|min:8|max:255|confirmed',
-            'user_type' => 'required|in:client,caregiver,marketing,training_center',
-            'partner_type' => 'nullable|in:caregiver,housekeeping,personal_assistant,marketing_partner,training_center',
+            'user_type' => 'required|in:client,caregiver,housekeeper,marketing,training_center',
+            'partner_type' => 'nullable|in:caregiver,housekeeper,housekeeping,personal_assistant,marketing_partner,training_center',
             'terms' => 'required|accepted'
         ], [
             'password.regex' => 'Password must contain at least one uppercase letter, one lowercase letter, and one number.',
@@ -91,7 +93,8 @@ class AuthController extends Controller
             // Map partner types to user types
             $userTypeMap = [
                 'caregiver' => 'caregiver',
-                'housekeeping' => 'caregiver',
+                'housekeeper' => 'housekeeper',
+                'housekeeping' => 'housekeeper',
                 'personal_assistant' => 'caregiver',
                 'marketing_partner' => 'marketing',
                 'training_center' => 'training_center'
@@ -109,7 +112,7 @@ class AuthController extends Controller
         $formattedPhone = '(' . substr($phoneNumber, 0, 3) . ') ' . substr($phoneNumber, 3, 3) . '-' . substr($phoneNumber, 6, 4);
         
         // Set status based on user type - all partner types need approval
-        $partnerTypes = ['caregiver', 'marketing', 'training_center'];
+        $partnerTypes = ['caregiver', 'housekeeper', 'marketing', 'training_center'];
         $status = in_array($validated['user_type'], $partnerTypes) ? 'pending' : 'Active';
         
         $user = User::create([
@@ -136,6 +139,14 @@ class AuthController extends Controller
                 'user_id' => $user->id,
                 'gender' => 'female',
                 'availability_status' => 'available'
+            ]);
+        } elseif ($validated['user_type'] === 'housekeeper') {
+            // Create housekeeper record
+            \App\Models\Housekeeper::create([
+                'user_id' => $user->id,
+                'gender' => $validated['gender'] ?? 'female',
+                'availability_status' => 'available',
+                'years_experience' => $validated['years_experience'] ?? 0
             ]);
         } elseif ($validated['user_type'] === 'marketing') {
             // Create referral code for marketing partners (inactive until approved)
@@ -177,13 +188,8 @@ class AuthController extends Controller
             }
         }
         
-        // For contractors/partners, show pending approval message
-        if (in_array($validated['user_type'], ['caregiver', 'marketing', 'training_center'])) {
-            return redirect('/login')->with('info', 'Your account has been created successfully! Your application is pending approval. You will be able to login once an administrator approves your account.');
-        }
-        
-        // For clients, normal success message
-        return redirect('/login')->with('success', 'Account created successfully! You can now login with Google or manually.');
+        // Success message for all users - they can login immediately
+        return redirect('/login')->with('success', 'Your account has been created successfully! You can now login.');
     }
 
     public function logout(Request $request)
@@ -650,6 +656,8 @@ class AuthController extends Controller
                     return redirect('/admin/dashboard-vue');
                 } elseif ($user->user_type === 'caregiver') {
                     return redirect('/caregiver/dashboard-vue');
+                } elseif ($user->user_type === 'housekeeper') {
+                    return redirect('/housekeeper/dashboard-vue');
                 } elseif ($user->user_type === 'marketing') {
                     return redirect('/marketing/dashboard-vue');
                 } elseif (in_array($user->user_type, ['training', 'training_center'])) {

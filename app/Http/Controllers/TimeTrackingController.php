@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\TimeTracking;
 use App\Models\Caregiver;
+use App\Models\Housekeeper;
 use App\Models\Client;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -13,17 +14,34 @@ class TimeTrackingController extends Controller
 {
     public function clockIn(Request $request)
     {
+        // Validate - allow either caregiver_id OR housekeeper_id
         $request->validate([
-            'caregiver_id' => 'required|exists:caregivers,id',
+            'caregiver_id' => 'nullable|exists:caregivers,id',
+            'housekeeper_id' => 'nullable|exists:housekeepers,id',
             'client_id' => 'nullable|exists:clients,id',
             'location' => 'nullable|string'
         ]);
 
-        // Check if caregiver is already clocked in
-        $activeSession = TimeTracking::where('caregiver_id', $request->caregiver_id)
-            ->where('status', 'active')
-            ->whereNull('clock_out_time')
-            ->first();
+        // Require at least one provider ID
+        if (!$request->caregiver_id && !$request->housekeeper_id) {
+            return response()->json(['error' => 'Either caregiver_id or housekeeper_id is required'], 400);
+        }
+
+        // Determine provider type
+        $providerType = $request->housekeeper_id ? 'housekeeper' : 'caregiver';
+        $providerId = $request->housekeeper_id ?? $request->caregiver_id;
+
+        // Check if provider is already clocked in
+        $activeSessionQuery = TimeTracking::where('status', 'active')
+            ->whereNull('clock_out_time');
+        
+        if ($providerType === 'housekeeper') {
+            $activeSessionQuery->where('housekeeper_id', $providerId);
+        } else {
+            $activeSessionQuery->where('caregiver_id', $providerId);
+        }
+        
+        $activeSession = $activeSessionQuery->first();
 
         if ($activeSession) {
             return response()->json(['error' => 'Already clocked in'], 400);
@@ -32,16 +50,31 @@ class TimeTrackingController extends Controller
         // If no client_id provided, try to get it from active assignment
         $clientId = $request->client_id;
         if (!$clientId) {
-            $assignment = \App\Models\BookingAssignment::with('booking')
-                ->where('caregiver_id', $request->caregiver_id)
-                ->where('status', 'assigned')
-                ->whereHas('booking', function($query) {
-                    $today = now()->toDateString();
-                    $query->where('status', 'approved')
-                          ->whereRaw('service_date <= ?', [$today])
-                          ->whereRaw('DATE_ADD(service_date, INTERVAL duration_days DAY) >= ?', [$today]);
-                })
-                ->first();
+            if ($providerType === 'housekeeper') {
+                // Check housekeeper assignment
+                $assignment = \App\Models\BookingHousekeeperAssignment::with('booking')
+                    ->where('housekeeper_id', $providerId)
+                    ->where('status', 'assigned')
+                    ->whereHas('booking', function($query) {
+                        $today = now()->toDateString();
+                        $query->where('status', 'approved')
+                              ->whereRaw('service_date <= ?', [$today])
+                              ->whereRaw('DATE_ADD(service_date, INTERVAL duration_days DAY) >= ?', [$today]);
+                    })
+                    ->first();
+            } else {
+                // Check caregiver assignment
+                $assignment = \App\Models\BookingAssignment::with('booking')
+                    ->where('caregiver_id', $providerId)
+                    ->where('status', 'assigned')
+                    ->whereHas('booking', function($query) {
+                        $today = now()->toDateString();
+                        $query->where('status', 'approved')
+                              ->whereRaw('service_date <= ?', [$today])
+                              ->whereRaw('DATE_ADD(service_date, INTERVAL duration_days DAY) >= ?', [$today]);
+                    })
+                    ->first();
+            }
             
             if ($assignment && $assignment->booking) {
                 // booking.client_id is a user_id, we need to find the clients.id for that user
@@ -53,7 +86,9 @@ class TimeTrackingController extends Controller
         }
 
         $timeTracking = TimeTracking::create([
-            'caregiver_id' => $request->caregiver_id,
+            'caregiver_id' => $providerType === 'caregiver' ? $providerId : null,
+            'housekeeper_id' => $providerType === 'housekeeper' ? $providerId : null,
+            'provider_type' => $providerType,
             'client_id' => $clientId,
             'clock_in_time' => now(),
             'location' => $request->location ?? 'Client Home',
@@ -70,14 +105,32 @@ class TimeTrackingController extends Controller
 
     public function clockOut(Request $request)
     {
+        // Validate - allow either caregiver_id OR housekeeper_id
         $request->validate([
-            'caregiver_id' => 'required|exists:caregivers,id'
+            'caregiver_id' => 'nullable|exists:caregivers,id',
+            'housekeeper_id' => 'nullable|exists:housekeepers,id'
         ]);
 
-        $activeSession = TimeTracking::where('caregiver_id', $request->caregiver_id)
-            ->where('status', 'active')
-            ->whereNull('clock_out_time')
-            ->first();
+        // Require at least one provider ID
+        if (!$request->caregiver_id && !$request->housekeeper_id) {
+            return response()->json(['error' => 'Either caregiver_id or housekeeper_id is required'], 400);
+        }
+
+        // Determine provider type
+        $providerType = $request->housekeeper_id ? 'housekeeper' : 'caregiver';
+        $providerId = $request->housekeeper_id ?? $request->caregiver_id;
+
+        // Find active session for this provider
+        $activeSessionQuery = TimeTracking::where('status', 'active')
+            ->whereNull('clock_out_time');
+        
+        if ($providerType === 'housekeeper') {
+            $activeSessionQuery->where('housekeeper_id', $providerId);
+        } else {
+            $activeSessionQuery->where('caregiver_id', $providerId);
+        }
+        
+        $activeSession = $activeSessionQuery->first();
 
         if (!$activeSession) {
             return response()->json(['error' => 'No active session found'], 400);
@@ -104,6 +157,8 @@ class TimeTrackingController extends Controller
     /**
      * Calculate earnings and commissions for a time tracking entry
      * Based on actual hours worked × hourly rates
+     * Supports both caregivers and housekeepers
+     * Uses PricingService for consistent rate calculations
      */
     private function calculateEarnings(TimeTracking $timeTracking)
     {
@@ -113,61 +168,123 @@ class TimeTrackingController extends Controller
             return;
         }
 
-        // Get caregiver info
-        $caregiver = \App\Models\Caregiver::with(['user', 'trainingCenter'])->find($timeTracking->caregiver_id);
-        if (!$caregiver) {
-            return;
-        }
-
-        // Get active booking assignment for this caregiver
-        $assignment = \App\Models\BookingAssignment::with('booking.referralCode')
-            ->where('caregiver_id', $timeTracking->caregiver_id)
-            ->where('status', 'assigned')
-            ->where('is_active', true)
-            ->first();
-
-        $booking = $assignment ? $assignment->booking : null;
-
-        // Base rates per hour
-        $caregiverRate = 28.00; // Caregiver earns $28/hr
-        $marketingRate = 1.00;  // Marketing partner earns $1/hr (if referral used)
-        $trainingRate = 0.50;   // Training center earns $0.50/hr (if caregiver has one)
-
-        // Calculate caregiver earnings
-        $caregiverEarnings = $hoursWorked * $caregiverRate;
-
-        // Check if booking has referral code (marketing partner commission)
-        $marketingPartnerId = null;
-        $marketingCommission = 0;
-        $clientChargeRate = 45.00; // Default rate without referral
-
-        if ($booking && $booking->referral_code_id) {
-            $referralCode = $booking->referralCode;
-            if ($referralCode && $referralCode->user_id) {
-                $marketingPartnerId = $referralCode->user_id;
-                $marketingCommission = $hoursWorked * $marketingRate;
-                $clientChargeRate = 40.00; // Discounted rate with referral
-            }
-        }
-
-        // Check if caregiver has training center
-        $trainingCenterId = null;
-        $trainingCommission = 0;
+        // Determine if this is a housekeeper or caregiver
+        $isHousekeeper = !empty($timeTracking->housekeeper_id);
         
-        if ($caregiver->has_training_center && $caregiver->training_center_id) {
-            $trainingCenterId = $caregiver->training_center_id;
-            $trainingCommission = $hoursWorked * $trainingRate;
+        $provider = null;
+        $assignment = null;
+        $booking = null;
+        $hasReferral = false;
+
+        if ($isHousekeeper) {
+            // Get housekeeper info
+            $provider = \App\Models\Housekeeper::with(['user'])->find($timeTracking->housekeeper_id);
+            if (!$provider) {
+                return;
+            }
+
+            // Get active booking assignment for this housekeeper
+            $assignment = \App\Models\BookingHousekeeperAssignment::with('booking.referralCode')
+                ->where('housekeeper_id', $timeTracking->housekeeper_id)
+                ->where('status', 'assigned')
+                ->first();
+            
+            $booking = $assignment ? $assignment->booking : null;
+            
+            // Check if booking has referral code
+            $hasReferral = $booking && $booking->referral_code_id && $booking->referralCode;
+            
+            // Use assigned rate (admin sets this when assigning housekeeper)
+            // Fallback to default rate if not set
+            $providerRate = $assignment->assigned_hourly_rate ?? \App\Services\PricingService::getHousekeeperDefaultRate();
+            $clientChargeRate = \App\Services\PricingService::getHousekeeperClientRate($hasReferral);
+            $marketingRate = \App\Services\PricingService::HOUSEKEEPER_MARKETING_RATE;
+            
+            // Calculate provider earnings
+            $providerEarnings = $hoursWorked * $providerRate;
+            
+            // Marketing commission (if referral used)
+            $marketingPartnerId = null;
+            $marketingCommission = 0;
+            
+            if ($hasReferral) {
+                $referralCode = $booking->referralCode;
+                if ($referralCode && $referralCode->user_id) {
+                    $marketingPartnerId = $referralCode->user_id;
+                    $marketingCommission = $hoursWorked * $marketingRate;
+                }
+            }
+            
+            // No training centers for housekeepers
+            $trainingCenterId = null;
+            $trainingCommission = 0;
+            
+            // Calculate total client charge
+            $totalClientCharge = $hoursWorked * $clientChargeRate;
+            
+            // Calculate agency commission (remainder)
+            $agencyCommission = $totalClientCharge - $providerEarnings - $marketingCommission;
+            
+        } else {
+            // Get caregiver info
+            $provider = \App\Models\Caregiver::with(['user', 'trainingCenter'])->find($timeTracking->caregiver_id);
+            if (!$provider) {
+                return;
+            }
+
+            // Get active booking assignment for this caregiver
+            $assignment = \App\Models\BookingAssignment::with('booking.referralCode')
+                ->where('caregiver_id', $timeTracking->caregiver_id)
+                ->where('status', 'assigned')
+                ->where('is_active', true)
+                ->first();
+
+            $booking = $assignment ? $assignment->booking : null;
+            
+            // Check if booking has referral code
+            $hasReferral = $booking && $booking->referral_code_id && $booking->referralCode;
+            $hasTrainingCenter = $provider->has_training_center && $provider->training_center_id;
+            
+            // Use PricingService for caregiver rates
+            $providerRate = $assignment->assigned_hourly_rate ?? \App\Services\PricingService::getCaregiverRate();
+            $clientChargeRate = \App\Services\PricingService::getClientRate($hasReferral);
+            $marketingRate = \App\Services\PricingService::MARKETING_RATE;
+            $trainingRate = \App\Services\PricingService::TRAINING_CENTER_RATE;
+            
+            // Calculate provider earnings
+            $providerEarnings = $hoursWorked * $providerRate;
+            
+            // Marketing commission (if referral used)
+            $marketingPartnerId = null;
+            $marketingCommission = 0;
+            
+            if ($hasReferral) {
+                $referralCode = $booking->referralCode;
+                if ($referralCode && $referralCode->user_id) {
+                    $marketingPartnerId = $referralCode->user_id;
+                    $marketingCommission = $hoursWorked * $marketingRate;
+                }
+            }
+            
+            // Training center commission (only for caregivers with training centers)
+            $trainingCenterId = null;
+            $trainingCommission = 0;
+            
+            if ($hasTrainingCenter) {
+                $trainingCenterId = $provider->training_center_id;
+                $trainingCommission = $hoursWorked * $trainingRate;
+            }
+            
+            // Calculate total client charge
+            $totalClientCharge = $hoursWorked * $clientChargeRate;
+            
+            // Calculate agency commission (remainder)
+            $agencyCommission = $totalClientCharge - $providerEarnings - $marketingCommission - $trainingCommission;
         }
-
-        // Calculate total client charge
-        $totalClientCharge = $hoursWorked * $clientChargeRate;
-
-        // Calculate agency commission (remainder)
-        $agencyCommission = $totalClientCharge - $caregiverEarnings - $marketingCommission - $trainingCommission;
 
         // Update time tracking record with all earnings
         $timeTracking->update([
-            'caregiver_earnings' => $caregiverEarnings,
+            'caregiver_earnings' => $providerEarnings, // Field stores provider earnings for both types
             'marketing_partner_id' => $marketingPartnerId,
             'marketing_partner_commission' => $marketingCommission > 0 ? $marketingCommission : null,
             'training_center_user_id' => $trainingCenterId,
@@ -353,5 +470,113 @@ class TimeTrackingController extends Controller
         return TimeTracking::where('caregiver_id', $caregiverId)
             ->whereBetween('work_date', [$startOfWeek->toDateString(), $endOfWeek->toDateString()])
             ->sum('hours_worked') ?? 0;
+    }
+
+    /**
+     * Housekeeper-specific: Get current active session
+     */
+    public function getHousekeeperCurrentSession($housekeeperId)
+    {
+        $activeSession = TimeTracking::where('housekeeper_id', $housekeeperId)
+            ->where('status', 'active')
+            ->whereNull('clock_out_time')
+            ->with(['client.user'])
+            ->first();
+
+        if (!$activeSession) {
+            return response()->json(['active_session' => null]);
+        }
+
+        return response()->json([
+            'active_session' => [
+                'id' => $activeSession->id,
+                'clock_in_time' => $activeSession->clock_in_time,
+                'location' => $activeSession->location,
+                'client_name' => $activeSession->client ? $activeSession->client->user->name : 'N/A',
+                'current_duration' => $activeSession->getCurrentDuration()
+            ]
+        ]);
+    }
+
+    /**
+     * Housekeeper-specific: Get today's summary
+     */
+    public function getHousekeeperTodaySummary($housekeeperId)
+    {
+        $today = Carbon::now()->toDateString();
+        
+        // Get all sessions for today
+        $todaySessions = TimeTracking::where('housekeeper_id', $housekeeperId)
+            ->where('work_date', $today)
+            ->orderBy('clock_in_time', 'desc')
+            ->get();
+            
+        if ($todaySessions->isEmpty()) {
+            return response()->json([
+                'total_hours' => 0,
+                'sessions_count' => 0,
+                'last_session' => null
+            ]);
+        }
+        
+        $totalHours = $todaySessions->sum('hours_worked');
+        $lastSession = $todaySessions->first();
+        
+        return response()->json([
+            'total_hours' => $totalHours,
+            'sessions_count' => $todaySessions->count(),
+            'last_session' => [
+                'clock_in' => $lastSession->clock_in_time->format('g:i A'),
+                'clock_out' => $lastSession->clock_out_time ? $lastSession->clock_out_time->format('g:i A') : null,
+                'hours_worked' => $lastSession->hours_worked,
+                'status' => $lastSession->status
+            ]
+        ]);
+    }
+
+    /**
+     * Housekeeper-specific: Get weekly history
+     */
+    public function getHousekeeperWeeklyHistory($housekeeperId)
+    {
+        $startOfWeek = Carbon::now()->startOfWeek();
+        $endOfWeek = Carbon::now()->endOfWeek();
+
+        $sessions = TimeTracking::where('housekeeper_id', $housekeeperId)
+            ->whereBetween('work_date', [$startOfWeek->toDateString(), $endOfWeek->toDateString()])
+            ->orderBy('work_date', 'desc')
+            ->get();
+
+        $weeklyData = [];
+        $totalHours = 0;
+
+        foreach ($sessions as $session) {
+            $date = Carbon::parse($session->work_date);
+            $dayName = $date->format('D');
+            $dateFormatted = $date->format('M j');
+            
+            if (!isset($weeklyData[$session->work_date])) {
+                $weeklyData[$session->work_date] = [
+                    'day' => $dayName,
+                    'date' => $dateFormatted,
+                    'sessions' => [],
+                    'total_hours' => 0
+                ];
+            }
+
+            $hours = $session->hours_worked ?? $session->getCurrentDuration();
+            $weeklyData[$session->work_date]['sessions'][] = [
+                'clock_in' => $session->clock_in_time ? $session->clock_in_time->format('g:i A') : null,
+                'clock_out' => $session->clock_out_time ? $session->clock_out_time->format('g:i A') : 'In Progress',
+                'hours' => $hours
+            ];
+            $weeklyData[$session->work_date]['total_hours'] += $hours;
+            $totalHours += $hours;
+        }
+
+        return response()->json([
+            'weekly_data' => array_values($weeklyData),
+            'total_hours' => round($totalHours, 2)
+        ]);
     }
 }

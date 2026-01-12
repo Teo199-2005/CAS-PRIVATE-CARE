@@ -10,11 +10,19 @@
     header-subtitle="Professional caregiving services at your fingertips"
     :nav-items="navItems"
     :current-section="currentSection"
-    @section-change="currentSection = $event"
+    @section-change="handleSectionChange"
     @logout="logout"
   >
     <template #header-left>
-      <v-btn color="success" size="x-large" prepend-icon="mdi-calendar-check" class="book-now-btn" @click="attemptBooking">Book Now</v-btn>
+      <v-btn 
+        color="success" 
+        size="x-large" 
+        prepend-icon="mdi-calendar-check" 
+        class="book-now-btn" 
+        @click="attemptBooking"
+      >
+        Book Now
+      </v-btn>
     </template>
 
     <!-- Email Verification Banner -->
@@ -195,7 +203,14 @@
                       <div v-if="confirmedBookings.length === 0" class="text-center pa-8">
                         <v-icon size="48" color="grey-lighten-2" class="mb-3">mdi-check-circle</v-icon>
                         <p class="text-grey mb-4">No approved bookings</p>
-                        <v-btn color="primary" variant="outlined" size="small" @click="attemptBooking">Book Service</v-btn>
+                        <v-btn 
+                          color="primary" 
+                          variant="outlined" 
+                          size="small" 
+                          @click="attemptBooking"
+                        >
+                          Book Service
+                        </v-btn>
                       </div>
                       <div v-else>
                         <div v-for="booking in confirmedBookings.slice(0, 3)" :key="booking.id" class="contract-item pa-4 border-b">
@@ -476,7 +491,7 @@
                           <label class="field-label">Service Type *</label>
                           <v-select 
                             v-model="bookingData.serviceType" 
-                            :items="['Caregiver']" 
+                            :items="['Caregiver', 'Housekeeping']" 
                             variant="outlined" 
                             density="comfortable" 
                             :rules="[v => !!v || 'Service type is required']"
@@ -870,7 +885,7 @@
                       variant="flat"
                       size="x-large" 
                       class="submit-btn" 
-                      @click="submitBooking"
+                      @click="openTermsModal"
             :disabled="isSubmittingBooking"
                     >
                       <v-icon start>mdi-check</v-icon>
@@ -885,6 +900,305 @@
               </v-form>
             </v-card-text>
           </v-card>
+
+          <!-- Terms & Conditions Modal -->
+          <v-dialog v-model="showTermsModal" persistent max-width="900px" class="terms-dialog">
+            <v-card class="terms-card">
+              <!-- Modal Header -->
+              <v-card-title class="terms-header">
+                <div class="terms-header-content">
+                  <img src="/logo flower.png" alt="CAS Private Care" class="terms-logo" />
+                  <div class="terms-header-text">
+                    <h2 class="terms-title">Service Agreement & Terms</h2>
+                    <p class="terms-subtitle">Please read carefully before proceeding</p>
+                  </div>
+                </div>
+              </v-card-title>
+
+              <!-- Modal Body with Contract -->
+              <v-card-text class="terms-body">
+                <div class="contract-scroll-container" ref="contractScrollContainer" @scroll="handleContractScroll">
+                  <div class="contract-watermark">CAS PRIVATE CARE</div>
+                  <div class="contract-content">
+                    
+                    <div class="contract-section">
+                      <h3 class="contract-heading">1. SERVICE AGREEMENT</h3>
+                      <p class="contract-text">
+                        This Service Agreement ("Agreement") is entered into between CAS Private Care, Inc. ("Agency," "we," "us," or "our") and the client requesting services ("Client," "you," or "your"). By submitting this booking request, you acknowledge that you have read, understood, and agree to be bound by all terms and conditions outlined in this Agreement.
+                      </p>
+                    </div>
+
+                    <div class="contract-section">
+                      <h3 class="contract-heading">2. SCOPE OF SERVICES</h3>
+                      <p class="contract-text">
+                        CAS Private Care provides non-medical home care services including but not limited to: companionship, personal care assistance, meal preparation, light housekeeping, medication reminders, transportation assistance, and specialized care for clients with specific needs. All services are provided by qualified, trained, and background-checked caregivers.
+                      </p>
+                    </div>
+
+                    <div class="contract-section">
+                      <h3 class="contract-heading">3. BOOKING PROCESS & APPROVAL</h3>
+                      <p class="contract-text">
+                        All booking requests are subject to review and approval by CAS Private Care administrative staff. Submission of this form does not guarantee service availability. We will contact you within 24-48 business hours to confirm your request, discuss caregiver matching, and finalize scheduling details. Service commencement is contingent upon caregiver availability and completion of all required documentation.
+                      </p>
+                    </div>
+
+                    <div class="contract-section">
+                      <h3 class="contract-heading">4. PRICING & PAYMENT TERMS</h3>
+                      <p class="contract-text">
+                        <strong>Hourly Rate Structure:</strong> The standard hourly rate is $45.00 per hour, which includes: $28.00 caregiver compensation, $16.50 agency fee (covering insurance, training, background checks, supervision, and administrative support), and $0.50 training development fund.
+                      </p>
+                      <p class="contract-text">
+                        <strong>Payment Schedule:</strong> Payment is required in advance for each service period. Invoices will be generated based on scheduled hours and sent via email. Payment must be received before services commence for each period. Accepted payment methods include credit/debit cards, ACH bank transfers, and approved payment plans for qualified clients.
+                      </p>
+                      <p class="contract-text">
+                        <strong>Processing Fees:</strong> Credit card payments are subject to a processing fee of 2.9% + $0.30 for domestic cards and 4.9% + $0.30 for international cards, charged by our payment processor (Stripe). These fees will be clearly itemized on your invoice.
+                      </p>
+                    </div>
+
+                    <div class="contract-section">
+                      <h3 class="contract-heading">5. CANCELLATION & REFUND POLICY</h3>
+                      <p class="contract-text">
+                        <strong>Client Cancellations:</strong> You may cancel scheduled services with at least 24 hours' notice without penalty. Cancellations made with less than 24 hours' notice will be charged at 50% of the scheduled service cost. No-shows or cancellations made less than 4 hours before the scheduled service time will be charged at 100% of the scheduled cost.
+                      </p>
+                      <p class="contract-text">
+                        <strong>Agency Cancellations:</strong> In the unlikely event that we must cancel services due to caregiver unavailability or unforeseen circumstances, we will provide as much advance notice as possible and work diligently to arrange alternative coverage. If alternative coverage cannot be secured, no charges will be applied for the cancelled service period.
+                      </p>
+                      <p class="contract-text">
+                        <strong>Refunds:</strong> Refunds for prepaid services will be processed within 7-10 business days of approved cancellation requests. Refunds are issued to the original payment method. Processing fees are non-refundable.
+                      </p>
+                    </div>
+
+                    <div class="contract-section">
+                      <h3 class="contract-heading">6. SERVICE MODIFICATIONS</h3>
+                      <p class="contract-text">
+                        Changes to scheduled services (including dates, times, duration, or specific care requirements) must be requested at least 48 hours in advance. We will make every reasonable effort to accommodate modification requests, subject to caregiver availability. Significant changes may require reassignment to a different caregiver or adjustment to pricing.
+                      </p>
+                    </div>
+
+                    <div class="contract-section">
+                      <h3 class="contract-heading">7. CAREGIVER MATCHING & REPLACEMENT</h3>
+                      <p class="contract-text">
+                        We carefully match caregivers to clients based on skills, experience, personality, language preferences, and specific care needs. If you are not satisfied with your assigned caregiver for any reason, please notify us immediately. We will work promptly to assign a more suitable caregiver at no additional cost. We request that you give new caregiver assignments a fair trial period of at least 2-3 visits before requesting another change.
+                      </p>
+                    </div>
+
+                    <div class="contract-section">
+                      <h3 class="contract-heading">8. CLIENT RESPONSIBILITIES</h3>
+                      <p class="contract-text">
+                        You agree to: (a) Provide accurate and complete information about care needs, medical conditions, and home environment; (b) Maintain a safe and respectful environment for caregivers; (c) Inform us immediately of any changes in care requirements or health status; (d) Ensure timely payment for services rendered; (e) Treat caregivers with dignity and respect; (f) Not engage in harassment, discrimination, or inappropriate behavior toward caregivers; (g) Provide necessary supplies and equipment for care delivery; (h) Grant caregivers reasonable access to necessary areas of your home.
+                      </p>
+                    </div>
+
+                    <div class="contract-section">
+                      <h3 class="contract-heading">9. AGENCY RESPONSIBILITIES</h3>
+                      <p class="contract-text">
+                        CAS Private Care agrees to: (a) Provide qualified, trained, and background-checked caregivers; (b) Maintain appropriate licensing and insurance coverage; (c) Supervise caregiver performance and conduct regular quality assurance reviews; (d) Respond promptly to concerns or complaints; (e) Replace caregivers when necessary at no additional cost; (f) Maintain confidentiality of your personal and medical information; (g) Comply with all applicable federal, state, and local regulations governing home care services.
+                      </p>
+                    </div>
+
+                    <div class="contract-section">
+                      <h3 class="contract-heading">10. INSURANCE & LIABILITY</h3>
+                      <p class="contract-text">
+                        CAS Private Care maintains comprehensive general liability insurance and workers' compensation insurance for all caregivers. We are not responsible for: (a) Pre-existing medical conditions or health deterioration unrelated to caregiver negligence; (b) Loss or damage to personal property except where directly caused by caregiver negligence; (c) Injuries sustained by the client due to refusal to follow caregiver recommendations or medical advice; (d) Services provided outside the scope of our agreed-upon care plan.
+                      </p>
+                    </div>
+
+                    <div class="contract-section">
+                      <h3 class="contract-heading">11. MEDICAL LIMITATIONS</h3>
+                      <p class="contract-text">
+                        Our caregivers are <strong>NOT</strong> licensed medical professionals and cannot: (a) Administer injections or IV medications; (b) Perform wound care requiring medical training; (c) Make medical diagnoses or treatment decisions; (d) Operate complex medical equipment without proper training and authorization; (e) Provide services requiring a licensed nurse or medical professional. We can provide medication reminders but cannot force or coerce medication compliance.
+                      </p>
+                    </div>
+
+                    <div class="contract-section">
+                      <h3 class="contract-heading">12. EMERGENCY PROCEDURES</h3>
+                      <p class="contract-text">
+                        In case of a medical emergency, our caregivers are trained to: (a) Call 911 immediately; (b) Contact emergency contacts provided by you; (c) Notify CAS Private Care management; (d) Provide basic first aid if trained and appropriate; (e) Accompany the client to the hospital if possible and appropriate. You are responsible for ensuring we have current emergency contact information at all times.
+                      </p>
+                    </div>
+
+                    <div class="contract-section">
+                      <h3 class="contract-heading">13. PRIVACY & CONFIDENTIALITY</h3>
+                      <p class="contract-text">
+                        We are committed to protecting your privacy in accordance with HIPAA and applicable state privacy laws. Your personal information, medical information, and service details will be kept strictly confidential and shared only with: (a) Assigned caregivers on a need-to-know basis; (b) Relevant agency staff for service coordination; (c) Authorized third parties with your explicit written consent; (d) Legal authorities when required by law. Our full Privacy Policy is available upon request.
+                      </p>
+                    </div>
+
+                    <div class="contract-section">
+                      <h3 class="contract-heading">14. COMPLAINT RESOLUTION</h3>
+                      <p class="contract-text">
+                        If you have any concerns or complaints about services, please contact us immediately at (555) 123-4567 or admin@casprivatecare.com. We take all complaints seriously and will: (a) Acknowledge receipt within 24 hours; (b) Investigate thoroughly; (c) Provide a written response within 5 business days; (d) Take appropriate corrective action; (e) Follow up to ensure resolution. You also have the right to contact your state's home care licensing authority with complaints.
+                      </p>
+                    </div>
+
+                    <div class="contract-section">
+                      <h3 class="contract-heading">15. TERMINATION</h3>
+                      <p class="contract-text">
+                        Either party may terminate services with 48 hours' written notice. CAS Private Care reserves the right to terminate services immediately if: (a) Payment obligations are not met; (b) The client or household members engage in abusive, threatening, or inappropriate behavior toward caregivers; (c) Unsafe conditions exist in the home; (d) The client's care needs exceed our service capabilities; (e) The client violates material terms of this Agreement. Upon termination, you will be charged for all services rendered up to the termination date.
+                      </p>
+                    </div>
+
+                    <div class="contract-section">
+                      <h3 class="contract-heading">16. DISPUTE RESOLUTION & ARBITRATION</h3>
+                      <p class="contract-text">
+                        Any disputes arising from this Agreement shall first be attempted to be resolved through good-faith negotiation. If negotiation is unsuccessful, disputes shall be resolved through binding arbitration in accordance with the rules of the American Arbitration Association. The arbitration shall take place in [Your County/State]. Each party shall bear their own costs and fees, with the arbitrator's fees split equally. The prevailing party may be awarded reasonable attorney's fees at the arbitrator's discretion.
+                      </p>
+                    </div>
+
+                    <div class="contract-section">
+                      <h3 class="contract-heading">17. INDEPENDENT CONTRACTOR RELATIONSHIP</h3>
+                      <p class="contract-text">
+                        CAS Private Care is an independent contractor, not an employee or agent of the Client. Caregivers are employees or contractors of CAS Private Care, not of the Client. You may not directly hire, contract with, or employ any caregiver introduced to you by CAS Private Care during the term of service and for a period of 12 months following termination, without paying a placement fee equal to 20% of the caregiver's estimated annual compensation.
+                      </p>
+                    </div>
+
+                    <div class="contract-section">
+                      <h3 class="contract-heading">18. GOVERNING LAW & VENUE</h3>
+                      <p class="contract-text">
+                        This Agreement shall be governed by and construed in accordance with the laws of the State of [Your State], without regard to conflicts of law principles. Any legal actions not subject to arbitration shall be brought exclusively in the state or federal courts located in [Your County], [Your State].
+                      </p>
+                    </div>
+
+                    <div class="contract-section">
+                      <h3 class="contract-heading">19. ENTIRE AGREEMENT & MODIFICATIONS</h3>
+                      <p class="contract-text">
+                        This Agreement constitutes the entire agreement between you and CAS Private Care regarding home care services and supersedes all prior agreements, understandings, and representations, whether oral or written. We reserve the right to modify this Agreement at any time by providing written notice. Continued use of services after modification constitutes acceptance of the modified terms. Material changes will require your explicit acknowledgment.
+                      </p>
+                    </div>
+
+                    <div class="contract-section">
+                      <h3 class="contract-heading">20. ACCEPTANCE & ELECTRONIC SIGNATURE</h3>
+                      <p class="contract-text">
+                        By clicking "I Accept & Agree" below, you acknowledge that: (a) You have read and understood all terms and conditions; (b) You agree to be legally bound by this Agreement; (c) Your electronic acceptance constitutes a legally binding signature equivalent to a handwritten signature; (d) You are authorized to enter into this Agreement on behalf of yourself or the person receiving care; (e) All information provided in your booking request is accurate and complete to the best of your knowledge.
+                      </p>
+                    </div>
+
+                    <div class="contract-signature-block">
+                      <p class="contract-text"><strong>Document Date:</strong> {{ new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) }}</p>
+                      <p class="contract-text"><strong>Agreement Version:</strong> 2.1 (Effective January 2025)</p>
+                      <p class="contract-text"><strong>Client Name:</strong> {{ props.userData?.name || 'Guest User' }}</p>
+                      <p class="contract-text"><strong>Client Email:</strong> {{ props.userData?.email || 'Not Available' }}</p>
+                    </div>
+
+                  </div>
+                </div>
+              </v-card-text>
+
+              <!-- Modal Footer with Checkboxes and Buttons -->
+              <v-card-actions class="terms-footer">
+                <div class="terms-footer-content">
+                  <!-- Scroll Warning (shown until scrolled to bottom) -->
+                  <div v-if="!hasScrolledToBottom" class="scroll-warning">
+                    <v-icon color="warning" size="20">mdi-arrow-down-circle</v-icon>
+                    <span>Please scroll down to read the complete agreement</span>
+                  </div>
+
+                  <!-- Confirmation Checkboxes (enabled after scrolling) -->
+                  <div class="confirmation-checkboxes" :class="{ 'disabled': !hasScrolledToBottom }">
+                    <v-checkbox
+                      v-model="hasReadTerms"
+                      :disabled="!hasScrolledToBottom"
+                      density="comfortable"
+                      color="primary"
+                      hide-details
+                    >
+                      <template v-slot:label>
+                        <span class="checkbox-label">
+                          I have read and understood all 20 sections of this Service Agreement
+                        </span>
+                      </template>
+                    </v-checkbox>
+
+                    <v-checkbox
+                      v-model="acceptsTerms"
+                      :disabled="!hasScrolledToBottom || !hasReadTerms"
+                      density="comfortable"
+                      color="primary"
+                      hide-details
+                    >
+                      <template v-slot:label>
+                        <span class="checkbox-label">
+                          I agree to be legally bound by these terms and conditions
+                        </span>
+                      </template>
+                    </v-checkbox>
+                  </div>
+
+                  <!-- Action Buttons -->
+                  <div class="terms-actions">
+                    <v-btn
+                      variant="outlined"
+                      size="large"
+                      @click="closeTermsModal"
+                      :disabled="isSubmittingBooking"
+                    >
+                      <v-icon start>mdi-close</v-icon>
+                      Cancel
+                    </v-btn>
+                    <v-btn
+                      variant="flat"
+                      size="large"
+                      color="primary"
+                      @click="acceptTermsAndSubmit"
+                      :disabled="!acceptsTerms || !hasReadTerms || isSubmittingBooking"
+                    >
+                      <v-icon start>mdi-check-circle</v-icon>
+                      {{ isSubmittingBooking ? 'Submitting...' : 'I Accept & Agree - Submit Booking' }}
+                    </v-btn>
+                  </div>
+
+                  <!-- Legal Footer -->
+                  <div class="legal-footer">
+                    <v-icon size="16" color="grey">mdi-shield-check</v-icon>
+                    <span>Your electronic acceptance is legally binding and will be recorded</span>
+                  </div>
+                </div>
+              </v-card-actions>
+            </v-card>
+          </v-dialog>
+
+          <!-- Booking Submission Processing Modal -->
+          <v-dialog v-model="bookingSubmissionDialog" max-width="500" persistent>
+            <v-card style="border-radius: 16px; overflow: hidden;">
+              <v-card-text class="pa-8 text-center">
+                <div v-if="bookingSubmissionStatus === 'submitting'">
+                  <v-progress-circular
+                    :size="80"
+                    :width="6"
+                    color="primary"
+                    indeterminate
+                    class="mb-4"
+                  ></v-progress-circular>
+                  <h2 class="text-h5 font-weight-bold mb-2" style="color: #1976d2;">Submitting Your Booking</h2>
+                  <p class="text-grey mb-0">Please wait while we process your service request...</p>
+                </div>
+                
+                <div v-else-if="bookingSubmissionStatus === 'success'" class="success-animation">
+                  <div class="checkmark-circle">
+                    <v-icon size="80" color="success" class="checkmark-icon">mdi-check-circle</v-icon>
+                  </div>
+                  <h2 class="text-h5 font-weight-bold mb-2 mt-4" style="color: #10b981;">Booking Submitted Successfully!</h2>
+                  <p class="text-grey mb-0">We'll review your request and contact you within 24-48 hours.</p>
+                </div>
+                
+                <div v-else-if="bookingSubmissionStatus === 'error'" class="error-animation">
+                  <div class="error-circle">
+                    <v-icon size="80" color="error" class="error-icon">mdi-close-circle</v-icon>
+                  </div>
+                  <h2 class="text-h5 font-weight-bold mb-2 mt-4" style="color: #ef4444;">Submission Failed</h2>
+                  <p class="text-grey mb-2">{{ bookingSubmissionError }}</p>
+                  <v-btn
+                    color="primary"
+                    variant="outlined"
+                    class="mt-4"
+                    @click="bookingSubmissionDialog = false; showTermsModal = true;"
+                  >
+                    Try Again
+                  </v-btn>
+                </div>
+              </v-card-text>
+            </v-card>
+          </v-dialog>
         </div>
 
         <!-- My Bookings Section -->
@@ -2107,7 +2421,7 @@
         <v-card-text class="pa-4 pa-sm-6">
           <v-row>
             <v-col cols="12" md="6">
-              <v-select v-model="editBookingData.serviceType" :items="['Caregiver', 'Elderly Care', 'Personal Care', 'Childcare', 'Companion Care']" label="Service Type" variant="outlined" />
+              <v-select v-model="editBookingData.serviceType" :items="['Caregiver', 'Housekeeping', 'Elderly Care', 'Personal Care', 'Childcare', 'Companion Care']" label="Service Type" variant="outlined" />
             </v-col>
             <v-col cols="12" md="6">
               <v-select v-model="editBookingData.dutyType" :items="['8 Hours per Day', '12 Hours per Day', '24 Hours per Day']" label="Hours per Day" variant="outlined" />
@@ -2383,6 +2697,133 @@
       :caregivers="caregiversToRate"
       @submitted="handleRatingSubmitted"
     />
+
+    <!-- Pending Booking Restriction Modal -->
+    <v-dialog v-model="showPendingRestrictionModal" max-width="600" persistent>
+      <v-card class="restriction-modal-card" style="border-radius: 16px; overflow: hidden;">
+        <!-- Header with Branding -->
+        <v-card-title class="pending-restriction-header">
+          <div class="d-flex align-center gap-3 restriction-header-content">
+            <img src="/logo flower.png" alt="CAS Private Care" class="restriction-logo" />
+            <div>
+              <h2 class="restriction-title">Booking Currently Unavailable</h2>
+              <p class="restriction-subtitle">One booking at a time policy</p>
+            </div>
+          </div>
+        </v-card-title>
+
+        <!-- Content -->
+        <v-card-text class="pa-6 pa-sm-8">
+          <div class="text-center mb-6 restriction-main-content">
+            <div class="warning-icon-wrapper">
+              <v-icon 
+                :size="$vuetify.display.xs ? 60 : 80" 
+                :color="bookingRestrictionType === 'approved' ? 'success' : 'warning'" 
+                class="warning-icon mb-4"
+              >
+                {{ bookingRestrictionType === 'approved' ? 'mdi-check-circle-outline' : 'mdi-clock-alert-outline' }}
+              </v-icon>
+            </div>
+            <h3 class="text-h6 font-weight-bold mb-3 restriction-heading" style="color: #1976d2;">
+              {{ bookingRestrictionType === 'approved' ? 'You Have an Ongoing Contract' : 'You Have a Pending Booking Request' }}
+            </h3>
+            <p class="text-body-1 text-sm-body-1 text-xs-body-2 mb-4 restriction-description" style="color: #616161; line-height: 1.7;">
+              <template v-if="bookingRestrictionType === 'approved'">
+                You currently have an active contract in progress. 
+                To ensure quality service and prevent scheduling conflicts, we allow <strong>one booking at a time</strong>. 
+                You can book again once your current contract is completed.
+              </template>
+              <template v-else>
+                We've received your service request and our admin team is currently reviewing it. 
+                To ensure quality service and prevent scheduling conflicts, we allow <strong>one booking at a time</strong>.
+              </template>
+            </p>
+          </div>
+
+          <v-divider class="my-4"></v-divider>
+
+          <div class="info-section">
+            <!-- Approved Booking Info -->
+            <template v-if="bookingRestrictionType === 'approved'">
+              <div class="info-item d-flex align-start mb-3 info-item-1">
+                <v-icon color="success" class="mr-3 info-icon flex-shrink-0">mdi-check-decagram</v-icon>
+                <div>
+                  <strong>Active Contract:</strong> 
+                  <span class="text-grey-darken-1">Your booking has been approved and is currently active</span>
+                </div>
+              </div>
+              <div class="info-item d-flex align-start mb-3 info-item-2">
+                <v-icon color="success" class="mr-3 info-icon flex-shrink-0">mdi-calendar-clock</v-icon>
+                <div>
+                  <strong>Service Duration:</strong> 
+                  <span class="text-grey-darken-1">Your caregiving service is in progress as scheduled</span>
+                </div>
+              </div>
+              <div class="info-item d-flex align-start info-item-3">
+                <v-icon color="success" class="mr-3 info-icon flex-shrink-0">mdi-calendar-plus</v-icon>
+                <div>
+                  <strong>Book Again:</strong> 
+                  <span class="text-grey-darken-1">You'll be able to submit new requests once your current contract ends</span>
+                </div>
+              </div>
+            </template>
+
+            <!-- Pending Booking Info -->
+            <template v-else>
+              <div class="info-item d-flex align-start mb-3 info-item-1">
+                <v-icon color="primary" class="mr-3 info-icon flex-shrink-0">mdi-clock-check-outline</v-icon>
+                <div>
+                  <strong>Review Timeline:</strong> 
+                  <span class="text-grey-darken-1">We'll review your request within 24-48 business hours</span>
+                </div>
+              </div>
+              <div class="info-item d-flex align-start mb-3 info-item-2">
+                <v-icon color="primary" class="mr-3 info-icon flex-shrink-0">mdi-email-outline</v-icon>
+                <div>
+                  <strong>Stay Updated:</strong> 
+                  <span class="text-grey-darken-1">You'll receive an email notification once your booking is approved or if we need more information</span>
+                </div>
+              </div>
+              <div class="info-item d-flex align-start info-item-3">
+                <v-icon color="primary" class="mr-3 info-icon flex-shrink-0">mdi-calendar-check</v-icon>
+                <div>
+                  <strong>After Approval:</strong> 
+                  <span class="text-grey-darken-1">Once approved, you'll be able to submit new booking requests</span>
+                </div>
+              </div>
+            </template>
+          </div>
+
+          <v-divider class="my-4"></v-divider>
+
+          <div class="gratitude-section text-center">
+            <p class="text-body-2 mb-2 gratitude-text" style="color: #757575; font-style: italic;">
+              <v-icon size="18" color="success" class="heart-icon">mdi-heart</v-icon>
+              Thank you for choosing CAS Private Care
+            </p>
+            <p class="text-caption" style="color: #9e9e9e;">
+              We appreciate your patience and trust in our services
+            </p>
+          </div>
+        </v-card-text>
+
+        <!-- Actions -->
+        <v-card-actions class="pa-4 pa-sm-6 pt-0 restriction-actions">
+          <v-spacer></v-spacer>
+          <v-btn
+            variant="flat"
+            :size="$vuetify.display.xs ? 'default' : 'large'"
+            color="primary"
+            @click="showPendingRestrictionModal = false"
+            class="restriction-btn-close"
+          >
+            <v-icon start>mdi-check</v-icon>
+            Got It
+          </v-btn>
+          <v-spacer></v-spacer>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </dashboard-template>
 </template>
 
@@ -2733,49 +3174,63 @@ const zipCodeMap = {
 
 const lookupZipCode = async () => {
   const zip = bookingData.value.zipcode;
-  if (zip && zip.length === 5 && /^\d{5}$/.test(zip)) {
-    // Try API lookup first (supports all NY ZIP codes)
-    try {
-      const response = await fetch(`/api/zipcode-lookup/${zip}`);
-      if (response.ok) {
-        const data = await response.json();
-        if (data.success && data.location) {
-          zipCodeLocation.value = data.location;
-          return;
-        }
+  
+  if (!zip || zip.length !== 5 || !/^\d{5}$/.test(zip)) {
+    zipCodeLocation.value = '';
+    return;
+  }
+
+  // Try API lookup first (supports all NY ZIP codes)
+  try {
+    zipCodeLocation.value = 'Looking up location…';
+    const response = await fetch(`/api/zipcode-lookup/${zip}`);
+    
+    if (response.ok) {
+      const data = await response.json();
+      if (data.success && data.location) {
+        zipCodeLocation.value = data.location;
+        return;
       }
-    } catch (error) {
     }
     
-  // Fallback to static map (avoid misleading default like "New York, NY")
-  zipCodeLocation.value = zipCodeMap[zip] || '';
-  } else {
-    zipCodeLocation.value = '';
+    // API returned error or no location found
+    zipCodeLocation.value = 'ZIP not found';
+  } catch (error) {
+    console.error('ZIP code lookup error:', error);
+    // Fallback to static map
+    zipCodeLocation.value = zipCodeMap[zip] || 'ZIP not found';
   }
 };
 
 const lookupProfileZipCode = async () => {
   const zip = profileData.value.zip;
-  if (zip && zip.length === 5 && /^\d{5}$/.test(zip)) {
-    // Try API lookup first (supports all NY ZIP codes)
-    try {
-      const response = await fetch(`/api/zipcode-lookup/${zip}`);
-      if (response.ok) {
-        const data = await response.json();
-        if (data.success && data.location) {
-          profileZipLocation.value = data.location;
-          return;
-        }
+  
+  if (!zip || zip.length !== 5 || !/^\d{5}$/.test(zip)) {
+    profileZipLocation.value = '';
+    return;
+  }
+
+  // Try API lookup first (supports all NY ZIP codes)
+  try {
+    profileZipLocation.value = 'Looking up location…';
+    const response = await fetch(`/api/zipcode-lookup/${zip}`);
+    
+    if (response.ok) {
+      const data = await response.json();
+      if (data.success && data.location) {
+        profileZipLocation.value = data.location;
+        return;
       }
-    } catch (error) {
     }
     
-  // Fallback to static map (avoid misleading default like "New York, NY")
-  profileZipLocation.value = zipCodeMap[zip] || '';
-  } else {
-    profileZipLocation.value = '';
+    // API returned error or no location found
+    profileZipLocation.value = 'ZIP not found';
+  } catch (error) {
+    console.error('Profile ZIP code lookup error:', error);
+    // Fallback to static map
+    profileZipLocation.value = zipCodeMap[zip] || 'ZIP not found';
   }
-};
+};;
 
 const onProfileCountyChange = (county) => {
   profileData.value.city = ''; // Reset city when county changes
@@ -3302,6 +3757,32 @@ const bookingSubmitIdempotencyKey = ref(
     : String(Date.now()) + '-' + Math.random().toString(16).slice(2)
 );
 
+// Terms & Conditions Modal State
+const showTermsModal = ref(false);
+const hasScrolledToBottom = ref(false);
+const hasReadTerms = ref(false);
+const acceptsTerms = ref(false);
+const contractScrollContainer = ref(null);
+
+// Booking Submission Modal State
+const bookingSubmissionDialog = ref(false);
+const bookingSubmissionStatus = ref('submitting'); // 'submitting', 'success', 'error'
+const bookingSubmissionError = ref('');
+
+// Pending Booking Restriction Modal
+const showPendingRestrictionModal = ref(false);
+
+// Computed property to determine booking restriction type
+const bookingRestrictionType = computed(() => {
+  if (confirmedBookings.value.length > 0) {
+    return 'approved';
+  }
+  if (pendingBookings.value.length > 0) {
+    return 'pending';
+  }
+  return null;
+});
+
 const loadMyBookings = async () => {
   try {
     loadingBookings.value = true;
@@ -3353,15 +3834,9 @@ const loadMyBookings = async () => {
           const hoursMatch = (booking.duty_type || '8 Hours Duty').match(/(\d+)\s*Hours?/i);
           const hoursPerDay = hoursMatch ? parseInt(hoursMatch[1]) : 8;
           
-          // Calculate required caregivers based on duty hours
-          // 8 hours = 1 caregiver, 12 hours = 2 caregivers, 24 hours = 3 caregivers
-          let requiredCount = 1;
-          if (hoursPerDay === 8) requiredCount = 1;
-          else if (hoursPerDay === 12) requiredCount = 2;
-          else if (hoursPerDay === 24) requiredCount = 3;
-          else if (hoursPerDay < 12) requiredCount = 1;
-          else if (hoursPerDay < 24) requiredCount = 2;
-          else requiredCount = 3;
+          // Each booking requires 1 caregiver assignment regardless of duty hours
+          // The duty hours just determine the shift length (8, 12, or 24 hours)
+          const requiredCount = 1;
           
           const durationDays = booking.duration_days || 15;
           const assignedCount = booking.assignments?.length || 0;
@@ -3489,6 +3964,47 @@ const formatTimeTo12Hour = (time24) => {
   return `${hour}:${minute} ${ampm}`;
 };
 
+// Terms & Conditions Modal Functions
+const openTermsModal = () => {
+  // Reset modal state
+  hasScrolledToBottom.value = false;
+  hasReadTerms.value = false;
+  acceptsTerms.value = false;
+  showTermsModal.value = true;
+};
+
+const closeTermsModal = () => {
+  showTermsModal.value = false;
+};
+
+const handleContractScroll = (event) => {
+  const container = event.target;
+  const scrollTop = container.scrollTop;
+  const scrollHeight = container.scrollHeight;
+  const clientHeight = container.clientHeight;
+  
+  // Check if scrolled to bottom (with 5px tolerance)
+  if (scrollTop + clientHeight >= scrollHeight - 5) {
+    hasScrolledToBottom.value = true;
+  }
+};
+
+const acceptTermsAndSubmit = async () => {
+  if (!hasReadTerms.value || !acceptsTerms.value) {
+    return;
+  }
+  
+  // Close terms modal
+  showTermsModal.value = false;
+  
+  // Show submission modal
+  bookingSubmissionStatus.value = 'submitting';
+  bookingSubmissionDialog.value = true;
+  
+  // Submit the booking
+  await submitBooking();
+};
+
 const submitBooking = async () => {
   if (isSubmittingBooking.value) {
     return;
@@ -3608,7 +4124,10 @@ const submitBooking = async () => {
     });
     
     if (response.ok) {
-      success('Booking submitted successfully!');
+      // Show success animation
+      bookingSubmissionStatus.value = 'success';
+      
+      // Reset form
       bookingData.value = {
         serviceType: '',
         dutyType: '',
@@ -3636,17 +4155,25 @@ const submitBooking = async () => {
         notes: '',
         referralCode: ''
       };
+      
       // Refresh bookings data
       await loadMyBookings();
       await loadCompletedBookings();
       await loadOngoingContracts();
-      currentSection.value = 'my-bookings';
+      
+      // Wait 2 seconds to show success animation, then redirect
+      setTimeout(() => {
+        bookingSubmissionDialog.value = false;
+        currentSection.value = 'my-bookings';
+      }, 2000);
     } else {
       const errorData = await response.json();
-      alert('Error: ' + (errorData.message || 'Failed to submit booking'));
+      bookingSubmissionStatus.value = 'error';
+      bookingSubmissionError.value = errorData.message || 'Failed to submit booking. Please try again.';
     }
   } catch (error) {
-    alert('Error submitting booking. Please try again.');
+    bookingSubmissionStatus.value = 'error';
+    bookingSubmissionError.value = 'Error submitting booking. Please try again.';
   } finally {
     // Reset submit lock and idempotency key for the next submission
     isSubmittingBooking.value = false;
@@ -3745,28 +4272,28 @@ const attemptBooking = () => {
   const hasApproved = confirmedBookings.value.length > 0;
   
   if (hasPending) {
-    error(
-      'You have a pending booking awaiting approval. Please wait for our admin team to review your request before submitting a new booking.',
-      'Booking Limit Reached'
-    );
-    // Navigate to My Bookings to show pending booking
-    currentSection.value = 'my-bookings';
-    return;
-  }
-  
-  if (hasApproved) {
-    error(
-      'You have an active booking in progress. To prevent scheduling conflicts and ensure quality service, we only allow one active booking at a time. Your current booking will be completed soon.',
-      'Active Booking in Progress'
-    );
-    // Navigate to My Bookings to show approved booking
-    currentSection.value = 'my-bookings';
-    bookingTab.value = 'approved';
-    return;
-  }
-  
-  // All clear, proceed to booking form
+  // Show professional branded modal instead of error notification
+  showPendingRestrictionModal.value = true;
+  return;
+}
+
+if (hasApproved) {
+  // Show professional branded modal for approved bookings too
+  showPendingRestrictionModal.value = true;
+  return;
+}  // All clear, proceed to booking form
   currentSection.value = 'book-form';
+};
+
+// Handle section changes from sidebar navigation
+const handleSectionChange = (section) => {
+  // If trying to navigate to booking form, check restrictions first
+  if (section === 'book-form') {
+    attemptBooking();
+  } else {
+    // For all other sections, navigate normally
+    currentSection.value = section;
+  }
 };
 
 const goToPayment = async (booking) => {
@@ -4036,44 +4563,54 @@ const exportAnalyticsPdf = async () => {
 
 const getServicePrice = (serviceType) => {
   // Pricing breakdown:
-  // With Referral: Caregiver $28 + Agency $10.50 + Marketing $1 + Training $0.50 = $40/hr
-  // Without Referral: Caregiver $28 + Agency $16.50 + Training $0.50 = $45/hr
+  // ALL SERVICES (Caregivers & Housekeepers):
+  //   Without Referral: $45/hr
+  //   With Referral: $40/hr ($5 discount)
+  // Note: Admin assigns provider earnings, agency gets remainder
   const prices = {
     'Caregiver': '$45 per hour',
     'Elderly Care': '$45 per hour',
     'Personal Care': '$45 per hour',
     'Companion Care': '$45 per hour',
     'Childcare': '$45 per hour',
-    'Housekeeping': '$25 per hour', 
-    'House Cleaning': '$25 per hour',
+    'Housekeeping': '$45 per hour', 
+    'House Cleaning': '$45 per hour',
     'Personal Assistant': '$30 per hour'
   };
   return prices[serviceType] || '$45 per hour';
 };
 
+// Get the discount amount per hour based on service type
+const getReferralDiscountAmount = (serviceType) => {
+  // All services get $5/hr discount with referral code (same as caregivers)
+  return 5;
+};
+
 const getHourlyRate = (serviceType) => {
   // PRICING BREAKDOWN:
-  // Without referral (with training center):
-  //   Caregiver $28 + Agency $16.50 + Training $0.50 = $45/hr
-  // Without referral (NO training center):
-  //   Caregiver $28 + Agency $17.00 (gets training's $0.50) = $45/hr
-  // With referral (with training center):
-  //   Caregiver $28 + Agency $10.50 + Marketing $1 + Training $0.50 = $40/hr
-  // With referral (NO training center):
-  //   Caregiver $28 + Agency $11.00 (gets training's $0.50) + Marketing $1 = $40/hr
+  // ALL SERVICES (Caregivers & Housekeepers):
+  //   Without referral: $45/hr
+  //   With referral: $40/hr ($5 discount)
+  // Note: Housekeeper earnings are assigned by admin, agency gets remainder
   const rates = {
     'Caregiver': 45,
     'Elderly Care': 45,
     'Personal Care': 45,
     'Companion Care': 45,
     'Childcare': 45,
-    'Housekeeping': 25,
-    'House Cleaning': 25,
+    'Housekeeping': 45,
+    'House Cleaning': 45,
     'Personal Assistant': 30
   };
   const baseRate = rates[serviceType] || 45;
-  const discountedRate = baseRate - referralDiscount.value;
-  return discountedRate > 0 ? `$${discountedRate}` : `$${baseRate}`;
+  
+  // Apply $5 discount if referral is active
+  if (referralDiscount.value > 0) {
+    const discountAmount = getReferralDiscountAmount(serviceType);
+    const discountedRate = baseRate - discountAmount;
+    return discountedRate > 0 ? `$${discountedRate}` : `$${baseRate}`;
+  }
+  return `$${baseRate}`;
 };
 
 const getOriginalRate = (serviceType) => {
@@ -4083,8 +4620,8 @@ const getOriginalRate = (serviceType) => {
     'Personal Care': 45,
     'Companion Care': 45,
     'Childcare': 45,
-    'Housekeeping': 25,
-    'House Cleaning': 25,
+    'Housekeeping': 45,
+    'House Cleaning': 45,
     'Personal Assistant': 30
   };
   return rates[serviceType] || 45;
@@ -4092,15 +4629,16 @@ const getOriginalRate = (serviceType) => {
 
 // Get default rate for a service type (used in booking details)
 const getDefaultRate = (serviceType) => {
-  // Pricing: Caregiver $28 + Agency $16.50 + Training $0.50 = $45/hr
+  // All services: $45/hr (same as caregivers), Personal Assistant: $30/hr
+  // Housekeeper earnings are assigned by admin, agency gets remainder
   const rates = {
     'Caregiver': 45,
     'Elderly Care': 45,
     'Personal Care': 45,
     'Companion Care': 45,
     'Childcare': 45,
-    'Housekeeping': 25,
-    'House Cleaning': 25,
+    'Housekeeping': 45,
+    'House Cleaning': 45,
     'Personal Assistant': 30
   };
   return rates[serviceType] || 45;
@@ -4126,7 +4664,10 @@ const getTotalSavings = () => {
   
   const hoursPerDay = parseInt(bookingData.value.dutyType.split(' ')[0]) || 0;
   const days = bookingData.value.durationDays || 0;
-  const savings = hoursPerDay * days * referralDiscount.value;
+  
+  // Use service-appropriate discount amount
+  const discountAmount = referralDiscount.value > 0 ? getReferralDiscountAmount(bookingData.value.serviceType) : 0;
+  const savings = hoursPerDay * days * discountAmount;
   
   return savings > 0 ? savings.toLocaleString() : '';
 };
@@ -4136,24 +4677,33 @@ const getTotalCost = () => {
     return '';
   }
   
-  // Pricing: Caregiver $28 + Agency $16.50 + Training $0.50 = $45/hr (no referral)
-  // With referral: Caregiver $28 + Agency $10.50 + Marketing $1 + Training $0.50 = $40/hr
+  // PRICING BREAKDOWN:
+  // ALL SERVICES (Caregivers & Housekeepers):
+  //   Without referral: $45/hr
+  //   With referral: $40/hr ($5 discount)
+  // Note: Housekeeper earnings are assigned by admin, agency gets remainder
   const rates = {
     'Caregiver': 45,
     'Elderly Care': 45,
     'Personal Care': 45,
     'Companion Care': 45,
     'Childcare': 45,
-    'Housekeeping': 25,
-    'House Cleaning': 25,
+    'Housekeeping': 45,
+    'House Cleaning': 45,
     'Personal Assistant': 30
   };
   
   const hoursPerDay = parseInt(bookingData.value.dutyType.split(' ')[0]) || 0;
   const days = bookingData.value.durationDays || 0;
   const baseRate = rates[bookingData.value.serviceType] || 45;
-  const discountedRate = baseRate - referralDiscount.value;
-  const finalRate = discountedRate > 0 ? discountedRate : baseRate;
+  
+  // Apply service-appropriate discount if referral is active
+  let finalRate = baseRate;
+  if (referralDiscount.value > 0) {
+    const discountAmount = getReferralDiscountAmount(bookingData.value.serviceType);
+    finalRate = baseRate - discountAmount;
+    if (finalRate < 0) finalRate = baseRate;
+  }
   
   const total = hoursPerDay * days * finalRate;
   return total > 0 ? `$${total.toLocaleString()}` : '';
@@ -5061,6 +5611,205 @@ const initSpendingChart = () => {
 
 <style scoped>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+/* ===== TERMS & CONDITIONS MODAL STYLES ===== */
+.terms-dialog :deep(.v-overlay__content) {
+  max-width: 900px;
+  width: 90%;
+}
+
+.terms-card {
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.terms-header {
+  background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%);
+  color: white;
+  padding: 24px 32px;
+  border-bottom: 4px solid rgba(255, 255, 255, 0.2);
+}
+
+.terms-header-content {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.terms-logo {
+  width: 60px;
+  height: 60px;
+  border-radius: 12px;
+  background: white;
+  padding: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.terms-header-text {
+  flex: 1;
+}
+
+.terms-title {
+  font-size: 1.75rem;
+  font-weight: 700;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.terms-subtitle {
+  font-size: 1rem;
+  opacity: 0.9;
+  margin: 4px 0 0 0;
+  font-weight: 400;
+}
+
+.terms-body {
+  padding: 0 !important;
+  background: #f8f9fa;
+}
+
+.contract-scroll-container {
+  max-height: 500px;
+  overflow-y: auto;
+  padding: 32px;
+  position: relative;
+  background: white;
+}
+
+.contract-watermark {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(-45deg);
+  font-size: 5rem;
+  font-weight: 900;
+  color: rgba(25, 118, 210, 0.05);
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 0;
+  user-select: none;
+}
+
+.contract-content {
+  position: relative;
+  z-index: 1;
+}
+
+.contract-section {
+  margin-bottom: 28px;
+}
+
+.contract-heading {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #1565c0;
+  margin: 0 0 12px 0;
+  padding-bottom: 8px;
+  border-bottom: 2px solid #e3f2fd;
+}
+
+.contract-text {
+  font-size: 0.95rem;
+  line-height: 1.7;
+  color: #424242;
+  margin: 0 0 12px 0;
+}
+
+.contract-text strong {
+  font-weight: 600;
+  color: #1976d2;
+}
+
+.contract-signature-block {
+  background: #f5f5f5;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 20px;
+  margin-top: 32px;
+}
+
+.terms-footer {
+  background: #fafafa;
+  border-top: 1px solid #e0e0e0;
+  padding: 24px 32px;
+}
+
+.terms-footer-content {
+  width: 100%;
+}
+
+.scroll-warning {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #fff3e0;
+  border: 2px solid #ffb74d;
+  border-radius: 8px;
+  padding: 12px 16px;
+  margin-bottom: 20px;
+  color: #e65100;
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+.confirmation-checkboxes {
+  margin-bottom: 20px;
+  padding: 16px;
+  background: white;
+  border-radius: 8px;
+  border: 2px solid #e0e0e0;
+  transition: all 0.3s ease;
+}
+
+.confirmation-checkboxes.disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.checkbox-label {
+  font-size: 0.95rem;
+  color: #424242;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.terms-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-bottom: 16px;
+}
+
+.legal-footer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  justify-content: center;
+  font-size: 0.85rem;
+  color: #757575;
+  font-style: italic;
+}
+
+/* Scrollbar Styling */
+.contract-scroll-container::-webkit-scrollbar {
+  width: 10px;
+}
+
+.contract-scroll-container::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+
+.contract-scroll-container::-webkit-scrollbar-thumb {
+  background: #1976d2;
+  border-radius: 10px;
+}
+
+.contract-scroll-container::-webkit-scrollbar-thumb:hover {
+  background: #1565c0;
+}
+
+/* ===== END TERMS MODAL STYLES ===== */
 
 * {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
@@ -7416,6 +8165,371 @@ const initSpendingChart = () => {
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+/* Pending Booking Restriction Modal */
+.restriction-modal-card {
+  animation: modalSlideIn 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+@keyframes modalSlideIn {
+  0% {
+    opacity: 0;
+    transform: translateY(-30px) scale(0.9);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.pending-restriction-header {
+  background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
+  color: white;
+  padding: 24px !important;
+}
+
+.restriction-header-content {
+  animation: headerFadeIn 0.5s ease 0.2s both;
+}
+
+@keyframes headerFadeIn {
+  0% {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.restriction-logo {
+  width: 50px;
+  height: 50px;
+  border-radius: 10px;
+  background: white;
+  padding: 5px;
+  animation: logoSpin 0.6s ease 0.3s both;
+}
+
+@keyframes logoSpin {
+  0% {
+    opacity: 0;
+    transform: rotate(-180deg) scale(0);
+  }
+  100% {
+    opacity: 1;
+    transform: rotate(0) scale(1);
+  }
+}
+
+.restriction-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.restriction-subtitle {
+  font-size: 0.875rem;
+  opacity: 0.95;
+  margin: 4px 0 0 0;
+  font-weight: 400;
+}
+
+.restriction-main-content {
+  animation: contentFadeIn 0.5s ease 0.4s both;
+}
+
+@keyframes contentFadeIn {
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.warning-icon-wrapper {
+  animation: iconPulse 2s ease-in-out infinite;
+}
+
+@keyframes iconPulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+}
+
+.warning-icon {
+  animation: iconBounce 0.6s ease 0.5s both;
+}
+
+@keyframes iconBounce {
+  0% {
+    opacity: 0;
+    transform: scale(0) rotate(-180deg);
+  }
+  60% {
+    transform: scale(1.2) rotate(10deg);
+  }
+  80% {
+    transform: scale(0.95) rotate(-5deg);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) rotate(0);
+  }
+}
+
+.restriction-heading {
+  animation: headingSlideIn 0.5s ease 0.6s both;
+}
+
+@keyframes headingSlideIn {
+  0% {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.restriction-description {
+  animation: descriptionFadeIn 0.5s ease 0.7s both;
+}
+
+@keyframes descriptionFadeIn {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+.info-section {
+  background: #f8f9fa;
+  border-radius: 12px;
+  padding: 20px;
+}
+
+.info-item {
+  line-height: 1.6;
+  opacity: 0;
+  animation: infoItemSlideIn 0.5s ease forwards;
+  transition: transform 0.2s ease;
+}
+
+.info-item-1 {
+  animation-delay: 0.8s;
+}
+
+.info-item-2 {
+  animation-delay: 0.9s;
+}
+
+.info-item-3 {
+  animation-delay: 1s;
+}
+
+@keyframes infoItemSlideIn {
+  0% {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.info-item:hover {
+  transform: translateX(5px);
+}
+
+.info-item strong {
+  color: #1976d2;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.info-icon {
+  animation: iconRotate 0.6s ease;
+}
+
+@keyframes iconRotate {
+  0% {
+    transform: rotate(-180deg);
+  }
+  100% {
+    transform: rotate(0);
+  }
+}
+
+.gratitude-section {
+  background: linear-gradient(135deg, #e8f5e9 0%, #f1f8e9 100%);
+  border-radius: 12px;
+  padding: 16px;
+  animation: gratitudeFadeIn 0.5s ease 1.1s both;
+}
+
+@keyframes gratitudeFadeIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.gratitude-text {
+  animation: textGlow 2s ease-in-out infinite;
+}
+
+@keyframes textGlow {
+  0%, 100% {
+    opacity: 0.9;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.heart-icon {
+  animation: heartBeat 1.5s ease-in-out infinite;
+}
+
+@keyframes heartBeat {
+  0%, 100% {
+    transform: scale(1);
+  }
+  25% {
+    transform: scale(1.2);
+  }
+  50% {
+    transform: scale(1);
+  }
+}
+
+.restriction-actions {
+  animation: actionsFadeIn 0.5s ease 1.2s both;
+}
+
+@keyframes actionsFadeIn {
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.restriction-btn-close,
+.restriction-btn-view {
+  transition: all 0.3s ease;
+}
+
+.restriction-btn-close:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.restriction-btn-view:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(25, 118, 210, 0.4);
+}
+
+/* Responsive styles for Restriction Modal */
+@media (max-width: 600px) {
+  .pending-restriction-header {
+    padding: 16px !important;
+  }
+
+  .restriction-title {
+    font-size: 1.15rem !important;
+  }
+
+  .restriction-subtitle {
+    font-size: 0.75rem !important;
+  }
+
+  .restriction-logo {
+    width: 40px !important;
+    height: 40px !important;
+  }
+
+  .restriction-heading {
+    font-size: 1rem !important;
+  }
+
+  .restriction-description {
+    font-size: 0.875rem !important;
+  }
+
+  .info-section {
+    padding: 16px !important;
+  }
+
+  .info-item {
+    font-size: 0.875rem !important;
+  }
+
+  .info-item strong {
+    font-size: 0.875rem !important;
+  }
+
+  .gratitude-section {
+    padding: 12px !important;
+  }
+
+  .restriction-actions {
+    padding: 16px !important;
+  }
+
+  .restriction-btn-close {
+    width: 100%;
+    max-width: 200px;
+  }
+}
+
+@media (max-width: 400px) {
+  .restriction-modal-card {
+    margin: 8px !important;
+  }
+
+  .pending-restriction-header {
+    padding: 12px !important;
+  }
+
+  .restriction-logo {
+    width: 35px !important;
+    height: 35px !important;
+  }
+
+  .restriction-title {
+    font-size: 1rem !important;
+  }
+
+  .info-item {
+    flex-direction: column;
+    align-items: start !important;
+  }
+
+  .info-icon {
+    margin-bottom: 8px !important;
   }
 }
 

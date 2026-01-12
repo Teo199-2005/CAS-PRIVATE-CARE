@@ -11,6 +11,7 @@ window.Chart = Chart;
 // Import components
 import ClientDashboard from './components/ClientDashboard.vue';
 import CaregiverDashboard from './components/CaregiverDashboard.vue';
+import HousekeeperDashboard from './components/HousekeeperDashboard.vue';
 import AdminDashboard from './components/AdminDashboard.vue';
 import AdminSettings from './components/AdminSettings.vue';
 import MarketingDashboard from './components/MarketingDashboard.vue';
@@ -66,6 +67,17 @@ if (document.getElementById('caregiver-dashboard-app')) {
     });
     app.use(vuetify);
     app.mount('#caregiver-dashboard-app');
+}
+
+if (document.getElementById('housekeeper-dashboard-app')) {
+    const app = createApp({
+        components: {
+            HousekeeperDashboard,
+            DashboardWrapper,
+        },
+    });
+    app.use(vuetify);
+    app.mount('#housekeeper-dashboard-app');
 }
 
 if (document.getElementById('admin-dashboard-app')) {

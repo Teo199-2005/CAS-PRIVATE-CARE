@@ -394,6 +394,13 @@ const roleConfig = computed(() => {
       apiEndpoint: '/api/stripe/connect-payout-method',
       redirectUrl: '/caregiver/dashboard-vue?section=payment&success=true'
     },
+    housekeeper: {
+      title: 'Connect Your Payout Method',
+      subtitle: 'Set up your bank account to receive weekly payments for your housekeeping services.',
+      rateText: 'Earnings based on hours worked',
+      apiEndpoint: '/api/stripe/housekeeper/connect-payout-method',
+      redirectUrl: '/housekeeper/dashboard-vue?section=payment&success=true'
+    },
     marketing: {
       title: 'Connect Your Commission Payout',
       subtitle: 'Set up your bank account to receive weekly commission payments for client referrals.',

@@ -3340,24 +3340,31 @@ const profileZipLocation = ref('');
 
 const lookupProfileZipCode = async () => {
   const zip = profile.value.zip;
-  if (zip && zip.length === 5 && /^\d{5}$/.test(zip)) {
-    // Try API lookup first (supports all NY ZIP codes)
-    try {
-      const response = await fetch(`/api/zipcode-lookup/${zip}`);
-      if (response.ok) {
-        const data = await response.json();
-        if (data.success && data.location) {
-          profileZipLocation.value = data.location;
-          return;
-        }
+  
+  if (!zip || zip.length !== 5 || !/^\d{5}$/.test(zip)) {
+    profileZipLocation.value = '';
+    return;
+  }
+
+  // Try API lookup first (supports all NY ZIP codes)
+  try {
+    profileZipLocation.value = 'Looking up location…';
+    const response = await fetch(`/api/zipcode-lookup/${zip}`);
+    
+    if (response.ok) {
+      const data = await response.json();
+      if (data.success && data.location) {
+        profileZipLocation.value = data.location;
+        return;
       }
-    } catch (error) {
     }
     
-  // Fallback to static map (avoid misleading default like "New York, NY")
-  profileZipLocation.value = zipCodeMap[zip] || '';
-  } else {
-    profileZipLocation.value = '';
+    // API returned error or no location found
+    profileZipLocation.value = 'ZIP not found';
+  } catch (error) {
+    console.error('Profile ZIP code lookup error:', error);
+    // Fallback to static map
+    profileZipLocation.value = zipCodeMap[zip] || 'ZIP not found';
   }
 };
 

@@ -133,6 +133,14 @@ class Booking extends Model
         return $this->hasMany(BookingAssignment::class);
     }
 
+    /**
+     * Get the housekeeper assignments for this booking
+     */
+    public function housekeeperAssignments()
+    {
+        return $this->hasMany(BookingHousekeeperAssignment::class);
+    }
+
     public function payments()
     {
         return $this->hasMany(Payment::class);

@@ -232,7 +232,13 @@
         </v-card-title>
         <v-data-table v-model="selectedUsers" :headers="userHeaders" :items="filteredUsers" :items-per-page="10" show-select item-value="id" class="elevation-0" density="compact">
           <template v-slot:item.status="{ item }">
-            <v-chip :color="getUserStatusColor(item.status)" size="small" class="font-weight-bold" :prepend-icon="getStatusIcon(item.status)">{{ item.status }}</v-chip>
+            <v-chip
+              :color="getUserStatusColor(item.status)"
+              size="small"
+              class="font-weight-bold"
+              :style="(String(item.status).toLowerCase() === 'pending') ? 'background-color: #f59e0b !important; color: #ffffff !important;' : ''"
+              :prepend-icon="getStatusIcon(item.status)"
+            >{{ item.status }}</v-chip>
           </template>
           <template v-slot:item.actions="{ item }">
             <div class="action-buttons">
@@ -371,7 +377,7 @@
 
       <!-- Client & Caregiver Analytics -->
       <v-row>
-        <v-col cols="12" md="6">
+        <v-col cols="12" md="4">
           <v-card elevation="0" class="mb-3" style="border: 1px solid #c5c5c5ff;">
             <v-card-title class="compact-header pa-4">
               <span class="compact-title error--text">Client Analytics</span>
@@ -389,7 +395,7 @@
           </v-card>
         </v-col>
 
-        <v-col cols="12" md="6">
+        <v-col cols="12" md="4">
           <v-card elevation="0" class="mb-3" style="border: 1px solid #c5c5c5ff;">
             <v-card-title class="compact-header pa-4">
               <span class="compact-title error--text">Caregiver Analytics</span>
@@ -397,6 +403,24 @@
             <v-card-text class="pa-4">
               <v-row>
                 <v-col cols="6" v-for="metric in caregiverMetrics" :key="metric.label">
+                  <div class="metric-box">
+                    <div class="metric-number" :class="metric.color + '--text'">{{ metric.value }}</div>
+                    <div class="metric-text">{{ metric.label }}</div>
+                  </div>
+                </v-col>
+              </v-row>
+            </v-card-text>
+          </v-card>
+        </v-col>
+
+        <v-col cols="12" md="4">
+          <v-card elevation="0" class="mb-3" style="border: 1px solid #c5c5c5ff;">
+            <v-card-title class="compact-header pa-4">
+              <span class="compact-title error--text">Housekeeper Analytics</span>
+            </v-card-title>
+            <v-card-text class="pa-4">
+              <v-row>
+                <v-col cols="6" v-for="metric in housekeeperMetrics" :key="metric.label">
                   <div class="metric-box">
                     <div class="metric-number" :class="metric.color + '--text'">{{ metric.value }}</div>
                     <div class="metric-text">{{ metric.label }}</div>
@@ -444,7 +468,13 @@
             {{ item.place_indicator || item.location || 'Unknown ZIP' }}
           </template>
           <template v-slot:item.status="{ item }">
-            <v-chip :color="getUserStatusColor(item.status)" size="small" class="font-weight-bold" :prepend-icon="getStatusIcon(item.status)">{{ item.status }}</v-chip>
+            <v-chip
+              :color="getUserStatusColor(item.status)"
+              size="small"
+              class="font-weight-bold"
+              :style="(String(item.status).toLowerCase() === 'pending') ? 'background-color: #f59e0b !important; color: #ffffff !important;' : ''"
+              :prepend-icon="getStatusIcon(item.status)"
+            >{{ item.status }}</v-chip>
           </template>
           <template v-slot:item.rating="{ item }">
             <div class="d-flex align-center">
@@ -876,6 +906,64 @@
       </v-card>
     </v-dialog>
 
+    <!-- Housekeepers Management Section -->
+    <div v-if="currentSection === 'housekeepers'">
+      <div class="mb-6">
+        <v-row class="align-center">
+          <v-col cols="12" md="3">
+            <v-text-field v-model="housekeeperSearch" placeholder="Search housekeepers..." prepend-inner-icon="mdi-magnify" variant="outlined" density="compact" hide-details />
+          </v-col>
+          <v-col cols="12" md="2">
+            <v-select v-model="housekeeperLocationFilter" :items="locationFilterOptions" label="All Locations" variant="outlined" density="compact" hide-details />
+          </v-col>
+          <v-col cols="12" md="2">
+            <v-select v-model="housekeeperStatusFilter" :items="['All', 'Active', 'Assigned', 'Inactive']" label="All Status" variant="outlined" density="compact" hide-details />
+          </v-col>
+          <v-col cols="12" md="3">
+            <v-btn color="error" prepend-icon="mdi-plus" @click="alert('Add Housekeeper feature coming soon')">Add Housekeeper</v-btn>
+          </v-col>
+        </v-row>
+      </div>
+      <v-card elevation="0">
+        <v-card-title class="card-header pa-8 d-flex justify-space-between align-center">
+          <span class="section-title error--text">Housekeepers</span>
+        </v-card-title>
+        <v-data-table :headers="housekeeperHeaders" :items="filteredHousekeepers" :items-per-page="10" class="elevation-0" density="compact">
+          <template v-slot:item.location="{ item }">
+            {{ item.location || 'Unknown' }}
+          </template>
+          <template v-slot:item.status="{ item }">
+            <v-chip
+              :color="getUserStatusColor(item.status)"
+              size="small"
+              class="font-weight-bold"
+              :style="(String(item.status).toLowerCase() === 'pending') ? 'background-color: #f59e0b !important; color: #ffffff !important;' : ''"
+            >{{ item.status }}</v-chip>
+          </template>
+          <template v-slot:item.rating="{ item }">
+            <div class="d-flex align-center">
+              <v-rating
+                :model-value="parseFloat(item.rating || 0)"
+                :length="5"
+                :size="18"
+                color="amber"
+                active-color="amber"
+                half-increments
+                readonly
+                density="compact"
+              ></v-rating>
+              <span class="ml-1 text-caption">{{ parseFloat(item.rating || 0).toFixed(1) }}</span>
+            </div>
+          </template>
+          <template v-slot:item.actions="{ item }">
+            <div class="action-buttons">
+              <v-btn class="action-btn-view" icon="mdi-eye" size="small" @click="viewHousekeeperDetails(item)"></v-btn>
+            </div>
+          </template>
+        </v-data-table>
+      </v-card>
+    </div>
+
     <!-- Clients Management Section -->
     <div v-if="currentSection === 'clients'">
       <div class="mb-6">
@@ -910,7 +998,13 @@
             {{ item.place_indicator || item.location || 'Unknown ZIP' }}
           </template>
           <template v-slot:item.status="{ item }">
-            <v-chip :color="getUserStatusColor(item.status)" size="small" class="font-weight-bold" :prepend-icon="getStatusIcon(item.status)">{{ item.status }}</v-chip>
+            <v-chip
+              :color="getUserStatusColor(item.status)"
+              size="small"
+              class="font-weight-bold"
+              :style="(String(item.status).toLowerCase() === 'pending') ? 'background-color: #f59e0b !important; color: #ffffff !important;' : ''"
+              :prepend-icon="getStatusIcon(item.status)"
+            >{{ item.status }}</v-chip>
           </template>
 
           <template v-slot:item.actions="{ item }">
@@ -1239,7 +1333,13 @@
             </v-chip>
           </template>
           <template v-slot:item.status="{ item }">
-            <v-chip :color="getUserStatusColor(item.status)" size="small" class="font-weight-bold" :prepend-icon="getStatusIcon(item.status)">
+            <v-chip
+              :color="getUserStatusColor(item.status)"
+              size="small"
+              class="font-weight-bold"
+              :style="(String(item.status).toLowerCase() === 'pending') ? 'background-color: #f59e0b !important; color: #ffffff !important;' : ''"
+              :prepend-icon="getStatusIcon(item.status)"
+            >
               {{ item.status }}
             </v-chip>
           </template>
@@ -1503,7 +1603,13 @@
             <span class="font-weight-bold text-success">${{ item.commissionEarned }}</span>
           </template>
           <template v-slot:item.status="{ item }">
-            <v-chip :color="getUserStatusColor(item.status)" size="small" class="font-weight-bold" :prepend-icon="getStatusIcon(item.status)">{{ item.status }}</v-chip>
+            <v-chip
+              :color="getUserStatusColor(item.status)"
+              size="small"
+              class="font-weight-bold"
+              :style="(String(item.status).toLowerCase() === 'pending') ? 'background-color: #f59e0b !important; color: #ffffff !important;' : ''"
+              :prepend-icon="getStatusIcon(item.status)"
+            >{{ item.status }}</v-chip>
           </template>
           <template v-slot:item.actions="{ item }">
             <div class="action-buttons">
@@ -1764,6 +1870,17 @@
         <v-data-table :headers="applicationHeaders" :items="pendingApplications" :items-per-page="10" class="elevation-0 table-no-checkbox">
           <template v-slot:item.type="{ item }">
             <v-chip 
+              v-if="item.type === 'Housekeeper'"
+              color="#6A1B9A"
+              size="small" 
+              class="font-weight-bold housekeeper-chip" 
+              style="background-color: #6A1B9A !important; color: #ffffff !important;"
+              prepend-icon="mdi-broom"
+            >
+              {{ item.type }}
+            </v-chip>
+            <v-chip 
+              v-else
               :color="item.type === 'Caregiver' ? 'success' : (item.type === 'Marketing Partner' ? 'info' : 'warning')" 
               size="small" 
               class="font-weight-bold" 
@@ -1809,11 +1926,22 @@
         <v-card-text class="pa-6">
           <v-row>
             <v-col cols="12" class="text-center mb-4">
-              <v-avatar size="120" :color="viewingApplication.type === 'Caregiver' ? 'success' : (viewingApplication.type === 'Marketing Partner' ? 'info' : 'warning')" class="mb-3">
+              <v-avatar size="120" :color="viewingApplication.type === 'Caregiver' ? 'success' : (viewingApplication.type === 'Housekeeper' ? '#6A1B9A' : (viewingApplication.type === 'Marketing Partner' ? 'info' : 'warning'))" class="mb-3">
                 <span class="text-h3 font-weight-bold text-white">{{ viewingApplication.name.split(' ').map(n => n[0]).join('') }}</span>
               </v-avatar>
               <h2>{{ viewingApplication.name }}</h2>
               <v-chip 
+                v-if="viewingApplication.type === 'Housekeeper'"
+                color="#6A1B9A"
+                size="large" 
+                class="mt-2 font-weight-bold housekeeper-chip"
+                style="background-color: #6A1B9A !important; color: #ffffff !important;"
+                prepend-icon="mdi-broom"
+              >
+                {{ viewingApplication.type }}
+              </v-chip>
+              <v-chip 
+                v-else
                 :color="viewingApplication.type === 'Caregiver' ? 'success' : (viewingApplication.type === 'Marketing Partner' ? 'info' : 'warning')" 
                 size="large" 
                 class="mt-2 font-weight-bold"
@@ -2146,8 +2274,32 @@
               <v-btn v-if="item.status === 'pending'" class="action-btn-approve" icon="mdi-check" size="small" @click="approveBooking(item)"></v-btn>
               <v-btn v-if="item.status === 'pending'" class="action-btn-reject" icon="mdi-close" size="small" @click="rejectBooking(item)"></v-btn>
               <v-btn class="action-btn-view" icon="mdi-eye" size="small" @click="viewBooking(item)"></v-btn>
-              <v-btn v-if="item.status === 'approved' || item.status === 'confirmed'" class="action-btn-caregivers" icon="mdi-account-group" size="small" @click="viewAssignedCaregivers(item)"></v-btn>
-              <v-btn v-if="item.status === 'approved' || item.status === 'confirmed'" class="action-btn-edit" icon="mdi-account-plus" size="small" @click="assignCaregiverDialog(item)"></v-btn>
+              <!-- Assignment / management actions depend on service type -->
+              <v-btn
+                v-if="(item.status === 'approved' || item.status === 'confirmed') && !String(item.service || item.service_type || '').toLowerCase().includes('housekeeping')"
+                class="action-btn-caregivers"
+                icon="mdi-account-group"
+                size="small"
+                @click="viewAssignedCaregivers(item)"
+              ></v-btn>
+
+              <v-btn
+                v-if="(item.status === 'approved' || item.status === 'confirmed') && String(item.service || item.service_type || '').toLowerCase().includes('housekeeping')"
+                class="action-btn-caregivers"
+                icon="mdi-broom"
+                size="small"
+                title="View Assigned Housekeepers"
+                @click="viewAssignedHousekeepers(item)"
+              ></v-btn>
+
+              <v-btn
+                v-if="item.status === 'approved' || item.status === 'confirmed'"
+                class="action-btn-edit"
+                :icon="String(item.service || item.service_type || '').toLowerCase().includes('housekeeping') ? 'mdi-broom' : 'mdi-account-plus'"
+                size="small"
+                :title="String(item.service || item.service_type || '').toLowerCase().includes('housekeeping') ? 'Assign Housekeepers' : 'Assign Caregivers'"
+                @click="String(item.service || item.service_type || '').toLowerCase().includes('housekeeping') ? assignHousekeeperDialog(item) : assignCaregiverDialog(item)"
+              ></v-btn>
             </div>
           </template>
         </v-data-table>
@@ -2284,6 +2436,7 @@
         <v-tab value="overview">Overview</v-tab>
         <v-tab value="client-payments">Client Payments</v-tab>
         <v-tab value="caregiver-payments">Caregiver Payments</v-tab>
+  <v-tab value="housekeeper-payments">Housekeeper Payments</v-tab>
         <v-tab value="marketing-commissions">Marketing Commissions</v-tab>
         <v-tab value="training-commissions">Training Commissions</v-tab>
         <v-tab value="transactions">All Transactions</v-tab>
@@ -2677,6 +2830,75 @@
                         size="small" 
                         color="grey" 
                         disabled
+                      ></v-btn>
+                    </template>
+                  </v-tooltip>
+                  <v-tooltip v-else-if="!item.bank_connected" text="Bank account not connected">
+                    <template v-slot:activator="{ props }">
+                      <v-btn v-bind="props" icon="mdi-bank-off" size="small" color="grey" disabled></v-btn>
+                    </template>
+                  </v-tooltip>
+                </div>
+              </template>
+            </v-data-table>
+          </v-card>
+        </v-tabs-window-item>
+
+        <!-- Housekeeper Payments Tab -->
+        <v-tabs-window-item value="housekeeper-payments">
+          <div class="mb-4">
+            <v-row class="align-center">
+              <v-col cols="12" md="3">
+                <v-text-field v-model="housekeeperSalarySearch" placeholder="Search housekeepers..." prepend-inner-icon="mdi-magnify" variant="outlined" density="compact" hide-details />
+              </v-col>
+              <v-col cols="12" md="2">
+                <v-select v-model="housekeeperSalaryStatusFilter" :items="['All', 'Paid', 'Pending', 'Partial', 'No Hours']" variant="outlined" density="compact" hide-details />
+              </v-col>
+              <v-col cols="12" md="2">
+                <v-select v-model="housekeeperSalaryPeriodFilter" :items="['Current Month', 'Last Month', 'Last 3 Months']" variant="outlined" density="compact" hide-details />
+              </v-col>
+              <v-col cols="12" md="3" class="d-flex gap-2">
+                <v-btn 
+                  color="success" 
+                  variant="elevated"
+                  size="large"
+                  class="font-weight-bold text-none"
+                  elevation="4"
+                  @click="exportHousekeeperPaymentsPDF"
+                >
+                  <v-icon size="large" class="mr-2">mdi-file-pdf-box</v-icon>
+                  Export PDF
+                </v-btn>
+              </v-col>
+            </v-row>
+          </div>
+
+          <v-card elevation="0">
+            <v-card-title class="card-header pa-4">
+              <span class="section-title-compact error--text">Housekeeper Payments</span>
+            </v-card-title>
+            <v-data-table :headers="housekeeperPaymentHeaders" :items="filteredHousekeeperPayments" :items-per-page="10" class="elevation-0 table-no-checkbox">
+              <template v-slot:item.bank_status="{ item }">
+                <v-chip :color="item.bank_connected ? 'success' : 'warning'" size="small" variant="flat">
+                  <v-icon start size="small">{{ item.bank_connected ? 'mdi-check-circle' : 'mdi-alert-circle' }}</v-icon>
+                  {{ item.bank_status }}
+                </v-chip>
+              </template>
+              <template v-slot:item.status="{ item }">
+                <v-chip :color="getPaymentStatusColor(item.status)" size="small" class="font-weight-bold">{{ item.status }}</v-chip>
+              </template>
+              <template v-slot:item.actions="{ item }">
+                <div class="action-buttons">
+                  <v-btn class="action-btn-view" icon="mdi-eye" size="small" @click="viewHousekeeperPaymentDetails(item)"></v-btn>
+                  <v-tooltip v-if="item.can_pay && isFriday" text="Process Payment">
+                    <template v-slot:activator="{ props }">
+                      <v-btn 
+                        v-bind="props" 
+                        class="action-btn-pay-now" 
+                        icon="mdi-cash-fast" 
+                        size="small" 
+                        color="success" 
+                        @click="payHousekeeper(item)"
                       ></v-btn>
                     </template>
                   </v-tooltip>
@@ -4048,10 +4270,10 @@
               />
             </v-col>
             <v-col cols="12" md="6">
-              <v-text-field 
+              <v-select 
                 v-model="bookingForm.service_type" 
+                :items="['Caregiver', 'Housekeeping']"
                 label="Service Type *" 
-                readonly
                 variant="outlined"
                 required
               />
@@ -4178,8 +4400,8 @@
         <v-card-title class="assign-dialog-header pa-6">
           <div class="d-flex align-center justify-space-between w-100">
             <div>
-              <span class="assign-dialog-title">Assign Caregivers</span>
-              <div class="assign-dialog-subtitle">Select caregivers for this booking</div>
+              <span class="assign-dialog-title">Assign {{ selectedBooking?.service_type === 'Housekeeping' ? 'Housekeepers' : 'Caregivers' }}</span>
+              <div class="assign-dialog-subtitle">Select {{ selectedBooking?.service_type === 'Housekeeping' ? 'housekeepers' : 'caregivers' }} for this booking</div>
             </div>
             <div>
               <v-chip 
@@ -4192,7 +4414,7 @@
               </v-chip>
               <div v-if="assignSelectedCaregivers.length > (customCaregiversNeeded || selectedBooking?.caregiversNeeded || 0)" class="text-warning text-caption mt-1">
                 <v-icon size="12" class="mr-1">mdi-information</v-icon>
-                Too many caregivers selected. This booking needs {{ customCaregiversNeeded || selectedBooking?.caregiversNeeded || 0 }}.
+                Too many {{ selectedBooking?.service_type === 'Housekeeping' ? 'housekeepers' : 'caregivers' }} selected. This booking needs {{ customCaregiversNeeded || selectedBooking?.caregiversNeeded || 0 }}.
               </div>
             </div>
           </div>
@@ -4238,19 +4460,19 @@
                 <v-alert color="info" variant="tonal" density="compact" class="mb-2">
                   <div class="d-flex align-center">
                     <v-icon size="18" class="mr-2">mdi-information</v-icon>
-                    <span class="text-caption">Recommended: <strong>{{ selectedBooking.caregiversNeeded }} caregiver(s)</strong> based on {{ selectedBooking.dutyType }}</span>
+                    <span class="text-caption">Recommended: <strong>{{ selectedBooking.caregiversNeeded }} {{ selectedBooking?.service_type === 'Housekeeping' ? 'housekeeper(s)' : 'caregiver(s)' }}</strong> based on {{ selectedBooking.dutyType }}</span>
                   </div>
                 </v-alert>
                 <v-text-field
                   v-model.number="customCaregiversNeeded"
-                  label="Number of Caregivers Needed"
+                  :label="`Number of ${selectedBooking?.service_type === 'Housekeeping' ? 'Housekeepers' : 'Caregivers'} Needed`"
                   type="number"
                   variant="outlined"
                   density="compact"
                   min="1"
                   max="10"
                   prepend-inner-icon="mdi-account-multiple"
-                  hint="Customize the number of caregivers for this booking"
+                  :hint="`Customize the number of ${selectedBooking?.service_type === 'Housekeeping' ? 'housekeepers' : 'caregivers'} for this booking`"
                   persistent-hint
                 >
                   <template v-slot:append-inner>
@@ -4275,7 +4497,7 @@
               <v-col cols="8">
                 <v-text-field
                   v-model="assignCaregiverSearch"
-                  placeholder="Search caregivers by name..."
+                  :placeholder="`Search ${selectedBooking?.service_type === 'Housekeeping' ? 'housekeepers' : 'caregivers'} by name...`"
                   prepend-inner-icon="mdi-magnify"
                   variant="outlined"
                   density="compact"
@@ -4306,7 +4528,7 @@
                   <div>
                     <div class="text-h6 font-weight-bold">Assign Hourly Rates</div>
                     <div class="text-caption" style="opacity: 0.9;">
-                      Set rates within each caregiver's preferred range
+                      Set rates within each {{ selectedBooking?.service_type === 'Housekeeping' ? 'housekeeper\'s' : 'caregiver\'s' }} preferred range
                     </div>
                   </div>
                 </div>
@@ -4358,7 +4580,7 @@
               <v-alert type="info" variant="tonal" density="compact" class="mb-0">
                 <div class="text-caption">
                   <v-icon size="16" class="mr-1">mdi-information</v-icon>
-                  <strong>Next Step:</strong> After assignment, use the "Weekly Schedule" tab to assign caregivers to specific days. Profit calculations will be available after scheduling is complete.
+                  <strong>Next Step:</strong> After assignment, use the "Weekly Schedule" tab to assign {{ selectedBooking?.service_type === 'Housekeeping' ? 'housekeepers' : 'caregivers' }} to specific days. Profit calculations will be available after scheduling is complete.
                 </div>
               </v-alert>
             </v-card-text>
@@ -4424,6 +4646,242 @@
       </v-card>
     </v-dialog>
 
+    <!-- Assign Housekeeper Dialog (custom, copied from caregiver assign dialog) -->
+    <v-dialog v-model="assignHousekeeperDialogOpen" max-width="1200" scrollable>
+      <v-card class="assign-dialog-card">
+        <v-card-title class="assign-dialog-header pa-6">
+          <div class="d-flex align-center justify-space-between w-100">
+            <div>
+              <span class="assign-dialog-title">Assign Housekeepers</span>
+              <div class="assign-dialog-subtitle">Select housekeepers for this booking</div>
+            </div>
+            <div>
+              <v-chip
+                :color="assignSelectedHousekeepers.length > (customHousekeepersNeeded || selectedBooking?.caregiversNeeded || 0) ? 'warning' : 'error'"
+                size="large"
+                class="font-weight-bold selection-counter"
+              >
+                {{ assignSelectedHousekeepers.length }} / {{ customHousekeepersNeeded || selectedBooking?.caregiversNeeded || 0 }} Selected
+                <v-icon v-if="assignSelectedHousekeepers.length > (customHousekeepersNeeded || selectedBooking?.caregiversNeeded || 0)" size="16" class="ml-1">mdi-alert</v-icon>
+              </v-chip>
+              <div v-if="assignSelectedHousekeepers.length > (customHousekeepersNeeded || selectedBooking?.caregiversNeeded || 0)" class="text-warning text-caption mt-1">
+                <v-icon size="12" class="mr-1">mdi-information</v-icon>
+                Too many housekeepers selected. This booking needs {{ customHousekeepersNeeded || selectedBooking?.caregiversNeeded || 0 }}.
+              </div>
+            </div>
+          </div>
+        </v-card-title>
+
+        <v-card-text class="pa-6" style="max-height: 70vh; overflow-y: auto;">
+          <v-container fluid>
+            <div v-if="selectedBooking" class="booking-details-card mb-6" style="background: #f5f5f5; border-radius: 12px; padding: 20px;">
+              <div class="text-h6 font-weight-bold mb-4" style="color: #d32f2f;">
+                <v-icon color="error" class="mr-2">mdi-information</v-icon>
+                Booking Details
+              </div>
+              <v-row class="booking-details-content">
+                <v-col cols="12" md="3">
+                  <div class="detail-item">
+                    <v-icon color="error" size="16" class="mr-2">mdi-account</v-icon>
+                    <span class="detail-label">Client:</span>
+                    <span class="detail-value font-weight-bold">{{ selectedBooking.client }}</span>
+                  </div>
+                  <div class="detail-item">
+                    <v-icon color="error" size="16" class="mr-2">mdi-calendar</v-icon>
+                    <span class="detail-label">Date:</span>
+                    <span class="detail-value">{{ selectedBooking.date }}</span>
+                  </div>
+                </v-col>
+                <v-col cols="6">
+                  <div class="detail-item">
+                    <v-icon color="error" size="16" class="mr-2">mdi-medical-bag</v-icon>
+                    <span class="detail-label">Service:</span>
+                    <span class="detail-value">{{ selectedBooking.service }}</span>
+                  </div>
+                  <div class="detail-item">
+                    <v-icon color="error" size="16" class="mr-2">mdi-clock</v-icon>
+                    <span class="detail-label">Duration:</span>
+                    <span class="detail-value">{{ selectedBooking.duration }}</span>
+                  </div>
+                </v-col>
+              </v-row>
+
+              <!-- Customizable Housekeepers Needed -->
+              <v-divider class="my-3" />
+              <v-row>
+                <v-col cols="12">
+                  <v-alert color="info" variant="tonal" density="compact" class="mb-2">
+                    <div class="d-flex align-center">
+                      <v-icon size="18" class="mr-2">mdi-information</v-icon>
+                      <span class="text-caption">Recommended: <strong>{{ selectedBooking.caregiversNeeded }} housekeeper(s)</strong> based on {{ selectedBooking.dutyType }}</span>
+                    </div>
+                  </v-alert>
+                  <v-text-field
+                    v-model.number="customHousekeepersNeeded"
+                    label="Number of Housekeepers Needed"
+                    type="number"
+                    variant="outlined"
+                    density="compact"
+                    min="1"
+                    max="10"
+                    prepend-inner-icon="mdi-account-multiple"
+                    hint="Customize the number of housekeepers for this booking"
+                    persistent-hint
+                  >
+                    <template v-slot:append-inner>
+                      <v-btn
+                        size="x-small"
+                        variant="text"
+                        color="primary"
+                        @click="customHousekeepersNeeded = selectedBooking.caregiversNeeded"
+                      >
+                        Reset
+                      </v-btn>
+                    </template>
+                  </v-text-field>
+                </v-col>
+              </v-row>
+            </div>
+
+            <v-divider class="mb-4" />
+
+            <div class="mb-4">
+              <v-row>
+                <v-col cols="8">
+                  <v-text-field
+                    v-model="assignHousekeeperSearch"
+                    placeholder="Search housekeepers by name..."
+                    prepend-inner-icon="mdi-magnify"
+                    variant="outlined"
+                    density="compact"
+                    hide-details
+                    class="search-field"
+                  />
+                </v-col>
+                <v-col cols="4">
+                  <v-select
+                    v-model="assignHousekeeperAvailabilityFilter"
+                    :items="['All', 'Available', 'Assigned', 'Unavailable']"
+                    variant="outlined"
+                    density="compact"
+                    hide-details
+                    prepend-inner-icon="mdi-filter"
+                    class="filter-select"
+                  />
+                </v-col>
+              </v-row>
+            </div>
+
+            <!-- Assigned Hourly Rate Section -->
+            <v-card v-if="assignSelectedHousekeepers.length > 0" elevation="0" class="mb-4" style="border: 2px solid #4caf50; border-radius: 8px;">
+              <v-card-title class="pa-4" style="background: #4caf50; color: white;">
+                <div class="d-flex align-center justify-space-between w-100">
+                  <div class="d-flex align-center">
+                    <v-icon size="24" class="mr-2" color="white">mdi-cash-multiple</v-icon>
+                    <div>
+                      <div class="text-h6 font-weight-bold">Assign Hourly Rates</div>
+                      <div class="text-caption" style="opacity: 0.9;">Set rates for each housekeeper</div>
+                    </div>
+                  </div>
+                  <v-chip size="small" style="background: rgba(255,255,255,0.25); color: white;" class="font-weight-bold px-3">
+                    {{ assignSelectedHousekeepers.length }} Selected
+                  </v-chip>
+                </div>
+              </v-card-title>
+
+              <v-card-text class="pa-4">
+                <v-row>
+                  <v-col v-for="housekeeperId in assignSelectedHousekeepers" :key="`hk-rate-${housekeeperId}`" cols="12" md="6">
+                    <v-card elevation="0" class="pa-3" style="border: 1px solid #e0e0e0; border-radius: 8px; background: #fafafa;">
+                      <div class="d-flex align-center mb-3">
+                        <v-avatar size="40" color="success" class="mr-3">
+                          <span class="text-white font-weight-bold">{{ (getHousekeeperById(housekeeperId)?.name || 'H').split(' ').map(n => n[0]).join('') }}</span>
+                        </v-avatar>
+                        <div class="flex-grow-1">
+                          <div class="text-subtitle-2 font-weight-bold">{{ getHousekeeperById(housekeeperId)?.name }}</div>
+                          <div class="text-caption text-grey">
+                            Default: ${{ getHousekeeperById(housekeeperId)?.hourly_rate || 20 }}/hr
+                          </div>
+                        </div>
+                      </div>
+
+                      <v-text-field
+                        v-model="assignedHousekeeperRates[housekeeperId]"
+                        type="number"
+                        label="Hourly Rate"
+                        prefix="$"
+                        suffix="/hr"
+                        variant="outlined"
+                        density="compact"
+                        step="1"
+                        hide-details
+                        color="success"
+                        class="mb-2"
+                      />
+                    </v-card>
+                  </v-col>
+                </v-row>
+
+                <v-divider class="my-4" />
+                <v-alert type="info" variant="tonal" density="compact" class="mb-0">
+                  <div class="text-caption">
+                    <v-icon size="16" class="mr-1">mdi-information</v-icon>
+                    <strong>Next Step:</strong> After assignment, use the "Weekly Schedule" tab to assign housekeepers to specific days.
+                  </div>
+                </v-alert>
+              </v-card-text>
+            </v-card>
+
+            <div class="caregivers-list-container">
+              <div v-for="hk in filteredAssignHousekeepers" :key="hk.id" class="caregiver-assign-card">
+                <div class="d-flex align-center justify-space-between">
+                  <div class="d-flex align-center flex-grow-1">
+                    <v-checkbox
+                      :model-value="assignSelectedHousekeepers.includes(hk.id)"
+                      @update:model-value="(val) => toggleHousekeeperSelection(hk.id, val)"
+                      color="error"
+                      hide-details
+                      class="mr-3"
+                    />
+                    <v-avatar size="48" :color="(['inactive','unavailable'].includes(String(hk.status || hk.availability_status || '').toLowerCase()) ? 'grey' : (String(hk.status || hk.availability_status || '').toLowerCase() === 'assigned' ? 'info' : 'success'))" class="mr-4">
+                      <span class="text-white font-weight-bold text-h6">{{ (hk.name || 'H').split(' ').map(n => n[0]).join('') }}</span>
+                    </v-avatar>
+                    <div class="flex-grow-1">
+                      <div class="caregiver-assign-name">{{ hk.name }}</div>
+                      <div class="caregiver-assign-details">
+                        <v-icon size="14" class="mr-1">mdi-email</v-icon>
+                        {{ hk.email || '—' }}
+                      </div>
+                    </div>
+                    <v-chip
+                      :color="(['inactive','unavailable'].includes(String(hk.status || hk.availability_status || '').toLowerCase()) ? 'grey' : (String(hk.status || hk.availability_status || '').toLowerCase() === 'assigned' ? 'info' : 'success'))"
+                      size="small"
+                      class="font-weight-bold"
+                    >
+                      {{ (String(hk.status || hk.availability_status || '').toLowerCase() === 'assigned') ? 'Assigned' : (['inactive','unavailable'].includes(String(hk.status || hk.availability_status || '').toLowerCase()) ? 'Unavailable' : 'Available') }}
+                    </v-chip>
+                  </div>
+                </div>
+              </div>
+
+              <div v-if="filteredAssignHousekeepers.length === 0" class="no-caregivers">
+                <v-icon size="64" color="grey-lighten-1">mdi-account-search</v-icon>
+                <div class="text-grey mt-2">No housekeepers found</div>
+              </div>
+            </div>
+          </v-container>
+        </v-card-text>
+
+        <v-card-actions class="pa-4" style="border-top: 1px solid #e0e0e0; background: #fafafa;">
+          <v-spacer />
+          <v-btn color="grey" variant="text" @click="closeAssignHousekeeperDialog">Cancel</v-btn>
+          <v-btn color="error" variant="elevated" @click="confirmAssignHousekeepers">
+            {{ assignSelectedHousekeepers.length === 0 ? 'Unassign All' : `Assign ${assignSelectedHousekeepers.length} Housekeeper${assignSelectedHousekeepers.length !== 1 ? 's' : ''}` }}
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
     <!-- View Booking Details Dialog -->
     <v-dialog v-model="viewBookingDialog" max-width="900" scrollable>
       <v-card v-if="viewingBooking" max-height="80vh">
@@ -4478,7 +4936,9 @@
                     </div>
                     <div class="booking-detail-item">
                       <v-icon color="error" size="18" class="mr-2">mdi-account-group</v-icon>
-                      <span class="booking-detail-label">Caregivers Assigned:</span>
+                      <span class="booking-detail-label">
+                        {{ (viewingBooking.service && viewingBooking.service.toLowerCase().includes('housekeeping')) ? 'Housekeepers Assigned:' : 'Caregivers Assigned:' }}
+                      </span>
                       <v-chip :color="(viewingBooking.assignedCount || 0) >= (viewingBooking.caregiversNeeded || 1) ? 'success' : 'warning'" size="small" class="ml-2">
                         {{ viewingBooking.assignedCount || 0 }} / {{ viewingBooking.caregiversNeeded || 1 }} Assigned
                       </v-chip>
@@ -4652,36 +5112,59 @@
             </v-col>
           </v-row>
 
-          <!-- Assigned Caregivers Section -->
-          <v-row v-if="getAssignedCaregivers(viewingBooking.id).length > 0" class="mb-4">
+          <!-- Assigned Caregivers/Housekeepers Section -->
+          <v-row v-if="(isHousekeepingBooking(viewingBooking) ? getAssignedHousekeepers(viewingBooking.id).length : getAssignedCaregivers(viewingBooking.id).length) > 0" class="mb-4">
             <v-col cols="12">
               <div class="booking-overview-card" style="border: 2px solid #4caf50;">
                 <div class="booking-overview-header">
-                  <v-icon color="success" size="24" class="mr-3">mdi-account-heart</v-icon>
-                  <span class="booking-overview-title">Assigned Caregivers</span>
+                  <v-icon color="success" size="24" class="mr-3">{{ isHousekeepingBooking(viewingBooking) ? 'mdi-broom' : 'mdi-account-heart' }}</v-icon>
+                  <span class="booking-overview-title">{{ isHousekeepingBooking(viewingBooking) ? 'Assigned Housekeepers' : 'Assigned Caregivers' }}</span>
                   <v-chip size="small" color="success" class="ml-2">
-                    {{ getAssignedCaregivers(viewingBooking.id).length }} Active
+                    {{ isHousekeepingBooking(viewingBooking) ? getAssignedHousekeepers(viewingBooking.id).length : getAssignedCaregivers(viewingBooking.id).length }} Active
                   </v-chip>
                 </div>
                 <v-divider class="my-3" />
                 <v-row>
-                  <v-col v-for="caregiver in getAssignedCaregivers(viewingBooking.id)" :key="caregiver.id" cols="12" md="6">
-                    <v-card elevation="1" class="pa-3" style="border: 1px solid #e0e0e0; border-radius: 8px; background: #f9f9f9;">
-                      <div class="d-flex align-center">
-                        <v-avatar size="48" color="success" class="mr-3">
-                          <span class="text-white font-weight-bold">{{ caregiver.name.split(' ').map(n => n[0]).join('') }}</span>
-                        </v-avatar>
-                        <div class="flex-grow-1">
-                          <div class="text-subtitle-2 font-weight-bold">{{ caregiver.name }}</div>
-                          <div class="text-caption text-grey">{{ caregiver.email }}</div>
-                          <v-chip size="x-small" color="success" class="mt-1">
-                            <v-icon size="14" class="mr-1">mdi-cash</v-icon>
-                            ${{ caregiver.hourly_rate || caregiver.hourlyRate || 20 }}/hr
-                          </v-chip>
+                  <!-- Show housekeepers for housekeeping bookings -->
+                  <template v-if="isHousekeepingBooking(viewingBooking)">
+                    <v-col v-for="housekeeper in getAssignedHousekeepers(viewingBooking.id)" :key="housekeeper.id" cols="12" md="6">
+                      <v-card elevation="1" class="pa-3" style="border: 1px solid #e0e0e0; border-radius: 8px; background: #f9f9f9;">
+                        <div class="d-flex align-center">
+                          <v-avatar size="48" color="purple" class="mr-3">
+                            <span class="text-white font-weight-bold">{{ housekeeper.name.split(' ').map(n => n[0]).join('') }}</span>
+                          </v-avatar>
+                          <div class="flex-grow-1">
+                            <div class="text-subtitle-2 font-weight-bold">{{ housekeeper.name }}</div>
+                            <div class="text-caption text-grey">{{ housekeeper.email }}</div>
+                            <v-chip size="x-small" color="purple" class="mt-1">
+                              <v-icon size="14" class="mr-1">mdi-cash</v-icon>
+                              ${{ housekeeper.hourly_rate || 20 }}/hr
+                            </v-chip>
+                          </div>
                         </div>
-                      </div>
-                    </v-card>
-                  </v-col>
+                      </v-card>
+                    </v-col>
+                  </template>
+                  <!-- Show caregivers for non-housekeeping bookings -->
+                  <template v-else>
+                    <v-col v-for="caregiver in getAssignedCaregivers(viewingBooking.id)" :key="caregiver.id" cols="12" md="6">
+                      <v-card elevation="1" class="pa-3" style="border: 1px solid #e0e0e0; border-radius: 8px; background: #f9f9f9;">
+                        <div class="d-flex align-center">
+                          <v-avatar size="48" color="success" class="mr-3">
+                            <span class="text-white font-weight-bold">{{ caregiver.name.split(' ').map(n => n[0]).join('') }}</span>
+                          </v-avatar>
+                          <div class="flex-grow-1">
+                            <div class="text-subtitle-2 font-weight-bold">{{ caregiver.name }}</div>
+                            <div class="text-caption text-grey">{{ caregiver.email }}</div>
+                            <v-chip size="x-small" color="success" class="mt-1">
+                              <v-icon size="14" class="mr-1">mdi-cash</v-icon>
+                              ${{ caregiver.hourly_rate || caregiver.hourlyRate || 20 }}/hr
+                            </v-chip>
+                          </div>
+                        </div>
+                      </v-card>
+                    </v-col>
+                  </template>
                 </v-row>
               </div>
             </v-col>
@@ -4718,15 +5201,15 @@
                   <div v-if="viewingBooking.assignedCount > 0" class="timeline-item">
                     <div class="timeline-dot timeline-dot-info"></div>
                     <div class="timeline-content">
-                      <div class="timeline-title">Caregivers Assigned</div>
-                      <div class="timeline-subtitle">{{ viewingBooking.assignedCount }} caregiver(s) assigned</div>
+                      <div class="timeline-title">{{ isHousekeepingBooking(viewingBooking) ? 'Housekeepers Assigned' : 'Caregivers Assigned' }}</div>
+                      <div class="timeline-subtitle">{{ viewingBooking.assignedCount }} {{ isHousekeepingBooking(viewingBooking) ? 'housekeeper(s)' : 'caregiver(s)' }} assigned</div>
                     </div>
                   </div>
                   <div v-if="viewingBooking.status === 'Assigned'" class="timeline-item">
                     <div class="timeline-dot timeline-dot-success"></div>
                     <div class="timeline-content">
                       <div class="timeline-title">Fully Assigned</div>
-                      <div class="timeline-subtitle">All required caregivers assigned</div>
+                      <div class="timeline-subtitle">All required {{ isHousekeepingBooking(viewingBooking) ? 'housekeepers' : 'caregivers' }} assigned</div>
                     </div>
                   </div>
                   <div v-if="viewingBooking.status === 'In Progress'" class="timeline-item">
@@ -5436,6 +5919,277 @@
       </v-card>
     </v-dialog>
 
+  <v-dialog v-model="viewAssignedHousekeepersDialog" max-width="1200" scrollable>
+      <v-card v-if="viewingBookingHousekeepers">
+        <v-toolbar color="purple" dark>
+          <v-toolbar-title>
+            <div class="d-flex align-center">
+              <v-icon class="mr-2">mdi-broom</v-icon>
+              <div>
+                <div class="text-h6">Housekeeper Management</div>
+                <div class="text-caption opacity-90">{{ viewingBookingHousekeepers.client }} - {{ viewingBookingHousekeepers.service }}</div>
+              </div>
+            </div>
+          </v-toolbar-title>
+          <v-spacer />
+          <v-btn icon @click="viewAssignedHousekeepersDialog = false">
+            <v-icon>mdi-close</v-icon>
+          </v-btn>
+        </v-toolbar>
+
+        <!-- Booking Info Card (match Caregiver Management layout) -->
+        <v-card-text class="pa-6 bg-grey-lighten-4">
+          <v-card elevation="0" class="rounded-lg">
+            <v-card-text class="pa-4">
+              <v-row dense>
+                <v-col cols="12" md="3">
+                  <div class="text-caption text-grey-darken-1 mb-1">Date & Time</div>
+                  <div class="text-body-2 font-weight-bold">{{ viewingBookingHousekeepers.date }}</div>
+                  <div class="text-body-2 font-weight-bold">{{ viewingBookingHousekeepers.time }}</div>
+                </v-col>
+                <v-col cols="12" md="2">
+                  <div class="text-caption text-grey-darken-1 mb-1">Duration</div>
+                  <div class="text-body-2 font-weight-bold">{{ viewingBookingHousekeepers.duration }}</div>
+                </v-col>
+                <v-col cols="12" md="2">
+                  <div class="text-caption text-grey-darken-1 mb-1">Needed</div>
+                  <div class="text-body-2 font-weight-bold">{{ viewingBookingHousekeepers.caregiversNeeded }} housekeepers</div>
+                </v-col>
+                <v-col cols="12" md="2">
+                  <div class="text-caption text-grey-darken-1 mb-1">Assigned</div>
+                  <div class="text-body-2 font-weight-bold">{{ getAssignedHousekeepers(viewingBookingHousekeepers.id).length }} housekeepers</div>
+                </v-col>
+                <v-col cols="12" md="3" class="d-flex align-center justify-end">
+                  <v-chip :color="getBookingStatusColor(viewingBookingHousekeepers.status)" class="text-white font-weight-bold">
+                    {{ viewingBookingHousekeepers.status }}
+                  </v-chip>
+                </v-col>
+              </v-row>
+            </v-card-text>
+          </v-card>
+        </v-card-text>
+
+        <!-- Tabs -->
+        <v-tabs v-model="assignedHousekeepersTab" color="purple" bg-color="white">
+          <v-tab value="housekeepers">
+            <v-icon class="mr-2">mdi-broom</v-icon>
+            Housekeepers ({{ getAssignedHousekeepers(viewingBookingHousekeepers.id).length }})
+          </v-tab>
+          <v-tab value="schedule">
+            <v-icon class="mr-2">mdi-calendar-week</v-icon>
+            Weekly Schedule
+          </v-tab>
+        </v-tabs>
+
+        <v-divider />
+
+        <!-- Tab Content -->
+        <v-card-text class="pa-0" style="height: 500px; overflow-y: auto;">
+          <v-tabs-window v-model="assignedHousekeepersTab">
+            <!-- Housekeepers List Tab -->
+            <v-tabs-window-item value="housekeepers">
+              <div class="pa-6">
+                <div v-if="getAssignedHousekeepers(viewingBookingHousekeepers.id).length > 0">
+                  <v-row>
+                    <v-col v-for="hk in getAssignedHousekeepers(viewingBookingHousekeepers.id)" :key="hk.id" cols="12">
+                      <v-card elevation="2" class="rounded-lg hover-card">
+                        <v-card-text class="pa-4">
+                          <div class="d-flex align-start">
+                            <!-- Avatar -->
+                            <v-avatar size="64" color="purple" class="mr-4">
+                              <span class="text-white font-weight-bold text-h5">{{ (hk.name || 'H').split(' ').map(n => n[0]).join('') }}</span>
+                            </v-avatar>
+
+                            <!-- Housekeeper Info -->
+                            <div class="flex-grow-1">
+                              <div class="text-h6 font-weight-bold mb-1 text-grey-darken-3">{{ hk.name }}</div>
+                              <div class="d-flex flex-wrap gap-2 mb-2">
+                                <v-chip size="small" color="grey-lighten-2">
+                                  <v-icon size="16" class="mr-1" style="color: #1a1a1a !important;">mdi-email</v-icon>
+                                  <span class="text-grey-darken-3">{{ hk.email }}</span>
+                                </v-chip>
+                                <v-chip size="small" color="grey-lighten-2">
+                                  <v-icon size="16" class="mr-1" style="color: #1a1a1a !important;">mdi-phone</v-icon>
+                                  <span class="text-grey-darken-3">{{ hk.phone || '(646) 282-8282' }}</span>
+                                </v-chip>
+                                <v-chip size="small" color="purple" variant="elevated">
+                                  <v-icon size="16" class="mr-1">mdi-cash</v-icon>
+                                  <span class="font-weight-bold">${{ hk.hourly_rate || 20 }}/hr</span>
+                                </v-chip>
+                              </div>
+
+                              <!-- Schedule Info -->
+                              <div v-if="getHousekeeperScheduleDays(hk.id).length > 0" class="mt-2">
+                                <v-chip size="small" color="primary" variant="tonal" prepend-icon="mdi-calendar-check">
+                                  {{ getHousekeeperScheduleDays(hk.id).length }} days scheduled
+                                </v-chip>
+                                <span class="text-caption text-grey ml-2">
+                                  {{ getHousekeeperScheduleDays(hk.id).map(d => d.charAt(0).toUpperCase() + d.slice(1, 3)).join(', ') }}
+                                </span>
+                              </div>
+                              <div v-else class="mt-2">
+                                <v-chip size="small" color="warning" variant="tonal" prepend-icon="mdi-calendar-alert">
+                                  No schedule assigned
+                                </v-chip>
+                              </div>
+                            </div>
+
+                            <!-- Actions -->
+                            <div class="d-flex flex-column gap-2">
+                              <v-btn color="error" variant="outlined" size="small" prepend-icon="mdi-close" @click="unassignHousekeeper(hk.id, viewingBookingHousekeepers.id)">
+                                Unassign
+                              </v-btn>
+                            </div>
+                          </div>
+                        </v-card-text>
+                      </v-card>
+                    </v-col>
+                  </v-row>
+                </div>
+
+                <!-- Empty State -->
+                <div v-else class="text-center py-12">
+                  <v-icon size="80" color="grey-lighten-2">mdi-broom</v-icon>
+                  <div class="text-h6 text-grey-darken-1 mt-4">No Housekeepers Assigned</div>
+                  <div class="text-body-2 text-grey mt-2 mb-4">Assign housekeepers to this booking to get started.</div>
+                  <v-btn color="purple" size="large" prepend-icon="mdi-broom" @click="assignHousekeeperDialog(viewingBookingHousekeepers); viewAssignedHousekeepersDialog = false">
+                    Assign Housekeepers
+                  </v-btn>
+                </div>
+              </div>
+            </v-tabs-window-item>
+
+            <!-- Weekly Schedule Tab -->
+            <v-tabs-window-item value="schedule">
+              <div class="pa-6">
+                <div v-if="getAssignedHousekeepers(viewingBookingHousekeepers.id).length > 0">
+                  <div class="d-flex justify-end mb-4">
+                    <v-btn
+                      color="error"
+                      variant="outlined"
+                      size="small"
+                      prepend-icon="mdi-close-circle"
+                      @click="clearAllHousekeeperSchedules"
+                    >
+                      Clear All Schedules
+                    </v-btn>
+                  </div>
+
+                  <v-row>
+                    <v-col
+                      v-for="day in getAvailableDays(viewingBookingHousekeepers)"
+                      :key="day.value"
+                      cols="12"
+                      sm="6"
+                      md="4"
+                      lg="3"
+                    >
+                      <v-card
+                        :class="['day-schedule-card', { 'today-card': isTodayHousekeeper(day.value) }]"
+                        :color="isTodayHousekeeper(day.value) ? 'blue-lighten-5' : ''"
+                        elevation="2"
+                      >
+                        <v-card-title class="pa-3 d-flex align-center justify-space-between" :class="{ 'bg-blue-lighten-4': isTodayHousekeeper(day.value) }" style="color: #1a1a1a !important;">
+                          <div class="d-flex align-center">
+                            <v-icon size="20" class="mr-2" :style="{ color: isTodayHousekeeper(day.value) ? '#1565c0 !important' : '#1a1a1a !important' }">
+                              {{ isTodayHousekeeper(day.value) ? 'mdi-calendar-star' : 'mdi-calendar' }}
+                            </v-icon>
+                            <div>
+                              <div class="text-body-2 font-weight-bold" style="color: #1a1a1a !important;">{{ day.label }}</div>
+                              <div v-if="isTodayHousekeeper(day.value)" class="text-caption font-weight-bold" style="color: #1565c0 !important;">TODAY</div>
+                              <div class="text-caption d-flex align-center mt-1" style="color: #616161 !important;">
+                                <v-icon size="12" class="mr-1" style="color: #616161 !important;">mdi-clock-outline</v-icon>
+                                {{ getTimeForDay(viewingBookingHousekeepers, day.value) }}
+                              </div>
+                            </div>
+                          </div>
+                        </v-card-title>
+
+                        <v-divider />
+
+                        <v-card-text class="pa-3">
+                          <div class="mb-3">
+                            <v-chip
+                              v-if="getHousekeeperForDay(day.value)"
+                              :color="isTodayHousekeeper(day.value) ? 'blue' : 'purple'"
+                              size="small"
+                              class="text-white font-weight-bold"
+                              block
+                            >
+                              <v-icon size="14" class="mr-1">mdi-account-check</v-icon>
+                              Assigned
+                            </v-chip>
+                            <v-chip
+                              v-else
+                              color="grey-lighten-2"
+                              size="small"
+                              block
+                            >
+                              <v-icon size="14" class="mr-1" color="grey-darken-2">mdi-account-off</v-icon>
+                              <span class="text-grey-darken-2">Unassigned</span>
+                            </v-chip>
+                          </div>
+
+                          <div v-if="getHousekeeperForDay(day.value)" class="mb-3">
+                            <div class="pa-2 bg-purple-lighten-5 rounded d-flex align-center">
+                              <v-avatar size="32" color="purple" class="mr-2">
+                                <span class="text-white text-caption font-weight-bold">
+                                  {{ getHousekeeperForDay(day.value).name.split(' ').map(n => n[0]).join('') }}
+                                </span>
+                              </v-avatar>
+                              <div class="flex-grow-1" style="min-width: 0;">
+                                <div class="text-body-2 font-weight-bold text-truncate text-grey-darken-3">
+                                  {{ getHousekeeperForDay(day.value).name }}
+                                </div>
+                                <div class="text-caption text-grey-darken-1">Currently assigned</div>
+                              </div>
+                            </div>
+                          </div>
+
+                          <v-select
+                            :model-value="getHousekeeperForDay(day.value)?.id"
+                            @update:model-value="(val) => assignHousekeeperToDay(day.value, val)"
+                            :items="getAssignedHousekeepers(viewingBookingHousekeepers.id)"
+                            item-title="name"
+                            item-value="id"
+                            label="Assign Housekeeper"
+                            variant="outlined"
+                            density="compact"
+                            prepend-inner-icon="mdi-broom"
+                            clearable
+                            hide-details
+                          />
+                        </v-card-text>
+                      </v-card>
+                    </v-col>
+                  </v-row>
+                </div>
+
+                <div v-else class="text-center py-12">
+                  <v-icon size="80" color="grey-lighten-2">mdi-broom</v-icon>
+                  <div class="text-h6 text-grey-darken-1 mt-4">No Housekeepers Assigned</div>
+                  <div class="text-body-2 text-grey mt-2 mb-4">Please assign housekeepers to this booking first.</div>
+                  <v-btn color="purple" size="large" prepend-icon="mdi-broom" @click="assignHousekeeperDialog(viewingBookingHousekeepers); viewAssignedHousekeepersDialog = false">
+                    Assign Housekeepers
+                  </v-btn>
+                </div>
+              </div>
+            </v-tabs-window-item>
+          </v-tabs-window>
+        </v-card-text>
+
+        <!-- Actions -->
+        <v-divider />
+        <v-card-actions class="pa-4 bg-grey-lighten-5">
+          <v-spacer />
+          <v-btn variant="text" @click="viewAssignedHousekeepersDialog = false">Close</v-btn>
+          <v-btn color="purple" variant="flat" prepend-icon="mdi-broom" @click="assignHousekeeperDialog(viewingBookingHousekeepers); viewAssignedHousekeepersDialog = false">
+            Manage Assignment
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
     <!-- Schedule Management Dialog -->
     <v-dialog v-model="scheduleDialog" max-width="1000" persistent scrollable>
       <v-card class="schedule-dialog-card">
@@ -5826,6 +6580,11 @@ const maintenanceMode = ref(false);
 const caregivers = ref([]);
 const caregiverAssignments = ref({}); // Track which caregivers are assigned to which bookings
 
+const housekeepers = ref([]);
+const housekeeperSearch = ref('');
+const housekeeperLocationFilter = ref('All');
+const housekeeperStatusFilter = ref('All');
+
 const clients = ref([]);
 
 // Selection refs for bulk operations
@@ -5873,6 +6632,18 @@ const caregiverHeaders = [
   { title: 'Zip Code', key: 'zip_code' },
   { title: 'Location', key: 'location' },
   { title: 'Status', key: 'status' },
+  { title: 'Rating', key: 'rating' },
+  { title: 'Actions', key: 'actions', sortable: false },
+];
+
+const housekeeperHeaders = [
+  { title: 'Name', key: 'name' },
+  { title: 'Email', key: 'email' },
+  { title: 'Phone', key: 'phone' },
+  { title: 'ZIP Code', key: 'zip_code' },
+  { title: 'Location', key: 'location' },
+  { title: 'Status', key: 'status' },
+  { title: 'Experience', key: 'years_experience' },
   { title: 'Rating', key: 'rating' },
   { title: 'Actions', key: 'actions', sortable: false },
 ];
@@ -6106,6 +6877,7 @@ const navItems = ref([
     expanded: false,
     children: [
       { icon: 'mdi-account-heart', title: 'Caregivers', value: 'caregivers' },
+      { icon: 'mdi-broom', title: 'Housekeepers', value: 'housekeepers' },
       { icon: 'mdi-account-multiple', title: 'Clients', value: 'clients' },
       { icon: 'mdi-shield-account', title: 'Admin Staff', value: 'admin-staff' },
       { icon: 'mdi-bullhorn-variant', title: 'Marketing Partner', value: 'marketing-staff' },
@@ -6322,6 +7094,13 @@ const caregiverMetrics = ref([
   { label: 'Avg Earnings', value: '$0', color: 'error' },
 ]);
 
+const housekeeperMetrics = ref([
+  { label: 'Total Housekeepers', value: '0', color: 'teal' },
+  { label: 'Active Today', value: '0', color: 'info' },
+  { label: 'Assigned', value: '0', color: 'warning' },
+  { label: 'Avg Earnings', value: '$0', color: 'error' },
+]);
+
 const adminCount = ref('0');
 const userProgress = ref(0);
 const userGrowth = ref('+0% this month');
@@ -6350,9 +7129,11 @@ const loadMetrics = async () => {
     const totalUsers = data.total_users || 0;
     const totalCaregivers = data.total_caregivers || 0;
     const totalClients = data.total_clients || 0;
-    const admins = totalUsers - totalCaregivers - totalClients;
+    const totalHousekeepers = data.total_housekeepers || 0;
+    const admins = totalUsers - totalCaregivers - totalClients - totalHousekeepers;
     clientMetrics.value[0].value = totalClients.toString();
     caregiverMetrics.value[0].value = totalCaregivers.toString();
+    housekeeperMetrics.value[0].value = totalHousekeepers.toString();
     adminCount.value = admins.toString();
     totalUsersForChart.value = totalUsers.toString();
     const bookingsResp = await fetch('/api/bookings');
@@ -6363,6 +7144,21 @@ const loadMetrics = async () => {
     bookingStats.value.completed = allBookings.filter(b => b.status === 'completed').length.toString();
     bookingStats.value.cancelled = allBookings.filter(b => b.status === 'cancelled').length.toString();
     totalBookingsForChart.value = allBookings.length.toString();
+    
+    // Load housekeeper analytics
+    try {
+      const hkResp = await fetch('/api/admin/housekeeper-salaries');
+      const hkData = await hkResp.json();
+      const payments = hkData.payments || [];
+      housekeeperMetrics.value[1].value = payments.filter(p => p.days_worked > 0).length.toString();
+      housekeeperMetrics.value[2].value = payments.filter(p => p.status !== 'No Hours').length.toString();
+      const totalEarnings = payments.reduce((sum, p) => sum + (p.total_amount || 0), 0);
+      const avgEarnings = payments.length > 0 ? (totalEarnings / payments.length) : 0;
+      housekeeperMetrics.value[3].value = '$' + avgEarnings.toFixed(0);
+    } catch (hkError) {
+      // Housekeeper stats optional
+    }
+    
     setTimeout(initCharts, 100);
   } catch (error) {
   }
@@ -6502,6 +7298,34 @@ const loadUsers = async () => {
   }
 };
 
+const loadHousekeepers = async () => {
+  try {
+    const response = await fetch('/api/admin/housekeepers');
+    const data = await response.json();
+  housekeepers.value = (data.housekeepers || []).map(h => ({
+  id: h.housekeeper?.id,
+      userId: h.id,
+      name: h.name,
+      email: h.email,
+      phone: h.phone || 'N/A',
+      zip_code: h.zip_code || '',
+      location: h.location || 'Unknown',
+      status: h.status || 'Active',
+      years_experience: h.years_experience || 0,
+  rating: h.housekeeper?.rating || h.rating || 0,
+  hourly_rate: h.housekeeper?.hourly_rate || 20,
+      joined: h.joined
+  })).filter(h => !!h.id);
+  } catch (error) {
+    console.error('Error loading housekeepers:', error);
+    housekeepers.value = [];
+  }
+};
+
+const viewHousekeeperDetails = (housekeeper) => {
+  alert(`Viewing details for ${housekeeper.name}\n\nEmail: ${housekeeper.email}\nPhone: ${housekeeper.phone}\nExperience: ${housekeeper.years_experience} years\nRating: ${housekeeper.rating}/5`);
+};
+
 const settings = ref({
   platformName: 'CAS Private Care LLC',
   supportEmail: 'support@casprivatecare.com',
@@ -6580,7 +7404,10 @@ const lookupBookingZipCode = async () => {
     return;
   }
 
-  bookingZipLocation.value = await resolveZipCityState(zip);
+  // Show loading state
+  bookingZipLocation.value = 'Looking up location…';
+  const location = await resolveZipCityState(zip);
+  bookingZipLocation.value = location || 'ZIP not found';
 };
 
 const lookupTrainingCenterZipCode = async () => {
@@ -6590,7 +7417,10 @@ const lookupTrainingCenterZipCode = async () => {
     return;
   }
 
-  trainingCenterZipLocation.value = await resolveZipCityState(zip);
+  // Show loading state
+  trainingCenterZipLocation.value = 'Looking up location…';
+  const location = await resolveZipCityState(zip);
+  trainingCenterZipLocation.value = location || 'ZIP not found';
 };
 
 // Phone number formatting function - NY format (XXX) XXX-XXXX
@@ -6645,7 +7475,10 @@ const lookupClientZipCode = async () => {
     return;
   }
 
-  clientZipLocation.value = await resolveZipCityState(zip);
+  // Show loading state
+  clientZipLocation.value = 'Looking up location…';
+  const location = await resolveZipCityState(zip);
+  clientZipLocation.value = location || 'ZIP not found';
 };
 
 const caregiverZipLocation = ref('');
@@ -6656,7 +7489,10 @@ const lookupCaregiverZipCode = async () => {
     return;
   }
 
-  caregiverZipLocation.value = await resolveZipCityState(zip);
+  // Show loading state
+  caregiverZipLocation.value = 'Looking up location…';
+  const location = await resolveZipCityState(zip);
+  caregiverZipLocation.value = location || 'ZIP not found';
 };
 
 const marketingStaffZipLocation = ref('');
@@ -6667,7 +7503,10 @@ const lookupMarketingStaffZipCode = async () => {
     return;
   }
 
-  marketingStaffZipLocation.value = await resolveZipCityState(zip);
+  // Show loading state
+  marketingStaffZipLocation.value = 'Looking up location…';
+  const location = await resolveZipCityState(zip);
+  marketingStaffZipLocation.value = location || 'ZIP not found';
 };
 
 const bookingForm = ref({
@@ -7284,6 +8123,14 @@ const assignSelectedCaregivers = ref([]);
 const assignedRates = ref({});
 const customCaregiversNeeded = ref(null);
 
+// Housekeeper assignment dialog state (custom)
+const assignHousekeeperDialogOpen = ref(false);
+const assignHousekeeperSearch = ref('');
+const assignHousekeeperAvailabilityFilter = ref('Available');
+const assignSelectedHousekeepers = ref([]);
+const assignedHousekeeperRates = ref({});
+const customHousekeepersNeeded = ref(null);
+
 const paymentStats = ref([
   { title: 'Total Revenue', value: '$0', icon: 'mdi-currency-usd', color: 'success', change: '+15%', changeColor: 'success--text' },
   { title: 'Pending Payments', value: '$0', icon: 'mdi-clock', color: 'warning', change: '0 pending', changeColor: 'warning--text' },
@@ -7370,6 +8217,24 @@ const caregiverPaymentDetailsDialog = ref(false);
 const selectedCaregiverPayment = ref(null);
 const selectedCaregiverPaymentDetails = ref(null);
 
+// Housekeeper payments
+const housekeeperPaymentHeaders = [
+  { title: 'Housekeeper', key: 'housekeeper' },
+  { title: 'Hours Worked', key: 'hours_display' },
+  { title: 'Hourly Rate', key: 'rate' },
+  { title: 'Total Earned', key: 'amount_display' },
+  { title: 'Unpaid Amount', key: 'unpaid_display' },
+  { title: 'Bank Account', key: 'bank_status' },
+  { title: 'Period', key: 'period' },
+  { title: 'Status', key: 'status' },
+  { title: 'Actions', key: 'actions', sortable: false },
+];
+
+const housekeeperPayments = ref([]);
+const housekeeperSalarySearch = ref('');
+const housekeeperSalaryStatusFilter = ref('All');
+const housekeeperSalaryPeriodFilter = ref('Current Month');
+
 // Check if today is Friday (payout day)
 const isFriday = computed(() => {
   return new Date().getDay() === 5; // 5 = Friday
@@ -7382,6 +8247,90 @@ const loadCaregiverPayments = async () => {
     caregiverPayments.value = data.payments || [];
   } catch (error) {
   }
+};
+
+const loadHousekeeperPayments = async () => {
+  try {
+    const response = await fetch('/api/admin/housekeeper-salaries');
+    const data = await response.json();
+    housekeeperPayments.value = data.payments || [];
+  } catch (error) {
+  }
+};
+
+const filteredHousekeeperPayments = computed(() => {
+  let items = [...(housekeeperPayments.value || [])];
+
+  // Search (name/email)
+  const q = (housekeeperSalarySearch.value || '').toLowerCase().trim();
+  if (q) {
+    items = items.filter(p => {
+      const name = (p.housekeeper || '').toLowerCase();
+      const email = (p.housekeeper_email || '').toLowerCase();
+      return name.includes(q) || email.includes(q);
+    });
+  }
+
+  // Status
+  if (housekeeperSalaryStatusFilter.value && housekeeperSalaryStatusFilter.value !== 'All') {
+    items = items.filter(p => p.status === housekeeperSalaryStatusFilter.value);
+  }
+
+  // Period (backend currently returns current month for all rows)
+  // Keep filter in UI for future extension.
+  return items;
+});
+
+const viewHousekeeperPaymentDetails = (item) => {
+  // Minimal: reuse the existing details dialog structure later if needed.
+  selectedCaregiverPayment.value = item;
+  caregiverPaymentDetailsDialog.value = true;
+};
+
+const payHousekeeper = async (item) => {
+  if (!item.can_pay) {
+    warning('Cannot process payment. Check if bank is connected and there are unpaid hours.', 'Payment');
+    return;
+  }
+  
+  if (!confirm(`Pay ${item.housekeeper} $${item.unpaid_amount.toFixed(2)}?`)) {
+    return;
+  }
+
+  try {
+    item.paying = true;
+    const response = await fetch('/api/admin/pay-housekeeper', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+      },
+      credentials: 'same-origin',
+      body: JSON.stringify({
+        housekeeper_id: item.id,
+        amount: item.unpaid_amount
+      })
+    });
+    
+    const data = await response.json();
+    
+    if (data.success) {
+      success(`Payment of $${data.amount.toFixed(2)} sent to ${data.housekeeper}`, 'Payment Success');
+      // Reload housekeeper payments
+      await loadHousekeeperPayments();
+    } else {
+      error(data.message || 'Payment failed', 'Error');
+    }
+  } catch (err) {
+    error('Failed to process payment: ' + (err.message || 'Unknown error'), 'Error');
+  } finally {
+    item.paying = false;
+  }
+};
+
+const exportHousekeeperPaymentsPDF = () => {
+  warning('Housekeeper PDF export coming soon.', 'Coming Soon');
 };
 
 // Marketing Commissions
@@ -7843,6 +8792,15 @@ const filteredCaregivers = computed(() => {
     const matchesSearch = !caregiverSearch.value || c.name.toLowerCase().includes(caregiverSearch.value.toLowerCase()) || c.email.toLowerCase().includes(caregiverSearch.value.toLowerCase());
     const matchesLocation = caregiverLocationFilter.value === 'All' || (c.borough && c.borough.includes(caregiverLocationFilter.value)) || (c.county && c.county.includes(caregiverLocationFilter.value));
     const matchesStatus = caregiverStatusFilter.value === 'All' || c.status === caregiverStatusFilter.value;
+    return matchesSearch && matchesLocation && matchesStatus;
+  });
+});
+
+const filteredHousekeepers = computed(() => {
+  return housekeepers.value.filter(h => {
+    const matchesSearch = !housekeeperSearch.value || h.name.toLowerCase().includes(housekeeperSearch.value.toLowerCase()) || h.email.toLowerCase().includes(housekeeperSearch.value.toLowerCase());
+    const matchesLocation = housekeeperLocationFilter.value === 'All' || (h.location && h.location.includes(housekeeperLocationFilter.value));
+    const matchesStatus = housekeeperStatusFilter.value === 'All' || h.status === housekeeperStatusFilter.value;
     return matchesSearch && matchesLocation && matchesStatus;
   });
 });
@@ -9736,6 +10694,11 @@ const resolveZipCityState = async (zipLike) => {
     const resp = await fetch(`/api/zipcode-lookup/${zip}`);
     if (resp.ok) {
       const data = await resp.json();
+      if (data.success && data.location) {
+        zipCityStateCache.set(zip, data.location);
+        return data.location;
+      }
+      // Handle other location formats
       const location = String(
         (data && (data.place || data.location)) ||
         (data && data.city && (data.state || data.state_abbreviation) ? `${data.city}, ${data.state || data.state_abbreviation}` : '') ||
@@ -9744,8 +10707,8 @@ const resolveZipCityState = async (zipLike) => {
       zipCityStateCache.set(zip, location);
       return location;
     }
-  } catch (_) {
-    // ignore network errors; we just won't show an indicator
+  } catch (error) {
+    console.error('AdminDashboard ZIP code lookup error:', error);
   }
 
   zipCityStateCache.set(zip, '');
@@ -9891,6 +10854,30 @@ const assignCaregiverDialog = async (booking) => {
   assignDialog.value = true;
 };
 
+const assignHousekeeperDialog = async (booking) => {
+  selectedBooking.value = booking;
+  assignHousekeeperSearch.value = '';
+  assignHousekeeperAvailabilityFilter.value = 'Available';
+
+  customHousekeepersNeeded.value = booking.caregiversNeeded;
+
+  // Prefill from existing assignments if provided
+  assignSelectedHousekeepers.value = (booking.assignments || [])
+  .filter(a => String(a.provider_type || '').toLowerCase() === 'housekeeper' || a.housekeeper_id || a.housekeeper?.id)
+  .map(a => a.housekeeper_id || a.housekeeper?.id)
+    .filter(Boolean);
+
+  assignedHousekeeperRates.value = {};
+  assignSelectedHousekeepers.value.forEach(housekeeperId => {
+    const hk = housekeepers.value.find(h => h.id === housekeeperId);
+    if (hk) {
+      assignedHousekeeperRates.value[housekeeperId] = hk.hourly_rate || 20;
+    }
+  });
+
+  assignHousekeeperDialogOpen.value = true;
+};
+
 const closeAssignDialog = () => {
   assignDialog.value = false;
   assignSelectedCaregivers.value = [];
@@ -9899,8 +10886,19 @@ const closeAssignDialog = () => {
   selectedBooking.value = null;
 };
 
+const closeAssignHousekeeperDialog = () => {
+  assignHousekeeperDialogOpen.value = false;
+  assignSelectedHousekeepers.value = [];
+  assignedHousekeeperRates.value = {};
+  customHousekeepersNeeded.value = null;
+  selectedBooking.value = null;
+};
+
 const toggleCaregiverSelection = (caregiverId) => {
   const index = assignSelectedCaregivers.value.indexOf(caregiverId);
+  const workerType = selectedBooking.value?.service_type === 'Housekeeping' ? 'housekeeper' : 'caregiver';
+  const workerTypePlural = selectedBooking.value?.service_type === 'Housekeeping' ? 'housekeepers' : 'caregivers';
+  
   if (index > -1) {
     // Uncheck - remove from selection and clear rate
     assignSelectedCaregivers.value.splice(index, 1);
@@ -9909,7 +10907,7 @@ const toggleCaregiverSelection = (caregiverId) => {
     // Check - add to selection but validate limit
     const maxNeeded = customCaregiversNeeded.value || selectedBooking.value?.caregiversNeeded || 1;
     if (assignSelectedCaregivers.value.length >= maxNeeded) {
-      warning(`This booking needs ${maxNeeded} caregiver${maxNeeded !== 1 ? 's' : ''}. Please unselect a caregiver first or increase the number needed.`, 'Selection Limit Reached');
+      warning(`This booking needs ${maxNeeded} ${maxNeeded !== 1 ? workerTypePlural : workerType}. Please unselect a ${workerType} first or increase the number needed.`, 'Selection Limit Reached');
       return;
     }
     assignSelectedCaregivers.value.push(caregiverId);
@@ -9924,6 +10922,34 @@ const toggleCaregiverSelection = (caregiverId) => {
 
 const getCaregiverById = (id) => {
   return caregivers.value.find(c => c.id === id);
+};
+
+const getHousekeeperById = (id) => {
+  return housekeepers.value.find(h => h.id === id);
+};
+
+const toggleHousekeeperSelection = (housekeeperId, checked) => {
+  const maxNeeded = customHousekeepersNeeded.value || selectedBooking.value?.caregiversNeeded || 1;
+  const isChecked = typeof checked === 'boolean' ? checked : !assignSelectedHousekeepers.value.includes(housekeeperId);
+
+  if (!isChecked) {
+    assignSelectedHousekeepers.value = assignSelectedHousekeepers.value.filter(id => id !== housekeeperId);
+    delete assignedHousekeeperRates.value[housekeeperId];
+    return;
+  }
+
+  if (!assignSelectedHousekeepers.value.includes(housekeeperId)) {
+    if (assignSelectedHousekeepers.value.length >= maxNeeded) {
+      warning(`This booking needs ${maxNeeded} housekeeper${maxNeeded !== 1 ? 's' : ''}. Please unselect a housekeeper first or increase the number needed.`, 'Selection Limit Reached');
+      return;
+    }
+
+    assignSelectedHousekeepers.value = [...assignSelectedHousekeepers.value, housekeeperId];
+    const hk = getHousekeeperById(housekeeperId);
+    if (hk) {
+      assignedHousekeeperRates.value[housekeeperId] = hk.hourly_rate || 20;
+    }
+  }
 };
 
 const calculateProfit = (caregiverId) => {
@@ -9972,6 +10998,26 @@ const filteredAssignCaregivers = computed(() => {
   });
 });
 
+const filteredAssignHousekeepers = computed(() => {
+  return housekeepers.value.filter(h => {
+    const matchesSearch = !assignHousekeeperSearch.value ||
+      String(h.name || '').toLowerCase().includes(assignHousekeeperSearch.value.toLowerCase()) ||
+      String(h.email || '').toLowerCase().includes(assignHousekeeperSearch.value.toLowerCase());
+
+    const status = String(h.status || h.availability_status || '').toLowerCase();
+    const isUnavailable = status === 'inactive' || status === 'unavailable';
+    const isAssigned = status === 'assigned';
+    const isAvailable = !isUnavailable && !isAssigned;
+
+    const matchesAvailability = assignHousekeeperAvailabilityFilter.value === 'All' ||
+      (assignHousekeeperAvailabilityFilter.value === 'Available' && isAvailable) ||
+      (assignHousekeeperAvailabilityFilter.value === 'Assigned' && isAssigned) ||
+      (assignHousekeeperAvailabilityFilter.value === 'Unavailable' && isUnavailable);
+
+    return matchesSearch && matchesAvailability;
+  });
+});
+
 const getAssignedCaregivers = (bookingId) => {
   const assignedIds = caregiverAssignments.value[bookingId] || [];
   const booking = clientBookings.value.find(b => b.id === bookingId);
@@ -9995,12 +11041,39 @@ const getAssignedCaregivers = (bookingId) => {
   return caregivers.value.filter(c => assignedIds.includes(c.id));
 };
 
+const getAssignedHousekeepers = (bookingId) => {
+  const booking = clientBookings.value.find(b => b.id === bookingId);
+  if (!booking || !Array.isArray(booking.assignments)) return [];
+
+  return booking.assignments
+    .filter(a => String(a.provider_type || '').toLowerCase() === 'housekeeper' || a.housekeeper_id)
+    .map(a => ({
+      id: a.housekeeper_id,
+      name: a.housekeeper?.user?.name || a.housekeeper_name || 'Unknown',
+      email: a.housekeeper?.user?.email || a.housekeeper_email || 'Unknown',
+      hourly_rate: a.assigned_hourly_rate || 20,
+    }))
+    .filter(h => !!h.id);
+};
+
+// Helper function to check if booking is a housekeeping booking
+const isHousekeepingBooking = (booking) => {
+  if (!booking) return false;
+  const serviceType = String(booking.service_type || booking.service || '').toLowerCase();
+  return serviceType.includes('housekeeping') || serviceType.includes('house cleaning');
+};
+
 const viewBookingDialog = ref(false);
 const viewingBooking = ref(null);
 const viewAssignedCaregiversDialog = ref(false);
 const viewingBookingCaregivers = ref(null);
+const viewAssignedHousekeepersDialog = ref(false);
+const viewingBookingHousekeepers = ref(null);
 const caregiverSchedules = ref({}); // Store schedules for each caregiver
 const weeklySchedule = ref({}); // Store caregiver assignments for each day: { monday: caregiverId, tuesday: caregiverId, ... }
+const assignedHousekeepersTab = ref('housekeepers');
+const housekeeperSchedules = ref({}); // Store schedules for each housekeeper
+const weeklyHousekeeperSchedule = ref({}); // Store housekeeper assignments for each day
 
 // Schedule management
 const scheduleDialog = ref(false);
@@ -10064,6 +11137,152 @@ if (booking && booking.assignments) {
   }
 
 viewAssignedCaregiversDialog.value = true;
+};
+
+const viewAssignedHousekeepers = async (booking) => {
+  viewingBookingHousekeepers.value = booking;
+
+  // Load schedules for all assigned housekeepers
+  housekeeperSchedules.value = {};
+  weeklyHousekeeperSchedule.value = {};
+
+  const assigned = getAssignedHousekeepers(booking.id);
+  for (const hk of assigned) {
+    try {
+      const response = await fetch(`/api/bookings/${booking.id}/housekeeper/${hk.id}/schedule`);
+      if (response.ok) {
+        const data = await response.json();
+        if (data && data.schedule) {
+          housekeeperSchedules.value[hk.id] = {
+            days: data.schedule.days || [],
+            schedules: data.schedule.schedules || {}
+          };
+          if (data.schedule.days) {
+            for (const day of data.schedule.days) {
+              weeklyHousekeeperSchedule.value[day] = hk.id;
+            }
+          }
+        }
+      }
+    } catch (err) {
+      // ignore
+    }
+  }
+
+  assignedHousekeepersTab.value = 'housekeepers';
+  viewAssignedHousekeepersDialog.value = true;
+};
+
+const getHousekeeperScheduleDays = (housekeeperId) => {
+  const schedule = housekeeperSchedules.value[housekeeperId];
+  return schedule?.days || [];
+};
+
+const getHousekeeperForDay = (dayValue) => {
+  const hkId = weeklyHousekeeperSchedule.value[dayValue];
+  if (!hkId || !viewingBookingHousekeepers.value) return null;
+  return getAssignedHousekeepers(viewingBookingHousekeepers.value.id).find(h => h.id === hkId) || null;
+};
+
+const isTodayHousekeeper = (dayValue) => {
+  if (!viewingBookingHousekeepers.value) return false;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const bookingDate = viewingBookingHousekeepers.value.date;
+  const bookingStart = new Date(bookingDate);
+  bookingStart.setHours(0, 0, 0, 0);
+  if (today < bookingStart) return false;
+  const daysPassed = Math.floor((today - bookingStart) / (1000 * 60 * 60 * 24));
+  const startDayOfWeek = bookingStart.getDay();
+  const currentDayOfWeek = (startDayOfWeek + daysPassed) % 7;
+  const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+  return days[currentDayOfWeek] === dayValue.toLowerCase();
+};
+
+const saveHousekeeperSchedule = async (housekeeperId) => {
+  if (!viewingBookingHousekeepers.value) return;
+  const bookingId = viewingBookingHousekeepers.value.id;
+  const schedule = housekeeperSchedules.value[housekeeperId] || { days: [], schedules: {} };
+
+  try {
+    const el = document.querySelector('meta[name="csrf-token"]');
+    const response = await fetch(`/api/bookings/${bookingId}/housekeeper/${housekeeperId}/schedule`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(el ? { 'X-CSRF-TOKEN': el.getAttribute('content') } : {}),
+      },
+      credentials: 'same-origin',
+      body: JSON.stringify({
+        days: schedule.days || [],
+        schedules: schedule.schedules || {},
+      }),
+    });
+    if (!response.ok) {
+    }
+  } catch (e) {
+  }
+};
+
+const removeHousekeeperFromDay = async (dayValue) => {
+  const prevHkId = weeklyHousekeeperSchedule.value[dayValue];
+  if (!prevHkId) return;
+
+  delete weeklyHousekeeperSchedule.value[dayValue];
+  const oldSchedule = housekeeperSchedules.value[prevHkId] || { days: [], schedules: {} };
+  oldSchedule.days = (oldSchedule.days || []).filter(d => d !== dayValue);
+  if (oldSchedule.schedules) {
+    delete oldSchedule.schedules[dayValue];
+  }
+  housekeeperSchedules.value[prevHkId] = { ...oldSchedule };
+  await saveHousekeeperSchedule(prevHkId);
+};
+
+const assignHousekeeperToDay = async (dayValue, housekeeperId) => {
+  if (!housekeeperId) {
+    await removeHousekeeperFromDay(dayValue);
+    return;
+  }
+
+  const previousHousekeeperId = weeklyHousekeeperSchedule.value[dayValue];
+  weeklyHousekeeperSchedule.value[dayValue] = housekeeperId;
+
+  // remove from previous
+  if (previousHousekeeperId && previousHousekeeperId !== housekeeperId) {
+    const oldSchedule = housekeeperSchedules.value[previousHousekeeperId] || { days: [], schedules: {} };
+    oldSchedule.days = (oldSchedule.days || []).filter(d => d !== dayValue);
+    if (oldSchedule.schedules) {
+      delete oldSchedule.schedules[dayValue];
+    }
+    housekeeperSchedules.value[previousHousekeeperId] = { ...oldSchedule };
+    saveHousekeeperSchedule(previousHousekeeperId);
+  }
+
+  // add to new
+  const newSchedule = housekeeperSchedules.value[housekeeperId] || { days: [], schedules: {} };
+  if (!Array.isArray(newSchedule.days)) newSchedule.days = [];
+  if (!newSchedule.days.includes(dayValue)) newSchedule.days.push(dayValue);
+  if (!newSchedule.schedules) newSchedule.schedules = {};
+  if (!newSchedule.schedules[dayValue]) {
+    newSchedule.schedules[dayValue] = {
+      start_time: viewingBookingHousekeepers.value?.start_time || '08:00',
+      end_time: null,
+    };
+  }
+  housekeeperSchedules.value[housekeeperId] = { ...newSchedule };
+  await saveHousekeeperSchedule(housekeeperId);
+};
+
+const clearAllHousekeeperSchedules = async () => {
+  if (!viewingBookingHousekeepers.value) return;
+  const bookingId = viewingBookingHousekeepers.value.id;
+  const assigned = getAssignedHousekeepers(bookingId);
+
+  weeklyHousekeeperSchedule.value = {};
+  for (const hk of assigned) {
+    housekeeperSchedules.value[hk.id] = { days: [], schedules: {} };
+    await saveHousekeeperSchedule(hk.id);
+  }
 };
 
 const getCaregiverScheduleDays = (caregiverId) => {
@@ -10462,6 +11681,66 @@ const unassignCaregiver = async (caregiverId) => {
   }
 };
 
+const unassignHousekeeper = async (housekeeperId, bookingId) => {
+  if (!bookingId) return;
+
+  try {
+    const resp = await fetch(`/api/bookings/${bookingId}/unassign-housekeeper`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+        'X-Requested-With': 'XMLHttpRequest',
+      },
+      credentials: 'same-origin',
+      body: JSON.stringify({ housekeeper_id: housekeeperId }),
+    });
+
+    // Parse response if possible
+    let data = {};
+    try {
+      data = await resp.json();
+    } catch (_) {
+      data = {};
+    }
+
+    // For non-2xx, only show error if the response explicitly indicates failure
+    // The backend now returns success: true even for idempotent cases
+    if (!resp.ok && data?.success !== true) {
+      console.error('Unassign housekeeper failed:', data);
+      error(data?.error || 'Failed to unassign housekeeper', 'Unassign Failed');
+      return;
+    }
+
+    // Clear local schedule caches for this housekeeper
+    if (housekeeperSchedules?.value) {
+      delete housekeeperSchedules.value[housekeeperId];
+    }
+    if (weeklyHousekeeperSchedule?.value) {
+      Object.keys(weeklyHousekeeperSchedule.value).forEach(day => {
+        if (weeklyHousekeeperSchedule.value[day] === housekeeperId) {
+          delete weeklyHousekeeperSchedule.value[day];
+        }
+      });
+    }
+
+    // Refresh bookings so Assigned count updates
+    await loadClientBookings();
+
+    // Refresh the open dialog data so the card list updates immediately
+    if (viewingBookingHousekeepers.value?.id === bookingId) {
+      const updated = (clientBookings.value || []).find(b => b.id === bookingId);
+      if (updated) {
+        viewingBookingHousekeepers.value = { ...updated };
+      }
+    }
+    success('Housekeeper unassigned successfully!', 'Assignment Updated');
+  } catch (e) {
+    console.error('Unassign housekeeper error:', e);
+    error('Failed to unassign housekeeper. Please try again.', 'Unassign Failed');
+  }
+};
+
 // Schedule Management Functions
 const openScheduleDialog = async (caregiver, booking) => {
   
@@ -10666,10 +11945,15 @@ const approveBooking = async (booking) => {
       booking.status = 'approved';
       const emailMsg = result.email_sent ? ` Approval email sent to ${booking.client_email || 'client'}.` : (result.email_message ? ` ${result.email_message}` : '');
       success(`Booking for ${booking.client} has been approved!${emailMsg}`, 'Booking Approved');
-      // Show assign dialog immediately after approval
-      setTimeout(() => {
-        assignCaregiverDialog(booking);
-      }, 500);
+      // Show assign dialog immediately after approval (caregiver services only)
+      // Housekeeping bookings are handled by the Housekeeper assignment flow.
+      const serviceType = String(booking?.service_type || booking?.service_type_name || booking?.service || '').toLowerCase();
+      const isHousekeeping = serviceType.includes('housekeeping');
+      if (!isHousekeeping) {
+        setTimeout(() => {
+          assignCaregiverDialog(booking);
+        }, 500);
+      }
     } else {
       throw new Error('Failed to approve booking');
     }
@@ -10784,6 +12068,46 @@ const confirmAssignCaregivers = async () => {
     closeAssignDialog();
   } catch (err) {
     error(err.message || 'Failed to update caregiver assignments. Please try again.', 'Assignment Failed');
+  }
+};
+
+const confirmAssignHousekeepers = async () => {
+  try {
+    if (!selectedBooking.value) return;
+    const bookingId = selectedBooking.value.id;
+
+    // Simple validation: rates exist
+    for (const housekeeperId of assignSelectedHousekeepers.value) {
+      if (!assignedHousekeeperRates.value[housekeeperId]) {
+        error('Please assign hourly rate for all selected housekeepers', 'Rate Required');
+        return;
+      }
+    }
+
+    const response = await fetch(`/api/bookings/${bookingId}/assign-housekeepers`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+      },
+  credentials: 'same-origin',
+      body: JSON.stringify({
+        housekeeper_ids: assignSelectedHousekeepers.value,
+        assigned_rates: assignedHousekeeperRates.value,
+        housekeepers_needed: customHousekeepersNeeded.value || selectedBooking.value.caregiversNeeded
+      })
+    });
+
+    const responseData = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(responseData.message || 'Failed to save housekeeper assignments');
+
+  success('Housekeeper assignment updated successfully!', 'Assignment Complete');
+  // Close immediately for better UX, then refresh data in the background
+  closeAssignHousekeeperDialog();
+  await loadClientBookings();
+  } catch (err) {
+    error(err.message || 'Failed to update housekeeper assignments. Please try again.', 'Assignment Failed');
   }
 };
 
@@ -11583,6 +12907,7 @@ onMounted(() => {
   loadProfile();
   loadAdminStats();
   loadQuickCaregivers();
+  loadHousekeepers();
   loadUsers();
   loadClientBookings();
   loadApplications();
@@ -11602,6 +12927,7 @@ onMounted(() => {
   loadRecentTransactions();
   loadClientPayments();
   loadCaregiverPayments();
+  loadHousekeeperPayments();
   loadMarketingCommissions();
   loadTrainingCommissions();
   loadAllTransactions();
@@ -14419,3 +15745,35 @@ setInterval(() => {
   letter-spacing: 0.5px;
   margin-top: 4px;
 }
+
+/* Housekeeper chip styling */
+.housekeeper-chip {
+  background-color: #6A1B9A !important;
+  color: white !important;
+}
+
+.housekeeper-chip * {
+  color: white !important;
+}
+
+.housekeeper-chip :deep(.v-chip__content) {
+  color: white !important;
+}
+
+.housekeeper-chip :deep(.v-chip__underlay) {
+  background-color: #6A1B9A !important;
+  opacity: 1 !important;
+}
+
+.housekeeper-chip :deep(.v-icon) {
+  color: white !important;
+}
+
+.housekeeper-chip :deep(span) {
+  color: white !important;
+}
+
+.housekeeper-chip :deep(.mdi) {
+  color: white !important;
+}
+

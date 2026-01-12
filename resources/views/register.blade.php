@@ -1877,10 +1877,13 @@
 
         .partner-type-options {
             display: grid;
-            grid-template-columns: repeat(3, minmax(260px, 1fr));
+            grid-template-columns: repeat(2, 1fr);
             gap: 2rem;
             margin-bottom: 2rem;
             align-items: stretch;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
         }
 
         .partner-type-option {
@@ -2020,19 +2023,7 @@
             }
         }
 
-        @media (min-width: 1200px) {
-            .partner-type-options {
-                grid-template-columns: repeat(3, 1fr);
-            }
-        }
-
-        @media (max-width: 1199px) and (min-width: 768px) {
-            .partner-type-options {
-                grid-template-columns: repeat(3, 1fr);
-            }
-        }
-
-        @media (max-width: 767px) {
+        @media (min-width: 768px) {
             .partner-type-options {
                 grid-template-columns: repeat(2, 1fr);
             }
@@ -2138,6 +2129,7 @@
             .partner-type-options {
                 grid-template-columns: repeat(2, 1fr);
                 gap: 1.25rem;
+                max-width: 600px;
             }
 
             .partner-type-option {
@@ -2355,7 +2347,7 @@
                         <i class="bi bi-people"></i>
                     </div>
                     <div class="option-title">I want to be a partner</div>
-                    <div class="option-description">Join our network of independent caregivers, marketing partners, and training centers.</div>
+                    <div class="option-description">Join our network of independent caregivers, housekeepers, marketing partners, and training centers.</div>
                     <button class="option-button partner" onclick="event.stopPropagation(); showPartnerTypeModal()">Become a partner</button>
                 </div>
             </div>
@@ -2382,6 +2374,13 @@
                     </div>
                     <div class="partner-type-title">Caregiver</div>
                     <button class="partner-type-button" onclick="event.stopPropagation(); selectPartnerType('caregiver')">Select</button>
+                </div>
+                <div class="partner-type-option" data-partner-type="housekeeper" onclick="selectPartnerType('housekeeper')">
+                    <div class="partner-type-icon">
+                        <i class="bi bi-house-heart"></i>
+                    </div>
+                    <div class="partner-type-title">Housekeeper</div>
+                    <button class="partner-type-button" onclick="event.stopPropagation(); selectPartnerType('housekeeper')">Select</button>
                 </div>
                 <div class="partner-type-option" data-partner-type="marketing_partner" onclick="selectPartnerType('marketing_partner')">
                     <div class="partner-type-icon">
@@ -2426,8 +2425,8 @@
 
         <form method="POST" action="{{ route('register') }}" id="registerForm">
             @csrf
-            <input type="hidden" name="user_type" id="userTypeInput" value="">
-            <input type="hidden" name="partner_type" id="partnerTypeInput" value="">
+            <input type="hidden" name="user_type" id="userTypeInput" value="{{ old('user_type', '') }}">
+            <input type="hidden" name="partner_type" id="partnerTypeInput" value="{{ old('partner_type', '') }}">
             <div class="form-row">
                 <div class="form-group">
                     <label for="first_name">First Name</label>
@@ -2751,10 +2750,10 @@
     </div>
 
     <script>
-        // Check if user type is already set (e.g., from URL parameter or session)
+        // Check if user type is already set (e.g., from URL parameter, old input, or session)
         const urlParams = new URLSearchParams(window.location.search);
         const presetType = urlParams.get('type') || '{{ old("user_type", "") }}';
-        const presetPartner = urlParams.get('partner') || '';
+        const presetPartner = urlParams.get('partner') || '{{ old("partner_type", "") }}';
         const showPartnerTypes = urlParams.get('show_partner_types') === 'true';
         
         // Check if OAuth user exists (means returning from OAuth)
@@ -2764,12 +2763,13 @@
         // Map partner types to display names
         const partnerTypeNames = {
             'caregiver': 'Caregiver',
+            'housekeeper': 'Housekeeper',
             'marketing_partner': 'Marketing Partner',
             'training_center': 'Training Center'
         };
         
         // Valid partner types
-    const validPartnerTypes = ['caregiver', 'marketing_partner', 'training_center'];
+    const validPartnerTypes = ['caregiver', 'housekeeper', 'marketing_partner', 'training_center'];
         
         // Function to show partner registration form
         function showPartnerRegistrationForm(partnerType) {

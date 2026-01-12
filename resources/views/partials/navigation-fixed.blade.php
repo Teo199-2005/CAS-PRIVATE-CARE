@@ -16,6 +16,7 @@
                 </a>
                 <div class="dropdown-menu" id="servicesMenu">
                     <a href="{{ url('/caregiver-new-york') }}">Caregiver</a>
+                    <a href="{{ url('/housekeeper-new-york') }}">Housekeeper</a>
                 </div>
             </li>
             <li><a href="{{ url('/contractor-partner') }}">1099 Contractors</a></li>

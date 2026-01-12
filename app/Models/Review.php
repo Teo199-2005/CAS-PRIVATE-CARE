@@ -13,6 +13,8 @@ class Review extends Model
         'booking_id',
         'client_id',
         'caregiver_id',
+        'housekeeper_id',
+        'provider_type',
         'rating',
         'comment',
         'recommend'
@@ -35,5 +37,21 @@ class Review extends Model
     public function caregiver()
     {
         return $this->belongsTo(Caregiver::class);
+    }
+
+    public function housekeeper()
+    {
+        return $this->belongsTo(Housekeeper::class);
+    }
+
+    /**
+     * Get the provider (caregiver or housekeeper) based on provider_type
+     */
+    public function provider()
+    {
+        if ($this->provider_type === 'housekeeper' && $this->housekeeper_id) {
+            return $this->housekeeper;
+        }
+        return $this->caregiver;
     }
 }

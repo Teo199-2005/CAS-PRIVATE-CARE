@@ -977,4 +977,192 @@ class StripePaymentService
 
         return $results;
     }
+
+    /**
+     * ===========================
+     * HOUSEKEEPER METHODS
+     * ===========================
+     */
+
+    /**
+     * Generate onboarding link for housekeeper to add bank details
+     */
+    public function createOnboardingLinkForHousekeeper(\App\Models\Housekeeper $housekeeper): array
+    {
+        try {
+            $accountId = $this->createConnectAccountForHousekeeper($housekeeper);
+            
+            if (!$accountId) {
+                throw new \Exception('Failed to create Connect account');
+            }
+
+            $accountLink = AccountLink::create([
+                'account' => $accountId,
+                'refresh_url' => url('/housekeeper/dashboard-vue?refresh=true'),
+                'return_url' => url('/housekeeper/dashboard-vue?success=true'),
+                'type' => 'account_onboarding',
+                'collect' => 'eventually_due',
+            ]);
+
+            return [
+                'success' => true,
+                'url' => $accountLink->url
+            ];
+        } catch (\Exception $e) {
+            Log::error('Housekeeper Onboarding Link Failed', [
+                'housekeeper_id' => $housekeeper->id,
+                'error' => $e->getMessage()
+            ]);
+
+            return [
+                'success' => false,
+                'error' => $e->getMessage()
+            ];
+        }
+    }
+
+    /**
+     * Create or get Stripe Connect account for housekeeper
+     */
+    private function createConnectAccountForHousekeeper(\App\Models\Housekeeper $housekeeper): ?string
+    {
+        // If already has account, return it
+        if ($housekeeper->stripe_connect_id) {
+            return $housekeeper->stripe_connect_id;
+        }
+
+        try {
+            $user = $housekeeper->user;
+            
+            $account = Account::create([
+                'type' => 'express',
+                'country' => 'US',
+                'email' => $user->email,
+                'capabilities' => [
+                    'card_payments' => ['requested' => true],
+                    'transfers' => ['requested' => true],
+                ],
+                'business_type' => 'individual',
+                'metadata' => [
+                    'housekeeper_id' => $housekeeper->id,
+                    'user_id' => $user->id,
+                    'provider_type' => 'housekeeper'
+                ],
+            ]);
+
+            // Save to housekeeper record
+            $housekeeper->stripe_connect_id = $account->id;
+            $housekeeper->save();
+
+            return $account->id;
+        } catch (\Exception $e) {
+            Log::error('Failed to create Housekeeper Connect Account', [
+                'housekeeper_id' => $housekeeper->id,
+                'error' => $e->getMessage()
+            ]);
+            return null;
+        }
+    }
+
+    /**
+     * Transfer funds to housekeeper
+     */
+    public function transferToHousekeeper(TimeTracking $timeTracking): array
+    {
+        try {
+            if (!$timeTracking->housekeeper_id) {
+                throw new \Exception('Time tracking has no housekeeper');
+            }
+
+            $housekeeper = \App\Models\Housekeeper::find($timeTracking->housekeeper_id);
+            
+            if (!$housekeeper) {
+                throw new \Exception('Housekeeper not found');
+            }
+
+            if (!$housekeeper->stripe_connect_id) {
+                throw new \Exception('Housekeeper has not connected bank account');
+            }
+
+            // Get housekeeper earnings from time tracking
+            $amount = $timeTracking->housekeeper_earnings ?? $timeTracking->provider_earnings ?? 0;
+            
+            if ($amount <= 0) {
+                throw new \Exception('No earnings to transfer');
+            }
+
+            // Amount in cents
+            $amountCents = (int) ($amount * 100);
+
+            $transfer = Transfer::create([
+                'amount' => $amountCents,
+                'currency' => 'usd',
+                'destination' => $housekeeper->stripe_connect_id,
+                'metadata' => [
+                    'time_tracking_id' => $timeTracking->id,
+                    'housekeeper_id' => $housekeeper->id,
+                    'hours_worked' => $timeTracking->hours_worked,
+                    'work_date' => $timeTracking->work_date,
+                    'provider_type' => 'housekeeper'
+                ],
+            ]);
+
+            // Update time tracking
+            $timeTracking->payment_status = 'paid';
+            $timeTracking->paid_at = now();
+            $timeTracking->stripe_transfer_id = $transfer->id;
+            $timeTracking->save();
+
+            Log::info('Housekeeper Payment Transferred', [
+                'housekeeper_id' => $housekeeper->id,
+                'transfer_id' => $transfer->id,
+                'amount' => $amount
+            ]);
+
+            return [
+                'success' => true,
+                'transfer_id' => $transfer->id,
+                'amount' => $amount
+            ];
+        } catch (\Exception $e) {
+            Log::error('Housekeeper Transfer Failed', [
+                'time_tracking_id' => $timeTracking->id,
+                'error' => $e->getMessage()
+            ]);
+
+            return [
+                'success' => false,
+                'error' => $e->getMessage()
+            ];
+        }
+    }
+
+    /**
+     * Check if housekeeper Connect account is fully onboarded
+     */
+    public function isHousekeeperConnectAccountComplete(\App\Models\Housekeeper $housekeeper): bool
+    {
+        if (!$housekeeper->stripe_connect_id) {
+            return false;
+        }
+
+        try {
+            $account = Account::retrieve($housekeeper->stripe_connect_id);
+            
+            $complete = $account->charges_enabled && $account->payouts_enabled;
+            
+            // Update housekeeper record
+            $housekeeper->stripe_charges_enabled = $account->charges_enabled;
+            $housekeeper->stripe_payouts_enabled = $account->payouts_enabled;
+            $housekeeper->save();
+            
+            return $complete;
+        } catch (\Exception $e) {
+            Log::error('Failed to check Housekeeper Connect status', [
+                'housekeeper_id' => $housekeeper->id,
+                'error' => $e->getMessage()
+            ]);
+            return false;
+        }
+    }
 }

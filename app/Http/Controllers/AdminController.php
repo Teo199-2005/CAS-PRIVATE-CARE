@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use App\Models\Caregiver;
+use App\Models\Housekeeper;
 use App\Models\Client;
 use App\Models\Booking;
 use App\Rules\ValidSSN;
@@ -13,6 +14,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Schema;
 use App\Services\NotificationService;
 use App\Services\EmailService;
 
@@ -32,9 +34,53 @@ class AdminController extends Controller
             $data = $bookings->map(function($b) use ($controller) {
                 // Use stored caregivers_needed if available, otherwise calculate from duty_type
                 $caregiversNeeded = $b->caregivers_needed ?? $controller->calculateCaregiversNeeded($b->duty_type);
+
+                // Load housekeeper assignments from dedicated table (if present)
+                $housekeeperAssignments = [];
+                if (Schema::hasTable('booking_housekeeper_assignments')) {
+                    $housekeeperAssignments = DB::table('booking_housekeeper_assignments')
+                        ->leftJoin('housekeepers', 'housekeepers.id', '=', 'booking_housekeeper_assignments.housekeeper_id')
+                        ->leftJoin('users as housekeeper_users', 'housekeeper_users.id', '=', 'housekeepers.user_id')
+                        ->where('booking_id', $b->id)
+                        ->select([
+                            'booking_housekeeper_assignments.*',
+                            'housekeeper_users.id as housekeeper_user_id',
+                            'housekeeper_users.name as housekeeper_user_name',
+                            'housekeeper_users.email as housekeeper_user_email',
+                            'housekeeper_users.phone as housekeeper_user_phone',
+                        ])
+                        ->get()
+                        ->map(function ($a) {
+                            return [
+                                'id' => $a->id,
+                                'booking_id' => $a->booking_id,
+                                'housekeeper_id' => $a->housekeeper_id,
+                                'provider_type' => 'housekeeper',
+                                'status' => $a->status,
+                                'assigned_hourly_rate' => $a->assigned_hourly_rate,
+                                'assignment_order' => $a->assignment_order,
+                                'is_active' => $a->is_active,
+                                'start_date' => $a->start_date,
+                                'end_date' => $a->end_date,
+                                'expected_days' => $a->expected_days,
+
+                                // keep shape consistent with caregiver assignments
+                                'housekeeper' => [
+                                    'id' => $a->housekeeper_id,
+                                    'user' => $a->housekeeper_user_id ? [
+                                        'id' => $a->housekeeper_user_id,
+                                        'name' => $a->housekeeper_user_name,
+                                        'email' => $a->housekeeper_user_email,
+                                        'phone' => $a->housekeeper_user_phone,
+                                    ] : null,
+                                ],
+                            ];
+                        })
+                        ->toArray();
+                }
                 
                 // Calculate assignment status based on actual assignments count
-                $assignedCount = $b->assignments ? $b->assignments->count() : 0;
+                $assignedCount = ($b->assignments ? $b->assignments->count() : 0) + count($housekeeperAssignments);
                 if ($assignedCount === 0) {
                     $assignmentStatus = 'unassigned';
                 } elseif ($assignedCount >= $caregiversNeeded) {
@@ -101,11 +147,14 @@ class AdminController extends Controller
                         'id' => $b->client->id,
                         'name' => $b->client->name
                     ] : null,
-                    'assignments' => $b->assignments ? $b->assignments->map(function($assignment) {
+                    'assignments' => array_values(array_merge(
+                        // caregiver assignments
+                        $b->assignments ? $b->assignments->map(function($assignment) {
                         return [
                             'id' => $assignment->id,
                             'caregiver_id' => $assignment->caregiver_id,
                             'booking_id' => $assignment->booking_id,
+                            'provider_type' => 'caregiver',
                             'status' => $assignment->status,
                             'assigned_hourly_rate' => $assignment->assigned_hourly_rate,
                             'caregiver' => $assignment->caregiver ? [
@@ -119,6 +168,10 @@ class AdminController extends Controller
                             ] : null
                         ];
                     })->toArray() : [],
+
+                        // housekeeper assignments
+                        $housekeeperAssignments
+                    )),
                 ];
             });
 
@@ -529,16 +582,16 @@ class AdminController extends Controller
     public function getApplications()
     {
         // Get all pending users (contractors/partners) from users table
-        $applications = User::whereIn('user_type', ['caregiver', 'marketing', 'training_center'])
+        $applications = User::whereIn('user_type', ['caregiver', 'housekeeper', 'marketing', 'training_center'])
             ->where('status', 'pending')
             ->get()
             ->map(function($user) {
                 // Determine partner type based on user_type
                 $partnerType = $user->user_type;
                 if ($user->user_type === 'caregiver') {
-                    // Could be caregiver, housekeeping, or personal_assistant - default to caregiver for now
-                    // You might want to add a partner_type field to users table if you need to distinguish
                     $partnerType = 'Caregiver';
+                } elseif ($user->user_type === 'housekeeper') {
+                    $partnerType = 'Housekeeper';
                 } elseif ($user->user_type === 'marketing') {
                     $partnerType = 'Marketing Partner';
                 } elseif ($user->user_type === 'training_center') {
@@ -975,6 +1028,214 @@ class AdminController extends Controller
         } else {
             return response()->json(['success' => false, 'error' => 'Failed to delete assignment'], 500);
         }
+    }
+
+    /**
+     * Get housekeeper schedule for a booking.
+     * Returns: { schedule: { days: string[], schedules: object } | null }
+     */
+    public function getHousekeeperSchedule(Request $request, $bookingId, $housekeeperId)
+    {
+        try {
+            if (!Schema::hasTable('housekeeper_schedules')) {
+                return response()->json(['success' => true, 'schedule' => null]);
+            }
+
+            $row = DB::table('housekeeper_schedules')
+                ->where('booking_id', $bookingId)
+                ->where('housekeeper_id', $housekeeperId)
+                ->first();
+
+            if (!$row) {
+                return response()->json(['success' => true, 'schedule' => null]);
+            }
+
+            return response()->json([
+                'success' => true,
+                'schedule' => [
+                    'days' => json_decode($row->days, true) ?: [],
+                    'schedules' => json_decode($row->schedules, true) ?: (object)[],
+                ]
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error in getHousekeeperSchedule: ' . $e->getMessage());
+            return response()->json(['success' => false, 'message' => 'Failed to load schedule'], 500);
+        }
+    }
+
+    /**
+     * Upsert housekeeper schedule for a booking.
+     */
+    public function updateHousekeeperSchedule(Request $request, $bookingId, $housekeeperId)
+    {
+        $validated = $request->validate([
+            'days' => 'nullable|array',
+            'days.*' => 'string',
+            'schedules' => 'nullable|array',
+        ]);
+
+        try {
+            if (!Schema::hasTable('housekeeper_schedules')) {
+                return response()->json(['success' => false, 'message' => 'Scheduling not available'], 400);
+            }
+
+            $days = $validated['days'] ?? [];
+            $schedules = $validated['schedules'] ?? [];
+
+            DB::table('housekeeper_schedules')->updateOrInsert(
+                [
+                    'booking_id' => $bookingId,
+                    'housekeeper_id' => $housekeeperId,
+                ],
+                [
+                    'days' => json_encode(array_values(array_unique($days))),
+                    'schedules' => json_encode($schedules),
+                    'updated_at' => now(),
+                    'created_at' => now(),
+                ]
+            );
+
+            return response()->json(['success' => true]);
+        } catch (\Exception $e) {
+            Log::error('Error in updateHousekeeperSchedule: ' . $e->getMessage());
+            return response()->json(['success' => false, 'message' => 'Failed to save schedule'], 500);
+        }
+    }
+
+    /**
+     * Unassign a housekeeper from a booking.
+     */
+    public function unassignHousekeeper(Request $request, $bookingId)
+    {
+        $validated = $request->validate([
+            'housekeeper_id' => 'required|integer',
+        ]);
+
+        try {
+            if (!Schema::hasTable('booking_housekeeper_assignments')) {
+                return response()->json(['success' => false, 'error' => 'Housekeeper assignments table not found'], 400);
+            }
+
+            $housekeeperId = (int) $validated['housekeeper_id'];
+
+            $deletedAssignments = DB::table('booking_housekeeper_assignments')
+                ->where('booking_id', $bookingId)
+                ->where('housekeeper_id', $housekeeperId)
+                ->delete();
+
+            // Clean up schedule for this booking/housekeeper
+            if (Schema::hasTable('housekeeper_schedules')) {
+                $deletedSchedules = DB::table('housekeeper_schedules')
+                    ->where('booking_id', $bookingId)
+                    ->where('housekeeper_id', $housekeeperId)
+                    ->delete();
+            }
+
+            // Idempotent response: even if nothing was deleted, the end state is "unassigned".
+            return response()->json([
+                'success' => true,
+                'deleted_assignments' => $deletedAssignments,
+                'message' => $deletedAssignments > 0 ? 'Housekeeper unassigned' : 'Housekeeper already unassigned'
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error in unassignHousekeeper: ' . $e->getMessage());
+            // If something goes wrong after the delete already happened, don't block UX.
+            // Return a 200 with success=false would still show an error toast; instead return success=true with a warning.
+            return response()->json([
+                'success' => true,
+                'warning' => 'Unassigned, but cleanup may be incomplete'
+            ]);
+        }
+    }
+
+    /**
+     * Assign housekeepers to a booking (mirrors assignCaregivers but uses booking_assignments.provider_type=housekeeper)
+     */
+    public function assignHousekeepers(Request $request, $bookingId)
+    {
+        $validated = $request->validate([
+            'housekeeper_ids' => 'required|array',
+            'assigned_rates' => 'required|array',
+            'assigned_rates.*' => 'required|numeric|min:0',
+            'housekeepers_needed' => 'sometimes|integer|min:1'
+        ]);
+
+        $booking = \App\Models\Booking::find($bookingId);
+        if (!$booking) {
+            return response()->json(['success' => false, 'message' => 'Booking not found'], 404);
+        }
+
+        // Update caregivers_needed if provided (booking column name is still caregivers_needed)
+        if (isset($validated['housekeepers_needed']) && $validated['housekeepers_needed'] != $booking->caregivers_needed) {
+            $booking->caregivers_needed = $validated['housekeepers_needed'];
+            $booking->save();
+        }
+
+        // Validate housekeepers exist
+        foreach ($validated['housekeeper_ids'] as $housekeeperId) {
+            $housekeeper = \App\Models\Housekeeper::with('user')->find($housekeeperId);
+            if (!$housekeeper) {
+                return response()->json(['success' => false, 'message' => "Housekeeper ID {$housekeeperId} not found"], 404);
+            }
+
+            $assignedRate = $validated['assigned_rates'][$housekeeperId] ?? null;
+            if ($assignedRate === null) {
+                return response()->json(['success' => false, 'message' => "Assigned rate required for housekeeper ID {$housekeeperId}"], 422);
+            }
+        }
+
+        // Ensure we have a dedicated table for housekeeper assignments.
+        // The existing `booking_assignments` table requires `caregiver_id` (NOT NULL).
+        // So we cannot safely store housekeeper rows there without changing schema.
+        if (!DB::getSchemaBuilder()->hasTable('booking_housekeeper_assignments')) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Housekeeper assignments table is missing. Please run migrations.'
+            ], 500);
+        }
+
+        // Delete existing housekeeper assignments for this booking only
+        DB::table('booking_housekeeper_assignments')
+            ->where('booking_id', $bookingId)
+            ->delete();
+
+        if (!empty($validated['housekeeper_ids'])) {
+            $daysPerWorker = 15;
+            $serviceDate = \Carbon\Carbon::parse($booking->service_date);
+
+            foreach ($validated['housekeeper_ids'] as $index => $housekeeperId) {
+                $order = $index + 1;
+                $startDate = $serviceDate->copy()->addDays(($order - 1) * $daysPerWorker);
+                $endDate = $startDate->copy()->addDays($daysPerWorker - 1);
+
+                $isActive = ($order === 1);
+                $assignedRate = $validated['assigned_rates'][$housekeeperId];
+
+                DB::table('booking_housekeeper_assignments')->insert([
+                    'booking_id' => $bookingId,
+                    'housekeeper_id' => $housekeeperId,
+                    'status' => 'assigned',
+                    'assigned_at' => now(),
+                    'assignment_order' => $order,
+                    'is_active' => $isActive,
+                    'start_date' => $startDate->format('Y-m-d'),
+                    'end_date' => $endDate->format('Y-m-d'),
+                    'expected_days' => $daysPerWorker,
+                    'assigned_hourly_rate' => $assignedRate,
+                    'created_at' => now(),
+                    'updated_at' => now()
+                ]);
+            }
+
+            // If single housekeeper assigned, store assigned_hourly_rate on booking (same column used)
+            if (count($validated['housekeeper_ids']) === 1) {
+                $booking->update([
+                    'assigned_hourly_rate' => $validated['assigned_rates'][$validated['housekeeper_ids'][0]]
+                ]);
+            }
+        }
+
+        return response()->json(['success' => true]);
     }
 
     /**
@@ -1656,6 +1917,74 @@ class AdminController extends Controller
     }
 
     /**
+     * Get housekeeper salaries for admin dashboard
+     */
+    public function getHousekeeperSalaries()
+    {
+        $housekeepers = Housekeeper::with('user')->get();
+
+        $payments = $housekeepers->map(function($housekeeper) {
+            // Get time trackings for this housekeeper this month
+            $timeTrackings = \App\Models\TimeTracking::where('housekeeper_id', $housekeeper->id)
+                ->whereMonth('work_date', now()->month)
+                ->whereYear('work_date', now()->year)
+                ->orderBy('work_date', 'desc')
+                ->get();
+
+            $totalHours = $timeTrackings->sum('hours_worked');
+            $totalEarnings = $timeTrackings->sum('caregiver_earnings');
+
+            // Use computed rate (fallback to housekeeper hourly_rate, then 25)
+            $rate = $totalHours > 0
+                ? ($totalEarnings / $totalHours)
+                : ($housekeeper->hourly_rate ?? 25);
+
+            // Check payment status
+            $unpaidRecords = $timeTrackings->whereNull('paid_at');
+            $unpaidHours = $unpaidRecords->sum('hours_worked');
+            $unpaidAmount = $unpaidRecords->sum('caregiver_earnings');
+
+            if ($totalHours == 0) {
+                $status = 'No Hours';
+            } elseif ($unpaidHours == 0) {
+                $status = 'Paid';
+            } elseif ($unpaidHours == $totalHours) {
+                $status = 'Pending';
+            } else {
+                $status = 'Partial';
+            }
+
+            // Get bank account status
+            $bankConnected = !empty($housekeeper->user->stripe_connect_id);
+
+            return [
+                'id' => $housekeeper->id,
+                'housekeeper' => $housekeeper->user->name ?? 'Unknown',
+                'housekeeper_email' => $housekeeper->user->email ?? '',
+                'total_hours' => round($totalHours, 2),
+                'hours_display' => number_format($totalHours, 1) . ' hrs',
+                'rate' => '$' . number_format($rate, 2) . '/hr',
+                'total_amount' => $totalEarnings,
+                'amount_display' => '$' . number_format($totalEarnings, 2),
+                'unpaid_hours' => round($unpaidHours, 2),
+                'unpaid_amount' => $unpaidAmount,
+                'unpaid_display' => '$' . number_format($unpaidAmount, 2),
+                'period' => now()->format('M Y'),
+                'status' => $status,
+                'bank_connected' => $bankConnected,
+                'bank_status' => $bankConnected ? 'Connected' : 'Not Connected',
+                'days_worked' => $timeTrackings->count(),
+                'stripe_connect_id' => $housekeeper->user->stripe_connect_id,
+                'can_pay' => $bankConnected && $unpaidAmount > 0
+            ];
+        })->filter(function($payment) {
+            return $payment['total_hours'] > 0;
+        })->values();
+
+        return response()->json(['payments' => $payments]);
+    }
+
+    /**
      * Process payment to caregiver
      */
     public function payCaregiver(Request $request)
@@ -1759,10 +2088,119 @@ class AdminController extends Controller
     }
 
     /**
+     * Process payment to housekeeper
+     */
+    public function payHousekeeper(Request $request)
+    {
+        try {
+            $validated = $request->validate([
+                'housekeeper_id' => 'required|exists:housekeepers,id',
+                'amount' => 'required|numeric|min:0'
+            ]);
+
+            $housekeeper = Housekeeper::with('user')->findOrFail($validated['housekeeper_id']);
+            
+            // Check if housekeeper has bank account connected
+            if (empty($housekeeper->user->stripe_connect_id)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Housekeeper has not connected their bank account'
+                ], 400);
+            }
+
+            // Get unpaid time tracking records for this housekeeper
+            $unpaidRecords = \App\Models\TimeTracking::where('housekeeper_id', $housekeeper->id)
+                ->whereNull('paid_at')
+                ->get();
+
+            if ($unpaidRecords->isEmpty()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'No unpaid hours found for this housekeeper'
+                ], 400);
+            }
+
+            $unpaidAmount = $unpaidRecords->sum('caregiver_earnings'); // Using same field for earnings
+            
+            // Validate amount matches
+            if (abs($unpaidAmount - $validated['amount']) > 0.01) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Payment amount does not match unpaid earnings'
+                ], 400);
+            }
+
+            // Create Stripe payout
+            try {
+                $stripe = new \Stripe\StripeClient(config('stripe.secret'));
+                $payout = $stripe->transfers->create([
+                    'amount' => intval($validated['amount'] * 100), // Convert to cents
+                    'currency' => 'usd',
+                    'destination' => $housekeeper->user->stripe_connect_id,
+                    'description' => "Payment for " . $unpaidRecords->count() . " work sessions"
+                ]);
+                
+                Log::info('Stripe transfer created for housekeeper', [
+                    'transfer_id' => $payout->id,
+                    'amount' => $validated['amount'],
+                    'destination' => $housekeeper->user->stripe_connect_id
+                ]);
+            } catch (\Exception $e) {
+                Log::error('Stripe housekeeper payout failed', ['error' => $e->getMessage()]);
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Stripe payout failed: ' . $e->getMessage()
+                ], 500);
+            }
+
+            // Mark all unpaid records as paid
+            $unpaidRecords->each(function($record) {
+                $record->update([
+                    'paid_at' => now(),
+                    'payment_status' => 'paid'
+                ]);
+            });
+
+            Log::info('Housekeeper payment processed', [
+                'housekeeper_id' => $housekeeper->id,
+                'housekeeper_name' => $housekeeper->user->name,
+                'amount' => $validated['amount'],
+                'records_paid' => $unpaidRecords->count(),
+                'stripe_connect_id' => $housekeeper->user->stripe_connect_id
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Payment processed successfully',
+                'amount' => $validated['amount'],
+                'housekeeper' => $housekeeper->user->name,
+                'records_paid' => $unpaidRecords->count()
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Housekeeper payment failed', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to process payment: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
      * Get marketing commissions for admin dashboard
      */
     public function getMarketingCommissions()
     {
+        // Some installs don't have this column yet. Don't crash the whole admin UI.
+        if (Schema::hasTable('time_trackings') && !Schema::hasColumn('time_trackings', 'marketing_commission_paid_at')) {
+            Log::warning('Missing time_trackings.marketing_commission_paid_at. Returning empty marketing commissions.');
+            return response()->json(['commissions' => []]);
+        }
+
         $marketingStaff = User::where('user_type', 'marketing')
             ->with('referralCode')
             ->get();
@@ -2285,6 +2723,46 @@ class AdminController extends Controller
             return response()->json(['caregivers' => $data]);
         } catch (\Exception $e) {
             Log::error('Error in getCaregivers: ' . $e->getMessage());
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Get all housekeepers for admin dashboard
+     */
+    public function getHousekeepers()
+    {
+        try {
+            $housekeepers = User::query()
+                ->where('user_type', 'housekeeper')
+                ->with('housekeeper')
+                ->orderBy('created_at', 'desc')
+                ->get();
+
+            $data = $housekeepers
+                ->filter(fn($u) => $u->housekeeper && $u->housekeeper->id)
+                ->map(function ($u) {
+                    return [
+                        'id' => $u->id,
+                        'name' => $u->name,
+                        'email' => $u->email,
+                        'phone' => $u->phone,
+                        'zip_code' => $u->zip_code,
+                        'status' => $u->status ?? 'Active',
+                        'joined' => $u->created_at ? $u->created_at->format('M d, Y') : null,
+                        'housekeeper' => [
+                            'id' => $u->housekeeper->id,
+                            'rating' => $u->housekeeper->rating,
+                            'years_experience' => $u->housekeeper->years_experience,
+                            'hourly_rate' => $u->housekeeper->hourly_rate,
+                        ],
+                    ];
+                })
+                ->values();
+
+            return response()->json(['housekeepers' => $data]);
+        } catch (\Exception $e) {
+            Log::error('Error in getHousekeepers: ' . $e->getMessage());
             return response()->json(['error' => $e->getMessage()], 500);
         }
     }

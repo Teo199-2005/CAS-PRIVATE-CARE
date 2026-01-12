@@ -9,6 +9,9 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\CaregiverController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\BlogController;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
+use App\Models\User;
 
 // Public Routes
 Route::get('/', [LandingController::class, 'index']);
@@ -19,6 +22,9 @@ Route::get('/sitemap.xml', [\App\Http\Controllers\SitemapController::class, 'ind
 Route::get('/caregiver-new-york', function () {
     return view('caregiver-new-york');
 })->name('caregiver-new-york');
+Route::get('/housekeeper-new-york', function () {
+    return view('housekeeper-new-york');
+})->name('housekeeper-new-york');
 Route::get('/hire-caregiver-new-york', function () {
     return view('hire-caregiver-new-york');
 })->name('hire-caregiver-new-york');
@@ -161,6 +167,54 @@ Route::get('/client/dashboard', function () {
         }
     return view('client-dashboard-vue');
 });
+
+// Avatar upload (session + CSRF protected)
+// Route kept under /api/* for frontend compatibility, but uses the web middleware stack.
+Route::post('/api/user/{id}/avatar', function ($id, Request $request) {
+    try {
+        /** @var \App\Models\User|null $authUser */
+        $authUser = auth()->user();
+        if (!$authUser) {
+            return response()->json(['error' => 'Unauthorized'], 401);
+        }
+
+        // Only allow users to update their own avatar (admins can update anyone)
+        if ((int) $authUser->id !== (int) $id && !in_array(strtolower((string) $authUser->user_type), ['admin', 'adminstaff'], true)) {
+            return response()->json(['error' => 'Forbidden'], 403);
+        }
+
+        $user = User::findOrFail($id);
+
+        if (!$request->hasFile('avatar')) {
+            return response()->json(['error' => 'No avatar file provided'], 400);
+        }
+
+        $request->validate([
+            'avatar' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048'
+        ]);
+
+        $file = $request->file('avatar');
+
+        // Delete old avatar if exists
+        if ($user->avatar && Storage::disk('public')->exists($user->avatar)) {
+            Storage::disk('public')->delete($user->avatar);
+        }
+
+        // Store new avatar
+        $path = $file->store('avatars', 'public');
+        $user->update(['avatar' => $path]);
+
+        return response()->json([
+            'success' => true,
+            'avatar' => '/storage/' . $path,
+            'message' => 'Avatar uploaded successfully'
+        ]);
+    } catch (\Illuminate\Validation\ValidationException $e) {
+        return response()->json(['error' => $e->errors()], 422);
+    } catch (\Exception $e) {
+        return response()->json(['error' => 'Failed to upload avatar: ' . $e->getMessage()], 500);
+    }
+})->middleware(['auth']);
     Route::get('/client/dashboard-vue', function () {
         if (auth()->user()->user_type !== 'client') {
             return redirect('/login');
@@ -351,6 +405,22 @@ Route::get('/caregiver/dashboard-vue', function () {
         return view('caregiver-dashboard-vue');
     })->name('caregiver.dashboard');
 
+// Housekeeper Dashboard Route
+Route::get('/housekeeper/dashboard-vue', function () {
+        $user = auth()->user();
+        if ($user->user_type !== 'housekeeper') {
+            return redirect('/login');
+        }
+        // ONLY block rejected accounts - pending accounts can access dashboard but with limited features
+        if ($user->status === 'rejected') {
+            Auth::logout();
+            request()->session()->invalidate();
+            request()->session()->regenerateToken();
+            return redirect('/login')->withErrors(['email' => 'Your application has been rejected. Please contact support for more information.']);
+        }
+        return view('housekeeper-dashboard-vue');
+    })->name('housekeeper.dashboard');
+
     // Custom Bank Onboarding Page - Caregivers only
     Route::get('/connect-bank-account', function () {
         $user = auth()->user();
@@ -359,6 +429,15 @@ Route::get('/caregiver/dashboard-vue', function () {
         }
         return view('connect-bank-account');
     })->name('connect.bank.account');
+
+    // Custom Bank Onboarding Page - Housekeepers only
+    Route::get('/connect-bank-account-housekeeper', function () {
+        $user = auth()->user();
+        if (!$user || $user->user_type !== 'housekeeper') {
+            return redirect('/login');
+        }
+        return view('connect-bank-account-housekeeper');
+    })->name('connect.bank.account.housekeeper');
 
     // Link Payment Method Page - Clients only
     Route::get('/link-payment-method', function () {
@@ -940,6 +1019,11 @@ Route::prefix('api')->middleware(['web', 'auth'])->group(function () {
     Route::get('/time-tracking/weekly-history/{caregiverId}', [\App\Http\Controllers\TimeTrackingController::class, 'getWeeklyHistory']);
     Route::get('/time-tracking/today-summary/{caregiverId}', [\App\Http\Controllers\TimeTrackingController::class, 'getTodaySummary']);
     
+    // Housekeeper Time Tracking Routes
+    Route::get('/time-tracking/housekeeper/current-session/{housekeeperId}', [\App\Http\Controllers\TimeTrackingController::class, 'getHousekeeperCurrentSession']);
+    Route::get('/time-tracking/housekeeper/weekly-history/{housekeeperId}', [\App\Http\Controllers\TimeTrackingController::class, 'getHousekeeperWeeklyHistory']);
+    Route::get('/time-tracking/housekeeper/today-summary/{housekeeperId}', [\App\Http\Controllers\TimeTrackingController::class, 'getHousekeeperTodaySummary']);
+    
     // Referral Codes
     Route::get('/referral-codes/my-code', [\App\Http\Controllers\ReferralCodeController::class, 'getMyCode']);
     Route::post('/referral-codes/validate', [\App\Http\Controllers\ReferralCodeController::class, 'validateCode']);
@@ -1070,14 +1154,22 @@ Route::prefix('api')->middleware(['web', 'auth'])->group(function () {
         
         // Booking assignment management
         Route::post('/bookings/{id}/assign', [\App\Http\Controllers\AdminController::class, 'assignCaregivers']);
+    Route::post('/bookings/{id}/assign-housekeepers', [\App\Http\Controllers\AdminController::class, 'assignHousekeepers']);
         Route::post('/bookings/{id}/unassign', [\App\Http\Controllers\AdminController::class, 'unassignCaregiver']);
+    Route::post('/bookings/{id}/unassign-housekeeper', [\App\Http\Controllers\AdminController::class, 'unassignHousekeeper']);
+
+    // Housekeeper weekly schedule
+    Route::get('/bookings/{id}/housekeeper/{housekeeperId}/schedule', [\App\Http\Controllers\AdminController::class, 'getHousekeeperSchedule']);
+    Route::post('/bookings/{id}/housekeeper/{housekeeperId}/schedule', [\App\Http\Controllers\AdminController::class, 'updateHousekeeperSchedule']);
         
         // Payment & analytics
         Route::get('/admin/payment-stats', [\App\Http\Controllers\AdminController::class, 'getPaymentStats']);
         Route::get('/admin/transactions', [\App\Http\Controllers\AdminController::class, 'getTransactions']);
         Route::get('/admin/client-payments', [\App\Http\Controllers\AdminController::class, 'getClientPayments']);
         Route::get('/admin/caregiver-salaries', [\App\Http\Controllers\AdminController::class, 'getCaregiverSalaries']);
+    Route::get('/admin/housekeeper-salaries', [\App\Http\Controllers\AdminController::class, 'getHousekeeperSalaries']);
         Route::post('/admin/pay-caregiver', [\App\Http\Controllers\AdminController::class, 'payCaregiver']);
+        Route::post('/admin/pay-housekeeper', [\App\Http\Controllers\AdminController::class, 'payHousekeeper']);
         
         // Commission payments
         Route::get('/admin/marketing-commissions', [\App\Http\Controllers\AdminController::class, 'getMarketingCommissions']);
@@ -1423,6 +1515,12 @@ Route::middleware(['auth'])->prefix('api/stripe')->group(function () {
     Route::post('/connect-bank-account', [App\Http\Controllers\StripeController::class, 'connectBankAccount']);
     Route::post('/connect-payout-method', [App\Http\Controllers\StripeController::class, 'connectPayoutMethod']);
     Route::get('/connection-status', [App\Http\Controllers\StripeController::class, 'getConnectionStatus']);
+    
+    // Housekeeper Bank Connection
+    Route::post('/housekeeper/create-onboarding-link', [App\Http\Controllers\StripeController::class, 'createHousekeeperOnboardingLink']);
+    Route::post('/housekeeper/connect-payout-method', [App\Http\Controllers\StripeController::class, 'connectHousekeeperPayoutMethod']);
+    Route::get('/housekeeper/onboarding-status', [App\Http\Controllers\StripeController::class, 'checkHousekeeperOnboardingStatus']);
+    Route::get('/housekeeper/connection-status', [App\Http\Controllers\StripeController::class, 'getHousekeeperConnectionStatus']);
     
     // Marketing Staff Bank Connection
     Route::post('/connect-bank-account-marketing', [App\Http\Controllers\StripeController::class, 'connectMarketingBankAccount']);

@@ -12,6 +12,8 @@ class BookingAssignment extends Model
     protected $fillable = [
         'booking_id',
         'caregiver_id',
+        'housekeeper_id',
+        'provider_type',
         'assigned_at',
         'start_time',
         'end_time',
@@ -43,6 +45,25 @@ class BookingAssignment extends Model
     public function caregiver()
     {
         return $this->belongsTo(Caregiver::class);
+    }
+
+    /**
+     * Get the housekeeper assigned to this booking.
+     */
+    public function housekeeper()
+    {
+        return $this->belongsTo(Housekeeper::class);
+    }
+
+    /**
+     * Get the provider (caregiver or housekeeper).
+     */
+    public function provider()
+    {
+        if ($this->provider_type === 'housekeeper' && $this->housekeeper_id) {
+            return $this->housekeeper;
+        }
+        return $this->caregiver;
     }
 
     /**

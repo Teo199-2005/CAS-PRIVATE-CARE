@@ -396,6 +396,7 @@ class ProfileController extends Controller
         
         $caregiver = $user->caregiver;
         $client = $user->client;
+        $housekeeper = $user->housekeeper;
         
         // Get training center name if caregiver has a training center
         $trainingCenterName = null;
@@ -420,9 +421,40 @@ class ProfileController extends Controller
             ];
         }
         
+        // Get housekeeper data if user is a housekeeper
+        $housekeeperData = null;
+        if ($housekeeper) {
+            $housekeeperTrainingCenterName = null;
+            if ($housekeeper->training_center_id) {
+                $housekeeperTrainingCenter = \App\Models\User::find($housekeeper->training_center_id);
+                if ($housekeeperTrainingCenter) {
+                    $housekeeperTrainingCenterName = $housekeeperTrainingCenter->name;
+                }
+            }
+            
+            $housekeeperData = [
+                'id' => $housekeeper->id,
+                'years_experience' => $housekeeper->years_experience,
+                'bio' => $housekeeper->bio,
+                'specializations' => $housekeeper->specializations,
+                'training_certificate' => $housekeeper->training_certificate,
+                'training_center_id' => $housekeeper->training_center_id,
+                'training_center_name' => $housekeeperTrainingCenterName,
+                'training_center_approval_status' => $housekeeper->training_center_approval_status ?? 'approved',
+                'salary_min' => $housekeeper->salary_min,
+                'salary_max' => $housekeeper->salary_max,
+            ];
+        }
+        
+        // Determine which data to return in the 'caregiver' field for compatibility
+        // If user is a housekeeper, prioritize housekeeper data
+        $isHousekeeper = strtolower($user->user_type ?? '') === 'housekeeper';
+        $compatCaregiverData = $isHousekeeper ? ($housekeeperData ?? $caregiverData) : ($caregiverData ?? $housekeeperData);
+        
         return response()->json([
             'user' => $user,
-            'caregiver' => $caregiverData,
+            'caregiver' => $compatCaregiverData, // Return appropriate data based on user type
+            'housekeeper' => $housekeeperData,
             'client' => $client
         ]);
     }
