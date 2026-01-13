@@ -24,7 +24,6 @@
   >
     <template #header-left>
       <v-btn color="error" size="x-large" prepend-icon="mdi-bullhorn" class="admin-btn" @click="announceDialog = true">Send Announcement</v-btn>
-      <v-btn color="success" size="x-large" prepend-icon="mdi-email-send" class="admin-btn ml-2" @click="testEmailDialog = true">Test Email</v-btn>
     </template>
 
   <!-- Email Verification Banner (not needed for company admin) -->
@@ -4451,11 +4450,16 @@
                   maxlength="5"
                   :rules="[v => !v || /^\d{5}$/.test(v) || 'Please enter a valid 5-digit ZIP code']"
                   placeholder="Enter ZIP code"
+                  @input="lookupHousekeeperZipCode"
+                  @blur="lookupHousekeeperZipCode"
                 >
                   <template v-slot:prepend-inner>
                     <v-icon>mdi-map-marker</v-icon>
                   </template>
                 </v-text-field>
+                <div v-if="housekeeperZipLocation" style="font-weight: 600; color: #000000; margin-top: -8px; font-size: 0.75rem; line-height: 1.2;">
+                  {{ housekeeperZipLocation }}
+                </div>
               </v-col>
               <v-col cols="12" v-if="!editingHousekeeper">
                 <v-text-field 
@@ -7905,6 +7909,20 @@ const lookupCaregiverZipCode = async () => {
   caregiverZipLocation.value = location || 'ZIP not found';
 };
 
+const housekeeperZipLocation = ref('');
+const lookupHousekeeperZipCode = async () => {
+  const zip = normalizeZip5(housekeeperForm.value.zip_code);
+  if (!zip) {
+    housekeeperZipLocation.value = '';
+    return;
+  }
+
+  // Show loading state
+  housekeeperZipLocation.value = 'Looking up location…';
+  const location = await resolveZipCityState(zip);
+  housekeeperZipLocation.value = location || 'ZIP not found';
+};
+
 const marketingStaffZipLocation = ref('');
 const lookupMarketingStaffZipCode = async () => {
   const zip = normalizeZip5(marketingStaffFormData.value.zip_code);
@@ -10550,6 +10568,7 @@ const openHousekeeperDialog = (housekeeper = null) => {
 const closeHousekeeperDialog = () => {
   housekeeperDialog.value = false;
   editingHousekeeper.value = false;
+  housekeeperZipLocation.value = '';
 };
 
 const saveHousekeeper = async () => {
