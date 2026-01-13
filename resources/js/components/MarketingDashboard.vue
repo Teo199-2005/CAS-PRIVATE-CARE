@@ -949,14 +949,6 @@ const handleRequestPayout = () => {
   success('Payout request sent', 'Your payout request has been submitted and will be processed shortly.');
 };
 
-const editCard = (card) => {
-  info('Edit payment method', 'This feature is coming soon');
-};
-
-const deleteCard = (card) => {
-  info('Delete payment method', 'This feature is coming soon');
-};
-
 const checkMarketingApplicationStatus = async () => {
   try {
     const response = await fetch('/api/marketing/application-status');

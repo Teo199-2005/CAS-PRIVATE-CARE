@@ -920,7 +920,7 @@
             <v-select v-model="housekeeperStatusFilter" :items="['All', 'Active', 'Assigned', 'Inactive']" label="All Status" variant="outlined" density="compact" hide-details />
           </v-col>
           <v-col cols="12" md="3">
-            <v-btn color="deep-purple" prepend-icon="mdi-plus" @click="alert('Add Housekeeper feature coming soon')">Add Housekeeper</v-btn>
+            <v-btn color="error" prepend-icon="mdi-plus" @click="openHousekeeperDialog()">Add Housekeeper</v-btn>
           </v-col>
         </v-row>
       </div>
@@ -958,6 +958,7 @@
           <template v-slot:item.actions="{ item }">
             <div class="action-buttons">
               <v-btn class="action-btn-view" icon="mdi-eye" size="small" @click="viewHousekeeperDetails(item)"></v-btn>
+              <v-btn class="action-btn-edit" icon="mdi-pencil" size="small" @click="openHousekeeperDialog(item)"></v-btn>
             </div>
           </template>
         </v-data-table>
@@ -4395,6 +4396,152 @@
       </v-card>
     </v-dialog>
 
+    <!-- Add/Edit Housekeeper Dialog -->
+    <v-dialog v-model="housekeeperDialog" max-width="900" scrollable>
+      <v-card>
+        <v-card-title class="pa-6" style="background: #dc2626; color: white;">
+          <span class="section-title" style="color: white;">{{ editingHousekeeper ? 'Edit Housekeeper' : 'Add Housekeeper' }}</span>
+        </v-card-title>
+        <v-card-text class="pa-6">
+          <div class="mb-6">
+            <h3 class="text-h6 mb-4">Personal Information</h3>
+            <v-row>
+              <v-col cols="12" md="6">
+                <v-text-field v-model="housekeeperForm.firstName" label="First Name *" variant="outlined" required @update:model-value="housekeeperForm.firstName = filterLettersOnly(housekeeperForm.firstName)" />
+              </v-col>
+              <v-col cols="12" md="6">
+                <v-text-field v-model="housekeeperForm.lastName" label="Last Name *" variant="outlined" required @update:model-value="housekeeperForm.lastName = filterLettersOnly(housekeeperForm.lastName)" />
+              </v-col>
+              <v-col cols="12" md="6">
+                <v-text-field v-model="housekeeperForm.email" label="Email *" variant="outlined" type="email" required />
+              </v-col>
+              <v-col cols="12" md="6">
+                <v-text-field 
+                  v-model="housekeeperForm.phone" 
+                  label="Phone" 
+                  variant="outlined"
+                  placeholder="(646) 282-8282"
+                  maxlength="14"
+                  @update:model-value="housekeeperForm.phone = formatPhoneNumber(housekeeperForm.phone)"
+                />
+              </v-col>
+              <v-col cols="12" md="6">
+                <v-text-field v-model="housekeeperForm.birthdate" label="Birthdate" variant="outlined" type="date" />
+              </v-col>
+              <v-col cols="12" md="6">
+                <v-text-field :model-value="calculateAge(housekeeperForm.birthdate)" label="Age" variant="outlined" readonly />
+              </v-col>
+              <v-col cols="12">
+                <v-text-field v-model="housekeeperForm.address" label="Address" variant="outlined" />
+              </v-col>
+              <v-col cols="12" md="6">
+                <v-text-field v-model="housekeeperForm.state" label="State" variant="outlined" readonly value="New York" />
+              </v-col>
+              <v-col cols="12" md="6">
+                <v-select v-model="housekeeperForm.county" :items="nyCounties" label="County" variant="outlined" />
+              </v-col>
+              <v-col cols="12" md="6">
+                <v-select v-model="housekeeperForm.city" :items="housekeeperCities" label="City" variant="outlined" :disabled="!housekeeperForm.county" />
+              </v-col>
+              <v-col cols="12" md="6">
+                <v-text-field 
+                  v-model="housekeeperForm.zip_code" 
+                  label="ZIP Code" 
+                  variant="outlined"
+                  maxlength="5"
+                  :rules="[v => !v || /^\d{5}$/.test(v) || 'Please enter a valid 5-digit ZIP code']"
+                  placeholder="Enter ZIP code"
+                >
+                  <template v-slot:prepend-inner>
+                    <v-icon>mdi-map-marker</v-icon>
+                  </template>
+                </v-text-field>
+              </v-col>
+              <v-col cols="12" v-if="!editingHousekeeper">
+                <v-text-field 
+                  v-model="housekeeperForm.password" 
+                  label="Password *" 
+                  :type="showHousekeeperPassword ? 'text' : 'password'" 
+                  variant="outlined" 
+                  required
+                  :append-inner-icon="showHousekeeperPassword ? 'mdi-eye-off' : 'mdi-eye'"
+                  @click:append-inner="showHousekeeperPassword = !showHousekeeperPassword"
+                />
+                <div v-if="housekeeperForm.password" class="password-requirements mt-2">
+                  <div class="requirement-item" :class="{ valid: passwordMeetsLength(housekeeperForm.password) }">
+                    <span class="requirement-icon">{{ passwordMeetsLength(housekeeperForm.password) ? '✓' : '✗' }}</span>
+                    <span class="requirement-text">At least 8 characters</span>
+                  </div>
+                  <div class="requirement-item" :class="{ valid: passwordMeetsUppercase(housekeeperForm.password) }">
+                    <span class="requirement-icon">{{ passwordMeetsUppercase(housekeeperForm.password) ? '✓' : '✗' }}</span>
+                    <span class="requirement-text">One capital letter</span>
+                  </div>
+                  <div class="requirement-item" :class="{ valid: passwordMeetsDigit(housekeeperForm.password) }">
+                    <span class="requirement-icon">{{ passwordMeetsDigit(housekeeperForm.password) ? '✓' : '✗' }}</span>
+                    <span class="requirement-text">One digit</span>
+                  </div>
+                  <div class="requirement-item" :class="{ valid: passwordMeetsSpecial(housekeeperForm.password) }">
+                    <span class="requirement-icon">{{ passwordMeetsSpecial(housekeeperForm.password) ? '✓' : '✗' }}</span>
+                    <span class="requirement-text">One special character</span>
+                  </div>
+                </div>
+              </v-col>
+            </v-row>
+          </div>
+
+          <div class="mb-4">
+            <h3 class="text-h6 mb-4">Professional Details</h3>
+            <v-row>
+              <v-col cols="12" md="6">
+                <v-text-field v-model="housekeeperForm.experience" label="Years of Experience" variant="outlined" type="number" />
+              </v-col>
+              <v-col cols="12" md="6">
+                <v-text-field v-model="housekeeperForm.hourly_rate" label="Hourly Rate ($)" variant="outlined" type="number" prefix="$" />
+              </v-col>
+              <v-col cols="12" md="6">
+                <v-checkbox v-model="housekeeperForm.has_own_supplies" label="Has Own Cleaning Supplies" density="compact" hide-details />
+              </v-col>
+              <v-col cols="12" md="6">
+                <v-checkbox v-model="housekeeperForm.available_for_transport" label="Available for Transport" density="compact" hide-details />
+              </v-col>
+              <v-col cols="12">
+                <v-select 
+                  v-model="housekeeperForm.skills" 
+                  :items="['Deep Cleaning', 'Laundry', 'Ironing', 'Cooking', 'Pet Care', 'Organization', 'Window Cleaning', 'Carpet Cleaning']" 
+                  label="Skills" 
+                  variant="outlined" 
+                  multiple 
+                  chips 
+                  closable-chips
+                />
+              </v-col>
+              <v-col cols="12">
+                <v-select 
+                  v-model="housekeeperForm.specializations" 
+                  :items="['Residential', 'Commercial', 'Move In/Out', 'Post-Construction', 'Green Cleaning', 'Senior Care']" 
+                  label="Specializations" 
+                  variant="outlined" 
+                  multiple 
+                  chips 
+                  closable-chips
+                />
+              </v-col>
+              <v-col cols="12">
+                <v-textarea v-model="housekeeperForm.bio" label="Bio" variant="outlined" rows="3" />
+              </v-col>
+              <v-col cols="12">
+                <v-select v-model="housekeeperForm.status" :items="['Active', 'Inactive', 'Suspended']" label="Status *" variant="outlined" required />
+              </v-col>
+            </v-row>
+          </div>
+        </v-card-text>
+        <v-card-actions class="pa-6 pt-0">
+          <v-btn color="grey" variant="outlined" @click="closeHousekeeperDialog">Cancel</v-btn>
+          <v-btn color="error" @click="saveHousekeeper">{{ editingHousekeeper ? 'Update' : 'Add' }}</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
     <!-- Confirmation Dialog -->
     <v-dialog v-model="confirmDialog" max-width="500">
       <v-card>
@@ -6702,6 +6849,32 @@ const caregiverForm = ref({
   status: 'Active' 
 });
 
+// Housekeeper dialog state
+const housekeeperDialog = ref(false);
+const editingHousekeeper = ref(false);
+const housekeeperForm = ref({
+  id: null,
+  firstName: '',
+  lastName: '',
+  email: '',
+  phone: '',
+  birthdate: '',
+  address: '',
+  state: 'New York',
+  county: '',
+  city: '',
+  zip_code: '',
+  password: '',
+  experience: '',
+  hourly_rate: '',
+  bio: '',
+  has_own_supplies: false,
+  available_for_transport: false,
+  skills: [],
+  specializations: [],
+  status: 'Active'
+});
+
 // caregiverTrainingCenters is loaded dynamically via loadCaregiverTrainingCenters()
 
 const announcementData = ref({
@@ -6733,6 +6906,7 @@ const showTrainingPassword = ref(false);
 const showAddUserPassword = ref(false);
 const showClientPassword = ref(false);
 const showCaregiverPassword = ref(false);
+const showHousekeeperPassword = ref(false);
 const addUserFormData = ref({
   firstName: '',
   lastName: '',
@@ -8566,7 +8740,36 @@ const payHousekeeper = async (item) => {
 };
 
 const exportHousekeeperPaymentsPDF = () => {
-  warning('Housekeeper PDF export coming soon.', 'Coming Soon');
+  try {
+    console.log('Exporting Housekeeper Payments PDF...');
+    console.log('Data:', filteredHousekeeperPayments.value);
+    console.log('Period:', housekeeperSalaryPeriodFilter.value);
+    
+    if (!window.jspdf) {
+      console.error('jsPDF library not loaded!');
+      alert('PDF library not loaded. Please refresh the page.');
+      return;
+    }
+    
+    if (!filteredHousekeeperPayments.value || filteredHousekeeperPayments.value.length === 0) {
+      console.warn('No housekeeper payment data to export');
+      alert('No payment data available to export.');
+      return;
+    }
+    
+    generatePaymentPDF('Housekeeper Payments', filteredHousekeeperPayments.value, housekeeperSalaryPeriodFilter.value, [
+      'Date',
+      'Housekeeper Name',
+      'Client Name',
+      'Total Hours',
+      'Total Payout'
+    ]);
+    
+    console.log('PDF exported successfully!');
+  } catch (error) {
+    console.error('Error exporting PDF:', error);
+    alert('Error generating PDF: ' + error.message);
+  }
 };
 
 // Marketing Commissions
@@ -10287,6 +10490,132 @@ const openCaregiverDialog = (caregiver = null) => {
 const closeCaregiverDialog = () => {
   caregiverDialog.value = false;
   editingCaregiver.value = false;
+};
+
+// Housekeeper Dialog Functions
+const openHousekeeperDialog = (housekeeper = null) => {
+  if (housekeeper) {
+    editingHousekeeper.value = true;
+    const nameParts = (housekeeper.name || '').split(' ');
+    housekeeperForm.value = {
+      id: housekeeper.userId || housekeeper.id,
+      firstName: nameParts[0] || '',
+      lastName: nameParts.slice(1).join(' ') || '',
+      email: housekeeper.email || '',
+      phone: housekeeper.phone || '',
+      birthdate: housekeeper.date_of_birth || '',
+      address: housekeeper.address || '',
+      state: housekeeper.state || 'New York',
+      county: housekeeper.county || '',
+      city: housekeeper.city || housekeeper.borough || '',
+      zip_code: housekeeper.zip_code || '',
+      password: '',
+      experience: housekeeper.years_experience || '',
+      hourly_rate: housekeeper.hourly_rate || '',
+      bio: housekeeper.bio || '',
+      has_own_supplies: Boolean(housekeeper.has_own_supplies),
+      available_for_transport: Boolean(housekeeper.available_for_transport),
+      skills: housekeeper.skills || [],
+      specializations: housekeeper.specializations || [],
+      status: housekeeper.status || 'Active'
+    };
+  } else {
+    editingHousekeeper.value = false;
+    housekeeperForm.value = {
+      id: null,
+      firstName: '',
+      lastName: '',
+      email: '',
+      phone: '',
+      birthdate: '',
+      address: '',
+      state: 'New York',
+      county: '',
+      city: '',
+      zip_code: '',
+      password: '',
+      experience: '',
+      hourly_rate: '',
+      bio: '',
+      has_own_supplies: false,
+      available_for_transport: false,
+      skills: [],
+      specializations: [],
+      status: 'Active'
+    };
+  }
+  housekeeperDialog.value = true;
+};
+
+const closeHousekeeperDialog = () => {
+  housekeeperDialog.value = false;
+  editingHousekeeper.value = false;
+};
+
+const saveHousekeeper = async () => {
+  try {
+    if (!housekeeperForm.value.firstName || !housekeeperForm.value.lastName || !housekeeperForm.value.email) {
+      error('Please fill in required fields: First Name, Last Name, and Email', 'Validation Error');
+      return;
+    }
+    if (!editingHousekeeper.value && !housekeeperForm.value.password) {
+      error('Password is required for new housekeepers', 'Validation Error');
+      return;
+    }
+
+    const url = editingHousekeeper.value ? `/api/admin/users/${housekeeperForm.value.id}` : '/api/admin/users';
+    const method = editingHousekeeper.value ? 'PUT' : 'POST';
+    
+    const formData = {
+      name: `${housekeeperForm.value.firstName} ${housekeeperForm.value.lastName}`.trim(),
+      firstName: housekeeperForm.value.firstName,
+      lastName: housekeeperForm.value.lastName,
+      email: housekeeperForm.value.email,
+      phone: housekeeperForm.value.phone || null,
+      date_of_birth: housekeeperForm.value.birthdate || null,
+      address: housekeeperForm.value.address || null,
+      state: housekeeperForm.value.state || 'New York',
+      county: housekeeperForm.value.county || null,
+      city: housekeeperForm.value.city || null,
+      borough: housekeeperForm.value.city || null,
+      zip_code: housekeeperForm.value.zip_code || null,
+      years_experience: housekeeperForm.value.experience || null,
+      hourly_rate: housekeeperForm.value.hourly_rate || null,
+      bio: housekeeperForm.value.bio || null,
+      has_own_supplies: Boolean(housekeeperForm.value.has_own_supplies),
+      available_for_transport: Boolean(housekeeperForm.value.available_for_transport),
+      skills: housekeeperForm.value.skills || [],
+      specializations: housekeeperForm.value.specializations || [],
+      status: housekeeperForm.value.status,
+      user_type: 'housekeeper'
+    };
+    
+    if (!editingHousekeeper.value && housekeeperForm.value.password) {
+      formData.password = housekeeperForm.value.password;
+    }
+
+    const response = await fetch(url, {
+      method,
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest',
+        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+      },
+      body: JSON.stringify(formData)
+    });
+    
+    if (response.ok) {
+      success(editingHousekeeper.value ? 'Housekeeper updated successfully!' : 'Housekeeper added successfully!', editingHousekeeper.value ? 'Housekeeper Updated' : 'Housekeeper Added');
+      loadUsers();
+      closeHousekeeperDialog();
+    } else {
+      const errorData = await response.json().catch(() => ({}));
+      error(errorData.message || 'Failed to save housekeeper. Please try again.', 'Save Failed');
+    }
+  } catch (err) {
+    error('Failed to save housekeeper. Please try again.', 'Save Failed');
+  }
 };
 
 const closeAddBookingDialog = () => {
@@ -12618,6 +12947,11 @@ const caregiverCities = computed(() => {
   return countyCityMap[caregiverForm.value.county] || [];
 });
 
+const housekeeperCities = computed(() => {
+  if (!housekeeperForm.value.county) return [];
+  return countyCityMap[housekeeperForm.value.county] || [];
+});
+
 // Watch for county changes to reset city selection
 watch(() => clientForm.value.county, (newCounty) => {
   if (newCounty) {
@@ -12628,6 +12962,12 @@ watch(() => clientForm.value.county, (newCounty) => {
 watch(() => caregiverForm.value.county, (newCounty) => {
   if (newCounty) {
     caregiverForm.value.city = ''; // Reset city when county changes
+  }
+});
+
+watch(() => housekeeperForm.value.county, (newCounty) => {
+  if (newCounty) {
+    housekeeperForm.value.city = ''; // Reset city when county changes
   }
 });
 
@@ -13038,6 +13378,24 @@ const generatePaymentPDF = async (title, data, period, columns) => {
           `${item.caregivers_count || 0} caregivers`,
           `$${parseFloat(item.total_commission || 0).toFixed(2)}`,
           item.payment_status || 'Pending'
+        ]);
+      } else if (title.includes('Housekeeper')) {
+        // Extract hours from various possible fields
+        const hoursValue = parseFloat(
+          item.hours_worked || 
+          item.hours || 
+          item.hoursWorked || 
+          item.hours_display?.replace(' hrs', '') || 
+          item.totalHours ||
+          0
+        );
+        
+        paymentData.push([
+          item.period || period,
+          item.housekeeper || item.name || 'N/A',
+          'Various Clients',
+          `${hoursValue.toFixed(1)} hrs`,
+          `$${parseFloat(item.amount || 0).toFixed(2)}`
         ]);
       }
     });

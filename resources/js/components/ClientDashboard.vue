@@ -5053,16 +5053,6 @@ const editBooking = async (id) => {
   }
 };
 
-const editCard = (id) => {
-  alert('Edit card feature coming soon!');
-};
-
-const deleteCard = (id) => {
-  if (confirm('Are you sure you want to remove this card?')) {
-    alert('Card removed');
-  }
-};
-
 const loadProfile = async () => {
   try {
     const response = await fetch(profileUrl.value);

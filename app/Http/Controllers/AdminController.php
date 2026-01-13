@@ -216,8 +216,14 @@ class AdminController extends Controller
             'years_experience' => 'nullable|integer|min:0|max:50',
             'training_center' => 'nullable|string|max:255',
             'bio' => 'nullable|string|max:1000',
-            'user_type' => 'required|in:client,caregiver,admin',
+            'user_type' => 'required|in:client,caregiver,housekeeper,admin',
             'status' => 'nullable|in:Active,Inactive,Suspended',
+            // Housekeeper-specific fields
+            'hourly_rate' => 'nullable|numeric|min:0|max:500',
+            'has_own_supplies' => 'nullable|boolean',
+            'available_for_transport' => 'nullable|boolean',
+            'skills' => 'nullable|array',
+            'specializations' => 'nullable|array',
             // Add file upload validation if file upload is present in this form
             // 'profile_photo' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
         ]);
@@ -272,6 +278,20 @@ class AdminController extends Controller
                 // Note: training_center is stored in User model, not Caregiver model
                 if (isset($validated['bio'])) $caregiverData['bio'] = $validated['bio'];
                 Caregiver::create($caregiverData);
+            } elseif ($validated['user_type'] === 'housekeeper') {
+                $housekeeperData = [
+                    'user_id' => $user->id,
+                    'gender' => 'female',
+                    'availability_status' => 'available'
+                ];
+                if (isset($validated['years_experience'])) $housekeeperData['years_experience'] = $validated['years_experience'];
+                if (isset($validated['bio'])) $housekeeperData['bio'] = $validated['bio'];
+                if (isset($validated['hourly_rate'])) $housekeeperData['hourly_rate'] = $validated['hourly_rate'];
+                if (isset($validated['has_own_supplies'])) $housekeeperData['has_own_supplies'] = $validated['has_own_supplies'];
+                if (isset($validated['available_for_transport'])) $housekeeperData['available_for_transport'] = $validated['available_for_transport'];
+                if (isset($validated['skills'])) $housekeeperData['skills'] = $validated['skills'];
+                if (isset($validated['specializations'])) $housekeeperData['specializations'] = $validated['specializations'];
+                Housekeeper::create($housekeeperData);
             }
             
             return $user;
