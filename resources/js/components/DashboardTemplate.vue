@@ -36,8 +36,10 @@
               :title="item.title" 
               @click="$emit('toggle-click', item)"
               class="nav-item mb-1 toggle-item"
+              :class="{ 'nav-item-disabled': item.disabled }"
             >
               <template v-slot:append>
+                <v-icon v-if="item.disabled" size="small" color="grey" class="mr-2">mdi-lock</v-icon>
                 <v-icon size="small" :class="{ 'rotate-180': item.expanded }" class="toggle-icon">
                   mdi-chevron-down
                 </v-icon>
@@ -49,12 +51,19 @@
                 <v-list-item 
                   v-for="child in item.children" 
                   :key="child.value"
-                  :prepend-icon="child.icon" 
+                  :prepend-icon="child.disabled ? 'mdi-lock' : child.icon" 
                   :title="child.title" 
-                  @click="handleSectionChange(child.value)"
-                  :class="{ 'active-nav': currentSection === child.value }"
+                  @click="handleNavItemClick(child)"
+                  :class="{ 
+                    'active-nav': currentSection === child.value && !child.disabled,
+                    'nav-item-disabled': child.disabled
+                  }"
                   class="nav-item sub-nav-item mb-1 ml-4"
+                  :disabled="child.disabled"
                 >
+                  <template v-if="child.disabled" v-slot:append>
+                    <v-icon size="x-small" color="grey-darken-1">mdi-lock</v-icon>
+                  </template>
                 </v-list-item>
               </div>
             </v-expand-transition>
@@ -62,14 +71,21 @@
           
           <v-list-item 
             v-else
-            :prepend-icon="item.icon" 
+            :prepend-icon="item.disabled ? 'mdi-lock' : item.icon" 
             :title="item.title" 
-            @click="handleSectionChange(item.value)"
-            :class="{ 'active-nav': currentSection === item.value }"
+            @click="handleNavItemClick(item)"
+            :class="{ 
+              'active-nav': currentSection === item.value && !item.disabled,
+              'nav-item-disabled': item.disabled
+            }"
             class="nav-item mb-1"
+            :disabled="item.disabled"
           >
-            <template v-if="item.badge" v-slot:append>
+            <template v-if="item.badge && !item.disabled" v-slot:append>
               <div class="notification-indicator"></div>
+            </template>
+            <template v-else-if="item.disabled" v-slot:append>
+              <v-icon size="x-small" color="grey-darken-1">mdi-lock</v-icon>
             </template>
           </v-list-item>
         </template>
@@ -186,7 +202,7 @@ const props = defineProps({
   currentSection: { type: String, required: true }
 });
 
-const emit = defineEmits(['section-change', 'logout', 'toggle-click']);
+const emit = defineEmits(['section-change', 'logout', 'toggle-click', 'disabled-click']);
 
 const drawer = ref(true);
 const isMobile = ref(typeof window !== 'undefined' ? window.innerWidth <= 960 : false);
@@ -206,6 +222,15 @@ const handleSectionChange = (section) => {
   if (isMobile.value) {
     drawer.value = false;
   }
+};
+
+// Handle nav item click - check if disabled first
+const handleNavItemClick = (item) => {
+  if (item.disabled) {
+    emit('disabled-click', item.value);
+    return;
+  }
+  handleSectionChange(item.value);
 };
 
 // Handle logout and close drawer on mobile
@@ -229,6 +254,7 @@ const themeColor = computed(() => {
   if (props.userRole === 'admin') return 'error';
   if (props.userRole === 'marketing') return 'grey-darken-2';
   if (props.userRole === 'training') return 'grey-darken-2';
+  if (props.userRole === 'housekeeper') return 'deep-purple';
   return 'success';
 });
 
@@ -247,7 +273,7 @@ const userRoleClass = computed(() => {
 const roleAvatarColor = computed(() => {
   const colors = {
     'caregiver': '#2E7D32',  // Green
-    'housekeeper': '#2E7D32',  // Green
+    'housekeeper': '#7B1FA2',  // Purple/Violet
     'admin': '#C62828',      // Red
     'client': '#1565C0',     // Blue
     'marketing': '#6A1B9A',  // Purple
@@ -259,7 +285,7 @@ const roleAvatarColor = computed(() => {
 const roleTextClass = computed(() => {
   const classes = {
     'caregiver': 'text-green',
-    'housekeeper': 'text-green',
+    'housekeeper': 'text-purple',
     'admin': 'text-red',
     'client': 'text-blue',
     'marketing': 'text-purple',
@@ -271,7 +297,7 @@ const roleTextClass = computed(() => {
 const roleStatusClass = computed(() => {
   const classes = {
     'caregiver': 'status-green',
-    'housekeeper': 'status-green',
+    'housekeeper': 'status-purple',
     'admin': 'status-red',
     'client': 'status-blue',
     'marketing': 'status-purple',
@@ -283,7 +309,7 @@ const roleStatusClass = computed(() => {
 const roleBadgeColor = computed(() => {
   const colors = {
     'caregiver': 'success',
-    'housekeeper': 'success',
+    'housekeeper': 'deep-purple',
     'admin': 'error',
     'client': 'primary',
     'marketing': 'deep-purple',
@@ -332,7 +358,7 @@ const headerRoleClass = computed(() => {
 const headerTitleClass = computed(() => {
   const classes = {
     'caregiver': 'title-green',
-    'housekeeper': 'title-green',
+    'housekeeper': 'title-purple',
     'admin': 'title-red',
     'client': 'title-blue',
     'marketing': 'title-purple',
@@ -344,7 +370,7 @@ const headerTitleClass = computed(() => {
 const headerSubtitleClass = computed(() => {
   const classes = {
     'caregiver': 'subtitle-green',
-    'housekeeper': 'subtitle-green',
+    'housekeeper': 'subtitle-purple',
     'admin': 'subtitle-red',
     'client': 'subtitle-blue',
     'marketing': 'subtitle-purple',
@@ -489,6 +515,26 @@ const mobileNavItems = computed(() => {
 
 .disabled-nav :deep(.v-list-item-title) {
   color: #9e9e9e !important;
+}
+
+/* Disabled nav item styling for permission-restricted pages */
+.nav-item-disabled {
+  opacity: 0.55 !important;
+  cursor: pointer !important;
+  background: #f5f5f5 !important;
+}
+
+.nav-item-disabled:hover {
+  background: #eeeeee !important;
+}
+
+.nav-item-disabled :deep(.v-list-item__prepend) {
+  color: #757575 !important;
+}
+
+.nav-item-disabled :deep(.v-list-item-title) {
+  color: #757575 !important;
+  font-style: italic;
 }
 
 .badge-chip {
@@ -642,7 +688,7 @@ const mobileNavItems = computed(() => {
 }
 
 .header-housekeeper {
-  background: linear-gradient(135deg, #ffffff 0%, #f0fdf4 100%) !important;
+  background: linear-gradient(135deg, #ffffff 0%, #f3e5f5 100%) !important;
 }
 
 .header-admin {

@@ -19,7 +19,10 @@ class PasswordResetEmail extends Mailable
     public function __construct(string $email, string $token, string $userName = 'User')
     {
         $this->userName = $userName;
-        $this->resetUrl = url('/reset-password/' . $token . '?email=' . urlencode($email));
+        
+        // Use production URL for password reset links
+        $baseUrl = 'https://casprivatecare.online';
+        $this->resetUrl = $baseUrl . '/reset-password/' . $token . '?email=' . urlencode($email);
     }
 
     /**
@@ -31,5 +34,6 @@ class PasswordResetEmail extends Mailable
                     ->view('emails.password-reset');
     }
 }
+
 
 

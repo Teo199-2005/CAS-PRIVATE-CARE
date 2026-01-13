@@ -17,6 +17,7 @@ class Booking extends Model
         'borough',
         'city',
         'county',
+        'zipcode',
         'service_date',
         'start_time',
         'duration_days',

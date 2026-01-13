@@ -8,8 +8,8 @@
     <!-- Primary Meta Tags -->
     <title>CAS Private Care LLC - Verified Caregivers & Home Care Services New York</title>
     <meta name="title" content="CAS Private Care LLC - Verified Caregivers & Home Care Services New York">
-    <meta name="description" content="Connect with verified caregivers in New York. Professional in-home caregiving including companion care, elderly care, and personal care support. 24/7 support. Book trusted caregivers today.">
-    <meta name="keywords" content="caregivers New York, caregiver NYC, in-home care, home care services, elderly care, companion care, personal care, verified caregivers, background checked caregivers">
+    <meta name="description" content="Connect with verified caregivers and housekeepers in New York. Professional elderly care and housekeeping services. 24/7 support. Book trusted care professionals today.">
+    <meta name="keywords" content="caregivers New York, home care services, elderly care, housekeeping, verified caregivers, Manila caregivers, professional care services">
     <meta name="author" content="CAS Private Care LLC">
     <meta name="robots" content="index, follow">
     <link rel="canonical" href="{{ url('/') }}">
@@ -18,7 +18,7 @@
     <meta property="og:type" content="website">
     <meta property="og:url" content="{{ url('/') }}">
     <meta property="og:title" content="CAS Private Care LLC - Verified Caregivers & Home Care Services New York">
-    <meta property="og:description" content="Connect with verified caregivers in New York. Professional in-home caregiving including companion care, elderly care, and personal care support.">
+    <meta property="og:description" content="Connect with verified caregivers and housekeepers in New York. Professional elderly care and housekeeping services.">
     <meta property="og:image" content="{{ asset('logo.png') }}">
     <meta property="og:site_name" content="CAS Private Care LLC">
     
@@ -26,7 +26,7 @@
     <meta property="twitter:card" content="summary_large_image">
     <meta property="twitter:url" content="{{ url('/') }}">
     <meta property="twitter:title" content="CAS Private Care LLC - Verified Caregivers & Home Care Services New York">
-    <meta property="twitter:description" content="Connect with verified caregivers in New York. Professional in-home caregiving including companion care, elderly care, and personal care support.">
+    <meta property="twitter:description" content="Connect with verified caregivers and housekeepers in New York. Professional elderly care and housekeeping services.">
     <meta property="twitter:image" content="{{ asset('logo.png') }}">
     
     <!-- Structured Data (JSON-LD) -->
@@ -117,13 +117,6 @@
             'itemOffered' => [
               '@type' => 'Service',
               'name' => 'Housekeeping Services'
-            ]
-          ],
-          [
-            '@type' => 'Offer',
-            'itemOffered' => [
-              '@type' => 'Service',
-              'name' => 'Personal Care Services'
             ]
           ],
           [
@@ -376,8 +369,8 @@
         }
 
         .about-feature-card:nth-child(3):hover {
-            box-shadow: 0 20px 60px rgba(59, 130, 246, 0.25);
-            border-color: #3b82f6;
+            box-shadow: 0 20px 60px rgba(16, 185, 129, 0.25);
+            border-color: #10b981;
         }
 
         .about-feature-icon {
@@ -407,8 +400,8 @@
         }
 
         .about-feature-card:nth-child(3) .about-feature-icon {
-            background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
-            box-shadow: 0 10px 30px rgba(59, 130, 246, 0.3);
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            box-shadow: 0 10px 30px rgba(16, 185, 129, 0.3);
         }
 
         .about-feature-card:hover .about-feature-icon {
@@ -425,7 +418,7 @@
         }
 
         .about-feature-card:nth-child(3):hover .about-feature-icon {
-            box-shadow: 0 15px 45px rgba(59, 130, 246, 0.5);
+            box-shadow: 0 15px 45px rgba(16, 185, 129, 0.5);
         }
 
         .about-feature-icon i {
@@ -3070,14 +3063,15 @@ font-size: 1.1rem !important;
                 <p class="tagline">Comfort and Support</p>
                 
                 <div style="position: relative; display: flex; justify-content: center; margin: 2rem 0; background: rgba(255,255,255,0.1); padding: 0.5rem; border-radius: 50px; backdrop-filter: blur(10px);">
-                    <div id="slider-bg" style="position: absolute; top: 0.5rem; left: 0.5rem; width: calc(100% - 1rem); height: calc(100% - 1rem); background: white; border-radius: 25px; transition: transform 0.3s ease; z-index: 1;"></div>
-                    <button onclick="switchService('caregiver')" id="btn-caregiver" style="position: relative; z-index: 2; padding: 0.75rem 1.5rem; border: none; border-radius: 25px; background: transparent; color: #1e40af; font-weight: 700; cursor: pointer; transition: color 0.3s; width: 100%;">Caregiver Services</button>
+                    <div id="slider-bg" style="position: absolute; top: 0.5rem; left: 0.5rem; width: calc(50% - 0.33rem); height: calc(100% - 1rem); background: white; border-radius: 25px; transition: transform 0.3s ease; z-index: 1;"></div>
+                    <button onclick="switchService('caregiver')" id="btn-caregiver" style="position: relative; z-index: 2; padding: 0.75rem 1.5rem; border: none; border-radius: 25px; background: transparent; color: #000000; font-weight: 600; cursor: pointer; transition: color 0.3s; flex: 1;">Caregiver</button>
+                    <button onclick="switchService('housekeeping')" id="btn-housekeeping" style="position: relative; z-index: 2; padding: 0.75rem 1.5rem; border: none; border-radius: 25px; background: transparent; color: white; font-weight: 600; cursor: pointer; transition: color 0.3s; flex: 1;">Housekeeping</button>
                 </div>
                 
-                <p id="hero-description" style="transition: opacity 0.5s ease;">A modern and trustworthy platform connecting families with verified caregivers, marketing partners, and training centers.</p>
+                <p id="hero-description" style="transition: opacity 0.5s ease;">A modern and trustworthy platform connecting families with verified partners and contractors - caregivers, housekeepers, marketing partners, and training centers.</p>
                 
                 <div class="hero-buttons">
-                    <a href="#" class="btn-primary" id="find-btn" style="transition: opacity 0.5s ease;">Find a Caregiver</a>
+                    <a href="{{ url('/register') }}" class="btn-primary" id="find-btn" style="transition: opacity 0.5s ease;">Find a Caregiver</a>
                     <a href="{{ url('/register') }}" class="btn-secondary">Become a Partner</a>
                 </div>
             </div>
@@ -3213,44 +3207,36 @@ font-size: 1.1rem !important;
             </div>
             <div class="services-grid">
                 <article class="service-item scale-in" itemscope itemtype="https://schema.org/Service">
-                    <div class="service-bg" style="background-image: url('https://images.unsplash.com/photo-1576765608866-5b51046452be?w=800');"></div>
-                    <div class="service-overlay"></div>
-                    <div class="service-content">
-                        <h4 itemprop="name">Companion Care</h4>
-                        <p class="service-description" itemprop="description">Friendly, dependable caregivers providing companionship, safety supervision, and help with daily routines at home.</p>
-                        <a href="{{ url('/register') }}" class="book-now-btn" itemprop="url">Book Now</a>
-                    </div>
-                </article>
-
-                <article class="service-item scale-in" itemscope itemtype="https://schema.org/Service">
-                    <div class="service-bg" style="background-image: url('https://images.unsplash.com/photo-1584515933487-779824d29309?w=800');"></div>
+                    <div class="service-bg" style="background-image: url('https://images.unsplash.com/photo-1581579438747-1dc8d17bbce4?w=800');"></div>
                     <div class="service-overlay"></div>
                     <div class="service-content">
                         <h4 itemprop="name">Elderly Care</h4>
-                        <p class="service-description" itemprop="description">Compassionate support for seniors, including mobility assistance, meal preparation, and respectful daily living help.</p>
+                        <p class="service-description" itemprop="description">Compassionate and professional care for your loved ones. Our caregivers provide assistance with daily activities, meal preparation, and companionship.</p>
                         <a href="{{ url('/register') }}" class="book-now-btn" itemprop="url">Book Now</a>
                     </div>
                 </article>
+
 
                 <article class="service-item scale-in" itemscope itemtype="https://schema.org/Service">
-                    <div class="service-bg" style="background-image: url('https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=800');"></div>
+                    <div class="service-bg" style="background-image: url('https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=800');"></div>
                     <div class="service-overlay"></div>
                     <div class="service-content">
-                        <h4 itemprop="name">Personal Care</h4>
-                        <p class="service-description" itemprop="description">Caregivers can assist with personal hygiene, grooming, and daily living activities—always with dignity and respect.</p>
+                        <h4 itemprop="name">House Helpers</h4>
+                        <p class="service-description" itemprop="description">Reliable household assistance for a cleaner home. Professional helpers who manage cleaning, laundry, and household organization efficiently.</p>
                         <a href="{{ url('/register') }}" class="book-now-btn" itemprop="url">Book Now</a>
                     </div>
                 </article>
-
                 <article class="service-item scale-in" itemscope itemtype="https://schema.org/Service">
                     <div class="service-bg" style="background-image: url('https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?w=800');"></div>
                     <div class="service-overlay"></div>
                     <div class="service-content">
                         <h4 itemprop="name">Special Needs Care</h4>
-                        <p class="service-description" itemprop="description">Patient, experienced caregivers supporting individuals with unique needs through personalized in-home assistance.</p>
+                        <p class="service-description" itemprop="description">Specialized care for individuals with unique requirements. Trained professionals who provide personalized support with patience and expertise.</p>
                         <a href="{{ url('/register') }}" class="book-now-btn" itemprop="url">Book Now</a>
                     </div>
                 </article>
+
+
             </div>
         </div>
     </section>
@@ -3266,7 +3252,7 @@ font-size: 1.1rem !important;
             <div class="section-header fade-in">
                 <h2><span style="color: #f97316;">Professional Partners</span> Available Throughout New York State</h2>
                 <p>
-                    Verified caregivers available across all of New York State. Find trusted in-home care in your area.
+                    Verified partners available across all of New York State. Find caregivers and housekeepers in your area.
                 </p>
             </div>
 
@@ -3300,7 +3286,7 @@ font-size: 1.1rem !important;
                         <i class="bi bi-geo-fill"></i>
                     </div>
                     <h4>Bronx Partners</h4>
-                    <p>Professional caregivers serving the Bronx communities with companion care, elderly care, and personal care support.</p>
+                    <p>Professional partners serving the Bronx communities. Specialized services including elderly care and housekeeping.</p>
                 </div>
 
                 <div class="location-card fade-in" style="background-image: url('https://www.nyhabitat.com/blog/wp-content/uploads/2014/09/New-york-nyc-borough-staten-island-ferry-manhattan-skyline.jpg');">
@@ -3320,7 +3306,7 @@ font-size: 1.1rem !important;
                     <i class="bi bi-arrow-right-circle-fill" style="font-size: 1.5rem;"></i>
                 </a>
                 <p style="margin-top: 1.5rem; color: #64748b; font-size: 1.1rem;">
-                    Start earning today as a caregiver across all NYC boroughs
+                    Start earning today as a caregiver or housekeeper across all NYC boroughs
                 </p>
             </div>
         </div>
@@ -3382,259 +3368,158 @@ font-size: 1.1rem !important;
                 <h2 style="font-size: 3rem; font-weight: 700; margin-bottom: 1rem;">
                     <span style="color: #f97316;">Reviews</span> <span style="background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">From New York Families</span>
                 </h2>
-                <p style="font-size: 1.2rem; color: #64748b;">Trusted caregivers serving NYC with 5-star ratings</p>
+                <p style="font-size: 1.2rem; color: #64748b;">Trusted caregivers and housekeepers serving NYC with 5-star ratings</p>
             </div>
 
-            <!-- Service Type Highlights (Blue/Orange only) -->
+            <!-- Service Type Highlights -->
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin-bottom: 4rem;">
-                <!-- Rating -->
-                <div class="fade-in" style="background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%); padding: 2rem; border-radius: 18px; text-align: left; border: 1px solid rgba(59, 130, 246, 0.18); box-shadow: 0 14px 40px rgba(15, 23, 42, 0.06); position: relative; overflow: hidden;">
-                    <div style="position: absolute; inset: 0; background: radial-gradient(circle at top right, rgba(59, 130, 246, 0.12) 0%, transparent 55%), radial-gradient(circle at bottom left, rgba(249, 115, 22, 0.10) 0%, transparent 55%); pointer-events: none;"></div>
-                    <div style="position: relative; display: flex; align-items: center; gap: 1rem;">
-                        <div style="width: 52px; height: 52px; border-radius: 14px; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); color: white; box-shadow: 0 10px 24px rgba(249, 115, 22, 0.28);">
-                            <i class="bi bi-star-fill" style="font-size: 1.3rem;"></i>
-                        </div>
-                        <div style="flex: 1;">
-                            <div style="display: flex; align-items: baseline; gap: 0.5rem; flex-wrap: wrap;">
-                                <h3 style="color: #0f172a; font-size: 1.9rem; font-weight: 800; margin: 0; line-height: 1;">4.9</h3>
-                                <span style="color: #64748b; font-size: 0.95rem; font-weight: 600;">/ 5.0</span>
-                            </div>
-                            <p style="color: #111827; font-weight: 700; margin: 0.35rem 0 0;">Caregivers in NYC</p>
-                            <p style="color: #64748b; font-size: 0.92rem; margin: 0.15rem 0 0;">1,200+ verified reviews</p>
-                        </div>
-                    </div>
+                <div class="fade-in" style="background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); padding: 2rem; border-radius: 16px; text-align: center; border: 2px solid #10b981;">
+                    <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">⭐</div>
+                    <h3 style="color: #10b981; font-size: 1.5rem; font-weight: 700; margin-bottom: 0.5rem;">4.9/5.0</h3>
+                    <p style="color: #374151; font-weight: 600;">Caregivers in NYC</p>
+                    <p style="color: #6b7280; font-size: 0.9rem; margin: 0;">1,200+ verified reviews</p>
                 </div>
-
-                <!-- Verified -->
-                <div class="fade-in" style="background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%); padding: 2rem; border-radius: 18px; text-align: left; border: 1px solid rgba(59, 130, 246, 0.18); box-shadow: 0 14px 40px rgba(15, 23, 42, 0.06); position: relative; overflow: hidden;">
-                    <div style="position: absolute; inset: 0; background: radial-gradient(circle at top left, rgba(59, 130, 246, 0.14) 0%, transparent 55%), radial-gradient(circle at bottom right, rgba(249, 115, 22, 0.08) 0%, transparent 55%); pointer-events: none;"></div>
-                    <div style="position: relative; display: flex; align-items: center; gap: 1rem;">
-                        <div style="width: 52px; height: 52px; border-radius: 14px; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); color: white; box-shadow: 0 10px 24px rgba(59, 130, 246, 0.28);">
-                            <i class="bi bi-shield-check" style="font-size: 1.3rem;"></i>
-                        </div>
-                        <div style="flex: 1;">
-                            <h3 style="color: #0f172a; font-size: 1.3rem; font-weight: 800; margin: 0;">100% Verified</h3>
-                            <p style="color: #111827; font-weight: 700; margin: 0.35rem 0 0;">Background-Checked</p>
-                            <p style="color: #64748b; font-size: 0.92rem; margin: 0.15rem 0 0;">Trusted professionals</p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Scheduling -->
-                <div class="fade-in" style="background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%); padding: 2rem; border-radius: 18px; text-align: left; border: 1px solid rgba(249, 115, 22, 0.20); box-shadow: 0 14px 40px rgba(15, 23, 42, 0.06); position: relative; overflow: hidden;">
-                    <div style="position: absolute; inset: 0; background: radial-gradient(circle at top right, rgba(249, 115, 22, 0.14) 0%, transparent 55%), radial-gradient(circle at bottom left, rgba(59, 130, 246, 0.10) 0%, transparent 55%); pointer-events: none;"></div>
-                    <div style="position: relative; display: flex; align-items: center; gap: 1rem;">
-                        <div style="width: 52px; height: 52px; border-radius: 14px; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); color: white; box-shadow: 0 10px 24px rgba(249, 115, 22, 0.28);">
-                            <i class="bi bi-clock-fill" style="font-size: 1.3rem;"></i>
-                        </div>
-                        <div style="flex: 1;">
-                            <h3 style="color: #0f172a; font-size: 1.3rem; font-weight: 800; margin: 0;">Flexible Scheduling</h3>
-                            <p style="color: #111827; font-weight: 700; margin: 0.35rem 0 0;">On-demand or recurring</p>
-                            <p style="color: #64748b; font-size: 0.92rem; margin: 0.15rem 0 0;">Book in minutes</p>
-                        </div>
-                    </div>
+                <div class="fade-in" style="background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); padding: 2rem; border-radius: 16px; text-align: center; border: 2px solid #3b82f6;">
+                    <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">⭐</div>
+                    <h3 style="color: #3b82f6; font-size: 1.5rem; font-weight: 700; margin-bottom: 0.5rem;">4.9/5.0</h3>
+                    <p style="color: #374151; font-weight: 600;">Housekeepers in NY</p>
+                    <p style="color: #6b7280; font-size: 0.9rem; margin: 0;">850+ verified reviews</p>
                 </div>
             </div>
 
-            <!-- Chat-style Reviews (no emojis, icons only) -->
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.5rem;">
-                <!-- Review 1 -->
-                <div class="fade-in" style="background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%); border-radius: 18px; border: 1px solid rgba(59, 130, 246, 0.16); box-shadow: 0 14px 40px rgba(15, 23, 42, 0.06); overflow: hidden;">
-                    <div style="padding: 1.2rem 1.2rem 0.9rem; display: flex; align-items: center; gap: 0.9rem; border-bottom: 1px solid #f1f5f9;">
-                        <div style="width: 48px; height: 48px; background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); border-radius: 14px; display: flex; align-items: center; justify-content: center; color: white; font-weight: 800; font-size: 1.05rem;">RJ</div>
+            <!-- Detailed Reviews Grid -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 2rem;">
+                <!-- Caregiver Review 1 -->
+                <div class="fade-in" style="background: white; padding: 2rem; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); border-left: 4px solid #10b981; position: relative;">
+                    <!-- Verified Badge -->
+                    <div style="position: absolute; top: 1rem; right: 1rem; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; padding: 0.35rem 0.75rem; border-radius: 50px; font-size: 0.75rem; font-weight: 700; display: flex; align-items: center; gap: 0.35rem;">
+                        <i class="bi bi-patch-check-fill"></i>
+                        Verified Review
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+                        <div style="width: 56px; height: 56px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 1.3rem;">EM</div>
                         <div style="flex: 1;">
-                            <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
-                                <h4 style="font-size: 1.05rem; font-weight: 800; color: #0f172a; margin: 0;">Robert Johnson</h4>
-                                <span style="display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.2rem 0.55rem; border-radius: 999px; background: rgba(59, 130, 246, 0.10); color: #1e40af; font-weight: 800; font-size: 0.72rem;">
-                                    <i class="bi bi-patch-check-fill"></i>
-                                    Verified
-                                </span>
-                            </div>
-                            <div style="display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; margin-top: 0.15rem;">
-                                <span style="color: #64748b; font-size: 0.85rem;">
-                                    <i class="bi bi-briefcase-fill" style="color: #f97316;"></i>
-                                    Caregiver
-                                </span>
-                                <span style="color: #cbd5e1;">•</span>
-                                <span style="color: #64748b; font-size: 0.85rem;">
-                                    <i class="bi bi-geo-alt-fill" style="color: #3b82f6;"></i>
-                                    Bronx, NY
-                                </span>
-                            </div>
+                            <h4 style="font-size: 1.1rem; font-weight: 700; color: #111827; margin: 0;">Elena Martinez</h4>
+                            <p style="color: #6b7280; margin: 0; font-size: 0.85rem;">Caregiver - Manhattan, NY</p>
                         </div>
                     </div>
-
-                    <div style="padding: 1.2rem;">
-                        <div style="display: flex; justify-content: flex-end; margin-bottom: 0.6rem;">
-                            <span style="display: inline-flex; align-items: center; gap: 0.35rem; color: #64748b; font-size: 0.85rem; font-weight: 700; padding: 0.35rem 0.6rem; background: #f8fafc; border: 1px solid #eef2ff; border-radius: 999px;">
-                                <i class="bi bi-star-fill" style="color: #fbbf24;"></i>
-                                5.0
-                            </span>
-                        </div>
-
-                        <div style="position: relative; background: #eff6ff; border: 1px solid #dbeafe; color: #0f172a; padding: 1rem 1rem; border-radius: 16px; border-top-left-radius: 6px; line-height: 1.65; font-size: 0.95rem;">
-                            <div style="position: absolute; top: 12px; left: -7px; width: 14px; height: 14px; background: #eff6ff; border-left: 1px solid #dbeafe; border-bottom: 1px solid #dbeafe; transform: rotate(45deg);"></div>
-                            Robert has been wonderful with my elderly father. He's patient, kind, and skilled at managing challenging situations. We're so grateful to have found such a caring caregiver in the Bronx.
-                        </div>
-
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 0.9rem; color: #64748b; font-size: 0.85rem;">
-                            <span style="font-weight: 700;">Thomas & Anna D.</span>
-                            <span style="display: inline-flex; align-items: center; gap: 0.35rem;">
-                                <i class="bi bi-geo-alt" style="color: #f97316;"></i>
-                                Riverdale
-                            </span>
-                        </div>
+                    <div style="color: #fbbf24; font-size: 1.1rem; margin-bottom: 0.75rem;">★★★★★</div>
+                    <p style="color: #374151; line-height: 1.6; font-size: 0.95rem; margin-bottom: 1rem;">"Elena has been caring for my 82-year-old mother for 6 months. She's patient, compassionate, and incredibly professional. My mother looks forward to her visits every day. Best caregiver in Manhattan!"</p>
+                    <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; color: #6b7280; padding-top: 0.75rem; border-top: 1px solid #f3f4f6;">
+                        <span style="font-weight: 600;">- Margaret W.</span>
+                        <span><i class="bi bi-geo-alt-fill" style="color: #10b981;"></i> Upper West Side</span>
                     </div>
                 </div>
 
-                <!-- Review 2 -->
-                <div class="fade-in" style="background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%); border-radius: 18px; border: 1px solid rgba(249, 115, 22, 0.18); box-shadow: 0 14px 40px rgba(15, 23, 42, 0.06); overflow: hidden;">
-                    <div style="padding: 1.2rem 1.2rem 0.9rem; display: flex; align-items: center; gap: 0.9rem; border-bottom: 1px solid #f1f5f9;">
-                        <div style="width: 48px; height: 48px; background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); border-radius: 14px; display: flex; align-items: center; justify-content: center; color: white; font-weight: 800; font-size: 1.05rem;">SL</div>
+                <!-- Housekeeper Review 1 -->
+                <div class="fade-in" style="background: white; padding: 2rem; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); border-left: 4px solid #3b82f6; position: relative;">
+                    <!-- Verified Badge -->
+                    <div style="position: absolute; top: 1rem; right: 1rem; background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); color: white; padding: 0.35rem 0.75rem; border-radius: 50px; font-size: 0.75rem; font-weight: 700; display: flex; align-items: center; gap: 0.35rem;">
+                        <i class="bi bi-patch-check-fill"></i>
+                        Verified Review
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+                        <div style="width: 56px; height: 56px; background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 1.3rem;">CT</div>
                         <div style="flex: 1;">
-                            <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
-                                <h4 style="font-size: 1.05rem; font-weight: 800; color: #0f172a; margin: 0;">Sarah Lee</h4>
-                                <span style="display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.2rem 0.55rem; border-radius: 999px; background: rgba(249, 115, 22, 0.12); color: #9a3412; font-weight: 800; font-size: 0.72rem;">
-                                    <i class="bi bi-patch-check-fill"></i>
-                                    Verified
-                                </span>
-                            </div>
-                            <div style="display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; margin-top: 0.15rem;">
-                                <span style="color: #64748b; font-size: 0.85rem;">
-                                    <i class="bi bi-briefcase-fill" style="color: #3b82f6;"></i>
-                                    Caregiver
-                                </span>
-                                <span style="color: #cbd5e1;">•</span>
-                                <span style="color: #64748b; font-size: 0.85rem;">
-                                    <i class="bi bi-geo-alt-fill" style="color: #f97316;"></i>
-                                    Manhattan, NY
-                                </span>
-                            </div>
+                            <h4 style="font-size: 1.1rem; font-weight: 700; color: #111827; margin: 0;">Carmen Torres</h4>
+                            <p style="color: #6b7280; margin: 0; font-size: 0.85rem;">Housekeeper - Brooklyn, NY</p>
                         </div>
                     </div>
-
-                    <div style="padding: 1.2rem;">
-                        <div style="display: flex; justify-content: flex-end; margin-bottom: 0.6rem;">
-                            <span style="display: inline-flex; align-items: center; gap: 0.35rem; color: #64748b; font-size: 0.85rem; font-weight: 700; padding: 0.35rem 0.6rem; background: #fff7ed; border: 1px solid #ffedd5; border-radius: 999px;">
-                                <i class="bi bi-star-fill" style="color: #fbbf24;"></i>
-                                5.0
-                            </span>
-                        </div>
-
-                        <div style="position: relative; background: #fff7ed; border: 1px solid #ffedd5; color: #0f172a; padding: 1rem 1rem; border-radius: 16px; border-top-left-radius: 6px; line-height: 1.65; font-size: 0.95rem;">
-                            <div style="position: absolute; top: 12px; left: -7px; width: 14px; height: 14px; background: #fff7ed; border-left: 1px solid #ffedd5; border-bottom: 1px solid #ffedd5; transform: rotate(45deg);"></div>
-                            Sarah is exceptional. Always punctual, compassionate, and attentive. Having a trusted caregiver has given our family peace of mind.
-                        </div>
-
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 0.9rem; color: #64748b; font-size: 0.85rem;">
-                            <span style="font-weight: 700;">Daniel M.</span>
-                            <span style="display: inline-flex; align-items: center; gap: 0.35rem;">
-                                <i class="bi bi-geo-alt" style="color: #3b82f6;"></i>
-                                Midtown East
-                            </span>
-                        </div>
+                    <div style="color: #fbbf24; font-size: 1.1rem; margin-bottom: 0.75rem;">★★★★★</div>
+                    <p style="color: #374151; line-height: 1.6; font-size: 0.95rem; margin-bottom: 1rem;">"Carmen is simply the best housekeeper in Brooklyn! Thorough, reliable, and always leaves our home spotless. She's been with us for over a year and we couldn't be happier."</p>
+                    <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; color: #6b7280; padding-top: 0.75rem; border-top: 1px solid #f3f4f6;">
+                        <span style="font-weight: 600;">- James & Lisa P.</span>
+                        <span><i class="bi bi-geo-alt-fill" style="color: #3b82f6;"></i> Park Slope</span>
                     </div>
                 </div>
 
-                <!-- Review 3 -->
-                <div class="fade-in" style="background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%); border-radius: 18px; border: 1px solid rgba(59, 130, 246, 0.16); box-shadow: 0 14px 40px rgba(15, 23, 42, 0.06); overflow: hidden;">
-                    <div style="padding: 1.2rem 1.2rem 0.9rem; display: flex; align-items: center; gap: 0.9rem; border-bottom: 1px solid #f1f5f9;">
-                        <div style="width: 48px; height: 48px; background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); border-radius: 14px; display: flex; align-items: center; justify-content: center; color: white; font-weight: 800; font-size: 1.05rem;">RJ</div>
+                <!-- Caregiver Review 2 -->
+                <div class="fade-in" style="background: white; padding: 2rem; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); border-left: 4px solid #10b981; position: relative;">
+                    <!-- Verified Badge -->
+                    <div style="position: absolute; top: 1rem; right: 1rem; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; padding: 0.35rem 0.75rem; border-radius: 50px; font-size: 0.75rem; font-weight: 700; display: flex; align-items: center; gap: 0.35rem;">
+                        <i class="bi bi-patch-check-fill"></i>
+                        Verified Review
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+                        <div style="width: 56px; height: 56px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 1.3rem;">RJ</div>
                         <div style="flex: 1;">
-                            <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
-                                <h4 style="font-size: 1.05rem; font-weight: 800; color: #0f172a; margin: 0;">Robert Johnson</h4>
-                                <span style="display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.2rem 0.55rem; border-radius: 999px; background: rgba(59, 130, 246, 0.10); color: #1e40af; font-weight: 800; font-size: 0.72rem;">
-                                    <i class="bi bi-patch-check-fill"></i>
-                                    Verified
-                                </span>
-                            </div>
-                            <div style="display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; margin-top: 0.15rem;">
-                                <span style="color: #64748b; font-size: 0.85rem;">
-                                    <i class="bi bi-briefcase-fill" style="color: #f97316;"></i>
-                                    Caregiver
-                                </span>
-                                <span style="color: #cbd5e1;">•</span>
-                                <span style="color: #64748b; font-size: 0.85rem;">
-                                    <i class="bi bi-geo-alt-fill" style="color: #3b82f6;"></i>
-                                    Bronx, NY
-                                </span>
-                            </div>
+                            <h4 style="font-size: 1.1rem; font-weight: 700; color: #111827; margin: 0;">Robert Johnson</h4>
+                            <p style="color: #6b7280; margin: 0; font-size: 0.85rem;">Caregiver - Bronx, NY</p>
                         </div>
                     </div>
-
-                    <div style="padding: 1.2rem;">
-                        <div style="display: flex; justify-content: flex-end; margin-bottom: 0.6rem;">
-                            <span style="display: inline-flex; align-items: center; gap: 0.35rem; color: #64748b; font-size: 0.85rem; font-weight: 700; padding: 0.35rem 0.6rem; background: #f8fafc; border: 1px solid #eef2ff; border-radius: 999px;">
-                                <i class="bi bi-star-fill" style="color: #fbbf24;"></i>
-                                5.0
-                            </span>
-                        </div>
-
-                        <div style="position: relative; background: #eff6ff; border: 1px solid #dbeafe; color: #0f172a; padding: 1rem 1rem; border-radius: 16px; border-top-left-radius: 6px; line-height: 1.65; font-size: 0.95rem;">
-                            <div style="position: absolute; top: 12px; left: -7px; width: 14px; height: 14px; background: #eff6ff; border-left: 1px solid #dbeafe; border-bottom: 1px solid #dbeafe; transform: rotate(45deg);"></div>
-                            Robert has been wonderful with my elderly father who has dementia. He's patient, kind, and skilled at managing challenging situations. We're so grateful to have found such a caring caregiver in the Bronx.
-                        </div>
-
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 0.9rem; color: #64748b; font-size: 0.85rem;">
-                            <span style="font-weight: 700;">Thomas & Anna D.</span>
-                            <span style="display: inline-flex; align-items: center; gap: 0.35rem;">
-                                <i class="bi bi-geo-alt" style="color: #f97316;"></i>
-                                Riverdale
-                            </span>
-                        </div>
+                    <div style="color: #fbbf24; font-size: 1.1rem; margin-bottom: 0.75rem;">★★★★★</div>
+                    <p style="color: #374151; line-height: 1.6; font-size: 0.95rem; margin-bottom: 1rem;">"Robert has been wonderful with my elderly father who has dementia. He's patient, kind, and skilled at managing challenging situations. We're so grateful to have found such a caring caregiver in the Bronx."</p>
+                    <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; color: #6b7280; padding-top: 0.75rem; border-top: 1px solid #f3f4f6;">
+                        <span style="font-weight: 600;">- Thomas & Anna D.</span>
+                        <span><i class="bi bi-geo-alt-fill" style="color: #10b981;"></i> Riverdale</span>
                     </div>
                 </div>
+
+                <!-- Housekeeper Review 2 -->
+                <div class="fade-in" style="background: white; padding: 2rem; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); border-left: 4px solid #3b82f6; position: relative;">
+                    <!-- Verified Badge -->
+                    <div style="position: absolute; top: 1rem; right: 1rem; background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); color: white; padding: 0.35rem 0.75rem; border-radius: 50px; font-size: 0.75rem; font-weight: 700; display: flex; align-items: center; gap: 0.35rem;">
+                        <i class="bi bi-patch-check-fill"></i>
+                        Verified Review
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+                        <div style="width: 56px; height: 56px; background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 1.3rem;">MS</div>
+                        <div style="flex: 1;">
+                            <h4 style="font-size: 1.1rem; font-weight: 700; color: #111827; margin: 0;">Maria Silva</h4>
+                            <p style="color: #6b7280; margin: 0; font-size: 0.85rem;">Housekeeper - Staten Island, NY</p>
+                        </div>
+                    </div>
+                    <div style="color: #fbbf24; font-size: 1.1rem; margin-bottom: 0.75rem;">★★★★★</div>
+                    <p style="color: #374151; line-height: 1.6; font-size: 0.95rem; margin-bottom: 1rem;">"Maria is absolutely fantastic! She's been cleaning our home weekly for 8 months. Professional, trustworthy, and pays attention to every detail. Best housekeeper in Staten Island by far!"</p>
+                    <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; color: #6b7280; padding-top: 0.75rem; border-top: 1px solid #f3f4f6;">
+                        <span style="font-weight: 600;">- Kevin & Nicole B.</span>
+                        <span><i class="bi bi-geo-alt-fill" style="color: #3b82f6;"></i> Great Kills</span>
+                    </div>
+                </div>
+
             </div>
 
             <!-- SEO-Optimized Location Summary -->
-            <div class="fade-in" style="background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%); padding: 4rem 3rem; border-radius: 24px; margin-top: 4rem; border: 1px solid #e5e7eb; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(59, 130, 246, 0.05); position: relative; overflow: hidden;">
-                <div style="position: absolute; inset: 0; background: radial-gradient(circle at top right, rgba(59, 130, 246, 0.12) 0%, transparent 52%), radial-gradient(circle at bottom left, rgba(249, 115, 22, 0.10) 0%, transparent 52%); pointer-events: none;"></div>
+            <div class="fade-in" style="background: linear-gradient(135deg, #ffffff 0%, #f9fafb 100%); padding: 4rem 3rem; border-radius: 24px; margin-top: 4rem; border: 1px solid #e5e7eb; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(59, 130, 246, 0.05);">
                 <!-- Service Types Header with Icons -->
-                <div style="position: relative; display: flex; justify-content: center; align-items: center; gap: 2rem; margin-bottom: 2rem; flex-wrap: wrap;">
+                <div style="display: flex; justify-content: center; align-items: center; gap: 2rem; margin-bottom: 2rem; flex-wrap: wrap;">
                     <div style="display: flex; align-items: center; gap: 0.5rem;">
-                        <div style="width: 40px; height: 40px; background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);">
+                        <div style="width: 40px; height: 40px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);">
                             <i class="bi bi-heart-pulse-fill" style="color: white; font-size: 1.2rem;"></i>
                         </div>
-                        <span style="font-size: 1.3rem; font-weight: 700; color: #3b82f6;">Caregivers</span>
+                        <span style="font-size: 1.3rem; font-weight: 700; color: #10b981;">Caregivers</span>
                     </div>
                     <span style="color: #d1d5db; font-size: 1.5rem; font-weight: 300;">•</span>
                     <div style="display: flex; align-items: center; gap: 0.5rem;">
                         <div style="width: 40px; height: 40px; background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);">
-                            <i class="bi bi-shield-check" style="color: white; font-size: 1.2rem;"></i>
+                            <i class="bi bi-house-heart-fill" style="color: white; font-size: 1.2rem;"></i>
                         </div>
-                        <span style="font-size: 1.3rem; font-weight: 700; color: #3b82f6;">Verified</span>
-                    </div>
-                    <span style="color: #d1d5db; font-size: 1.5rem; font-weight: 300;">•</span>
-                    <div style="display: flex; align-items: center; gap: 0.5rem;">
-                        <div style="width: 40px; height: 40px; background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(249, 115, 22, 0.3);">
-                            <i class="bi bi-clock-fill" style="color: white; font-size: 1.2rem;"></i>
-                        </div>
-                        <span style="font-size: 1.3rem; font-weight: 700; color: #f97316;">Flexible</span>
+                        <span style="font-size: 1.3rem; font-weight: 700; color: #3b82f6;">Housekeepers</span>
                     </div>
                 </div>
                 
-                <h3 style="position: relative; font-size: 2rem; font-weight: 800; color: #111827; margin-bottom: 1rem; text-align: center; line-height: 1.3;">
+                <h3 style="font-size: 2rem; font-weight: 800; color: #111827; margin-bottom: 1rem; text-align: center; line-height: 1.3;">
                     Across NYC
                 </h3>
                 
                 <!-- Subheading -->
-                <div style="position: relative; display: flex; align-items: center; justify-content: center; margin-bottom: 2.5rem;">
+                <div style="display: flex; align-items: center; justify-content: center; margin-bottom: 2.5rem;">
                     <p style="font-size: 1.3rem; font-weight: 700; background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin: 0;">
                         Why New York Families Choose CAS Private Care
                     </p>
                 </div>
                 
                 <!-- Content Container -->
-                <div style="position: relative; max-width: 950px; margin: 0 auto; background: white; padding: 2.5rem; border-radius: 16px; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06); border: 1px solid rgba(59, 130, 246, 0.10);">
+                <div style="max-width: 950px; margin: 0 auto; background: white; padding: 2.5rem; border-radius: 16px; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);">
                     <p style="color: #1f2937; line-height: 2; font-size: 1.05rem; margin-bottom: 1.75rem; text-align: justify;">
-                        CAS Private Care connects New York families with <strong style="color: #3b82f6;">verified caregivers in Manhattan, Brooklyn, Queens, Bronx, and Staten Island</strong>. Our platform focuses on high-quality in-home caregiving, including companion care, elderly care, personal care support, and specialized care.
+                        CAS Private Care connects New York families with <strong style="color: #10b981;">verified caregivers in Manhattan, Brooklyn, Queens, Bronx, and Staten Island</strong>. Our platform features <strong style="color: #3b82f6;">professional housekeepers in New York</strong> providing deep cleaning and household management, and <strong style="color: #10b981;">certified caregivers</strong> offering elderly care, companion care, and medical support.
                     </p>
                     
                     <!-- Divider -->
                     <div style="height: 2px; background: linear-gradient(90deg, transparent 0%, #e5e7eb 50%, transparent 100%); margin: 1.5rem 0;"></div>
                     
                     <p style="color: #1f2937; line-height: 2; font-size: 1.05rem; margin: 0; text-align: justify;">
-                        All caregivers are background-checked, highly rated with verified reviews, and trusted by over <strong style="color: #f97316;">2,500 New York families</strong>. Whether you need a <strong style="color: #3b82f6;">caregiver in Manhattan</strong>, Brooklyn, Queens, the Bronx, or Staten Island, we connect you with trusted professionals in your borough.
+                        All contractors are background-checked, highly rated with verified reviews, and trusted by over <strong style="color: #3b82f6;">2,500 New York families</strong>. Whether you need a <strong style="color: #10b981;">caregiver in Manhattan</strong> or a <strong style="color: #3b82f6;">housekeeper in Brooklyn</strong>, we connect you with the best professionals in your borough.
                     </p>
                 </div>
             </div>
@@ -3831,13 +3716,13 @@ font-size: 1.1rem !important;
         });
         
         let currentService = 0;
-    const services = ['caregiver'];
+        const services = ['caregiver', 'housekeeping'];
         
         function switchService(type) {
             const description = document.getElementById('hero-description');
             const findBtn = document.getElementById('find-btn');
             const sliderBg = document.getElementById('slider-bg');
-            const buttons = ['btn-caregiver'];
+            const buttons = ['btn-caregiver', 'btn-housekeeping'];
             
             // Fade out
             description.style.transition = 'opacity 0.3s ease';
@@ -3851,14 +3736,21 @@ font-size: 1.1rem !important;
             
             if (type === 'caregiver') {
                 sliderBg.style.transform = 'translateX(0%)';
-                document.getElementById('btn-caregiver').style.color = '#1e40af';
+                document.getElementById('btn-caregiver').style.color = '#000000';
                 currentService = 0;
+            } else if (type === 'housekeeping') {
+                sliderBg.style.transform = 'translateX(100%)';
+                document.getElementById('btn-housekeeping').style.color = '#1e40af';
+                currentService = 1;
             }
             
             setTimeout(() => {
                 if (type === 'caregiver') {
                     description.textContent = 'A modern and trustworthy caregiving marketplace where families effortlessly connect with verified caregivers and companions for exceptional care services.';
                     findBtn.textContent = 'Find a Caregiver';
+                } else if (type === 'housekeeping') {
+                    description.textContent = 'Professional housekeeping services marketplace where families effortlessly connect with reliable and trusted house helpers for all your home maintenance.';
+                    findBtn.textContent = 'Find a Housekeeper';
                 }
                 
                 // Fade in
@@ -3867,7 +3759,11 @@ font-size: 1.1rem !important;
             }, 300);
         }
         
-    // Caregivers-only: no auto-rotation
+        // Auto-rotate services every 6 seconds
+        setInterval(() => {
+            currentService = (currentService + 1) % services.length;
+            switchService(services[currentService]);
+        }, 6000);
     </script>
 
     <!-- FAQ Chatbot -->
@@ -4315,10 +4211,10 @@ font-size: 1.1rem !important;
         // FAQ Data
         const faqData = {
             'how do i become a partner': {
-                answer: 'To become a partner with CAS Private Care, click "Become a Partner" on our homepage or visit the registration page. Select your partner type (Caregiver, Marketing Partner, or Training Center), complete the registration form with your credentials and information, and our team will review your application. Once approved, you\'ll be able to create your profile and start connecting with clients.'
+                answer: 'To become a partner with CAS Private Care, click "Become a Partner" on our homepage or visit the registration page. Select your partner type (Caregiver, Housekeeping, Marketing Partner, or Training Center), complete the registration form with your credentials and information, and our team will review your application. Once approved, you\'ll be able to create your profile and start connecting with clients.'
             },
             'what types of partners do you have': {
-                answer: 'We have three types of partners: 1) Caregivers - providing personal care, companionship, and assistance with daily living activities. 2) Marketing Partners - promoting our platform and connecting us with potential clients and partners. 3) Training Centers - providing education and certification programs for caregivers.'
+                answer: 'We have four types of partners: 1) Caregivers - providing personal care, companionship, and assistance with daily living activities. 2) Housekeeping - offering cleaning, laundry, and home organization services. 3) Marketing Partners - promoting our platform and connecting us with potential clients and partners. 4) Training Centers - providing education and certification programs for our partners.'
             },
             'how does the platform work': {
                 answer: 'Our platform connects families with verified partners in 4 simple steps: 1) Browse & Select - Families search and review partner profiles, credentials, and ratings. 2) Book & Schedule - Choose preferred dates/times and book instantly with secure payments. 3) Connect & Care - Partners receive bookings and deliver exceptional services. 4) Rate & Review - Share experiences and build trust within the community.'
@@ -4333,7 +4229,7 @@ font-size: 1.1rem !important;
                 answer: 'Partners providing medical services or home health aide services must be licensed by the New York State Department of Health. All partners undergo background checks and certification verification regardless of service type. We ensure all partners meet or exceed New York State requirements for their respective services.'
             },
             'what services do partners provide': {
-                answer: 'Our caregivers provide in-home support including personal care, meal preparation, medication reminders (non-medical), companionship, mobility support, and specialized care depending on experience and training.'
+                answer: 'Our partners provide various services: Caregivers offer personal care, meal preparation, medication reminders, companionship, and specialized care. Housekeeping partners handle cleaning, laundry, home organization, and errands. Each partner specializes in their area of expertise to provide quality services.'
             },
             'how quickly can i get a partner': {
                 answer: 'For emergency situations, we can typically arrange a partner within 4-6 hours. For scheduled services, we recommend booking 24-48 hours in advance to ensure the best match. Our online platform allows instant browsing and booking of available partners. We maintain a large network across all NYC boroughs to ensure availability.'

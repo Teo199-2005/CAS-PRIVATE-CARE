@@ -39,6 +39,7 @@ class User extends Authenticatable
         'stripe_customer_id',
         'stripe_account_id',
         'stripe_connect_id',
+        'page_permissions',
     ];
 
     /**

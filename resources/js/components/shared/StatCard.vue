@@ -77,6 +77,16 @@ defineProps({
   box-shadow: 0 4px 16px rgba(16, 185, 129, 0.2);
 }
 
+.stat-icon.deep-purple {
+  background: linear-gradient(135deg, #7B1FA2, #6A1B9A);
+  box-shadow: 0 4px 16px rgba(123, 31, 162, 0.2);
+}
+
+.stat-icon.purple {
+  background: linear-gradient(135deg, #9C27B0, #7B1FA2);
+  box-shadow: 0 4px 16px rgba(156, 39, 176, 0.2);
+}
+
 .stat-icon.error {
   background: linear-gradient(135deg, #dc2626, #b91c1c);
   box-shadow: 0 4px 16px rgba(220, 38, 38, 0.2);

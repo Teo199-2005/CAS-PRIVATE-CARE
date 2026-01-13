@@ -11,17 +11,40 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('time_trackings', function (Blueprint $table) {
+        $connection = Schema::getConnection()->getDriverName();
+        
+        Schema::table('time_trackings', function (Blueprint $table) use ($connection) {
             // For housekeeper time tracking, caregiver_id must be nullable.
             // (Existing schema required caregiver_id, causing inserts to fail.)
-            $table->unsignedBigInteger('caregiver_id')->nullable()->change();
-
-            // Add housekeeper_id column (nullable)
-            $table->foreignId('housekeeper_id')->nullable()->after('caregiver_id')->constrained('housekeepers')->onDelete('cascade');
-            
-            // Add provider_type to distinguish between caregiver and housekeeper
-            $table->enum('provider_type', ['caregiver', 'housekeeper'])->default('caregiver')->after('housekeeper_id');
+            // Only run column modification on MySQL (SQLite doesn't support MODIFY)
+            if ($connection === 'mysql') {
+                $table->unsignedBigInteger('caregiver_id')->nullable()->change();
+            }
         });
+        
+        // Add housekeeper_id column if not exists
+        if (!Schema::hasColumn('time_trackings', 'housekeeper_id')) {
+            Schema::table('time_trackings', function (Blueprint $table) use ($connection) {
+                if ($connection === 'mysql') {
+                    $table->foreignId('housekeeper_id')->nullable()->after('caregiver_id')->constrained('housekeepers')->onDelete('cascade');
+                } else {
+                    // SQLite doesn't support AFTER, add without position
+                    $table->unsignedBigInteger('housekeeper_id')->nullable();
+                }
+            });
+        }
+        
+        // Add provider_type to distinguish between caregiver and housekeeper
+        if (!Schema::hasColumn('time_trackings', 'provider_type')) {
+            Schema::table('time_trackings', function (Blueprint $table) use ($connection) {
+                if ($connection === 'mysql') {
+                    $table->enum('provider_type', ['caregiver', 'housekeeper'])->default('caregiver')->after('housekeeper_id');
+                } else {
+                    // SQLite doesn't support ENUM or AFTER, use string
+                    $table->string('provider_type', 20)->default('caregiver');
+                }
+            });
+        }
     }
 
     /**
@@ -29,13 +52,25 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('time_trackings', function (Blueprint $table) {
-            $table->dropForeign(['housekeeper_id']);
-            $table->dropColumn(['housekeeper_id', 'provider_type']);
+        $connection = Schema::getConnection()->getDriverName();
+        
+        Schema::table('time_trackings', function (Blueprint $table) use ($connection) {
+            if (Schema::hasColumn('time_trackings', 'housekeeper_id')) {
+                if ($connection === 'mysql') {
+                    $table->dropForeign(['housekeeper_id']);
+                }
+                $table->dropColumn('housekeeper_id');
+            }
+            
+            if (Schema::hasColumn('time_trackings', 'provider_type')) {
+                $table->dropColumn('provider_type');
+            }
 
             // Best-effort revert. If there are existing rows with NULL caregiver_id,
-            // changing back to NOT NULL may fail.
-            $table->unsignedBigInteger('caregiver_id')->nullable(false)->change();
+            // changing back to NOT NULL may fail. Only run on MySQL.
+            if ($connection === 'mysql') {
+                $table->unsignedBigInteger('caregiver_id')->nullable(false)->change();
+            }
         });
     }
 };

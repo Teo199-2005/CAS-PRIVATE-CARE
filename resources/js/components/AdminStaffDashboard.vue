@@ -4,7 +4,7 @@
     :type="notification.type"
     :title="notification.title"
     :message="notification.message"
-    :timeout="notification.timeout"loo
+    :timeout="notification.timeout"
   />
   
   <dashboard-template
@@ -18,8 +18,9 @@
     header-subtitle="Limited administrative operations"
     :nav-items="navItems"
     :current-section="currentSection"
-    @section-change="currentSection = $event"
+    @section-change="handleSectionChangeWithPermission"
     @toggle-click="handleNavClick"
+    @disabled-click="showAccessDeniedNotification"
     @logout="logout"
   >
     <template #header-left>
@@ -4427,6 +4428,117 @@ const loadProfile = async () => {
 const adminNotifications = ref([]);
 const adminUnreadCount = computed(() => adminNotifications.value.filter(n => !n.read).length);
 
+// Page permissions loaded from API
+const pagePermissions = ref({
+  dashboard: true,
+  notifications: true,
+  users: true,
+  caregivers: true,
+  housekeepers: true,
+  clients: true,
+  'admin-staff': true,
+  'marketing-staff': true,
+  'training-centers': true,
+  pending: true,
+  'password-resets': true,
+  'client-bookings': true,
+  'time-tracking': true,
+  reviews: true,
+  announcements: true,
+  payments: true,
+  analytics: true,
+  profile: true,
+});
+
+// Check if a page is allowed
+const isPageAllowed = (pageValue) => {
+  return pagePermissions.value[pageValue] !== false;
+};
+
+// Load page permissions from API
+const loadPagePermissions = async () => {
+  try {
+    const response = await fetch('/api/admin/admin-staff/permissions');
+    if (response.ok) {
+      const data = await response.json();
+      if (data.permissions) {
+        pagePermissions.value = { ...pagePermissions.value, ...data.permissions };
+        updateNavItemsWithPermissions();
+      }
+    }
+  } catch (err) {
+    console.error('Failed to load page permissions:', err);
+  }
+};
+
+// Update navItems to show disabled state based on permissions
+const updateNavItemsWithPermissions = () => {
+  navItems.value = navItems.value.map(item => {
+    if (item.isToggle && item.children) {
+      // Update children with disabled state
+      const updatedChildren = item.children.map(child => ({
+        ...child,
+        disabled: !isPageAllowed(child.value),
+        disabledIcon: !isPageAllowed(child.value) ? 'mdi-lock' : null
+      }));
+      
+      // Check if parent "users" toggle should consider its children
+      const hasAnyEnabledChild = updatedChildren.some(c => !c.disabled);
+      
+      return {
+        ...item,
+        children: updatedChildren,
+        disabled: !isPageAllowed(item.value) && !hasAnyEnabledChild
+      };
+    }
+    return {
+      ...item,
+      disabled: !isPageAllowed(item.value),
+      disabledIcon: !isPageAllowed(item.value) ? 'mdi-lock' : null
+    };
+  });
+};
+
+// Handle section change with permission check
+const handleSectionChangeWithPermission = (sectionValue) => {
+  if (!isPageAllowed(sectionValue)) {
+    // Show notification that this page is restricted
+    showAccessDeniedNotification(sectionValue);
+    return;
+  }
+  currentSection.value = sectionValue;
+};
+
+// Show access denied notification
+const showAccessDeniedNotification = (pageValue) => {
+  const pageNames = {
+    dashboard: 'Dashboard',
+    notifications: 'Notifications',
+    users: 'Users',
+    caregivers: 'Caregivers',
+    housekeepers: 'Housekeepers',
+    clients: 'Clients',
+    'admin-staff': 'Admin Staff',
+    'marketing-staff': 'Marketing Partner',
+    'training-centers': 'Training Centers',
+    pending: 'Contractors Application',
+    'password-resets': 'Password Resets',
+    'client-bookings': 'Client Bookings',
+    'time-tracking': 'Time Tracking',
+    reviews: 'Reviews & Ratings',
+    announcements: 'Announcements',
+    payments: 'Payments',
+    analytics: 'Analytics',
+    profile: 'Profile',
+  };
+  
+  const pageName = pageNames[pageValue] || pageValue;
+  warning(
+    `You do not have permission to access the "${pageName}" page. Please contact your administrator if you need access.`,
+    'Access Restricted'
+  );
+};
+
 const navItems = ref([
   { icon: 'mdi-view-dashboard', title: 'Dashboard', value: 'dashboard' },
   { icon: 'mdi-bell', title: 'Notifications', value: 'notifications', badge: adminUnreadCount.value > 0 },
@@ -4438,6 +4550,7 @@ const navItems = ref([
     expanded: false,
     children: [
       { icon: 'mdi-account-heart', title: 'Caregivers', value: 'caregivers' },
+      { icon: 'mdi-broom', title: 'Housekeepers', value: 'housekeepers' },
       { icon: 'mdi-account-multiple', title: 'Clients', value: 'clients' },
       { icon: 'mdi-shield-account', title: 'Admin Staff', value: 'admin-staff' },
       { icon: 'mdi-bullhorn-variant', title: 'Marketing Partner', value: 'marketing-staff' },
@@ -4450,6 +4563,8 @@ const navItems = ref([
   { icon: 'mdi-clock-time-four', title: 'Time Tracking', value: 'time-tracking', category: 'BOOKINGS' },
   { icon: 'mdi-star', title: 'Reviews & Ratings', value: 'reviews', category: 'FEEDBACK' },
   { icon: 'mdi-bullhorn', title: 'Announcements', value: 'announcements', category: 'COMMUNICATIONS' },
+  { icon: 'mdi-credit-card', title: 'Payments', value: 'payments', category: 'FINANCIAL' },
+  { icon: 'mdi-chart-line', title: 'Analytics', value: 'analytics', category: 'REPORTS' },
   { icon: 'mdi-account-circle', title: 'Profile', value: 'profile', category: 'ACCOUNT' },
 ]);
 
@@ -8909,7 +9024,10 @@ const addMobileTableLabels = () => {
   });
 };
 
-onMounted(() => {
+onMounted(async () => {
+  // Load page permissions first to apply restrictions
+  await loadPagePermissions();
+  
   loadProfile();
   loadAdminStats();
   loadQuickCaregivers();

@@ -4,7 +4,7 @@
     :type="notification.type"
     :title="notification.title"
     :message="notification.message"
-    :timeout="notification.timeout"loo
+    :timeout="notification.timeout"
   />
   
   <dashboard-template

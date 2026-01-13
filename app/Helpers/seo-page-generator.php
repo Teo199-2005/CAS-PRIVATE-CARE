@@ -21,3 +21,4 @@ if (!function_exists('generate_location_page_content')) {
 
 
 
+

@@ -201,6 +201,7 @@ class BookingController extends Controller
                     'borough' => $request->borough ?: ($request->city ?: ($request->county ?: 'Manhattan')),
                     'city' => $request->city,
                     'county' => $request->county,
+                    'zipcode' => $request->zipcode,
                     'service_date' => $request->service_date ?: now()->addDay(),
                     'start_time' => $startTime,
                     'duration_days' => $durationDays,
@@ -301,6 +302,9 @@ class BookingController extends Controller
             if ($request->has('service_type')) $updateData['service_type'] = $request->service_type;
             if ($request->has('duty_type')) $updateData['duty_type'] = $request->duty_type;
             if ($request->has('city') || $request->has('county')) $updateData['borough'] = $request->city ?: $request->county;
+            if ($request->has('city')) $updateData['city'] = $request->city;
+            if ($request->has('county')) $updateData['county'] = $request->county;
+            if ($request->has('zipcode')) $updateData['zipcode'] = $request->zipcode;
             if ($request->has('service_date')) $updateData['service_date'] = $request->service_date;
             if ($request->has('duration_days')) $updateData['duration_days'] = $request->duration_days;
             if ($request->has('gender_preference')) $updateData['gender_preference'] = $request->gender_preference;

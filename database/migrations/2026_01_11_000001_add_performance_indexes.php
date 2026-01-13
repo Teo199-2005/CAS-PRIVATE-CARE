@@ -12,6 +12,11 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // Skip for non-MySQL databases (SQLite doesn't support SHOW INDEX)
+        if (Schema::getConnection()->getDriverName() !== 'mysql') {
+            return;
+        }
+        
         // Bookings table indexes for common queries
         Schema::table('bookings', function (Blueprint $table) {
             // Composite index for client bookings filtered by status
@@ -119,6 +124,11 @@ return new class extends Migration
      */
     public function down(): void
     {
+        // Skip for non-MySQL databases
+        if (Schema::getConnection()->getDriverName() !== 'mysql') {
+            return;
+        }
+        
         Schema::table('bookings', function (Blueprint $table) {
             $table->dropIndex('idx_bookings_client_status_date');
             $table->dropIndex('idx_bookings_payment_status');
@@ -158,12 +168,11 @@ return new class extends Migration
     }
 
     /**
-     * Check if index exists (Laravel 12 compatible)
+     * Check if index exists (MySQL only)
      */
     protected function indexExists(string $table, string $index): bool
     {
         $connection = Schema::getConnection();
-        $schemaManager = $connection->getSchemaBuilder();
         
         // Get all indexes for the table
         $indexes = $connection->select(

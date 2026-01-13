@@ -22,17 +22,17 @@
             <v-col cols="12" sm="6" md="3">
               <v-card elevation="0" class="mb-3 account-balance-card d-flex flex-column" style="height: 100%;">
                 <v-card-title class="account-balance-header pa-4">
-                  <span class="section-title-compact success--text">Account Balance</span>
+                  <span class="section-title-compact deep-purple--text">Account Balance</span>
                 </v-card-title>
                 <v-card-text class="pa-4 flex-grow-1 d-flex flex-column justify-space-between">
                   <div>
                     <div class="text-center mb-3">
-                      <div class="balance-amount success--text">${{ accountBalance }}</div>
+                      <div class="balance-amount deep-purple--text">${{ accountBalance }}</div>
                       <div class="text-caption text-grey">Available Balance</div>
                     </div>
                     <div class="d-flex justify-space-between text-caption mb-1">
                       <span>Auto Payout:</span>
-                      <span class="success--text font-weight-bold">Every Friday</span>
+                      <span class="deep-purple--text font-weight-bold">Every Friday</span>
                     </div>
                     <div class="d-flex justify-space-between text-caption mb-2">
                       <span>Next Payout:</span>
@@ -48,7 +48,7 @@
                     </div>
                   </div>
                   <div>
-                    <v-btn block variant="outlined" color="success" size="x-small">Request Payout</v-btn>
+                    <v-btn block variant="outlined" color="deep-purple" size="x-small">Request Payout</v-btn>
                   </div>
                 </v-card-text>
               </v-card>
@@ -65,7 +65,7 @@
                   :change="stat.change" 
                   :change-color="stat.changeColor" 
                   :change-icon="stat.changeIcon" 
-                  icon-class="success" 
+                  icon-class="deep-purple" 
                 />
               </div>
             </v-col>
@@ -77,14 +77,14 @@
                 <v-col cols="12" lg="6">
                   <v-card elevation="2" class="mb-3 enhanced-card d-flex flex-column">
                     <v-card-title class="enhanced-card-header pa-6">
-                      <v-icon color="success" class="mr-3">mdi-clock-time-four</v-icon>
-                      <span class="section-title success--text">Time Tracking</span>
+                      <v-icon color="deep-purple" class="mr-3">mdi-clock-time-four</v-icon>
+                      <span class="section-title deep-purple--text">Time Tracking</span>
                     </v-card-title>
                     <v-card-text class="pa-4 flex-grow-1 d-flex flex-column justify-space-between">
                       <div>
                         <div v-if="isTimedIn" class="mb-3">
                           <div class="d-flex align-center justify-center mb-3">
-                            <v-chip color="success" size="large" class="mr-3">
+                            <v-chip color="deep-purple" size="large" class="mr-3">
                               <v-icon start size="small">mdi-clock-check</v-icon>
                               Clocked In
                             </v-chip>
@@ -92,7 +92,7 @@
                           </div>
                           <div class="text-center mb-3">
                             <div class="text-body-1 font-weight-medium mb-1">Currently working with</div>
-                            <div class="text-h6 success--text font-weight-bold mb-2">{{ isLoadingStats ? 'Loading...' : currentAssignment }}</div>
+                            <div class="text-h6 deep-purple--text font-weight-bold mb-2">{{ isLoadingStats ? 'Loading...' : currentAssignment }}</div>
                             <div class="d-flex justify-space-between text-caption mb-2">
                               <span>Location:</span>
                               <span class="font-weight-medium">Client Home</span>
@@ -141,7 +141,7 @@
                       </div>
                       <div>
                         <v-btn v-if="isTimedIn && currentAssignment !== 'N/A'" block color="error" size="large" prepend-icon="mdi-logout" @click="handleTimeOut">Clock Out</v-btn>
-                        <v-btn v-else-if="canClockIn" block color="success" size="large" prepend-icon="mdi-login" @click="handleTimeIn">Clock In</v-btn>
+                        <v-btn v-else-if="canClockIn" block color="deep-purple" size="large" prepend-icon="mdi-login" @click="handleTimeIn">Clock In</v-btn>
                         <v-btn v-else-if="currentAssignment !== 'N/A'" block color="grey" size="large" prepend-icon="mdi-clock-outline" disabled>Pending</v-btn>
                         <v-btn v-else block color="grey" size="large" prepend-icon="mdi-lock" disabled>No Active Client</v-btn>
                       </div>
@@ -151,8 +151,8 @@
                 <v-col cols="12" lg="6">
                   <v-card class="mb-3 enhanced-card d-flex flex-column" elevation="2">
                     <v-card-title class="enhanced-card-header pa-6">
-                      <v-icon color="success" class="mr-3">mdi-chart-line</v-icon>
-                      <span class="section-title success--text">Previous Week Summary</span>
+                      <v-icon color="deep-purple" class="mr-3">mdi-chart-line</v-icon>
+                      <span class="section-title deep-purple--text">Previous Week Summary</span>
                     </v-card-title>
                     <v-card-text class="pa-4 flex-grow-1 d-flex flex-column justify-space-between">
                       <div>
@@ -181,8 +181,8 @@
                 <v-col cols="12">
                   <v-card class="mb-3 enhanced-card" elevation="2">
                     <v-card-title class="enhanced-card-header pa-6">
-                      <v-icon color="success" class="mr-3">mdi-calendar-week</v-icon>
-                      <span class="section-title success--text">Weekly Time History</span>
+                      <v-icon color="deep-purple" class="mr-3">mdi-calendar-week</v-icon>
+                      <span class="section-title deep-purple--text">Weekly Time History</span>
                     </v-card-title>
                     <v-card-text class="pa-6">
                       <div class="week-calendar">
@@ -194,7 +194,7 @@
                           <div class="day-content">
                             <div v-if="day.timeIn" class="time-entry">
                               <div class="time-label">Time In</div>
-                              <div class="time-value success--text">{{ day.timeIn }}</div>
+                              <div class="time-value deep-purple--text">{{ day.timeIn }}</div>
                             </div>
                             <div v-if="day.timeOut" class="time-entry">
                               <div class="time-label">Time Out</div>
@@ -244,7 +244,7 @@
                 <h3 class="page-subtitle">Available Bookings</h3>
                 <p class="text-caption text-grey">{{ filteredAvailableClients.length }} bookings need housekeepers</p>
               </div>
-              <v-btn-toggle v-model="availableView" mandatory color="success">
+              <v-btn-toggle v-model="availableView" mandatory color="deep-purple">
                 <v-btn value="grid" icon="mdi-view-grid" />
                 <v-btn value="list" icon="mdi-view-list" />
               </v-btn-toggle>
@@ -282,21 +282,21 @@
                   <!-- Service & Duration -->
                   <div class="mb-3">
                     <div class="d-flex align-center mb-2">
-                      <v-icon size="16" color="success" class="mr-2">mdi-medical-bag</v-icon>
+                      <v-icon size="16" color="deep-purple" class="mr-2">mdi-medical-bag</v-icon>
                       <span class="text-body-2 font-weight-medium">{{ job.serviceType }}</span>
                       <v-chip size="x-small" class="ml-2" variant="outlined" style="color: #1e293b !important; border-color: #cbd5e1 !important;">{{ job.dutyType }}</v-chip>
                     </div>
                     <div class="d-flex align-center mb-2">
-                      <v-icon size="16" color="success" class="mr-2">mdi-map-marker</v-icon>
+                      <v-icon size="16" color="deep-purple" class="mr-2">mdi-map-marker</v-icon>
                       <span class="text-body-2">{{ job.location }}</span>
                       <span v-if="job.city" class="text-caption text-grey ml-1">• {{ job.city }}</span>
                     </div>
                     <div class="d-flex align-center mb-2">
-                      <v-icon size="16" color="success" class="mr-2">mdi-calendar-range</v-icon>
+                      <v-icon size="16" color="deep-purple" class="mr-2">mdi-calendar-range</v-icon>
                       <span class="text-body-2">{{ job.startDate }} - {{ job.endDate }}</span>
                     </div>
                     <div class="d-flex align-center">
-                      <v-icon size="16" color="success" class="mr-2">mdi-clock-outline</v-icon>
+                      <v-icon size="16" color="deep-purple" class="mr-2">mdi-clock-outline</v-icon>
                       <span class="text-body-2">{{ job.durationDays }} days • {{ job.hoursPerDay }}hrs/day</span>
                     </div>
                   </div>
@@ -307,7 +307,7 @@
                   <div class="d-flex justify-space-between align-center mb-3">
                     <div>
                       <div class="text-caption text-grey">Pay Rate</div>
-                      <div class="font-weight-bold success--text">{{ job.payRate }}</div>
+                      <div class="font-weight-bold deep-purple--text">{{ job.payRate }}</div>
                     </div>
                     <div class="text-right">
                       <div class="text-caption text-grey">Est. Earnings</div>
@@ -366,7 +366,7 @@
             </template>
             <template v-slot:item.compensation="{ item }">
               <div>
-                <div class="font-weight-bold success--text">{{ item.payRate }}</div>
+                <div class="font-weight-bold deep-purple--text">{{ item.payRate }}</div>
                 <div class="text-caption text-grey">{{ item.estimatedEarnings }} total</div>
               </div>
             </template>
@@ -389,17 +389,17 @@
             <v-col cols="12" md="8">
               <v-card elevation="0" class="mb-6">
                 <v-card-title class="card-header pa-8 d-flex justify-space-between align-center">
-                  <span class="section-title success--text">Payout Method</span>
+                  <span class="section-title deep-purple--text">Payout Method</span>
                   <v-btn 
                     v-if="!stripeConnected" 
-                    color="success" 
+                    color="deep-purple" 
                     prepend-icon="mdi-wallet-plus" 
                     @click="connectBankAccount"
                     :loading="connectingBank"
                   >
                     Connect Payout Method
                   </v-btn>
-                  <v-chip v-else color="success" prepend-icon="mdi-check-circle">
+                  <v-chip v-else color="deep-purple" prepend-icon="mdi-check-circle">
                     Connected
                   </v-chip>
                 </v-card-title>
@@ -451,12 +451,12 @@
                     <v-col cols="12">
                       <div class="bank-account-card-stripe">
                         <div class="d-flex align-center mb-4">
-                          <v-icon size="48" color="success" class="mr-4">mdi-wallet</v-icon>
+                          <v-icon size="48" color="deep-purple" class="mr-4">mdi-wallet</v-icon>
                           <div class="flex-grow-1">
                             <div class="text-h6 font-weight-bold">Payout Method Connected</div>
                             <div class="text-body-2 text-grey">Stripe Connect • Verified</div>
                           </div>
-                          <v-chip color="success" prepend-icon="mdi-check-circle" size="small">
+                          <v-chip color="deep-purple" prepend-icon="mdi-check-circle" size="small">
                             Active
                           </v-chip>
                         </div>
@@ -475,7 +475,7 @@
                         
                         <div class="d-flex justify-space-between align-center mb-3">
                           <span class="text-body-2 text-grey">Next Payout:</span>
-                          <span class="font-weight-bold success--text">{{ nextPayoutDate }}</span>
+                          <span class="font-weight-bold deep-purple--text">{{ nextPayoutDate }}</span>
                         </div>
                         
                         <v-divider class="my-4"></v-divider>
@@ -520,7 +520,7 @@
             <v-col cols="12" md="4">
               <v-card elevation="0" class="mb-6">
                 <v-card-title class="card-header pa-8">
-                  <span class="section-title success--text">Account Balance</span>
+                  <span class="section-title deep-purple--text">Account Balance</span>
                 </v-card-title>
                 <v-card-text class="pa-8">
                   <div class="summary-item" style="margin-bottom: 24px;">
@@ -530,7 +530,7 @@
                   <v-divider class="my-4" />
                   <div class="summary-item">
                     <span class="summary-label">Total Paid Out</span>
-                    <span class="summary-value success--text">${{ totalEarnings }}</span>
+                    <span class="summary-value deep-purple--text">${{ totalEarnings }}</span>
                   </div>
                   <div class="summary-item">
                     <span class="summary-label">Last Payment</span>
@@ -585,7 +585,7 @@
 
               <v-card elevation="0">
                 <v-card-title class="card-header pa-8">
-                  <span class="section-title success--text">Payment Settings</span>
+                  <span class="section-title deep-purple--text">Payment Settings</span>
                 </v-card-title>
                 <v-card-text class="pa-8">
                   <!-- payout frequency restricted to Weekly per v1.2.0 -->
@@ -602,7 +602,7 @@
               <v-card elevation="0">
                 <v-card-title class="card-header pa-8 d-flex justify-space-between align-center">
                   <div>
-                    <span class="section-title success--text">Past Bookings</span>
+                    <span class="section-title deep-purple--text">Past Bookings</span>
                     <div class="text-caption text-grey mt-1">View your completed contract details and time tracking history</div>
                   </div>
                   <v-chip color="primary" variant="outlined">
@@ -637,13 +637,13 @@
 
                     <template v-slot:item.hours="{ item }">
                       <div class="text-center">
-                        <div class="font-weight-bold text-h6 success--text">{{ item.total_hours }}</div>
+                        <div class="font-weight-bold text-h6 deep-purple--text">{{ item.total_hours }}</div>
                         <div class="text-caption text-grey">hours logged</div>
                       </div>
                     </template>
 
                     <template v-slot:item.rate="{ item }">
-                      <v-chip color="success" size="small" variant="elevated">
+                      <v-chip color="deep-purple" size="small" variant="elevated">
                         <v-icon start size="14">mdi-cash</v-icon>
                         ${{ item.assigned_rate }}/hr
                       </v-chip>
@@ -651,7 +651,7 @@
 
                     <template v-slot:item.earnings="{ item }">
                       <div class="text-right">
-                        <div class="font-weight-bold text-h6 success--text">${{ item.total_earnings }}</div>
+                        <div class="font-weight-bold text-h6 deep-purple--text">${{ item.total_earnings }}</div>
                         <div class="text-caption text-grey">{{ item.total_hours }}h × ${{ item.assigned_rate }}</div>
                       </div>
                     </template>
@@ -697,7 +697,7 @@
             <v-card-text class="pa-8">
               <div class="transaction-stats">
                 <div class="stat-item">
-                  <div class="stat-amount success--text">{{ stats[0].value }}</div>
+                  <div class="stat-amount deep-purple--text">{{ stats[0].value }}</div>
                   <div class="stat-label-text">Total Earnings</div>
                 </div>
                 <v-divider vertical />
@@ -707,7 +707,7 @@
                 </div>
                 <v-divider vertical />
                 <div class="stat-item">
-                  <div class="stat-amount success--text">${{ paidOut }}</div>
+                  <div class="stat-amount deep-purple--text">${{ paidOut }}</div>
                   <div class="stat-label-text">Paid Out</div>
                 </div>
                 <v-divider vertical />
@@ -731,12 +731,12 @@
                 <v-select v-model="transactionStatus" :items="['All', 'Completed', 'Pending', 'Failed']" variant="outlined" density="compact" hide-details />
               </v-col>
             </v-row>
-            <v-btn color="success" prepend-icon="mdi-download" variant="outlined">Export CSV</v-btn>
+            <v-btn color="deep-purple" prepend-icon="mdi-download" variant="outlined">Export CSV</v-btn>
           </div>
 
           <v-card elevation="0">
             <v-card-title class="card-header pa-8">
-              <span class="section-title success--text">Transaction History</span>
+              <span class="section-title deep-purple--text">Transaction History</span>
             </v-card-title>
             <v-data-table :headers="transactionHeaders" :items="filteredTransactions" :items-per-page="15" class="elevation-0 table-no-checkbox">
               <template v-slot:item.type="{ item }">
@@ -746,7 +746,7 @@
                 </div>
               </template>
               <template v-slot:item.amount="{ item }">
-                <span :class="item.type === 'Payout' || item.type === 'Refund' ? 'text-error' : 'text-success'" class="font-weight-bold">
+                <span :class="item.type === 'Payout' || item.type === 'Refund' ? 'text-error' : 'text-deep-purple'" class="font-weight-bold">
                   {{ item.type === 'Payout' || item.type === 'Refund' ? '-' : '+' }}${{ item.amount }}
                 </span>
               </template>
@@ -754,7 +754,7 @@
                 <v-chip :color="getTransactionStatusColor(item.status)" size="small" class="font-weight-bold">{{ item.status }}</v-chip>
               </template>
               <template v-slot:item.actions="{ item }">
-                <v-btn size="small" color="success" variant="text" icon="mdi-receipt" @click="viewReceipt(item)" />
+                <v-btn size="small" color="deep-purple" variant="text" icon="mdi-receipt" @click="viewReceipt(item)" />
                 <v-btn size="small" color="primary" variant="text" icon="mdi-download" @click="downloadReceipt(item)" />
               </template>
             </v-data-table>
@@ -767,7 +767,7 @@
           <v-card elevation="0" class="mb-6">
             <v-card-title class="card-header pa-6 d-flex justify-space-between align-center">
               <div>
-                <span class="section-title success--text">Earnings Report</span>
+                <span class="section-title deep-purple--text">Earnings Report</span>
                 <div class="text-caption mt-1">View your earnings, hours worked, and payment history</div>
               </div>
               <div class="d-flex align-center ga-2">
@@ -779,7 +779,7 @@
                   hide-details
                   style="width: 150px;"
                 />
-                <v-btn color="success" prepend-icon="mdi-file-pdf-box" @click="exportEarningsReport" :loading="exportingEarningsReport">
+                <v-btn color="deep-purple" prepend-icon="mdi-file-pdf-box" @click="exportEarningsReport" :loading="exportingEarningsReport">
                   Export PDF
                 </v-btn>
               </div>
@@ -794,13 +794,13 @@
                   <div class="d-flex align-center justify-space-between">
                     <div>
                       <div class="text-caption text-grey">Total Earnings</div>
-                      <div class="text-h5 font-weight-bold success--text">${{ earningsReportData.totalEarnings }}</div>
-                      <div class="text-caption" :class="earningsReportData.earningsChange >= 0 ? 'text-success' : 'text-error'">
+                      <div class="text-h5 font-weight-bold deep-purple--text">${{ earningsReportData.totalEarnings }}</div>
+                      <div class="text-caption" :class="earningsReportData.earningsChange >= 0 ? 'text-deep-purple' : 'text-error'">
                         <v-icon size="12">{{ earningsReportData.earningsChange >= 0 ? 'mdi-arrow-up' : 'mdi-arrow-down' }}</v-icon>
                         {{ Math.abs(earningsReportData.earningsChange) }}% from last period
                       </div>
                     </div>
-                    <v-avatar color="success" size="48" variant="tonal">
+                    <v-avatar color="deep-purple" size="48" variant="tonal">
                       <v-icon>mdi-currency-usd</v-icon>
                     </v-avatar>
                   </div>
@@ -878,15 +878,15 @@
             <v-col cols="12" md="5">
               <v-card elevation="0" class="mb-6">
                 <v-card-title class="card-header pa-6">
-                  <span class="section-title success--text">Earnings Breakdown</span>
+                  <span class="section-title deep-purple--text">Earnings Breakdown</span>
                 </v-card-title>
                 <v-card-text class="pa-6">
                   <div class="earnings-breakdown-item mb-4">
                     <div class="d-flex justify-space-between align-center mb-2">
                       <span class="font-weight-medium">Gross Earnings</span>
-                      <span class="text-h6 success--text">${{ earningsReportData.grossEarnings }}</span>
+                      <span class="text-h6 deep-purple--text">${{ earningsReportData.grossEarnings }}</span>
                     </div>
-                    <v-progress-linear color="success" :model-value="100" height="8" rounded></v-progress-linear>
+                    <v-progress-linear color="deep-purple" :model-value="100" height="8" rounded></v-progress-linear>
                   </div>
                   
                   <v-divider class="my-4"></v-divider>
@@ -924,7 +924,7 @@
                   <div class="earnings-breakdown-item">
                     <div class="d-flex justify-space-between align-center">
                       <span class="font-weight-bold text-h6">Net Earnings</span>
-                      <span class="text-h5 success--text font-weight-bold">${{ earningsReportData.netEarnings }}</span>
+                      <span class="text-h5 deep-purple--text font-weight-bold">${{ earningsReportData.netEarnings }}</span>
                     </div>
                   </div>
                 </v-card-text>
@@ -933,7 +933,7 @@
               <!-- Time Tracking Summary -->
               <v-card elevation="0">
                 <v-card-title class="card-header pa-6">
-                  <span class="section-title success--text">Time Tracking Summary</span>
+                  <span class="section-title deep-purple--text">Time Tracking Summary</span>
                 </v-card-title>
                 <v-card-text class="pa-6">
                   <div class="time-tracking-summary">
@@ -942,7 +942,7 @@
                         <div class="text-caption text-grey">This Week</div>
                         <div class="text-h5 font-weight-bold">{{ timeTrackingSummary.weeklyHours }} hrs</div>
                       </div>
-                      <v-avatar color="success" size="40" variant="tonal">
+                      <v-avatar color="deep-purple" size="40" variant="tonal">
                         <v-icon size="20">mdi-clock-outline</v-icon>
                       </v-avatar>
                     </div>
@@ -991,8 +991,8 @@
             <v-col cols="12" md="7">
               <v-card elevation="0" class="mb-6">
                 <v-card-title class="card-header pa-6 d-flex justify-space-between align-center">
-                  <span class="section-title success--text">Earnings Over Time</span>
-                  <v-btn-toggle v-model="earningsChartPeriod" mandatory color="success" size="small">
+                  <span class="section-title deep-purple--text">Earnings Over Time</span>
+                  <v-btn-toggle v-model="earningsChartPeriod" mandatory color="deep-purple" size="small">
                     <v-btn value="week">Week</v-btn>
                     <v-btn value="month">Month</v-btn>
                     <v-btn value="year">Year</v-btn>
@@ -1001,7 +1001,7 @@
                 <v-card-text class="pa-6">
                   <div class="mb-4 d-flex justify-space-between">
                     <div class="chart-stat">
-                      <div class="stat-value success--text">{{ earningsChartStats.total }}</div>
+                      <div class="stat-value deep-purple--text">{{ earningsChartStats.total }}</div>
                       <div class="stat-label">Total {{ earningsChartPeriod === 'week' ? 'Week' : earningsChartPeriod === 'month' ? 'Month' : 'Year' }}</div>
                     </div>
                     <div class="chart-stat">
@@ -1022,7 +1022,7 @@
               <!-- Recent Earnings History Table -->
               <v-card elevation="0">
                 <v-card-title class="card-header pa-6">
-                  <span class="section-title success--text">Recent Earnings History</span>
+                  <span class="section-title deep-purple--text">Recent Earnings History</span>
                 </v-card-title>
                 <v-data-table 
                   :headers="earningsHistoryHeaders" 
@@ -1045,7 +1045,7 @@
                     <v-chip size="small" color="info" variant="tonal">{{ item.hours }} hrs</v-chip>
                   </template>
                   <template v-slot:item.amount="{ item }">
-                    <span class="font-weight-bold success--text">${{ item.amount }}</span>
+                    <span class="font-weight-bold deep-purple--text">${{ item.amount }}</span>
                   </template>
                   <template v-slot:item.status="{ item }">
                     <v-chip size="small" :color="item.status === 'Paid' ? 'success' : item.status === 'Pending' ? 'warning' : 'info'" variant="flat">
@@ -1069,7 +1069,7 @@
             <v-col cols="12" md="8">
               <v-card elevation="0" class="mb-6">
                 <v-card-title class="card-header pa-8">
-                  <span class="section-title success--text">Personal Information</span>
+                  <span class="section-title deep-purple--text">Personal Information</span>
                 </v-card-title>
                 <v-card-text class="pa-8">
                   <v-row>
@@ -1142,159 +1142,27 @@
                       </div>
                     </v-col>
                   </v-row>
-                  <v-btn color="success" class="mt-4" size="large" @click="saveProfileChanges">Save Changes</v-btn>
+                  <v-btn color="deep-purple" class="mt-4" size="large" @click="saveProfileChanges">Save Changes</v-btn>
                 </v-card-text>
               </v-card>
 
               <v-card elevation="0" class="mb-6">
                 <v-card-title class="card-header pa-8">
-                  <span class="section-title success--text">Professional Details</span>
+                  <span class="section-title deep-purple--text">Professional Details</span>
                 </v-card-title>
                 <v-card-text class="pa-8">
                   <v-row>
                     <v-col cols="12" md="6">
-                      <v-text-field v-model="profile.experience" label="Years of Experience" variant="outlined" type="number" />
+                      <v-text-field v-model="profile.experience" label="Years of Housekeeping Experience" variant="outlined" type="number" />
                     </v-col>
                     <v-col cols="12" md="6">
-                      <v-select v-if="!isCustomTrainingCenter" v-model="profile.trainingCenter" :items="trainingCenters" label="Training Center" variant="outlined" />
-                      <v-text-field v-else v-model="profile.customTrainingCenter" label="Custom Training Center" variant="outlined" />
+                      <v-select v-model="profile.cleaningSpecialties" :items="['Deep Cleaning', 'Regular Cleaning', 'Move-in/Move-out', 'Post-Construction', 'Commercial', 'Residential']" label="Cleaning Specialties" variant="outlined" multiple chips />
                     </v-col>
-                    <v-col cols="12" md="6">
-                      <v-file-input v-model="profile.trainingCertificate" label="Training Certificate" variant="outlined" accept=".pdf,.jpg,.jpeg,.png" prepend-icon="mdi-certificate" placeholder="Upload training certificate here" hint="Accepted formats: PDF, JPG, PNG (Max 5MB)" persistent-hint />
-                    </v-col>
-                    <v-col cols="12" md="6" class="d-flex align-center">
-                      <v-checkbox v-model="isCustomTrainingCenter" label="Custom Training Center" density="compact" hide-details />
-                    </v-col>
-
-                    <!-- Professional Certifications -->
                     <v-col cols="12">
-                      <v-divider class="my-4" />
-                      <div class="d-flex align-center mb-4 mt-2">
-                        <v-icon color="success" size="28" class="mr-3">mdi-certificate</v-icon>
-                        <div>
-                          <h3 class="text-h6 font-weight-bold mb-1">Professional Certifications</h3>
-                          <p class="text-caption text-grey-darken-1 ma-0">Enhance your profile by adding professional credentials</p>
-                        </div>
-                        <v-chip size="small" color="blue-grey-lighten-4" class="ml-auto">Optional</v-chip>
-                      </div>
-                    </v-col>
-                    
-                    <!-- HHA Certification Card -->
-                    <v-col cols="12" md="4">
-                      <v-card 
-                        :elevation="profile.hasHHA ? 8 : 2" 
-                        :color="profile.hasHHA ? 'success' : 'grey-lighten-4'"
-                        class="pa-4 h-100 transition-swing cursor-pointer"
-                        hover
-                        @click="profile.hasHHA = !profile.hasHHA"
-                      >
-                        <div class="d-flex align-center justify-space-between">
-                          <div class="d-flex align-center">
-                            <v-icon 
-                              :color="profile.hasHHA ? 'white' : 'success'" 
-                              size="40" 
-                              class="mr-3"
-                            >
-                              mdi-hospital-box
-                            </v-icon>
-                            <div>
-                              <div :class="profile.hasHHA ? 'text-white font-weight-bold text-h6' : 'font-weight-bold text-h6'">
-                                HHA
-                              </div>
-                              <div :class="profile.hasHHA ? 'text-white text-body-2' : 'text-grey-darken-2 text-body-2'">
-                                Home Health Aide
-                              </div>
-                            </div>
-                          </div>
-                          <v-icon 
-                            :color="profile.hasHHA ? 'white' : 'success'" 
-                            size="32"
-                          >
-                            {{ profile.hasHHA ? 'mdi-checkbox-marked-circle' : 'mdi-checkbox-blank-circle-outline' }}
-                          </v-icon>
-                        </div>
-                      </v-card>
-                    </v-col>
-                    
-                    <!-- CNA Certification Card -->
-                    <v-col cols="12" md="4">
-                      <v-card 
-                        :elevation="profile.hasCNA ? 8 : 2" 
-                        :color="profile.hasCNA ? 'success' : 'grey-lighten-4'"
-                        class="pa-4 h-100 transition-swing cursor-pointer"
-                        hover
-                        @click="profile.hasCNA = !profile.hasCNA"
-                      >
-                        <div class="d-flex align-center justify-space-between">
-                          <div class="d-flex align-center">
-                            <v-icon 
-                              :color="profile.hasCNA ? 'white' : 'success'" 
-                              size="40" 
-                              class="mr-3"
-                            >
-                              mdi-stethoscope
-                            </v-icon>
-                            <div>
-                              <div :class="profile.hasCNA ? 'text-white font-weight-bold text-h6' : 'font-weight-bold text-h6'">
-                                CNA
-                              </div>
-                              <div :class="profile.hasCNA ? 'text-white text-body-2' : 'text-grey-darken-2 text-body-2'">
-                                Certified Nursing Assistant
-                              </div>
-                            </div>
-                          </div>
-                          <v-icon 
-                            :color="profile.hasCNA ? 'white' : 'success'" 
-                            size="32"
-                          >
-                            {{ profile.hasCNA ? 'mdi-checkbox-marked-circle' : 'mdi-checkbox-blank-circle-outline' }}
-                          </v-icon>
-                        </div>
-                      </v-card>
-                    </v-col>
-                    
-                    <!-- RN Certification Card -->
-                    <v-col cols="12" md="4">
-                      <v-card 
-                        :elevation="profile.hasRN ? 8 : 2" 
-                        :color="profile.hasRN ? 'success' : 'grey-lighten-4'"
-                        class="pa-4 h-100 transition-swing cursor-pointer"
-                        hover
-                        @click="profile.hasRN = !profile.hasRN"
-                      >
-                        <div class="d-flex align-center justify-space-between">
-                          <div class="d-flex align-center">
-                            <v-icon 
-                              :color="profile.hasRN ? 'white' : 'success'" 
-                              size="40" 
-                              class="mr-3"
-                            >
-                              mdi-medical-bag
-                            </v-icon>
-                            <div>
-                              <div :class="profile.hasRN ? 'text-white font-weight-bold text-h6' : 'font-weight-bold text-h6'">
-                                RN
-                              </div>
-                              <div :class="profile.hasRN ? 'text-white text-body-2' : 'text-grey-darken-2 text-body-2'">
-                                Registered Nurse
-                              </div>
-                            </div>
-                          </div>
-                          <v-icon 
-                            :color="profile.hasRN ? 'white' : 'success'" 
-                            size="32"
-                          >
-                            {{ profile.hasRN ? 'mdi-checkbox-marked-circle' : 'mdi-checkbox-blank-circle-outline' }}
-                          </v-icon>
-                        </div>
-                      </v-card>
-                    </v-col>
-
-                    <v-col cols="12">
-                      <v-textarea v-model="profile.bio" label="Bio" variant="outlined" rows="4" />
+                      <v-textarea v-model="profile.bio" label="About Me" variant="outlined" rows="3" placeholder="Tell clients about your housekeeping experience and services..." />
                     </v-col>
                   </v-row>
-                  <v-btn color="success" class="mt-4" size="large" @click="saveProfileChanges">Update Profile</v-btn>
+                  <v-btn color="deep-purple" class="mt-4" size="large" @click="saveProfileChanges">Update Profile</v-btn>
                 </v-card-text>
               </v-card>
 
@@ -1304,7 +1172,7 @@
               <v-card elevation="0" class="mb-6">
                 <v-card-text class="pa-8 text-center">
                   <div class="position-relative d-inline-block mb-4 responsive-avatar">
-                    <v-avatar color="success" class="w-100 h-auto" :size="$vuetify.display.xs ? 96 : 120">
+                    <v-avatar color="deep-purple" class="w-100 h-auto" :size="$vuetify.display.xs ? 96 : 120">
                       <img v-if="userAvatar && userAvatar.length > 0"
                         :src="userAvatar"
                         class="avatar-img-responsive"
@@ -1315,7 +1183,7 @@
                     <v-btn 
                       icon 
                       size="small" 
-                      color="success" 
+                      color="deep-purple" 
                       class="avatar-upload-btn"
                       style="position: absolute; bottom: 0; right: 0;"
                       @click="triggerAvatarUpload"
@@ -1333,25 +1201,12 @@
                   </div>
                   <h2 class="mb-2">{{ profile.firstName && profile.lastName ? `${profile.firstName} ${profile.lastName}` : 'Demo Housekeeper' }}</h2>
                   <p class="text-grey mb-4">Professional Housekeeper</p>
-                  <v-chip color="success" class="mb-4">Active</v-chip>
+                  <v-chip color="deep-purple" class="mb-4">Active</v-chip>
                   <v-divider class="my-4" />
 
                   <div class="profile-stat">
                     <v-icon color="info" class="mr-2">mdi-calendar</v-icon>
                     <span>Member since Jan 2024</span>
-                  </div>
-                  <v-divider class="my-4" />
-                  <div class="text-center">
-                    <h4 class="mb-3">Training Certificate</h4>
-                    <div v-if="trainingCertificateUrl || profile.trainingCertificate" class="certificate-display">
-                      <v-icon color="success" size="32" class="mb-2">mdi-certificate</v-icon>
-                      <div class="text-caption">{{ profile.trainingCertificate?.[0]?.name || 'Certificate uploaded' }}</div>
-                      <v-btn v-if="trainingCertificateUrl" size="small" color="success" variant="outlined" class="mt-2" :href="trainingCertificateUrl" target="_blank">View Certificate</v-btn>
-                    </div>
-                    <div v-else class="text-grey">
-                      <v-icon color="grey" size="32" class="mb-2">mdi-certificate-outline</v-icon>
-                      <div class="text-caption">No certificate uploaded</div>
-                    </div>
                   </div>
                 </v-card-text>
               </v-card>
@@ -1359,15 +1214,15 @@
               <v-card elevation="0">
                 <v-card-title class="card-header pa-8">
                   <div class="d-flex align-center">
-                    <v-icon color="success" class="mr-3">mdi-lock-reset</v-icon>
-                    <span class="section-title success--text">Change Password</span>
+                    <v-icon color="deep-purple" class="mr-3">mdi-lock-reset</v-icon>
+                    <span class="section-title deep-purple--text">Change Password</span>
                   </div>
                 </v-card-title>
                 <v-card-text class="pa-8">
                   <v-text-field label="Current Password" variant="outlined" :type="showCurrentPassword ? 'text' : 'password'" :append-inner-icon="showCurrentPassword ? 'mdi-eye-off' : 'mdi-eye'" @click:append-inner="showCurrentPassword = !showCurrentPassword" class="mb-4" />
                   <v-text-field label="New Password" variant="outlined" :type="showNewPassword ? 'text' : 'password'" :append-inner-icon="showNewPassword ? 'mdi-eye-off' : 'mdi-eye'" @click:append-inner="showNewPassword = !showNewPassword" hint="8 minimum characters" persistent-hint class="mb-4" />
                   <v-text-field label="Confirm New Password" variant="outlined" :type="showConfirmPassword ? 'text' : 'password'" :append-inner-icon="showConfirmPassword ? 'mdi-eye-off' : 'mdi-eye'" @click:append-inner="showConfirmPassword = !showConfirmPassword" class="mb-4" />
-                  <v-btn color="success" block size="large">Change Password</v-btn>
+                  <v-btn color="deep-purple" block size="large">Change Password</v-btn>
                 </v-card-text>
               </v-card>
             </v-col>
@@ -1378,7 +1233,7 @@
     <v-dialog v-model="dayModal" max-width="600">
       <v-card v-if="selectedDate">
         <v-card-title class="card-header pa-6">
-          <span class="section-title success--text">{{ selectedDate.fullDate }}</span>
+          <span class="section-title deep-purple--text">{{ selectedDate.fullDate }}</span>
         </v-card-title>
         <v-card-text class="pa-6">
           <div v-if="selectedDate.events.length === 0" class="text-center py-8 text-grey">
@@ -1407,8 +1262,8 @@
         </v-card-text>
         <v-card-actions class="pa-6 pt-0">
           <v-spacer />
-          <v-btn color="success" variant="outlined" @click="dayModal = false">Close</v-btn>
-          <v-btn color="success" @click="dayModal = false">Add Appointment</v-btn>
+          <v-btn color="deep-purple" variant="outlined" @click="dayModal = false">Close</v-btn>
+          <v-btn color="deep-purple" @click="dayModal = false">Add Appointment</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -1420,7 +1275,7 @@
     <v-dialog v-model="addAppointmentDialog" max-width="600">
       <v-card>
         <v-card-title class="card-header pa-6">
-          <span class="section-title success--text">New Appointment</span>
+          <span class="section-title deep-purple--text">New Appointment</span>
         </v-card-title>
         <v-card-text class="pa-6">
           <v-row>
@@ -1444,7 +1299,7 @@
         <v-card-actions class="pa-6 pt-0">
           <v-spacer />
           <v-btn color="grey" variant="outlined" @click="addAppointmentDialog = false">Cancel</v-btn>
-          <v-btn color="success" @click="addAppointmentDialog = false">Create Appointment</v-btn>
+          <v-btn color="deep-purple" @click="addAppointmentDialog = false">Create Appointment</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -1453,26 +1308,26 @@
     <v-dialog v-model="notificationSettings" max-width="600">
       <v-card>
         <v-card-title class="card-header pa-6">
-          <span class="section-title success--text">Notification Settings</span>
+          <span class="section-title deep-purple--text">Notification Settings</span>
         </v-card-title>
         <v-card-text class="pa-6">
           <div class="mb-4">
             <h3 class="mb-3">Email Notifications</h3>
-            <v-switch v-model="settings.emailAppointments" label="Appointment reminders" color="success" />
-            <v-switch v-model="settings.emailPayments" label="Payment notifications" color="success" />
-            <v-switch v-model="settings.emailSystem" label="System updates" color="success" />
+            <v-switch v-model="settings.emailAppointments" label="Appointment reminders" color="deep-purple" />
+            <v-switch v-model="settings.emailPayments" label="Payment notifications" color="deep-purple" />
+            <v-switch v-model="settings.emailSystem" label="System updates" color="deep-purple" />
           </div>
           <div class="mb-4">
             <h3 class="mb-3">Push Notifications</h3>
-            <v-switch v-model="settings.pushAppointments" label="Appointment alerts" color="success" />
-            <v-switch v-model="settings.pushMessages" label="New messages" color="success" />
-            <v-switch v-model="settings.pushEmergency" label="Emergency alerts" color="success" />
+            <v-switch v-model="settings.pushAppointments" label="Appointment alerts" color="deep-purple" />
+            <v-switch v-model="settings.pushMessages" label="New messages" color="deep-purple" />
+            <v-switch v-model="settings.pushEmergency" label="Emergency alerts" color="deep-purple" />
           </div>
         </v-card-text>
         <v-card-actions class="pa-6 pt-0">
           <v-spacer />
           <v-btn color="grey" variant="outlined" @click="notificationSettings = false">Cancel</v-btn>
-          <v-btn color="success" @click="saveSettings">Save Settings</v-btn>
+          <v-btn color="deep-purple" @click="saveSettings">Save Settings</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -1498,7 +1353,7 @@
         </v-card-text>
         <v-card-actions>
           <v-spacer />
-          <v-btn color="success" @click="contactDialog = false">Close</v-btn>
+          <v-btn color="deep-purple" @click="contactDialog = false">Close</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -1506,7 +1361,7 @@
     <!-- Salary Range Modal -->
     <v-dialog v-model="salaryRangeDialog" max-width="500">
       <v-card>
-        <v-card-title class="text-h5 bg-success text-white">
+        <v-card-title class="text-h5 bg-deep-purple text-white">
           <v-icon class="mr-2">mdi-cash</v-icon>
           Preferred Salary Range
         </v-card-title>
@@ -1561,7 +1416,7 @@
         <v-card-actions>
           <v-spacer />
           <v-btn color="grey" variant="text" @click="salaryRangeDialog = false">Cancel</v-btn>
-          <v-btn color="success" variant="elevated" @click="saveSalaryRange" :loading="savingSalaryRange">
+          <v-btn color="deep-purple" variant="elevated" @click="saveSalaryRange" :loading="savingSalaryRange">
             <v-icon left>mdi-content-save</v-icon>
             Save Range
           </v-btn>
@@ -2503,9 +2358,9 @@ if (hasActiveClient) {
         title: 'Current Assignment',
         value: clientName,
         icon: 'mdi-account',
-        color: 'success',
+        color: 'deep-purple',
         change: contractInfo,
-        changeColor: 'text-success',
+        changeColor: 'text-deep-purple',
         changeIcon: 'mdi-calendar-range'
       };
       currentAssignment.value = clientName;
@@ -2581,7 +2436,7 @@ if (hasActiveClient) {
           icon: 'mdi-currency-usd',
           color: weeklyTotal > 0 ? 'success' : 'grey',
           change: `${changeSign}${changePercent}% vs last week`,
-          changeColor: changePercent >= 0 ? 'text-success' : 'text-error',
+          changeColor: changePercent >= 0 ? 'text-deep-purple' : 'text-error',
           changeIcon: changePercent >= 0 ? 'mdi-trending-up' : 'mdi-trending-down'
         };
         
@@ -2620,7 +2475,7 @@ const notificationSettings = ref(false);
 
 const notificationStats = ref([
   { title: 'Total', count: 24, icon: 'mdi-bell', color: 'primary' },
-  { title: 'Unread', count: 8, icon: 'mdi-bell-badge', color: 'success' },
+  { title: 'Unread', count: 8, icon: 'mdi-bell-badge', color: 'deep-purple' },
   { title: 'High Priority', count: 3, icon: 'mdi-alert', color: 'error' },
   { title: 'Today', count: 5, icon: 'mdi-calendar-today', color: 'warning' }
 ]);
@@ -2680,7 +2535,7 @@ const upcomingReminders = ref([
   { id: 1, title: 'Appointment with John Doe', time: 'Today at 2:00 PM', icon: 'mdi-calendar', color: 'warning' },
   { id: 2, title: 'Medication for Linda Johnson', time: 'Today at 3:00 PM', icon: 'mdi-pill', color: 'error' },
   { id: 3, title: 'Weekly timesheet due', time: 'Tomorrow', icon: 'mdi-clock', color: 'info' },
-  { id: 4, title: 'CPR certification renewal', time: 'Next week', icon: 'mdi-heart-pulse', color: 'success' }
+  { id: 4, title: 'CPR certification renewal', time: 'Next week', icon: 'mdi-heart-pulse', color: 'deep-purple' }
 ]);
 
 const notifications = computed(() => allNotifications.value.slice(0, 3));
@@ -3068,15 +2923,15 @@ const applyForClient = async (job) => {
 };
 
 const appointments = ref([
-  { id: 1, client: 'John Doe', initials: 'JD', avatarColor: 'success', service: 'Elderly Care', date: 'Dec 15, 2024', time: '9:00 AM', status: 'Scheduled', duration: '2 hours' },
+  { id: 1, client: 'John Doe', initials: 'JD', avatarcolor: 'deep-purple', service: 'Elderly Care', date: 'Dec 15, 2024', time: '9:00 AM', status: 'Scheduled', duration: '2 hours' },
   { id: 2, client: 'Sarah Williams', initials: 'SW', avatarColor: 'primary', service: 'Personal Care', date: 'Dec 15, 2024', time: '2:00 PM', status: 'Confirmed', duration: '1.5 hours' },
-  { id: 3, client: 'Robert Chen', initials: 'RC', avatarColor: 'success', service: 'Elderly Care', date: 'Dec 16, 2024', time: '10:00 AM', status: 'Scheduled', duration: '2 hours' },
+  { id: 3, client: 'Robert Chen', initials: 'RC', avatarcolor: 'deep-purple', service: 'Elderly Care', date: 'Dec 16, 2024', time: '10:00 AM', status: 'Scheduled', duration: '2 hours' },
   { id: 4, client: 'Emma Garcia', initials: 'EG', avatarColor: 'purple', service: 'Companion Care', date: 'Dec 16, 2024', time: '3:00 PM', status: 'Confirmed', duration: '3 hours' },
   { id: 5, client: 'Michael Davis', initials: 'MD', avatarColor: 'orange', service: 'Physical Therapy', date: 'Dec 17, 2024', time: '11:00 AM', status: 'Scheduled', duration: '1 hour' },
   { id: 6, client: 'Linda Johnson', initials: 'LJ', avatarColor: 'primary', service: 'Personal Care', date: 'Dec 18, 2024', time: '1:00 PM', status: 'Scheduled', duration: '2 hours' },
-  { id: 7, client: 'John Doe', initials: 'JD', avatarColor: 'success', service: 'Elderly Care', date: 'Dec 12, 2024', time: '9:00 AM', status: 'Completed', duration: '2 hours' },
+  { id: 7, client: 'John Doe', initials: 'JD', avatarcolor: 'deep-purple', service: 'Elderly Care', date: 'Dec 12, 2024', time: '9:00 AM', status: 'Completed', duration: '2 hours' },
   { id: 8, client: 'Sarah Williams', initials: 'SW', avatarColor: 'primary', service: 'Personal Care', date: 'Dec 10, 2024', time: '2:00 PM', status: 'Completed', duration: '1.5 hours' },
-  { id: 9, client: 'Robert Chen', initials: 'RC', avatarColor: 'success', service: 'Elderly Care', date: 'Dec 8, 2024', time: '10:00 AM', status: 'Completed', duration: '2 hours' },
+  { id: 9, client: 'Robert Chen', initials: 'RC', avatarcolor: 'deep-purple', service: 'Elderly Care', date: 'Dec 8, 2024', time: '10:00 AM', status: 'Completed', duration: '2 hours' },
   { id: 10, client: 'Linda Johnson', initials: 'LJ', avatarColor: 'primary', service: 'Personal Care', date: 'Dec 24, 2024', time: '1:00 PM', status: 'Cancelled', duration: '2 hours' },
 ]);
 
@@ -3187,7 +3042,7 @@ const filteredTransactions = computed(() => {
 
 const getTransactionIcon = (type) => {
   const icons = {
-    'Payment': { icon: 'mdi-cash-plus', color: 'success' },
+    'Payment': { icon: 'mdi-cash-plus', color: 'deep-purple' },
     'Payout': { icon: 'mdi-bank-transfer-out', color: 'error' },
     'Refund': { icon: 'mdi-cash-refund', color: 'warning' },
     'Bonus': { icon: 'mdi-gift', color: 'info' },
@@ -5383,7 +5238,7 @@ onMounted(async () => {
 }
 
 .hover-highlight:hover {
-  background-color: rgba(76, 175, 80, 0.08) !important;
+  background-color: rgba(123, 31, 162, 0.08) !important;
   transform: translateY(-2px);
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }

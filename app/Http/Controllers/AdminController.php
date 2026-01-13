@@ -14,6 +14,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use App\Models\AppSetting;
 use Illuminate\Support\Facades\Schema;
 use App\Services\NotificationService;
 use App\Services\EmailService;
@@ -747,9 +748,9 @@ class AdminController extends Controller
                 return response()->json(['success' => false, 'message' => 'Associated user not found. Reset marked completed.'], 404);
             }
 
-            // Set the user's password to the requested dev password (123456) and save
-            $devPassword = '123456';
-            $user->password = Hash::make($devPassword);
+            // Generate a secure random temporary password (12 characters with letters, numbers, and special chars)
+            $temporaryPassword = \Illuminate\Support\Str::random(12);
+            $user->password = Hash::make($temporaryPassword);
             $user->save();
 
             // Mark the reset as completed
@@ -761,7 +762,7 @@ class AdminController extends Controller
             // Notify the user by email that their password was changed
             try {
                 $title = 'Password Reset Approved';
-                $message = "Your password has been reset by an administrator. Your temporary password is: {$devPassword}. Please log in and change your password immediately.";
+                $message = "Your password has been reset by an administrator. Your temporary password is: {$temporaryPassword}. Please log in and change your password immediately for security.";
                 EmailService::sendAnnouncementEmail($user->email, $title, $message, 'info');
                 $emailSent = true;
             } catch (\Exception $e) {
@@ -847,11 +848,30 @@ class AdminController extends Controller
 
     public function settings()
     {
-        return view('admin.settings');
+        $landing = [
+            'hero_title' => AppSetting::getValue('landing.hero_title', 'Find Trusted Caregivers & Housekeepers'),
+            'hero_subtitle' => AppSetting::getValue('landing.hero_subtitle', 'Care you can trust. Help at home you can rely on.'),
+            'hero_cta_text' => AppSetting::getValue('landing.hero_cta_text', 'Find Caregivers & Housekeepers'),
+            'hero_cta_url' => AppSetting::getValue('landing.hero_cta_url', '/register'),
+        ];
+
+        return view('admin.settings', compact('landing'));
     }
 
     public function updateSettings(Request $request)
     {
+        $validated = $request->validate([
+            // Landing
+            'landing.hero_title' => 'nullable|string|max:255',
+            'landing.hero_subtitle' => 'nullable|string|max:500',
+            'landing.hero_cta_text' => 'nullable|string|max:255',
+            'landing.hero_cta_url' => 'nullable|string|max:255',
+        ]);
+
+        foreach (($validated['landing'] ?? []) as $key => $value) {
+            AppSetting::setValue('landing.' . $key, $value);
+        }
+
         return back()->with('success', 'Settings updated');
     }
 
@@ -2551,6 +2571,12 @@ class AdminController extends Controller
             ->get();
 
         $staff = $adminStaffUsers->map(function ($user) {
+            // Parse page_permissions from JSON
+            $pagePermissions = $user->page_permissions;
+            if (is_string($pagePermissions)) {
+                $pagePermissions = json_decode($pagePermissions, true);
+            }
+            
             return [
                 'id' => $user->id,
                 'name' => $user->name,
@@ -2560,6 +2586,7 @@ class AdminController extends Controller
                 'email_verified' => $user->email_verified_at ? 'Yes' : 'No',
                 'joined' => $user->created_at->format('M d, Y'),
                 'last_login' => $user->last_login_at ? \Carbon\Carbon::parse($user->last_login_at)->format('M d, Y H:i') : 'Never',
+                'page_permissions' => $pagePermissions ?? $this->getDefaultAdminStaffPermissions(),
             ];
         });
 
@@ -2567,35 +2594,81 @@ class AdminController extends Controller
     }
 
     /**
+     * Get default page permissions for admin staff (all pages enabled by default)
+     */
+    private function getDefaultAdminStaffPermissions()
+    {
+        return [
+            'dashboard' => true,
+            'notifications' => true,
+            'users' => true,
+            'caregivers' => true,
+            'housekeepers' => true,
+            'clients' => true,
+            'admin-staff' => true,
+            'marketing-staff' => true,
+            'training-centers' => true,
+            'pending' => true,
+            'password-resets' => true,
+            'client-bookings' => true,
+            'time-tracking' => true,
+            'reviews' => true,
+            'announcements' => true,
+            'payments' => true,
+            'analytics' => true,
+            'profile' => true,
+        ];
+    }
+
+    /**
      * Store new admin staff
      */
     public function storeAdminStaff(Request $request)
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email',
-            'phone' => 'nullable|string|max:20',
-            'password' => 'required|string|min:8',
-            'status' => 'required|in:Active,Inactive'
-        ]);
+        try {
+            $validated = $request->validate([
+                'name' => 'required|string|max:255',
+                'email' => 'required|email|unique:users,email',
+                'phone' => 'nullable|string|max:20',
+                'password' => 'required|string|min:8',
+                'status' => 'required|in:Active,Inactive',
+                'page_permissions' => 'nullable|array'
+            ]);
 
-        $userData = [
-            'name' => $validated['name'],
-            'email' => $validated['email'],
-            'phone' => $validated['phone'] ?? null,
-            'password' => Hash::make($validated['password']),
-            'user_type' => 'admin',
-            'role' => 'Admin Staff',
-            'status' => $validated['status'],
-            'email_verified_at' => now() // Auto-verify admin staff
-        ];
+            // Use default permissions if not provided
+            $pagePermissions = $validated['page_permissions'] ?? $this->getDefaultAdminStaffPermissions();
 
-        $user = User::create($userData);
+            $userData = [
+                'name' => $validated['name'],
+                'email' => $validated['email'],
+                'phone' => $validated['phone'] ?? null,
+                'password' => Hash::make($validated['password']),
+                'user_type' => 'admin',
+                'role' => 'Admin Staff',
+                'status' => $validated['status'],
+                'email_verified_at' => now(), // Auto-verify admin staff
+                'page_permissions' => json_encode($pagePermissions)
+            ];
 
-        return response()->json([
-            'success' => true,
-            'staff' => $user
-        ]);
+            $user = User::create($userData);
+
+            return response()->json([
+                'success' => true,
+                'staff' => $user
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed',
+                'errors' => $e->errors()
+            ], 422);
+        } catch (\Exception $e) {
+            \Log::error('storeAdminStaff error: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to create admin staff: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
     /**
@@ -2603,29 +2676,45 @@ class AdminController extends Controller
      */
     public function updateAdminStaff(Request $request, $id)
     {
-        $validated = $request->validate([
-            'name' => 'sometimes|string|max:255',
-            'email' => 'sometimes|email|unique:users,email,' . $id,
-            'phone' => 'nullable|string|max:20',
-            'status' => 'sometimes|in:Active,Inactive',
-            'password' => 'nullable|string|min:8'
-        ]);
+        try {
+            $validated = $request->validate([
+                'name' => 'sometimes|string|max:255',
+                'email' => 'sometimes|email|unique:users,email,' . $id,
+                'phone' => 'nullable|string|max:20',
+                'status' => 'sometimes|in:Active,Inactive',
+                'password' => 'nullable|string|min:8',
+                'page_permissions' => 'nullable|array'
+            ]);
 
-        $user = User::where('id', $id)
-            ->where('user_type', 'admin')
-            ->where('role', 'Admin Staff')
-            ->firstOrFail();
-        
-        $updateData = [];
-        if (isset($validated['name'])) $updateData['name'] = $validated['name'];
-        if (isset($validated['email'])) $updateData['email'] = $validated['email'];
-        if (isset($validated['phone'])) $updateData['phone'] = $validated['phone'];
-        if (isset($validated['status'])) $updateData['status'] = $validated['status'];
-        if (isset($validated['password'])) $updateData['password'] = Hash::make($validated['password']);
-        
-        $user->update($updateData);
+            $user = User::where('id', $id)
+                ->where('user_type', 'admin')
+                ->where('role', 'Admin Staff')
+                ->firstOrFail();
+            
+            $updateData = [];
+            if (isset($validated['name'])) $updateData['name'] = $validated['name'];
+            if (isset($validated['email'])) $updateData['email'] = $validated['email'];
+            if (isset($validated['phone'])) $updateData['phone'] = $validated['phone'];
+            if (isset($validated['status'])) $updateData['status'] = $validated['status'];
+            if (isset($validated['password'])) $updateData['password'] = Hash::make($validated['password']);
+            if (isset($validated['page_permissions'])) $updateData['page_permissions'] = json_encode($validated['page_permissions']);
+            
+            $user->update($updateData);
 
-        return response()->json(['success' => true, 'staff' => $user]);
+            return response()->json(['success' => true, 'staff' => $user]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed',
+                'errors' => $e->errors()
+            ], 422);
+        } catch (\Exception $e) {
+            \Log::error('updateAdminStaff error: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to update admin staff: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
     /**
@@ -2642,6 +2731,28 @@ class AdminController extends Controller
 
         return response()->json(['success' => true]);
     }
+
+    /**
+     * Get current admin staff user's page permissions
+     */
+    public function getAdminStaffPermissions()
+    {
+        $user = auth()->user();
+        
+        if (!$user || $user->user_type !== 'admin' || $user->role !== 'Admin Staff') {
+            return response()->json(['error' => 'Unauthorized'], 403);
+        }
+
+        $pagePermissions = $user->page_permissions;
+        if (is_string($pagePermissions)) {
+            $pagePermissions = json_decode($pagePermissions, true);
+        }
+
+        return response()->json([
+            'permissions' => $pagePermissions ?? $this->getDefaultAdminStaffPermissions()
+        ]);
+    }
+
     /**`n     * Get all users with their related data
      */
     public function getUsers()

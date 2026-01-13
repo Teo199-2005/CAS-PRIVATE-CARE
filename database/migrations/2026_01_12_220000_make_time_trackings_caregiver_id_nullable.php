@@ -11,10 +11,15 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('time_trackings', function (Blueprint $table) {
-            // Allow creating time tracking rows for housekeepers.
-            $table->unsignedBigInteger('caregiver_id')->nullable()->change();
-        });
+        $connection = Schema::getConnection()->getDriverName();
+        
+        // Only run column modification on MySQL (SQLite doesn't support MODIFY)
+        if ($connection === 'mysql') {
+            Schema::table('time_trackings', function (Blueprint $table) {
+                // Allow creating time tracking rows for housekeepers.
+                $table->unsignedBigInteger('caregiver_id')->nullable()->change();
+            });
+        }
     }
 
     /**
@@ -22,9 +27,14 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('time_trackings', function (Blueprint $table) {
-            // WARNING: this may fail if any rows have NULL caregiver_id.
-            $table->unsignedBigInteger('caregiver_id')->nullable(false)->change();
-        });
+        $connection = Schema::getConnection()->getDriverName();
+        
+        // Only run column modification on MySQL (SQLite doesn't support MODIFY)
+        if ($connection === 'mysql') {
+            Schema::table('time_trackings', function (Blueprint $table) {
+                // WARNING: this may fail if any rows have NULL caregiver_id.
+                $table->unsignedBigInteger('caregiver_id')->nullable(false)->change();
+            });
+        }
     }
 };

@@ -4,7 +4,7 @@
     :type="notification.type"
     :title="notification.title"
     :message="notification.message"
-    :timeout="notification.timeout"loo
+    :timeout="notification.timeout"
   />
   
   <dashboard-template
@@ -416,7 +416,7 @@
         <v-col cols="12" md="4">
           <v-card elevation="0" class="mb-3" style="border: 1px solid #c5c5c5ff;">
             <v-card-title class="compact-header pa-4">
-              <span class="compact-title error--text">Housekeeper Analytics</span>
+              <span class="compact-title deep-purple--text">Housekeeper Analytics</span>
             </v-card-title>
             <v-card-text class="pa-4">
               <v-row>
@@ -920,13 +920,13 @@
             <v-select v-model="housekeeperStatusFilter" :items="['All', 'Active', 'Assigned', 'Inactive']" label="All Status" variant="outlined" density="compact" hide-details />
           </v-col>
           <v-col cols="12" md="3">
-            <v-btn color="error" prepend-icon="mdi-plus" @click="alert('Add Housekeeper feature coming soon')">Add Housekeeper</v-btn>
+            <v-btn color="deep-purple" prepend-icon="mdi-plus" @click="alert('Add Housekeeper feature coming soon')">Add Housekeeper</v-btn>
           </v-col>
         </v-row>
       </div>
       <v-card elevation="0">
         <v-card-title class="card-header pa-8 d-flex justify-space-between align-center">
-          <span class="section-title error--text">Housekeepers</span>
+          <span class="section-title deep-purple--text">Housekeepers</span>
         </v-card-title>
         <v-data-table :headers="housekeeperHeaders" :items="filteredHousekeepers" :items-per-page="10" class="elevation-0" density="compact">
           <template v-slot:item.location="{ item }">
@@ -1490,12 +1490,12 @@
     </v-dialog>
 
     <!-- Add/Edit Admin Staff Dialog -->
-    <v-dialog v-model="adminStaffDialog" max-width="600">
+    <v-dialog v-model="adminStaffDialog" max-width="800" scrollable>
       <v-card>
         <v-card-title class="pa-6" style="background: #dc2626; color: white;">
           <span class="section-title" style="color: white;">{{ editingAdminStaff ? 'Edit Admin Staff' : 'Add Admin Staff' }}</span>
         </v-card-title>
-        <v-card-text class="pa-6">
+        <v-card-text class="pa-6" style="max-height: 70vh; overflow-y: auto;">
           <v-row>
             <v-col cols="12">
               <v-text-field 
@@ -1549,8 +1549,174 @@
               />
             </v-col>
           </v-row>
+          
+          <!-- Page Permissions Section -->
+          <v-divider class="my-4"></v-divider>
+          <div class="d-flex align-center justify-space-between mb-4">
+            <div>
+              <h3 class="text-h6 mb-1">
+                <v-icon color="error" class="mr-2">mdi-shield-key</v-icon>
+                Page Access Permissions
+              </h3>
+              <p class="text-caption text-grey">Select which pages this Admin Staff can access</p>
+            </div>
+            <div>
+              <v-btn size="small" color="success" variant="outlined" class="mr-2" @click="selectAllPermissions">
+                <v-icon start size="small">mdi-check-all</v-icon>
+                Check All
+              </v-btn>
+              <v-btn size="small" color="grey" variant="outlined" @click="deselectAllPermissions">
+                <v-icon start size="small">mdi-close</v-icon>
+                Uncheck All
+              </v-btn>
+            </div>
+          </div>
+          
+          <v-row>
+            <!-- Dashboard & General -->
+            <v-col cols="12">
+              <v-card variant="outlined" class="pa-4 mb-3">
+                <div class="text-subtitle-2 font-weight-bold mb-3 text-grey-darken-2">
+                  <v-icon size="small" class="mr-1">mdi-view-dashboard</v-icon>
+                  GENERAL
+                </div>
+                <v-row>
+                  <v-col cols="6" md="4" v-for="page in permissionPages.general" :key="page.value">
+                    <v-checkbox
+                      v-model="adminStaffFormData.page_permissions[page.value]"
+                      :label="page.title"
+                      color="error"
+                      density="compact"
+                      hide-details
+                    >
+                      <template v-slot:label>
+                        <div class="d-flex align-center">
+                          <v-icon size="small" class="mr-2" :color="adminStaffFormData.page_permissions[page.value] ? 'success' : 'grey'">{{ page.icon }}</v-icon>
+                          {{ page.title }}
+                        </div>
+                      </template>
+                    </v-checkbox>
+                  </v-col>
+                </v-row>
+              </v-card>
+            </v-col>
+            
+            <!-- Users -->
+            <v-col cols="12">
+              <v-card variant="outlined" class="pa-4 mb-3">
+                <div class="text-subtitle-2 font-weight-bold mb-3 text-grey-darken-2">
+                  <v-icon size="small" class="mr-1">mdi-account-group</v-icon>
+                  USER MANAGEMENT
+                </div>
+                <v-row>
+                  <v-col cols="6" md="4" v-for="page in permissionPages.users" :key="page.value">
+                    <v-checkbox
+                      v-model="adminStaffFormData.page_permissions[page.value]"
+                      :label="page.title"
+                      color="error"
+                      density="compact"
+                      hide-details
+                    >
+                      <template v-slot:label>
+                        <div class="d-flex align-center">
+                          <v-icon size="small" class="mr-2" :color="adminStaffFormData.page_permissions[page.value] ? 'success' : 'grey'">{{ page.icon }}</v-icon>
+                          {{ page.title }}
+                        </div>
+                      </template>
+                    </v-checkbox>
+                  </v-col>
+                </v-row>
+              </v-card>
+            </v-col>
+            
+            <!-- Applications -->
+            <v-col cols="12">
+              <v-card variant="outlined" class="pa-4 mb-3">
+                <div class="text-subtitle-2 font-weight-bold mb-3 text-grey-darken-2">
+                  <v-icon size="small" class="mr-1">mdi-file-document</v-icon>
+                  APPLICATIONS
+                </div>
+                <v-row>
+                  <v-col cols="6" md="4" v-for="page in permissionPages.applications" :key="page.value">
+                    <v-checkbox
+                      v-model="adminStaffFormData.page_permissions[page.value]"
+                      :label="page.title"
+                      color="error"
+                      density="compact"
+                      hide-details
+                    >
+                      <template v-slot:label>
+                        <div class="d-flex align-center">
+                          <v-icon size="small" class="mr-2" :color="adminStaffFormData.page_permissions[page.value] ? 'success' : 'grey'">{{ page.icon }}</v-icon>
+                          {{ page.title }}
+                        </div>
+                      </template>
+                    </v-checkbox>
+                  </v-col>
+                </v-row>
+              </v-card>
+            </v-col>
+            
+            <!-- Bookings -->
+            <v-col cols="12">
+              <v-card variant="outlined" class="pa-4 mb-3">
+                <div class="text-subtitle-2 font-weight-bold mb-3 text-grey-darken-2">
+                  <v-icon size="small" class="mr-1">mdi-calendar</v-icon>
+                  BOOKINGS
+                </div>
+                <v-row>
+                  <v-col cols="6" md="4" v-for="page in permissionPages.bookings" :key="page.value">
+                    <v-checkbox
+                      v-model="adminStaffFormData.page_permissions[page.value]"
+                      :label="page.title"
+                      color="error"
+                      density="compact"
+                      hide-details
+                    >
+                      <template v-slot:label>
+                        <div class="d-flex align-center">
+                          <v-icon size="small" class="mr-2" :color="adminStaffFormData.page_permissions[page.value] ? 'success' : 'grey'">{{ page.icon }}</v-icon>
+                          {{ page.title }}
+                        </div>
+                      </template>
+                    </v-checkbox>
+                  </v-col>
+                </v-row>
+              </v-card>
+            </v-col>
+            
+            <!-- Other -->
+            <v-col cols="12">
+              <v-card variant="outlined" class="pa-4 mb-3">
+                <div class="text-subtitle-2 font-weight-bold mb-3 text-grey-darken-2">
+                  <v-icon size="small" class="mr-1">mdi-cog</v-icon>
+                  OTHER
+                </div>
+                <v-row>
+                  <v-col cols="6" md="4" v-for="page in permissionPages.other" :key="page.value">
+                    <v-checkbox
+                      v-model="adminStaffFormData.page_permissions[page.value]"
+                      :label="page.title"
+                      color="error"
+                      density="compact"
+                      hide-details
+                    >
+                      <template v-slot:label>
+                        <div class="d-flex align-center">
+                          <v-icon size="small" class="mr-2" :color="adminStaffFormData.page_permissions[page.value] ? 'success' : 'grey'">{{ page.icon }}</v-icon>
+                          {{ page.title }}
+                        </div>
+                      </template>
+                    </v-checkbox>
+                  </v-col>
+                </v-row>
+              </v-card>
+            </v-col>
+          </v-row>
+          
           <v-alert type="info" variant="tonal" class="mt-4">
-            <strong>Note:</strong> Admin Staff will have limited permissions and can only access: Users (Read-Only), Contractors, Password Resets, Bookings, Time Tracking, Reviews, and Announcements.
+            <v-icon class="mr-2">mdi-information</v-icon>
+            <strong>Note:</strong> Unchecked pages will appear disabled in the Admin Staff's sidebar with a lock icon. They will see a notification when attempting to access restricted pages.
           </v-alert>
         </v-card-text>
         <v-card-actions class="pa-6 pt-0">
@@ -2285,7 +2451,7 @@
 
               <v-btn
                 v-if="(item.status === 'approved' || item.status === 'confirmed') && String(item.service || item.service_type || '').toLowerCase().includes('housekeeping')"
-                class="action-btn-caregivers"
+                class="action-btn-housekeepers"
                 icon="mdi-broom"
                 size="small"
                 title="View Assigned Housekeepers"
@@ -2294,7 +2460,7 @@
 
               <v-btn
                 v-if="item.status === 'approved' || item.status === 'confirmed'"
-                class="action-btn-edit"
+                :class="String(item.service || item.service_type || '').toLowerCase().includes('housekeeping') ? 'action-btn-housekeepers' : 'action-btn-edit'"
                 :icon="String(item.service || item.service_type || '').toLowerCase().includes('housekeeping') ? 'mdi-broom' : 'mdi-account-plus'"
                 size="small"
                 :title="String(item.service || item.service_type || '').toLowerCase().includes('housekeeping') ? 'Assign Housekeepers' : 'Assign Caregivers'"
@@ -4675,31 +4841,31 @@
         <v-card-text class="pa-6" style="max-height: 70vh; overflow-y: auto;">
           <v-container fluid>
             <div v-if="selectedBooking" class="booking-details-card mb-6" style="background: #f5f5f5; border-radius: 12px; padding: 20px;">
-              <div class="text-h6 font-weight-bold mb-4" style="color: #d32f2f;">
-                <v-icon color="error" class="mr-2">mdi-information</v-icon>
+              <div class="text-h6 font-weight-bold mb-4" style="color: #7B1FA2;">
+                <v-icon color="deep-purple" class="mr-2">mdi-information</v-icon>
                 Booking Details
               </div>
               <v-row class="booking-details-content">
                 <v-col cols="12" md="3">
                   <div class="detail-item">
-                    <v-icon color="error" size="16" class="mr-2">mdi-account</v-icon>
+                    <v-icon color="deep-purple" size="16" class="mr-2">mdi-account</v-icon>
                     <span class="detail-label">Client:</span>
                     <span class="detail-value font-weight-bold">{{ selectedBooking.client }}</span>
                   </div>
                   <div class="detail-item">
-                    <v-icon color="error" size="16" class="mr-2">mdi-calendar</v-icon>
+                    <v-icon color="deep-purple" size="16" class="mr-2">mdi-calendar</v-icon>
                     <span class="detail-label">Date:</span>
                     <span class="detail-value">{{ selectedBooking.date }}</span>
                   </div>
                 </v-col>
                 <v-col cols="6">
                   <div class="detail-item">
-                    <v-icon color="error" size="16" class="mr-2">mdi-medical-bag</v-icon>
+                    <v-icon color="deep-purple" size="16" class="mr-2">mdi-medical-bag</v-icon>
                     <span class="detail-label">Service:</span>
                     <span class="detail-value">{{ selectedBooking.service }}</span>
                   </div>
                   <div class="detail-item">
-                    <v-icon color="error" size="16" class="mr-2">mdi-clock</v-icon>
+                    <v-icon color="deep-purple" size="16" class="mr-2">mdi-clock</v-icon>
                     <span class="detail-label">Duration:</span>
                     <span class="detail-value">{{ selectedBooking.duration }}</span>
                   </div>
@@ -4875,7 +5041,7 @@
         <v-card-actions class="pa-4" style="border-top: 1px solid #e0e0e0; background: #fafafa;">
           <v-spacer />
           <v-btn color="grey" variant="text" @click="closeAssignHousekeeperDialog">Cancel</v-btn>
-          <v-btn color="error" variant="elevated" @click="confirmAssignHousekeepers">
+          <v-btn color="deep-purple" variant="elevated" @click="confirmAssignHousekeepers">
             {{ assignSelectedHousekeepers.length === 0 ? 'Unassign All' : `Assign ${assignSelectedHousekeepers.length} Housekeeper${assignSelectedHousekeepers.length !== 1 ? 's' : ''}` }}
           </v-btn>
         </v-card-actions>
@@ -6690,13 +6856,83 @@ const viewingAdminStaff = ref(null);
 const selectedAdminStaff = ref([]);
 const savingAdminStaff = ref(false);
 const showAdminStaffPassword = ref(false);
+
+// Default page permissions for admin staff
+const getDefaultPagePermissions = () => ({
+  dashboard: true,
+  notifications: true,
+  users: true,
+  caregivers: true,
+  housekeepers: true,
+  clients: true,
+  'admin-staff': true,
+  'marketing-staff': true,
+  'training-centers': true,
+  pending: true,
+  'password-resets': true,
+  'client-bookings': true,
+  'time-tracking': true,
+  reviews: true,
+  announcements: true,
+  payments: true,
+  analytics: true,
+  profile: true,
+});
+
+// Permission pages grouped by category for the UI
+const permissionPages = {
+  general: [
+    { value: 'dashboard', title: 'Dashboard', icon: 'mdi-view-dashboard' },
+    { value: 'notifications', title: 'Notifications', icon: 'mdi-bell' },
+    { value: 'profile', title: 'Profile', icon: 'mdi-account-circle' },
+  ],
+  users: [
+    { value: 'users', title: 'Users', icon: 'mdi-account-group' },
+    { value: 'caregivers', title: 'Caregivers', icon: 'mdi-account-heart' },
+    { value: 'housekeepers', title: 'Housekeepers', icon: 'mdi-broom' },
+    { value: 'clients', title: 'Clients', icon: 'mdi-account-multiple' },
+    { value: 'admin-staff', title: 'Admin Staff', icon: 'mdi-shield-account' },
+    { value: 'marketing-staff', title: 'Marketing Partner', icon: 'mdi-bullhorn-variant' },
+    { value: 'training-centers', title: 'Training Centers', icon: 'mdi-school' },
+  ],
+  applications: [
+    { value: 'pending', title: 'Contractors Application', icon: 'mdi-account-clock' },
+    { value: 'password-resets', title: 'Password Resets', icon: 'mdi-lock-reset' },
+  ],
+  bookings: [
+    { value: 'client-bookings', title: 'Client Bookings', icon: 'mdi-calendar-account' },
+    { value: 'time-tracking', title: 'Time Tracking', icon: 'mdi-clock-time-four' },
+  ],
+  other: [
+    { value: 'reviews', title: 'Reviews & Ratings', icon: 'mdi-star' },
+    { value: 'announcements', title: 'Announcements', icon: 'mdi-bullhorn' },
+    { value: 'payments', title: 'Payments', icon: 'mdi-credit-card' },
+    { value: 'analytics', title: 'Analytics', icon: 'mdi-chart-line' },
+  ],
+};
+
 const adminStaffFormData = ref({
   name: '',
   email: '',
   phone: '',
   password: '',
-  status: 'Active'
+  status: 'Active',
+  page_permissions: getDefaultPagePermissions()
 });
+
+// Select/Deselect all permissions
+const selectAllPermissions = () => {
+  Object.keys(adminStaffFormData.value.page_permissions).forEach(key => {
+    adminStaffFormData.value.page_permissions[key] = true;
+  });
+};
+
+const deselectAllPermissions = () => {
+  Object.keys(adminStaffFormData.value.page_permissions).forEach(key => {
+    adminStaffFormData.value.page_permissions[key] = false;
+  });
+};
+
 const adminStaffHeaders = [
   { title: 'Name', key: 'name' },
   { title: 'Email', key: 'email' },
@@ -7095,10 +7331,10 @@ const caregiverMetrics = ref([
 ]);
 
 const housekeeperMetrics = ref([
-  { label: 'Total Housekeepers', value: '0', color: 'teal' },
-  { label: 'Active Today', value: '0', color: 'info' },
-  { label: 'Assigned', value: '0', color: 'warning' },
-  { label: 'Avg Earnings', value: '$0', color: 'error' },
+  { label: 'Total Housekeepers', value: '0', color: 'deep-purple' },
+  { label: 'Active Today', value: '0', color: 'purple' },
+  { label: 'Assigned', value: '0', color: 'purple-lighten-2' },
+  { label: 'Avg Earnings', value: '$0', color: 'deep-purple' },
 ]);
 
 const adminCount = ref('0');
@@ -9642,12 +9878,16 @@ const viewAdminStaffDetails = (staff) => {
 const openAdminStaffDialog = (staff = null) => {
   if (staff) {
     editingAdminStaff.value = staff;
+    // Merge existing permissions with defaults to ensure all keys exist
+    const existingPermissions = staff.page_permissions || {};
+    const mergedPermissions = { ...getDefaultPagePermissions(), ...existingPermissions };
     adminStaffFormData.value = {
       name: staff.name || '',
       email: staff.email || '',
       phone: staff.phone || '',
       password: '',
-      status: staff.status || 'Active'
+      status: staff.status || 'Active',
+      page_permissions: mergedPermissions
     };
   } else {
     editingAdminStaff.value = null;
@@ -9656,7 +9896,8 @@ const openAdminStaffDialog = (staff = null) => {
       email: '', 
       phone: '', 
       password: '', 
-      status: 'Active' 
+      status: 'Active',
+      page_permissions: getDefaultPagePermissions()
     };
   }
   adminStaffDialog.value = true;
@@ -9689,7 +9930,8 @@ const saveAdminStaff = async () => {
       name: adminStaffFormData.value.name.trim(),
       email: adminStaffFormData.value.email,
       phone: adminStaffFormData.value.phone || null,
-      status: adminStaffFormData.value.status
+      status: adminStaffFormData.value.status,
+      page_permissions: adminStaffFormData.value.page_permissions
     };
     
     // Only include password if it's provided
@@ -9701,6 +9943,7 @@ const saveAdminStaff = async () => {
       method: editingAdminStaff.value ? 'PUT' : 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'Accept': 'application/json',
         'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
       },
       body: JSON.stringify(formData)
@@ -9711,8 +9954,15 @@ const saveAdminStaff = async () => {
       adminStaffDialog.value = false;
       await loadAdminStaff();
     } else {
-      const errorData = await response.json();
-      throw new Error(errorData.message || 'Failed to save');
+      // Handle error - check if response is JSON
+      const contentType = response.headers.get('content-type');
+      if (contentType && contentType.includes('application/json')) {
+        const errorData = await response.json();
+        const errorMessage = errorData.message || (errorData.errors ? Object.values(errorData.errors).flat().join(', ') : 'Failed to save');
+        throw new Error(errorMessage);
+      } else {
+        throw new Error(`Server error (${response.status}): Please check if you're logged in and try again`);
+      }
     }
   } catch (err) {
     error(err.message || 'Failed to save admin staff', 'Error');
@@ -15186,6 +15436,17 @@ setInterval(() => {
   background-color: #059669 !important;
   transform: translateY(-1px) !important;
   box-shadow: 0 4px 8px rgba(16, 185, 129, 0.3) !important;
+}
+
+.action-btn-housekeepers {
+  background-color: #7B1FA2 !important;
+  color: white !important;
+}
+
+.action-btn-housekeepers:hover {
+  background-color: #6A1B9A !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 8px rgba(123, 31, 162, 0.3) !important;
 }
 
 /* Assigned Caregivers Modal Styles */

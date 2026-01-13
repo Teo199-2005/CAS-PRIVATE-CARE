@@ -24,6 +24,7 @@ import LinkPaymentMethod from './components/LinkPaymentMethod.vue';
 import ConnectPaymentMethod from './components/ConnectPaymentMethod.vue';
 import EmailVerificationModal from './components/EmailVerificationModal.vue';
 import DashboardWrapper from './components/DashboardWrapper.vue';
+import LandingPage from './components/LandingPage.vue';
 
 const vuetify = createVuetify({
     components,
@@ -200,4 +201,11 @@ if (document.getElementById('connect-payment-app')) {
     });
     app.use(vuetify);
     app.mount('#connect-payment-app');
+}
+
+// Public landing page (Vue)
+if (document.getElementById('landing-app')) {
+    const app = createApp(LandingPage);
+    app.use(vuetify);
+    app.mount('#landing-app');
 }

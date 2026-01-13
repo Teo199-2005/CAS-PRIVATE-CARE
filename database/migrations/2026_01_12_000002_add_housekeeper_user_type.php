@@ -12,6 +12,13 @@ return new class extends Migration
      */
     public function up(): void
     {
+        $connection = Schema::getConnection()->getDriverName();
+        
+        // Only run MySQL-specific commands (SQLite doesn't support SHOW COLUMNS or MODIFY)
+        if ($connection !== 'mysql') {
+            return;
+        }
+        
         // Ensure user_type column can accept 'housekeeper' value
         // If user_type is varchar, no change needed
         // If it's enum, we need to modify it

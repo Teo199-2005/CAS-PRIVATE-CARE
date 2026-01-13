@@ -12,9 +12,17 @@ return new class extends Migration
     public function up(): void
     {
         $connection = Schema::getConnection();
+        $driver = $connection->getDriverName();
+        
+        // Skip index creation for SQLite (it doesn't support the same index checks)
+        // and indexes are generally not needed for SQLite in-memory test databases
+        if ($driver !== 'mysql') {
+            return;
+        }
+        
         $dbName = $connection->getDatabaseName();
         
-        // Helper function to check if index exists
+        // Helper function to check if index exists (MySQL only)
         $indexExists = function($table, $indexName) use ($connection, $dbName) {
             $result = $connection->select("
                 SELECT COUNT(*) as count
@@ -26,7 +34,7 @@ return new class extends Migration
             return $result[0]->count > 0;
         };
         
-        // Helper function to check if column exists
+        // Helper function to check if column exists (MySQL only)
         $columnExists = function($table, $columnName) use ($connection, $dbName) {
             $result = $connection->select("
                 SELECT COUNT(*) as count
@@ -116,6 +124,13 @@ return new class extends Migration
      */
     public function down(): void
     {
+        $driver = Schema::getConnection()->getDriverName();
+        
+        // Skip for non-MySQL databases
+        if ($driver !== 'mysql') {
+            return;
+        }
+        
         // Drop indexes from bookings table
         Schema::table('bookings', function (Blueprint $table) {
             $table->dropIndex(['status']);
