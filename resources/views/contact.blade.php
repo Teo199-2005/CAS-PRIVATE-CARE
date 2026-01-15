@@ -474,6 +474,8 @@
 <body>
     @include('partials.navigation')
 
+    @include('partials.trust-strip')
+
     <main>
         <!-- Hero Section -->
         <section class="contact-hero">
@@ -560,6 +562,12 @@
                                 <span>Send Message</span>
                                 <i class="bi bi-send-fill"></i>
                             </button>
+
+                            <!-- Privacy Note -->
+                            <p style="margin-top: 1rem; font-size: 0.85rem; color: #64748b; text-align: center;">
+                                <i class="bi bi-shield-lock" style="margin-right: 0.25rem;"></i>
+                                Your information is secure. We never share your data with third parties.
+                            </p>
                         </form>
                     </div>
 
@@ -688,5 +696,7 @@
             observer.observe(el);
         });
     </script>
+
+    @include('partials.mobile-action-bar')
 </body>
 </html>

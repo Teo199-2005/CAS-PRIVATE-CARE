@@ -162,7 +162,7 @@
 
         /* Hero Section */
         .services-hero {
-            margin-top: 80px;
+            margin-top: 88px;
             padding: 8rem 2rem;
             background: linear-gradient(135deg, #1e40af 0%, #3b82f6 50%, #0ea5e9 100%);
             position: relative;
@@ -711,6 +711,8 @@
 <body>
     @include('partials.navigation')
     
+    @include('partials.trust-strip')
+
     <main>
         <!-- Hero Section -->
         <section class="services-hero">
@@ -896,7 +898,7 @@
                     <p>Choose the right service for your family's needs</p>
                 </div>
                 
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 2rem; margin-top: 3rem;">
+                <div class="compare-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 2rem; margin-top: 3rem;">
                     <!-- Caregiving Column -->
                     <div style="background: white; border-radius: 24px; padding: 2.5rem; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08); border: 2px solid #3b82f6;">
                         <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem;">
@@ -987,7 +989,7 @@
         <!-- Safety & Trust Block -->
         <section style="padding: 5rem 2rem; background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);">
             <div class="container">
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 2rem; align-items: center;">
+                <div class="safety-trust-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 2rem; align-items: center;">
                     <div>
                         <div style="display: inline-flex; align-items: center; gap: 0.5rem; background: rgba(16, 185, 129, 0.15); padding: 0.5rem 1rem; border-radius: 50px; color: #065f46; font-weight: 600; font-size: 0.9rem; margin-bottom: 1.5rem;">
                             <i class="bi bi-shield-check"></i>
@@ -1159,5 +1161,7 @@
             observer.observe(el);
         });
     </script>
+
+    @include('partials.mobile-action-bar')
 </body>
 </html>

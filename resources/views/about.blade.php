@@ -116,11 +116,19 @@
             background-image: url('https://images.unsplash.com/photo-1521737604893-d14cc237f11d?w=1600&q=80');
             background-size: cover;
             background-position: center;
-            background-attachment: fixed;
+            /* Avoid background-attachment: fixed for cross-browser mobile performance */
+            background-attachment: scroll;
             padding: 10rem 2rem;
             color: white;
             text-align: center;
             overflow: hidden;
+        }
+
+        /* Re-enable parallax-like effect only where it is reliably smooth */
+        @media (min-width: 1025px) {
+            .mission-hero {
+                background-attachment: fixed;
+            }
         }
 
         .mission-hero::before {
@@ -552,6 +560,8 @@
 <body>
     @include('partials.navigation')
 
+    @include('partials.trust-strip')
+
     <main>
         <!-- Hero Section -->
         <section class="about-hero">
@@ -598,7 +608,7 @@
                     <p>A modern marketplace connecting families with independent 1099 contractors</p>
                 </div>
                 
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 2rem;">
+                <div class="what-we-do-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 2rem;">
                     <div style="background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); border-radius: 20px; padding: 2.5rem; border-left: 4px solid #3b82f6;">
                         <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem;">
                             <div style="width: 50px; height: 50px; background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
@@ -842,6 +852,8 @@
             observer.observe(el);
         });
     </script>
+
+    @include('partials.mobile-action-bar')
 </body>
 </html>
 

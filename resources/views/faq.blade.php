@@ -105,7 +105,7 @@
         }
 
         main {
-            margin-top: 80px;
+            margin-top: 88px;
             padding: 4rem 2rem;
         }
 
@@ -602,6 +602,28 @@
                 </div>
             </div>
         </div>
+
+        <!-- Still Need Help CTA -->
+        <div style="max-width: 1000px; margin: 3rem auto 0; background: linear-gradient(135deg, #0B4FA2 0%, #1e40af 100%); border-radius: 20px; padding: 3rem 2rem; text-align: center; position: relative; overflow: hidden;">
+            <div style="position: absolute; top: 0; right: 0; width: 200px; height: 200px; background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%); border-radius: 50%;"></div>
+            <div style="position: relative; z-index: 1;">
+                <div style="width: 60px; height: 60px; background: rgba(255, 255, 255, 0.15); border-radius: 16px; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.25rem;">
+                    <i class="bi bi-headset" style="font-size: 1.75rem; color: white;"></i>
+                </div>
+                <h3 style="font-family: 'Sora', sans-serif; font-size: 1.75rem; font-weight: 700; color: white; margin-bottom: 0.75rem;">Still Have Questions?</h3>
+                <p style="color: rgba(255, 255, 255, 0.85); font-size: 1rem; margin-bottom: 1.5rem; max-width: 500px; margin-left: auto; margin-right: auto;">Our team is here to help. Reach out and we'll get back to you within 24 hours.</p>
+                <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+                    <a href="tel:+13479947331" style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.875rem 1.5rem; background: rgba(255, 255, 255, 0.15); border: 1px solid rgba(255, 255, 255, 0.3); color: white; text-decoration: none; border-radius: 12px; font-weight: 600; transition: background 0.2s;">
+                        <i class="bi bi-telephone-fill"></i>
+                        Call Us
+                    </a>
+                    <a href="{{ url('/contact') }}" style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.875rem 1.5rem; background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); color: white; text-decoration: none; border-radius: 12px; font-weight: 600; transition: transform 0.2s;">
+                        <i class="bi bi-envelope-fill"></i>
+                        Contact Us
+                    </a>
+                </div>
+            </div>
+        </div>
     </main>
 
     @include('partials.footer')
@@ -630,5 +652,7 @@
             observer.observe(el);
         });
     </script>
+
+    @include('partials.mobile-action-bar')
 </body>
 </html>

@@ -36,7 +36,7 @@
 
         /* Hero Section */
         .hero {
-            margin-top: 80px;
+            margin-top: 88px;
             padding: 6rem 2rem;
             background: linear-gradient(135deg, #0B4FA2 0%, #1e40af 100%);
             color: white;
@@ -565,6 +565,8 @@
 <body>
     @include('partials.navigation')
 
+    @include('partials.trust-strip')
+
     <!-- Hero Section -->
     <section class="hero">
         <div class="hero-content">
@@ -597,7 +599,7 @@
                 <p>Comprehensive certification programs to launch or advance your caregiving career</p>
             </div>
             
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 2rem;">
+            <div class="training-programs-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 2rem;">
                 <!-- HHA Program -->
                 <div style="background: white; border-radius: 20px; padding: 2rem; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08); border-top: 4px solid #3b82f6; transition: transform 0.3s;" onmouseover="this.style.transform='translateY(-8px)'" onmouseout="this.style.transform='translateY(0)'">
                     <div style="width: 60px; height: 60px; background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); border-radius: 16px; display: flex; align-items: center; justify-content: center; margin-bottom: 1.5rem;">
@@ -1025,5 +1027,7 @@
             observer.observe(el);
         });
     </script>
+
+    @include('partials.mobile-action-bar')
 </body>
 </html>

@@ -1899,17 +1899,41 @@
                 padding: 2rem 1rem;
                 min-height: auto;
                 position: relative;
-                background-image: url('https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=800');
-                background-size: cover;
-                background-position: center;
             }
 
+            /* Show background images on mobile - single image behind content */
             .hero-bg-images {
-                display: none !important;
+                display: block !important;
+            }
+            
+            .hero-bg-slice {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                transform: none;
+                margin: 0;
+            }
+            
+            .hero-bg-slice:nth-child(1) {
+                display: block;
+            }
+            
+            .hero-bg-slice:nth-child(2),
+            .hero-bg-slice:nth-child(3) {
+                display: none;
             }
 
             .hero::before {
-                background: transparent;
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: linear-gradient(135deg, rgba(30, 58, 138, 0.7) 0%, rgba(59, 130, 246, 0.5) 100%);
+                z-index: 1;
             }
 
             .hero::after {
@@ -1919,12 +1943,14 @@
             .hero-content {
                 grid-template-columns: 1fr;
                 gap: 2rem;
-                padding: 1.5rem;
-                border-radius: 20px;
+                padding: 2rem 1.5rem;
+                border-radius: 24px;
                 position: relative;
                 z-index: 2;
-                background: rgba(255, 255, 255, 0.08);
+                background: rgba(255, 255, 255, 0.95);
                 backdrop-filter: blur(10px);
+                box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
+                margin-top: 1rem;
             }
 
             .hero-left {
@@ -2586,11 +2612,46 @@ font-size: 1.1rem !important;
             .hero {
                 padding: 3rem 1.5rem;
             }
+            
+            /* Show single background image on tablet/mobile */
+            .hero-bg-slice {
+                transform: none;
+                margin: 0;
+            }
+            
+            .hero-bg-slice:nth-child(2),
+            .hero-bg-slice:nth-child(3) {
+                display: none;
+            }
+            
+            .hero-bg-slice:nth-child(1) {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+            }
+            
+            /* Add overlay for readability */
+            .hero::before {
+                content: '' !important;
+                display: block !important;
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: linear-gradient(135deg, rgba(30, 58, 138, 0.65) 0%, rgba(59, 130, 246, 0.45) 100%) !important;
+                z-index: 1;
+            }
 
             .hero-content {
                 grid-template-columns: 1fr;
                 gap: 2.5rem;
                 padding: 2rem;
+                background: rgba(255, 255, 255, 0.95);
+                position: relative;
+                z-index: 2;
             }
 
             .hero-left {
@@ -3382,8 +3443,8 @@ font-size: 1.1rem !important;
     </section>
 
     <!-- Trust Bar -->
-    <div style="background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); padding: 2rem 2rem; border-top: 1px solid rgba(15, 23, 42, 0.06); border-bottom: 1px solid rgba(15, 23, 42, 0.06);">
-        <div style="max-width: 1200px; margin: 0 auto; display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 2rem 3.5rem;">
+    <div class="landing-trust-bar" style="background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); padding: 2rem 2rem; border-top: 1px solid rgba(15, 23, 42, 0.06); border-bottom: 1px solid rgba(15, 23, 42, 0.06);">
+        <div class="trust-bar-grid" style="max-width: 1200px; margin: 0 auto; display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 2rem 3.5rem;">
             <div style="display: flex; align-items: center; gap: 0.75rem;">
                 <div style="width: 44px; height: 44px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 20px rgba(16, 185, 129, 0.20);">
                     <i class="bi bi-shield-check" style="color: white; font-size: 1.25rem;"></i>
@@ -3448,7 +3509,7 @@ font-size: 1.1rem !important;
             </div>
 
             <!-- Rating Highlights (No Personal Assistants) -->
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.25rem; margin-bottom: 3.5rem;">
+            <div class="rating-highlights-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.25rem; margin-bottom: 3.5rem;">
                 <div class="fade-in" style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.12) 0%, rgba(16, 185, 129, 0.06) 100%); padding: 2rem; border-radius: 18px; text-align: left; border: 1px solid rgba(16, 185, 129, 0.22); box-shadow: 0 14px 40px rgba(16, 185, 129, 0.10);">
                     <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem;">
                         <div style="display: inline-flex; align-items: center; gap: 0.5rem; font-weight: 900; color: #065f46;">
@@ -3493,7 +3554,7 @@ font-size: 1.1rem !important;
             </div>
 
             <!-- Detailed Reviews Grid -->
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 2rem;">
+            <div class="reviews-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 2rem;">
                 <!-- Caregiver Review 1 -->
                 <div class="fade-in" style="background: rgba(255, 255, 255, 0.92); padding: 2.1rem; border-radius: 18px; box-shadow: 0 18px 55px rgba(15, 23, 42, 0.08); border: 1px solid rgba(16, 185, 129, 0.18); position: relative; transition: transform .25s ease, box-shadow .25s ease;">
                     <!-- Verified Badge -->
@@ -3702,7 +3763,7 @@ font-size: 1.1rem !important;
 
                 <!-- Content + Quick Benefits -->
                 <div style="position: relative; z-index: 1; max-width: 980px; margin: 0 auto; background: rgba(255, 255, 255, 0.88); backdrop-filter: blur(10px); padding: 2.5rem; border-radius: 18px; border: 1px solid rgba(17, 24, 39, 0.08); box-shadow: 0 16px 45px rgba(0, 0, 0, 0.08);">
-                    <div style="display: grid; grid-template-columns: 1.35fr 0.65fr; gap: 1.5rem; align-items: start;">
+                    <div class="across-nyc-grid" style="display: grid; grid-template-columns: 1.35fr 0.65fr; gap: 1.5rem; align-items: start;">
                         <div>
                             <p style="color: #0f172a; line-height: 1.9; font-size: 1.05rem; margin: 0 0 1.25rem;">
                                 CAS Private Care connects New York families with <strong style="color: #10b981;">verified caregivers in Manhattan, Brooklyn, Queens, Bronx, and Staten Island</strong>. Our platform features <strong style="color: #3b82f6;">professional housekeepers in New York</strong> providing deep cleaning and household management.
@@ -4954,5 +5015,7 @@ font-size: 1.1rem !important;
             progressBar.style.width = scrolled + '%';
         });
     </script>
+
+    @include('partials.mobile-action-bar')
 </body>
 </html>

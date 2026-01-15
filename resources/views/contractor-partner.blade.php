@@ -253,9 +253,13 @@
             box-sizing: border-box;
         }
 
-        * {
+        /* Keep media from overflowing without breaking layout calculations site-wide */
+        img,
+        video,
+        iframe,
+        svg {
             max-width: 100%;
-            box-sizing: border-box;
+            height: auto;
         }
 
         html {
@@ -288,7 +292,7 @@
         }
 
         .hero {
-            margin-top: 80px;
+            margin-top: 88px;
             padding: 8rem 2rem 6rem;
             text-align: center;
             position: relative;
@@ -2872,6 +2876,8 @@ font-size: 1.1rem !important;
     </div>
     @include('partials.navigation')
 
+    @include('partials.trust-strip')
+
     <main id="main-content">
     <header class="hero">
         <div class="hero-bg-images">
@@ -2937,7 +2943,7 @@ font-size: 1.1rem !important;
                     <span style="color: #f97316;">Top-Rated</span> <span style="color: #3b82f6;">Professionals</span> in New York City
                 </h3>
                 
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 2rem;">
+                <div class="contractor-cards-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 2rem;">
                     <!-- Caregiver 1 -->
                     <div class="fade-in" style="background: white; padding: 2rem; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); border: 2px solid #10b981;">
                         <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
@@ -3265,7 +3271,7 @@ font-size: 1.1rem !important;
                 <p style="font-size: 1.2rem; color: #64748b;">Benefits designed to help you succeed as an independent contractor</p>
             </div>
             
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 1.5rem;">
+            <div class="benefits-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 1.5rem;">
                 <div class="fade-in" style="background: white; padding: 2rem; border-radius: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); border: 1px solid #e5e7eb; display: flex; align-items: flex-start; gap: 1.5rem; transition: all 0.3s ease;">
                     <div style="width: 56px; height: 56px; background: #f0f9ff; border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
                         <i class="bi bi-cash-stack" style="font-size: 1.75rem; color: #3b82f6;"></i>
@@ -4174,6 +4180,8 @@ font-size: 1.1rem !important;
             }
         });
     </script>
+
+    @include('partials.mobile-action-bar')
 </body>
 </html>
  

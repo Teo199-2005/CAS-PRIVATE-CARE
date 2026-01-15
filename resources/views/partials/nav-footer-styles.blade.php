@@ -165,7 +165,7 @@
     }
 
     .cta-btn {
-        background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+        background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
         color: white !important;
         padding: 0.75rem 1.5rem !important;
         border-radius: 8px;
@@ -175,6 +175,17 @@
         border: 1px solid rgba(37, 99, 235, 0.3);
         position: relative;
         overflow: hidden;
+    }
+
+    /* Ensure nav CTA (Register) never loses its gradient due to more specific link rules */
+    .nav-links a.cta-btn {
+        background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
+        color: white !important;
+        border-color: rgba(37, 99, 235, 0.3) !important;
+    }
+
+    .nav-links a.cta-btn:hover {
+        background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%) !important;
     }
 
     .cta-btn::before {
@@ -193,12 +204,12 @@
     }
 
     .cta-btn:hover {
-        background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+        background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%) !important;
         border-color: rgba(37, 99, 235, 0.5);
     }
 
     .cta-btn:active {
-        background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+        background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%) !important;
     }
 
     .mobile-menu-btn {
@@ -545,6 +556,19 @@
             font-size: 1.05rem !important;
             padding: 1rem 1.5rem !important;
             box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+        
+        /* Ensure Register button keeps blue gradient on mobile */
+        .nav-links a.cta-btn,
+        .nav-links .cta-btn {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
+            color: white !important;
+            border: 1px solid rgba(37, 99, 235, 0.3) !important;
+        }
+        
+        .nav-links a.cta-btn:hover,
+        .nav-links .cta-btn:hover {
+            background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%) !important;
         }
 
         /* Footer Mobile Styles */
@@ -1241,4 +1265,6 @@
         }
     }
 </style>
+
+@include('partials.mobile-responsive-fixes')
 
