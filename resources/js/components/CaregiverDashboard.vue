@@ -2328,17 +2328,19 @@ const loadProfile = async () => {
       });
       
       // Load training certificate if exists
-      if (data.caregiver?.training_certificate) {
-        trainingCertificateUrl.value = data.caregiver.training_certificate.startsWith('/') 
-          ? data.caregiver.training_certificate 
-          : '/storage/' + data.caregiver.training_certificate;
+      // NOTE: /profile returns the caregiver object under `data.caregiver`.
+      // Older code sometimes expected `data.user.caregiver`, so we normalize via caregiverData above.
+      if (caregiverData?.training_certificate) {
+        trainingCertificateUrl.value = caregiverData.training_certificate.startsWith('/')
+          ? caregiverData.training_certificate
+          : '/storage/' + caregiverData.training_certificate;
       } else {
         trainingCertificateUrl.value = null;
       }
       
       // Store caregiver ID for stats loading
-      if (data.caregiver) {
-        caregiverId.value = data.caregiver.id;
+      if (caregiverData?.id) {
+        caregiverId.value = caregiverData.id;
       }
       
       // Check application status

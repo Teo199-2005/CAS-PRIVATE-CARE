@@ -778,17 +778,24 @@
             <v-col cols="12">
               <div class="detail-section">
                 <div class="detail-label">Training Certificate</div>
-                <div class="detail-value" v-if="viewingCaregiver.certificate">
+                <div class="detail-value" v-if="viewingCaregiver.training_certificate">
                   <v-card class="certificate-card pa-4" elevation="2">
                     <div class="d-flex align-center justify-space-between">
                       <div class="d-flex align-center">
                         <v-icon color="success" size="32" class="mr-3">mdi-file-certificate</v-icon>
                         <div>
-                          <div class="certificate-name">{{ viewingCaregiver.certificate }}</div>
+                          <div class="certificate-name">{{ viewingCaregiver.training_certificate.split('/').pop() }}</div>
                           <div class="certificate-info">Uploaded on {{ viewingCaregiver.joined }}</div>
                         </div>
                       </div>
-                      <v-btn color="primary" variant="outlined" prepend-icon="mdi-download" size="small">
+                      <v-btn
+                        color="primary"
+                        variant="outlined"
+                        prepend-icon="mdi-download"
+                        size="small"
+                        :href="viewingCaregiver.training_certificate.startsWith('/') ? viewingCaregiver.training_certificate : ('/storage/' + viewingCaregiver.training_certificate)"
+                        target="_blank"
+                      >
                         Download
                       </v-btn>
                     </div>
@@ -7635,8 +7642,7 @@ const loadUsers = async () => {
     const caregiverUsers = caregiversData.caregivers || [];
     
     const mappedCaregivers = caregiverUsers
-      .map((u, index) => {
-        const hasCertificate = index < 15;
+      .map((u) => {
         return {
           id: u.caregiver?.id,
           userId: u.id,
@@ -7655,7 +7661,8 @@ const loadUsers = async () => {
           // Accurate place indicator (City, ST) filled in lazily via /api/zipcode-lookup
           place_indicator: (u.zip_code || u.zip) ? 'Loading...' : '',
           phone: u.phone || '(646) 282-8282',
-          certificate: hasCertificate ? `${u.name.replace(' ', '_')}_Training_Certificate.pdf` : null,
+          // Use actual stored file path from DB (null when not uploaded)
+          training_certificate: u.caregiver?.training_certificate || null,
           preferred_hourly_rate_min: u.caregiver?.preferred_hourly_rate_min || null,
           preferred_hourly_rate_max: u.caregiver?.preferred_hourly_rate_max || null
         };
@@ -11258,7 +11265,7 @@ const viewCaregiverDetails = async (caregiver) => {
       cna_number: c.cna_number || c.cnaNumber || null,
       has_rn: Boolean(c.has_rn),
       rn_number: c.rn_number || c.rnNumber || null,
-      certificate: c.training_certificate ? (c.training_certificate.startsWith('/') ? c.training_certificate : '/storage/' + c.training_certificate) : (caregiver.certificate || null),
+  training_certificate: c.training_certificate || null,
       bio: c.bio || caregiver.bio || ''
     };
 

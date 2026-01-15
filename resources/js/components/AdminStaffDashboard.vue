@@ -493,17 +493,24 @@
             <v-col cols="12">
               <div class="detail-section">
                 <div class="detail-label">Training Certificate</div>
-                <div class="detail-value" v-if="viewingCaregiver.certificate">
+                <div class="detail-value" v-if="viewingCaregiver.training_certificate">
                   <v-card class="certificate-card pa-4" elevation="2">
                     <div class="d-flex align-center justify-space-between">
                       <div class="d-flex align-center">
                         <v-icon color="success" size="32" class="mr-3">mdi-file-certificate</v-icon>
                         <div>
-                          <div class="certificate-name">{{ viewingCaregiver.certificate }}</div>
+                          <div class="certificate-name">{{ viewingCaregiver.training_certificate.split('/').pop() }}</div>
                           <div class="certificate-info">Uploaded on {{ viewingCaregiver.joined }}</div>
                         </div>
                       </div>
-                      <v-btn color="primary" variant="outlined" prepend-icon="mdi-download" size="small">
+                      <v-btn
+                        color="primary"
+                        variant="outlined"
+                        prepend-icon="mdi-download"
+                        size="small"
+                        :href="viewingCaregiver.training_certificate.startsWith('/') ? viewingCaregiver.training_certificate : ('/storage/' + viewingCaregiver.training_certificate)"
+                        target="_blank"
+                      >
                         Download
                       </v-btn>
                     </div>
@@ -4754,8 +4761,7 @@ const loadUsers = async () => {
     const caregiverUsers = caregiversData.caregivers || [];
     
     const mappedCaregivers = caregiverUsers
-      .map((u, index) => {
-        const hasCertificate = index < 15;
+      .map((u) => {
         return {
           id: u.caregiver?.id,
           userId: u.id,
@@ -4774,7 +4780,8 @@ const loadUsers = async () => {
           // Accurate place indicator (City, ST) filled in lazily via /api/zipcode-lookup
           place_indicator: (u.zip_code || u.zip) ? 'Loading...' : '',
           phone: u.phone || '(646) 282-8282',
-          certificate: hasCertificate ? `${u.name.replace(' ', '_')}_Training_Certificate.pdf` : null,
+          // Use actual stored file path from DB (null when not uploaded)
+          training_certificate: u.caregiver?.training_certificate || null,
           preferred_hourly_rate_min: u.caregiver?.preferred_hourly_rate_min || null,
           preferred_hourly_rate_max: u.caregiver?.preferred_hourly_rate_max || null
         };
@@ -7596,11 +7603,45 @@ let data;
 };
 
 const viewCaregiverDetails = async (caregiver) => {
-  viewingCaregiver.value = caregiver;
+  // Open dialog immediately; then enrich with full profile (includes training_certificate)
   viewCaregiverDialog.value = true;
-  
-  // Load caregiver reviews
-  await loadCaregiverReviews(caregiver.caregiverId);
+  viewingCaregiver.value = caregiver;
+
+  try {
+    const userId = caregiver.userId || caregiver.user_id || caregiver.id;
+    const resp = await fetch(`/api/admin/caregivers/${userId}`);
+    const text = await resp.text();
+
+    if (text && text.trim().startsWith('{')) {
+      const data = JSON.parse(text);
+      const u = data.user;
+      const c = data.caregiver || {};
+
+      if (u) {
+        viewingCaregiver.value = {
+          ...caregiver,
+          id: c.id || caregiver.id,
+          userId: u.id,
+          name: u.name,
+          email: u.email,
+          phone: u.phone || caregiver.phone || '',
+          zip_code: u.zip_code || caregiver.zip_code || '',
+          joined: u.created_at ? new Date(u.created_at).toLocaleDateString() : (caregiver.joined || ''),
+          verified: Boolean(u.email_verified_at),
+          rating: c.rating || caregiver.rating || 0,
+          preferred_hourly_rate_min: c.preferred_hourly_rate_min || caregiver.preferred_hourly_rate_min || 20,
+          preferred_hourly_rate_max: c.preferred_hourly_rate_max || caregiver.preferred_hourly_rate_max || 50,
+          training_certificate: c.training_certificate || null,
+          bio: c.bio || caregiver.bio || ''
+        };
+      }
+    }
+  } catch (_) {
+    // keep fallback caregiver
+  }
+
+  // Load caregiver reviews (prefer caregiver record id if present)
+  await loadCaregiverReviews(viewingCaregiver.value?.id || caregiver.caregiverId);
 };
 
 const loadCaregiverReviews = async (caregiverId) => {

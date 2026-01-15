@@ -463,17 +463,24 @@
             <v-col cols="12">
               <div class="detail-section">
                 <div class="detail-label">Training Certificate</div>
-                <div class="detail-value" v-if="viewingCaregiver.certificate">
+                <div class="detail-value" v-if="viewingCaregiver.training_certificate">
                   <v-card class="certificate-card pa-4" elevation="2">
                     <div class="d-flex align-center justify-space-between">
                       <div class="d-flex align-center">
                         <v-icon color="success" size="32" class="mr-3">mdi-file-certificate</v-icon>
                         <div>
-                          <div class="certificate-name">{{ viewingCaregiver.certificate }}</div>
+                          <div class="certificate-name">{{ viewingCaregiver.training_certificate.split('/').pop() }}</div>
                           <div class="certificate-info">Uploaded on {{ viewingCaregiver.joined }}</div>
                         </div>
                       </div>
-                      <v-btn color="primary" variant="outlined" prepend-icon="mdi-download" size="small">
+                      <v-btn
+                        color="primary"
+                        variant="outlined"
+                        prepend-icon="mdi-download"
+                        size="small"
+                        :href="viewingCaregiver.training_certificate.startsWith('/') ? viewingCaregiver.training_certificate : ('/storage/' + viewingCaregiver.training_certificate)"
+                        target="_blank"
+                      >
                         Download
                       </v-btn>
                     </div>
@@ -4518,8 +4525,7 @@ const loadUsers = async () => {
     
     caregivers.value = caregiverUsers
       .filter(u => u.caregiver && u.caregiver.id)
-      .map((u, index) => {
-        const hasCertificate = index < 15;
+      .map((u) => {
         return {
           id: u.caregiver.id,
           userId: u.id,
@@ -4532,7 +4538,8 @@ const loadUsers = async () => {
           verified: true,
           borough: 'Manhattan',
           phone: u.phone || '(646) 282-8282',
-          certificate: hasCertificate ? `${u.name.replace(' ', '_')}_Training_Certificate.pdf` : null
+          // Use actual stored file path from DB (null when not uploaded)
+          training_certificate: u.caregiver?.training_certificate || null
         };
       });
     
