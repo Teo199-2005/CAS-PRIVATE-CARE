@@ -528,6 +528,38 @@
                 font-size: 1.2rem !important;
             }
         }
+
+        /* Scroll Animations */
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(40px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes fadeInLeft {
+            from { opacity: 0; transform: translateX(-40px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        @keyframes fadeInRight {
+            from { opacity: 0; transform: translateX(40px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        [data-animate] {
+            opacity: 0;
+        }
+
+        [data-animate].visible {
+            animation: fadeInUp 0.6s ease forwards;
+        }
+
+        [data-animate="left"].visible {
+            animation: fadeInLeft 0.6s ease forwards;
+        }
+
+        [data-animate="right"].visible {
+            animation: fadeInRight 0.6s ease forwards;
+        }
     </style>
 </head>
 <body>
@@ -554,6 +586,127 @@
                     <span>Certified Instructors</span>
                 </div>
             </div>
+        </div>
+    </section>
+
+    <!-- Training Programs Overview -->
+    <section class="section-light" style="border-bottom: 1px solid #e2e8f0;">
+        <div class="container">
+            <div class="section-header">
+                <h2>Training <span style="color: #f97316;">Programs</span></h2>
+                <p>Comprehensive certification programs to launch or advance your caregiving career</p>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 2rem;">
+                <!-- HHA Program -->
+                <div style="background: white; border-radius: 20px; padding: 2rem; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08); border-top: 4px solid #3b82f6; transition: transform 0.3s;" onmouseover="this.style.transform='translateY(-8px)'" onmouseout="this.style.transform='translateY(0)'">
+                    <div style="width: 60px; height: 60px; background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); border-radius: 16px; display: flex; align-items: center; justify-content: center; margin-bottom: 1.5rem;">
+                        <i class="bi bi-heart-pulse-fill" style="color: white; font-size: 1.5rem;"></i>
+                    </div>
+                    <h3 style="font-family: 'Sora', sans-serif; font-weight: 700; color: #1e293b; margin-bottom: 0.75rem; font-size: 1.25rem;">Home Health Aide (HHA)</h3>
+                    <p style="color: #64748b; line-height: 1.7; margin-bottom: 1.5rem;">NYS-approved 76-hour program. Learn personal care, nutrition, and safety procedures.</p>
+                    <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
+                        <span style="display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.35rem 0.75rem; background: #dbeafe; border-radius: 50px; font-size: 0.8rem; color: #1e40af; font-weight: 600;">
+                            <i class="bi bi-clock"></i> 2-3 Weeks
+                        </span>
+                        <span style="display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.35rem 0.75rem; background: #dcfce7; border-radius: 50px; font-size: 0.8rem; color: #166534; font-weight: 600;">
+                            <i class="bi bi-patch-check-fill"></i> State Certified
+                        </span>
+                    </div>
+                </div>
+                
+                <!-- PCA Program -->
+                <div style="background: white; border-radius: 20px; padding: 2rem; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08); border-top: 4px solid #10b981; transition: transform 0.3s;" onmouseover="this.style.transform='translateY(-8px)'" onmouseout="this.style.transform='translateY(0)'">
+                    <div style="width: 60px; height: 60px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-radius: 16px; display: flex; align-items: center; justify-content: center; margin-bottom: 1.5rem;">
+                        <i class="bi bi-person-heart" style="color: white; font-size: 1.5rem;"></i>
+                    </div>
+                    <h3 style="font-family: 'Sora', sans-serif; font-weight: 700; color: #1e293b; margin-bottom: 0.75rem; font-size: 1.25rem;">Personal Care Aide (PCA)</h3>
+                    <p style="color: #64748b; line-height: 1.7; margin-bottom: 1.5rem;">40-hour foundational program covering daily living assistance and communication skills.</p>
+                    <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
+                        <span style="display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.35rem 0.75rem; background: #dcfce7; border-radius: 50px; font-size: 0.8rem; color: #166534; font-weight: 600;">
+                            <i class="bi bi-clock"></i> 1-2 Weeks
+                        </span>
+                        <span style="display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.35rem 0.75rem; background: #fef3c7; border-radius: 50px; font-size: 0.8rem; color: #92400e; font-weight: 600;">
+                            <i class="bi bi-star-fill"></i> Entry Level
+                        </span>
+                    </div>
+                </div>
+                
+                <!-- CPR/First Aid -->
+                <div style="background: white; border-radius: 20px; padding: 2rem; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08); border-top: 4px solid #f97316; transition: transform 0.3s;" onmouseover="this.style.transform='translateY(-8px)'" onmouseout="this.style.transform='translateY(0)'">
+                    <div style="width: 60px; height: 60px; background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); border-radius: 16px; display: flex; align-items: center; justify-content: center; margin-bottom: 1.5rem;">
+                        <i class="bi bi-plus-circle-fill" style="color: white; font-size: 1.5rem;"></i>
+                    </div>
+                    <h3 style="font-family: 'Sora', sans-serif; font-weight: 700; color: #1e293b; margin-bottom: 0.75rem; font-size: 1.25rem;">CPR & First Aid</h3>
+                    <p style="color: #64748b; line-height: 1.7; margin-bottom: 1.5rem;">American Heart Association certified training. Essential emergency response skills.</p>
+                    <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
+                        <span style="display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.35rem 0.75rem; background: #ffedd5; border-radius: 50px; font-size: 0.8rem; color: #9a3412; font-weight: 600;">
+                            <i class="bi bi-clock"></i> 1 Day
+                        </span>
+                        <span style="display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.35rem 0.75rem; background: #dbeafe; border-radius: 50px; font-size: 0.8rem; color: #1e40af; font-weight: 600;">
+                            <i class="bi bi-award-fill"></i> AHA Certified
+                        </span>
+                    </div>
+                </div>
+                
+                
+            </div>
+        </div>
+    </section>
+
+    <!-- Certificates You'll Earn -->
+    <section class="section-dark" style="background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);">
+        <div class="container">
+            <div class="section-header">
+                <h2>Certificates <span style="color: #10b981;">You'll Earn</span></h2>
+                <p>Industry-recognized credentials to boost your career</p>
+            </div>
+            
+            <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 2rem; margin-top: 3rem;">
+                <div style="background: white; border-radius: 16px; padding: 1.5rem 2.5rem; box-shadow: 0 8px 30px rgba(0,0,0,0.08); display: flex; align-items: center; gap: 1rem; min-width: 280px;">
+                    <div style="width: 50px; height: 50px; background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                        <i class="bi bi-file-earmark-medical" style="color: white; font-size: 1.25rem;"></i>
+                    </div>
+                    <div>
+                        <h4 style="font-weight: 700; color: #1e293b; margin: 0;">HHA Certificate</h4>
+                        <p style="color: #64748b; font-size: 0.9rem; margin: 0;">NYS DOH Approved</p>
+                    </div>
+                </div>
+                
+                <div style="background: white; border-radius: 16px; padding: 1.5rem 2.5rem; box-shadow: 0 8px 30px rgba(0,0,0,0.08); display: flex; align-items: center; gap: 1rem; min-width: 280px;">
+                    <div style="width: 50px; height: 50px; background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                        <i class="bi bi-heart-pulse" style="color: white; font-size: 1.25rem;"></i>
+                    </div>
+                    <div>
+                        <h4 style="font-weight: 700; color: #1e293b; margin: 0;">CPR Certification</h4>
+                        <p style="color: #64748b; font-size: 0.9rem; margin: 0;">American Heart Assoc.</p>
+                    </div>
+                </div>
+                
+                <div style="background: white; border-radius: 16px; padding: 1.5rem 2.5rem; box-shadow: 0 8px 30px rgba(0,0,0,0.08); display: flex; align-items: center; gap: 1rem; min-width: 280px;">
+                    <div style="width: 50px; height: 50px; background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                        <i class="bi bi-bandaid" style="color: white; font-size: 1.25rem;"></i>
+                    </div>
+                    <div>
+                        <h4 style="font-weight: 700; color: #1e293b; margin: 0;">First Aid</h4>
+                        <p style="color: #64748b; font-size: 0.9rem; margin: 0;">Emergency Response</p>
+                    </div>
+                </div>
+                
+                <div style="background: white; border-radius: 16px; padding: 1.5rem 2.5rem; box-shadow: 0 8px 30px rgba(0,0,0,0.08); display: flex; align-items: center; gap: 1rem; min-width: 280px;">
+                    <div style="width: 50px; height: 50px; background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                        <i class="bi bi-shield-check" style="color: white; font-size: 1.25rem;"></i>
+                    </div>
+                    <div>
+                        <h4 style="font-weight: 700; color: #1e293b; margin: 0;">Infection Control</h4>
+                        <p style="color: #64748b; font-size: 0.9rem; margin: 0;">Safety Protocols</p>
+                    </div>
+                </div>
+            </div>
+            
+            <p style="text-align: center; margin-top: 2.5rem; color: #64748b; font-size: 1rem;">
+                <i class="bi bi-info-circle" style="color: #10b981;"></i> All certificates are recognized by healthcare employers throughout New York State
+            </p>
         </div>
     </section>
 
@@ -850,5 +1003,27 @@
 
     @include('partials.footer')
     @include('partials.mobile-footer')
+    
+    <script>
+        // Intersection Observer for scroll animations
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+        
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach((entry, index) => {
+                if (entry.isIntersecting) {
+                    setTimeout(() => {
+                        entry.target.classList.add('visible');
+                    }, index * 100);
+                }
+            });
+        }, observerOptions);
+        
+        document.querySelectorAll('[data-animate]').forEach(el => {
+            observer.observe(el);
+        });
+    </script>
 </body>
 </html>

@@ -11,15 +11,16 @@
         <ul class="nav-links" id="navLinks">
             <li><a href="{{ url('/') }}">Home</a></li>
             <li class="dropdown" id="servicesDropdown">
-                <a href="javascript:void(0)" class="dropdown-toggle" onclick="toggleDropdown(event)">
+                <a href="{{ url('/services') }}" class="dropdown-toggle" onclick="toggleDropdown(event)">
                     Services <i class="bi bi-chevron-down" style="font-size: 0.8rem; margin-left: 0.5rem;"></i>
                 </a>
                 <div class="dropdown-menu" id="servicesMenu">
+                    <a href="{{ url('/services') }}">All Services</a>
                     <a href="{{ url('/caregiver-new-york') }}">Caregiver</a>
                     <a href="{{ url('/housekeeper-new-york') }}">Housekeeper</a>
                 </div>
             </li>
-            <li><a href="{{ url('/contractor-partner') }}">1099 Contractors</a></li>
+            <li><a href="{{ url('/contractors') }}">1099 Contractors</a></li>
             <li><a href="{{ url('/training-center') }}">Accredited Training Center</a></li>
             <li><a href="{{ url('/about') }}">About</a></li>
             <li><a href="{{ url('/blog') }}">Blog</a></li>

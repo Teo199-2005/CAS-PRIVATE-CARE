@@ -259,6 +259,8 @@
         .value-icon i {
             color: white;
             font-size: 2.5rem;
+            line-height: 1;
+            display: inline-block;
         }
 
         .value-card h4 {
@@ -504,6 +506,47 @@
                 padding: 2rem;
             }
         }
+
+        /* Scroll Animations */
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(40px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes fadeInLeft {
+            from { opacity: 0; transform: translateX(-40px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        @keyframes fadeInRight {
+            from { opacity: 0; transform: translateX(40px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        @keyframes scaleIn {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        [data-animate] {
+            opacity: 0;
+        }
+
+        [data-animate].visible {
+            animation: fadeInUp 0.6s ease forwards;
+        }
+
+        [data-animate="left"].visible {
+            animation: fadeInLeft 0.6s ease forwards;
+        }
+
+        [data-animate="right"].visible {
+            animation: fadeInRight 0.6s ease forwards;
+        }
+
+        [data-animate="scale"].visible {
+            animation: scaleIn 0.6s ease forwards;
+        }
     </style>
 </head>
 <body>
@@ -547,6 +590,60 @@
             <div class="divider-line-thin"></div>
         </div>
 
+        <!-- What We Do Section -->
+        <section class="section-light">
+            <div class="container">
+                <div class="section-header">
+                    <h2><span style="color: #f97316;">What</span> <span style="background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">We Do</span></h2>
+                    <p>A modern marketplace connecting families with independent 1099 contractors</p>
+                </div>
+                
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 2rem;">
+                    <div style="background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); border-radius: 20px; padding: 2.5rem; border-left: 4px solid #3b82f6;">
+                        <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem;">
+                            <div style="width: 50px; height: 50px; background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                                <i class="bi bi-people-fill" style="color: white; font-size: 1.25rem;"></i>
+                            </div>
+                            <h3 style="font-size: 1.25rem; font-weight: 700; color: #1e293b; margin: 0;">We Connect</h3>
+                        </div>
+                        <p style="color: #475569; line-height: 1.8; margin: 0;">We bridge the gap between NYC families seeking quality care and verified independent contractors looking for flexible work opportunities.</p>
+                    </div>
+                    
+                    <div style="background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border-radius: 20px; padding: 2.5rem; border-left: 4px solid #10b981;">
+                        <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem;">
+                            <div style="width: 50px; height: 50px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                                <i class="bi bi-shield-check" style="color: white; font-size: 1.25rem;"></i>
+                            </div>
+                            <h3 style="font-size: 1.25rem; font-weight: 700; color: #1e293b; margin: 0;">We Verify</h3>
+                        </div>
+                        <p style="color: #475569; line-height: 1.8; margin: 0;">Every contractor undergoes comprehensive background checks, ID verification, and credential validation before joining our trusted network.</p>
+                    </div>
+                    
+                    <div style="background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border-radius: 20px; padding: 2.5rem; border-left: 4px solid #f97316;">
+                        <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem;">
+                            <div style="width: 50px; height: 50px; background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                                <i class="bi bi-credit-card-2-front" style="color: white; font-size: 1.25rem;"></i>
+                            </div>
+                            <h3 style="font-size: 1.25rem; font-weight: 700; color: #1e293b; margin: 0;">We Facilitate</h3>
+                        </div>
+                        <p style="color: #475569; line-height: 1.8; margin: 0;">Our platform handles secure payments, scheduling, and communication so both families and contractors can focus on what matters most—quality care.</p>
+                    </div>
+                </div>
+                
+                <div style="margin-top: 3rem; background: white; border-radius: 16px; padding: 2rem; box-shadow: 0 4px 20px rgba(0,0,0,0.06); text-align: center;">
+                    <p style="color: #64748b; font-size: 1.05rem; margin: 0; line-height: 1.8;">
+                        <i class="bi bi-info-circle" style="color: #3b82f6;"></i> 
+                        <strong>1099 Contractor Model:</strong> All service providers on our platform are independent contractors, not employees. They set their own rates, choose their clients, and manage their own schedules.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <div class="section-divider">
+            <div class="divider-line-thick"></div>
+            <div class="divider-line-thin"></div>
+        </div>
+
         <!-- Our Values Section -->
         <section class="section-dark">
             <div class="container">
@@ -556,15 +653,15 @@
                 </div>
 
                 <div class="values-grid">
-                    <div class="value-card">
+                    <div class="value-card" data-animate>
                         <div class="value-icon">
-                            <i class="bi bi-shield-check-fill"></i>
+                            <i class="bi bi-shield-fill-check" aria-hidden="true"></i>
                         </div>
                         <h4>Trust & Safety</h4>
                         <p>We prioritize the safety and security of our clients and caregivers through comprehensive background checks, verification processes, and ongoing monitoring.</p>
                     </div>
 
-                    <div class="value-card">
+                    <div class="value-card" data-animate>
                         <div class="value-icon">
                             <i class="bi bi-heart-pulse-fill"></i>
                         </div>
@@ -572,7 +669,7 @@
                         <p>Every interaction is guided by empathy and understanding. We believe in treating every individual with dignity, respect, and genuine care.</p>
                     </div>
 
-                    <div class="value-card">
+                    <div class="value-card" data-animate>
                         <div class="value-icon">
                             <i class="bi bi-star-fill"></i>
                         </div>
@@ -596,7 +693,7 @@
                     <p>The visionary leader behind CAS Private Care LLC</p>
                 </div>
 
-                <div class="founder-section">
+                <div class="founder-section" data-animate="scale">
                     <div class="founder-content">
                         <div class="founder-image">
                             <img src="{{ asset('CEO.jpg') }}" alt="Charles Andrew Santiago - CEO and Founder of CAS Private Care LLC" loading="lazy">
@@ -634,7 +731,7 @@
                 </div>
 
                 <div class="values-grid">
-                    <div class="value-card">
+                    <div class="value-card" data-animate>
                         <div class="value-icon">
                             <i class="bi bi-check-circle-fill"></i>
                         </div>
@@ -642,7 +739,7 @@
                         <p>All our caregivers undergo comprehensive background checks, license verification, and credential validation before joining our network.</p>
                     </div>
 
-                    <div class="value-card">
+                    <div class="value-card" data-animate>
                         <div class="value-icon">
                             <i class="bi bi-clock-history"></i>
                         </div>
@@ -650,7 +747,7 @@
                         <p>Care needs don't follow a schedule. We're available around the clock to connect you with qualified caregivers when you need them most.</p>
                     </div>
 
-                    <div class="value-card">
+                    <div class="value-card" data-animate>
                         <div class="value-icon">
                             <i class="bi bi-currency-dollar"></i>
                         </div>
@@ -675,19 +772,19 @@
                 </div>
 
                 <div class="stats-section">
-                    <div class="stat-card">
+                    <div class="stat-card" data-animate>
                         <div class="stat-number">1,000+</div>
                         <div class="stat-label">Families Served</div>
                     </div>
-                    <div class="stat-card">
+                    <div class="stat-card" data-animate>
                         <div class="stat-number">500+</div>
                         <div class="stat-label">Verified Caregivers</div>
                     </div>
-                    <div class="stat-card">
+                    <div class="stat-card" data-animate>
                         <div class="stat-number">4.9/5</div>
                         <div class="stat-label">Average Rating</div>
                     </div>
-                    <div class="stat-card">
+                    <div class="stat-card" data-animate>
                         <div class="stat-number">24/7</div>
                         <div class="stat-label">Available Support</div>
                     </div>
@@ -723,6 +820,28 @@
     
     <!-- Mobile-Only Footer -->
     @include('partials.mobile-footer')
+    
+    <script>
+        // Intersection Observer for scroll animations
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+        
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach((entry, index) => {
+                if (entry.isIntersecting) {
+                    setTimeout(() => {
+                        entry.target.classList.add('visible');
+                    }, index * 100);
+                }
+            });
+        }, observerOptions);
+        
+        document.querySelectorAll('[data-animate]').forEach(el => {
+            observer.observe(el);
+        });
+    </script>
 </body>
 </html>
 

@@ -180,6 +180,6 @@ php create-admin-staff.php
 The Admin Staff Management feature is now fully functional and integrated into the CAS Private Care admin dashboard.
 
 ---
-**Implementation Date:** January 3, 2026  
-**Version:** v1.2.0  
+**Implementation Date:** January 14, 2026  
+**Version:** v1.5.0  
 **Build Status:** ✅ Successful

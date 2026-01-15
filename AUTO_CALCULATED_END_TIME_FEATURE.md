@@ -166,7 +166,7 @@ const getHoursFromDutyType = (dutyType) => {
 
 ---
 
-**Implementation Date:** January 3, 2026  
-**Version:** v1.2.0  
+**Implementation Date:** January 14, 2026  
+**Version:** v1.5.0  
 **Build Status:** ✅ Successful  
 **Feature:** Auto-Calculated End Times for 8 & 12 Hour Shifts

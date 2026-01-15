@@ -64,7 +64,7 @@
     </div>
     <div class="footer-divider"></div>
     <div class="footer-bottom">
-        <p>&copy; 2025 CAS Private Care LLC. All rights reserved.</p>
+        <p>&copy; 2026 CAS Private Care LLC. All rights reserved.</p>
         <div class="footer-bottom-links">
             <a href="{{ url('/privacy') }}">Privacy Policy</a>
             <a href="{{ url('/terms') }}">Terms of Service</a>

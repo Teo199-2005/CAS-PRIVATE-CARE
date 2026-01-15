@@ -101,4 +101,14 @@ class PageController extends Controller
     {
         return view('api-test');
     }
+
+    public function services()
+    {
+        return view('services');
+    }
+
+    public function contractors()
+    {
+        return view('contractors');
+    }
 }

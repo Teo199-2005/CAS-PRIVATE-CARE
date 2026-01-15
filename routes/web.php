@@ -60,6 +60,8 @@ Route::get('/housekeeping-personal-assistant', [PageController::class, 'housekee
 Route::get('/housekeeping-new-york', [PageController::class, 'housekeepingNewYork'])->name('housekeeping-new-york');
 Route::get('/personal-assistant-new-york', [PageController::class, 'personalAssistantNewYork'])->name('personal-assistant-new-york');
 Route::get('/training-center', [PageController::class, 'trainingCenter'])->name('training-center');
+Route::get('/services', [PageController::class, 'services'])->name('services');
+Route::get('/contractors', [PageController::class, 'contractors'])->name('contractors');
 
 // Blog
 Route::get('/blog', [BlogController::class, 'index'])->name('blog.index');

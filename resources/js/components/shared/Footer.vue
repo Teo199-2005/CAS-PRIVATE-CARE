@@ -10,9 +10,9 @@
         </a>
       </div>
       <div class="footer-right">
-        <span class="copyright">© 2024 CAS Private Care LLC - All rights reserved</span>
+        <span class="copyright">© 2026 CAS Private Care LLC - All rights reserved</span>
         <span class="separator">•</span>
-        <span class="version">v1.2.0</span>
+        <span class="version">v1.5.0</span>
       </div>
     </div>
   </footer>

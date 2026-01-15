@@ -592,7 +592,7 @@
                   <span class="section-title success--text">Payment Settings</span>
                 </v-card-title>
                 <v-card-text class="pa-8">
-                  <!-- payout frequency restricted to Weekly per v1.2.0 -->
+                  <!-- payout frequency restricted to Weekly per v1.5.0 -->
                   <v-select v-model="payoutFrequency" :items="['Weekly']" label="Payout Frequency" variant="outlined" density="comfortable" class="mb-4" />
                   <v-select v-model="payoutMethod" :items="['Bank Transfer', 'PayPal', 'Check']" label="Payout Method" variant="outlined" density="comfortable" />
                 </v-card-text>
@@ -1622,7 +1622,7 @@ const earningsChart = ref(null);
 const servicesChart = ref(null);
 const clientsChart = ref(null);
 
-// Payout settings (v1.2.0: frequency only Weekly)
+// Payout settings (v1.5.0: frequency only Weekly)
 const payoutFrequency = ref('Weekly');
 const payoutMethod = ref('Bank Transfer');
 const applicationStatus = ref('pending'); // 'pending' or 'approved'

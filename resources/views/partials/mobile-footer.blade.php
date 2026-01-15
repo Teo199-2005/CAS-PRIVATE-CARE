@@ -65,7 +65,7 @@
 
         <!-- Bottom Links -->
         <div class="mobile-footer-bottom">
-            <p>&copy; 2025 CAS Private Care LLC</p>
+            <p>&copy; 2026 CAS Private Care LLC</p>
             <div class="mobile-legal-links">
                 <a href="{{ url('/privacy') }}">Privacy</a>
                 <span>•</span>

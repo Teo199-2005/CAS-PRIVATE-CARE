@@ -72,7 +72,7 @@
           'name' => 'How do payments work for contractors?',
           'acceptedAnswer' => [
             '@type' => 'Answer',
-            'text' => 'You earn $28 per hour as a caregiver contractor. Payments are processed on a regular schedule, and you\'ll receive detailed earnings reports. All rates are transparent and agreed upon before you accept any booking.'
+            'text' => 'Payments are issued on a regular schedule through our platform once a booking is successfully completed. You can view your completed jobs and payout history in your contractor dashboard. Specific rates are shown inside the platform for each booking before you accept it.'
           ]
         ]
       ]
@@ -109,9 +109,31 @@
             padding: 4rem 2rem;
         }
 
+        :root {
+            --faq-bg: #f8fafc;
+            --faq-card: #ffffff;
+            --faq-text: #0f172a;
+            --faq-muted: #64748b;
+            --faq-border: rgba(15, 23, 42, 0.08);
+            --faq-blue: #1e40af;
+            --faq-blue-2: #3b82f6;
+            --faq-orange: #f97316;
+            --faq-orange-2: #ea580c;
+            --faq-ring: rgba(59, 130, 246, 0.18);
+        }
+
         .faq-hero {
             text-align: center;
             margin-bottom: 4rem;
+        }
+
+        .faq-hero {
+            padding: 3rem 1.25rem;
+            background: radial-gradient(1200px 600px at 50% -10%, rgba(59, 130, 246, 0.18), transparent 60%),
+                        radial-gradient(900px 500px at 90% 0%, rgba(249, 115, 22, 0.14), transparent 60%);
+            border: 1px solid var(--faq-border);
+            border-radius: 24px;
+            box-shadow: 0 18px 50px rgba(15, 23, 42, 0.06);
         }
 
         .faq-hero h1 {
@@ -129,6 +151,32 @@
             margin: 0 auto;
         }
 
+        .faq-meta {
+            margin-top: 1.25rem;
+            display: flex;
+            justify-content: center;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+
+        .faq-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.6rem 0.95rem;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.75);
+            border: 1px solid var(--faq-border);
+            color: var(--faq-muted);
+            font-weight: 600;
+            font-size: 0.95rem;
+            backdrop-filter: blur(8px);
+        }
+
+        .faq-pill i {
+            color: var(--faq-blue-2);
+        }
+
         .faq-container {
             max-width: 1000px;
             margin: 0 auto;
@@ -138,11 +186,19 @@
             margin-bottom: 4rem;
         }
 
+        .faq-section {
+            background: var(--faq-card);
+            border: 1px solid var(--faq-border);
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 14px 45px rgba(15, 23, 42, 0.06);
+        }
+
         .faq-section-header {
             background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
             color: white;
             padding: 2rem;
-            border-radius: 16px 16px 0 0;
+            border-radius: 0;
             margin-bottom: 0;
         }
 
@@ -162,37 +218,106 @@
 
         .faq-section-content {
             background: white;
-            border-radius: 0 0 16px 16px;
-            padding: 2rem;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            border-radius: 0;
+            padding: 1.25rem;
+            box-shadow: none;
         }
 
-        .faq-item {
-            padding: 2rem;
-            border-bottom: 1px solid #e5e7eb;
-            transition: all 0.3s ease;
+        /* Accordion */
+        .faq-accordion {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
         }
 
-        .faq-item:last-child {
-            border-bottom: none;
+        details.faq-item {
+            border: 1px solid var(--faq-border);
+            border-radius: 16px;
+            background: #ffffff;
+            overflow: hidden;
+            transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
         }
 
-        .faq-item:hover {
-            background: #f9fafb;
-            padding-left: 2.5rem;
+        details.faq-item[open] {
+            border-color: rgba(59, 130, 246, 0.25);
+            box-shadow: 0 14px 40px rgba(15, 23, 42, 0.08);
         }
 
-        .faq-item h3 {
-            font-size: 1.25rem;
-            font-weight: 700;
-            color: #111827;
-            margin-bottom: 0.75rem;
+        details.faq-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
         }
 
-        .faq-item p {
-            color: #6b7280;
-            line-height: 1.7;
+        details.faq-item summary {
+            list-style: none;
+            cursor: pointer;
+            padding: 1.1rem 1.15rem;
+            display: grid;
+            grid-template-columns: 1fr auto;
+            align-items: center;
+            gap: 1rem;
+            color: var(--faq-text);
+            font-weight: 800;
+            font-size: 1.05rem;
+        }
+
+        details.faq-item summary::-webkit-details-marker {
+            display: none;
+        }
+
+        .faq-q {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.8rem;
+        }
+
+        .faq-q i {
+            width: 36px;
+            height: 36px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 12px;
+            background: rgba(59, 130, 246, 0.12);
+            color: var(--faq-blue-2);
+            flex: 0 0 auto;
+        }
+
+        .faq-chevron {
+            width: 36px;
+            height: 36px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 999px;
+            border: 1px solid var(--faq-border);
+            color: var(--faq-muted);
+            transition: transform 0.2s ease, background 0.2s ease;
+        }
+
+        details.faq-item[open] .faq-chevron {
+            transform: rotate(180deg);
+            background: rgba(59, 130, 246, 0.08);
+        }
+
+        .faq-a {
+            padding: 0 1.15rem 1.15rem;
+            color: var(--faq-muted);
+            line-height: 1.8;
+            font-size: 1rem;
+        }
+
+        .faq-a p {
             margin: 0;
+        }
+
+        .faq-a ul {
+            margin: 0.75rem 0 0;
+            padding-left: 1.25rem;
+        }
+
+        .faq-a li {
+            margin: 0.35rem 0;
         }
 
         footer {
@@ -288,6 +413,27 @@
                 text-align: center;
             }
         }
+
+        /* Scroll Animations */
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(40px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        [data-animate] {
+            opacity: 0;
+        }
+
+        [data-animate].visible {
+            animation: fadeInUp 0.6s ease forwards;
+        }
+
+    /* Remove old pseudo icon rules; accordion uses explicit icons */
     </style>
 </head>
 <body>
@@ -296,12 +442,17 @@
     <main>
         <div class="faq-hero">
             <h1>Frequently Asked Questions</h1>
-            <p>Find answers to your questions about our services</p>
+            <p>Find answers to your questions about booking, safety, and working with CAS Private Care.</p>
+            <div class="faq-meta">
+                <span class="faq-pill"><i class="bi bi-shield-check"></i> Verified contractors</span>
+                <span class="faq-pill"><i class="bi bi-credit-card"></i> Secure payments</span>
+                <span class="faq-pill"><i class="bi bi-clock"></i> Fast booking</span>
+            </div>
         </div>
 
         <div class="faq-container">
             <!-- FAQs for Clients -->
-            <div class="faq-section">
+            <div class="faq-section" data-animate>
                 <div class="faq-section-header">
                     <h2>
                         <i class="bi bi-house-heart-fill"></i>
@@ -309,45 +460,77 @@
                     </h2>
                 </div>
                 <div class="faq-section-content">
-                    <div class="faq-item">
-                        <h3>What services do you provide?</h3>
-                        <p>We focus on in-home caregiving services, including: Elderly Care (personal care support, meal preparation, medication reminders, companionship), Companion Care (conversation, supervision, light daily support), Personal Care (daily living assistance and personal hygiene support), and Special Needs Care (personalized support for individuals with unique requirements). All caregivers are verified and background-checked.</p>
-                    </div>
-                    
-                    <div class="faq-item">
-                        <h3>How quickly can I get a caregiver?</h3>
-                        <p>For emergency situations, we can typically arrange a caregiver within 4-6 hours. For scheduled services, we recommend booking 24-48 hours in advance to ensure the best match. Our online platform allows instant browsing and booking of available caregivers. We maintain a large network across all NYC boroughs to ensure availability.</p>
-                    </div>
-                    
-                    <div class="faq-item">
-                        <h3>Do you serve all NYC boroughs?</h3>
-                        <p>Yes! CAS Private Care provides verified caregivers throughout all five NYC boroughs: Manhattan, Brooklyn, Queens, Bronx, and Staten Island. We also serve surrounding areas in New York State. Our extensive network ensures we can match you with a qualified caregiver in your area.</p>
-                    </div>
-                    
-                    <div class="faq-item">
-                        <h3>What payment methods do you accept?</h3>
-                        <p>We accept multiple payment methods including credit cards, debit cards, and secure online payments through our platform. All payments are processed securely with encryption. We also offer payment plans and can coordinate with insurance for qualifying services. Pricing is transparent with no hidden fees.</p>
-                    </div>
-                    
-                    <div class="faq-item">
-                        <h3>Are your caregivers verified and licensed?</h3>
-                        <p>Yes, all our caregivers are thoroughly verified and background-checked. Caregivers providing medical services or home health aide services are licensed by the New York State Department of Health. All caregivers undergo background checks and certification verification regardless of service type. We ensure all caregivers meet or exceed New York State requirements.</p>
-                    </div>
-                    
-                    <div class="faq-item">
-                        <h3>How does the booking process work?</h3>
-                        <p>Our booking process is simple: 1) Browse & Select - Search for caregivers and review their profiles, credentials, and ratings. 2) Book & Schedule - Choose your preferred schedule and book instantly. Payments are processed securely through our platform. 3) Connect & Care - Caregivers receive bookings and deliver exceptional services. 4) Rate & Review - Share your experience to help others make informed decisions.</p>
-                    </div>
-                    
-                    <div class="faq-item">
-                        <h3>Can I schedule recurring services?</h3>
-                        <p>Yes, you can schedule both one-time and recurring services through our platform. Our intuitive booking system allows you to set up recurring appointments with your preferred caregiver, making it easy to maintain consistent care for yourself or your loved ones.</p>
+                    <div class="faq-accordion">
+                        <details class="faq-item">
+                            <summary>
+                                <span class="faq-q"><i class="bi bi-grid"></i> What services do you provide?</span>
+                                <span class="faq-chevron"><i class="bi bi-chevron-down"></i></span>
+                            </summary>
+                            <div class="faq-a">
+                                <p>We connect families with verified independent contractors for:</p>
+                                <ul>
+                                    <li><strong>Caregiving</strong> (elderly & companion support, medication reminders, meal prep, mobility support, supervision)</li>
+                                    <li><strong>Special needs support</strong> (personalized routines and assistance based on the client’s needs)</li>
+                                    <li><strong>Housekeeping</strong> (house helpers, deep cleaning, and home organization depending on the booking)</li>
+                                </ul>
+                            </div>
+                        </details>
+
+                        <details class="faq-item">
+                            <summary>
+                                <span class="faq-q"><i class="bi bi-lightning-charge"></i> How quickly can I book a caregiver or housekeeper?</span>
+                                <span class="faq-chevron"><i class="bi bi-chevron-down"></i></span>
+                            </summary>
+                            <div class="faq-a">
+                                <p>Availability depends on your location, schedule, and the type of service. You can browse available profiles and request a booking anytime. For urgent needs, choose the soonest available time and we’ll help you connect quickly.</p>
+                            </div>
+                        </details>
+
+                        <details class="faq-item">
+                            <summary>
+                                <span class="faq-q"><i class="bi bi-geo-alt"></i> Do you serve all NYC boroughs?</span>
+                                <span class="faq-chevron"><i class="bi bi-chevron-down"></i></span>
+                            </summary>
+                            <div class="faq-a">
+                                <p>Yes. We connect clients with verified contractors across Manhattan, Brooklyn, Queens, the Bronx, and Staten Island (and nearby areas when available).</p>
+                            </div>
+                        </details>
+
+                        <details class="faq-item">
+                            <summary>
+                                <span class="faq-q"><i class="bi bi-credit-card"></i> How do payments work?</span>
+                                <span class="faq-chevron"><i class="bi bi-chevron-down"></i></span>
+                            </summary>
+                            <div class="faq-a">
+                                <p>Payments are processed securely through our platform. You’ll see the total cost for your booking before confirming. After service is completed, you can leave a rating and review.</p>
+                            </div>
+                        </details>
+
+                        <details class="faq-item">
+                            <summary>
+                                <span class="faq-q"><i class="bi bi-shield-check"></i> Are contractors verified and background-checked?</span>
+                                <span class="faq-chevron"><i class="bi bi-chevron-down"></i></span>
+                            </summary>
+                            <div class="faq-a">
+                                <p>Yes. We use a verification process that may include identity verification, background checks, and credential validation where applicable. Individual profiles may show verified badges and documentation status.</p>
+                            </div>
+                        </details>
+
+                        <details class="faq-item">
+                            <summary>
+                                <span class="faq-q"><i class="bi bi-calendar-check"></i> Can I schedule recurring services?</span>
+                                <span class="faq-chevron"><i class="bi bi-chevron-down"></i></span>
+                            </summary>
+                            <div class="faq-a">
+                                <p>Yes. You can request one-time or recurring bookings. Many clients schedule weekly or daily support depending on availability and the contractor’s schedule.</p>
+                            </div>
+                        </details>
                     </div>
                 </div>
             </div>
 
             <!-- FAQs for 1099 Contractors -->
-            <div class="faq-section">
+            <div class="faq-section" data-animate>
                 <div class="faq-section-header" style="background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);">
                     <h2>
                         <i class="bi bi-briefcase-fill"></i>
@@ -355,39 +538,66 @@
                     </h2>
                 </div>
                 <div class="faq-section-content">
-                    <div class="faq-item">
-                        <h3>Is this a W-2 job or 1099 contractor position?</h3>
-                        <p>This is a 1099 independent contractor position. You are self-employed and have flexibility over your schedule and which bookings to accept. You are responsible for your own taxes, insurance, and compliance with applicable laws.</p>
-                    </div>
-                    
-                    <div class="faq-item">
-                        <h3>How do payments work?</h3>
-                        <p>You earn <span style="color: #10b981; font-weight: 700;">$28 per hour</span> as a caregiver contractor. Payments are processed on a regular schedule, and you'll receive detailed earnings reports. All rates are transparent and agreed upon before you accept any booking. Your caregiver rate of $28.00/hour remains consistent regardless of referral codes.</p>
-                    </div>
-                    
-                    <div class="faq-item">
-                        <h3>Do I choose my clients?</h3>
-                        <p>Yes, as an independent contractor, you have full control over which bookings to accept. You can review client needs, schedule, location, and rate before accepting any booking. This gives you the flexibility to work with clients that match your preferences and availability.</p>
-                    </div>
-                    
-                    <div class="faq-item">
-                        <h3>What areas of New York do you serve?</h3>
-                        <p>We connect caregiver contractors with clients across all five NYC boroughs: Manhattan, Brooklyn, Queens, the Bronx, and Staten Island. You can choose jobs near you and work in the communities you know best. Our platform allows you to filter bookings by location to find opportunities in your preferred areas.</p>
-                    </div>
-                    
-                    <div class="faq-item">
-                        <h3>How flexible is the schedule?</h3>
-                        <p>You have complete flexibility over your schedule. Work when it suits you - choose your own hours and accept bookings that fit your availability. Build your income around your life. There are no minimum hours required, so you can work as much or as little as you prefer.</p>
-                    </div>
-                    
-                    <div class="faq-item">
-                        <h3>What are the referral and training incentives?</h3>
-                        <p>We offer additional earning opportunities through our partner network: <span style="color: #10b981; font-weight: 700;">Marketing Partner Program</span> - Earn $1.00/hour for every hour worked by caregivers you refer. <span style="color: #10b981; font-weight: 700;">Training Center Partnership</span> - Training centers earn $0.50/hour for caregivers they train and certify. These programs allow you to build passive income while supporting the caregiver community.</p>
-                    </div>
-                    
-                    <div class="faq-item">
-                        <h3>What are the requirements to become a contractor?</h3>
-                        <p>To become a contractor with CAS Private Care, you need to: Complete the registration process, submit required documents and credentials, pass our verification and background check process, and maintain any necessary licenses or certifications for your service type. Our team will guide you through each step of the application process.</p>
+                    <div class="faq-accordion">
+                        <details class="faq-item">
+                            <summary>
+                                <span class="faq-q"><i class="bi bi-person-badge"></i> Is this W-2 employment or 1099 contracting?</span>
+                                <span class="faq-chevron"><i class="bi bi-chevron-down"></i></span>
+                            </summary>
+                            <div class="faq-a">
+                                <p>Contractors on CAS Private Care are independent 1099 contractors (self-employed). You control your availability and which bookings you accept. Contractors are responsible for their own taxes and business compliance.</p>
+                            </div>
+                        </details>
+
+                        <details class="faq-item">
+                            <summary>
+                                <span class="faq-q"><i class="bi bi-cash-stack"></i> How do payouts work?</span>
+                                <span class="faq-chevron"><i class="bi bi-chevron-down"></i></span>
+                            </summary>
+                            <div class="faq-a">
+                                <p>Payouts are sent on a regular schedule through the platform after services are completed. You can view job history and payout status in your dashboard. Each booking shows the compensation details inside the platform before you accept.</p>
+                            </div>
+                        </details>
+
+                        <details class="faq-item">
+                            <summary>
+                                <span class="faq-q"><i class="bi bi-check2-square"></i> Do I choose my clients and bookings?</span>
+                                <span class="faq-chevron"><i class="bi bi-chevron-down"></i></span>
+                            </summary>
+                            <div class="faq-a">
+                                <p>Yes. You can review booking details (service type, schedule, location, and requirements) and decide whether to accept. No minimum hours are required.</p>
+                            </div>
+                        </details>
+
+                        <details class="faq-item">
+                            <summary>
+                                <span class="faq-q"><i class="bi bi-map"></i> Where can I work?</span>
+                                <span class="faq-chevron"><i class="bi bi-chevron-down"></i></span>
+                            </summary>
+                            <div class="faq-a">
+                                <p>Bookings are available across NYC boroughs based on demand and your availability. You can filter requests by distance/location to find jobs that fit your route.</p>
+                            </div>
+                        </details>
+
+                        <details class="faq-item">
+                            <summary>
+                                <span class="faq-q"><i class="bi bi-award"></i> Do you offer referral or partner programs?</span>
+                                <span class="faq-chevron"><i class="bi bi-chevron-down"></i></span>
+                            </summary>
+                            <div class="faq-a">
+                                <p>We may offer partner programs (marketing partners and training center partnerships). Eligibility and terms are shown inside the platform or shared by our team—program amounts and compensation details are not displayed publicly.</p>
+                            </div>
+                        </details>
+
+                        <details class="faq-item">
+                            <summary>
+                                <span class="faq-q"><i class="bi bi-shield-lock"></i> What do I need to join?</span>
+                                <span class="faq-chevron"><i class="bi bi-chevron-down"></i></span>
+                            </summary>
+                            <div class="faq-a">
+                                <p>To join, complete registration and verification. Requirements may include identity verification, background checks, and confirming any applicable certifications (HHA/CNA/CPR) depending on the services you offer.</p>
+                            </div>
+                        </details>
                     </div>
                 </div>
             </div>
@@ -398,5 +608,27 @@
     
     <!-- Mobile-Only Footer -->
     @include('partials.mobile-footer')
+    
+    <script>
+        // Intersection Observer for scroll animations
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+        
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach((entry, index) => {
+                if (entry.isIntersecting) {
+                    setTimeout(() => {
+                        entry.target.classList.add('visible');
+                    }, index * 150);
+                }
+            });
+        }, observerOptions);
+        
+        document.querySelectorAll('[data-animate]').forEach(el => {
+            observer.observe(el);
+        });
+    </script>
 </body>
 </html>

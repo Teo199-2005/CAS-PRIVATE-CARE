@@ -147,7 +147,7 @@ $rate = $hours > 0 ? $subtotal / floatval($hours) : 0;
             <p><strong>Thank you for choosing CAS Private Care LLC!</strong></p>
             <p>This document serves as your official receipt for services rendered.</p>
             <p>For questions regarding this receipt, please contact billing@casprivatecare.com</p>
-            <p style="margin-top: 10px;">© 2024 CAS Private Care LLC. All rights reserved.</p>
+            <p style="margin-top: 10px;">© 2026 CAS Private Care LLC. All rights reserved.</p>
         </div>
     </div>
 </body>

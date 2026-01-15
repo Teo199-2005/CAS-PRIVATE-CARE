@@ -275,6 +275,6 @@ Hours per Day × Duration × (Rate - Discount) = Total
 
 ---
 
-**Version:** v1.2.0  
-**Last Updated:** January 3, 2026  
+**Version:** v1.5.0  
+**Last Updated:** January 14, 2026  
 **Feature:** Client Bookings Management

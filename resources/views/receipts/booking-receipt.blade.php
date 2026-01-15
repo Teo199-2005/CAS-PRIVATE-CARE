@@ -185,7 +185,7 @@
             <p><strong>CAS PRIVATE CARE LLC - Professional Caregiving Services</strong></p>
             <p>This is a computer-generated receipt and serves as proof of payment.</p>
             <p>All services are provided by licensed and certified caregiving professionals.</p>
-            <p style="margin-top: 15px;">© 2024-{{ date('Y') }} CAS Private Care LLC. All rights reserved.</p>
+            <p style="margin-top: 15px;">© 2026 CAS Private Care LLC. All rights reserved.</p>
         </div>
     </div>
 </body>

@@ -275,7 +275,7 @@
             font-size: 2rem;
             font-weight: 700;
             color: white;
-            margin-bottom: 2rem;
+            margin-bottom: 1rem;
             position: relative;
             z-index: 1;
         }
@@ -283,9 +283,9 @@
         .contact-info-item {
             background: rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(10px);
-            padding: 2rem;
+            padding: 1.25rem;
             border-radius: 16px;
-            margin-bottom: 1.5rem;
+            margin-bottom: 0.85rem;
             border: 1px solid rgba(255, 255, 255, 0.2);
             transition: all 0.3s ease;
             position: relative;
@@ -300,7 +300,7 @@
         .contact-info-item i {
             font-size: 2rem;
             color: #f97316;
-            margin-bottom: 1rem;
+            margin-bottom: 0.6rem;
             display: block;
         }
 
@@ -308,7 +308,7 @@
             font-size: 1.25rem;
             font-weight: 700;
             color: white;
-            margin-bottom: 0.5rem;
+            margin-bottom: 0.35rem;
         }
 
         .contact-info-item p {
@@ -447,6 +447,28 @@
         .contact-spacer {
             padding: 4rem 0;
         }
+
+        /* Additional scroll animations */
+        [data-animate] {
+            opacity: 0;
+            transition: opacity 0.6s ease, transform 0.6s ease;
+        }
+
+        [data-animate].visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .contact-info-item {
+            opacity: 0;
+            transform: translateX(20px);
+            transition: all 0.4s ease;
+        }
+
+        .contact-info-item.visible {
+            opacity: 1;
+            transform: translateX(0);
+        }
     </style>
 </head>
 <body>
@@ -503,8 +525,7 @@
                                     <select id="service_type" name="service_type" class="form-select" required>
                                         <option value="">Select a service type</option>
                                         <option value="elderly-care">Elderly Care</option>
-                                        <option value="companion-care">Companion Care</option>
-                                        <option value="personal-care">Personal Care</option>
+                                        <option value="housekeeping">Housekeeping</option>
                                         <option value="special-needs">Special Needs Care</option>
                                         <option value="training">Training Center</option>
                                         <option value="partner">Become a Partner</option>
@@ -546,25 +567,47 @@
                     <div class="contact-info-side">
                         <h3>Get in Touch</h3>
 
-                        <div class="contact-info-item">
+                        <!-- Response Time Badge -->
+                        <div style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); border: 1px solid rgba(255, 255, 255, 0.22); border-radius: 14px; padding: 0.9rem 1rem; margin-bottom: 1rem; box-shadow: 0 12px 30px rgba(16, 185, 129, 0.22);">
+                            <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.5rem;">
+                                <i class="bi bi-clock-fill" style="color: white; font-size: 1.25rem;"></i>
+                                <span style="font-weight: 900; color: white; font-size: 1rem;">Expected Response Time</span>
+                            </div>
+                            <p style="color: rgba(255, 255, 255, 0.92); font-size: 0.95rem; margin: 0;">We typically respond within <strong style="color: white;">24 hours</strong> on business days.</p>
+                        </div>
+
+                        <div class="contact-info-item" data-animate>
                             <i class="bi bi-envelope-fill"></i>
                             <h4>Email Us</h4>
                             <p>Send us an email anytime</p>
                             <a href="mailto:contact@casprivatecare.online">contact@casprivatecare.online</a>
                         </div>
 
-                        <div class="contact-info-item">
+                        <div class="contact-info-item" data-animate>
                             <i class="bi bi-telephone-fill"></i>
                             <h4>Call Us</h4>
                             <p>Mon-Fri 9am-6pm EST</p>
                             <a href="tel:+16462828282">+1 (646) 282-8282</a>
                         </div>
 
-                        <div class="contact-info-item">
+                        <div class="contact-info-item" data-animate>
                             <i class="bi bi-geo-alt-fill"></i>
                             <h4>Location</h4>
                             <p>Service Area</p>
                             <p>New York, USA</p>
+                        </div>
+
+                        <!-- Mini FAQ Links -->
+                        <div style="background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); border: 1px solid rgba(255, 255, 255, 0.22); border-radius: 14px; padding: 0.9rem 1rem; margin-top: 1rem; box-shadow: 0 12px 30px rgba(59, 130, 246, 0.22);">
+                            <div style="display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.75rem;">
+                <i class="bi bi-question-circle-fill" style="color: white; font-size: 1.15rem;"></i>
+                <span style="font-weight: 900; color: white; font-size: 0.95rem;">Quick Help</span>
+                            </div>
+                            <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.35rem;">
+                <li><a href="{{ url('/faq') }}" style="color: rgba(255, 255, 255, 0.95); font-size: 0.9rem; text-decoration: none; display: flex; align-items: center; gap: 0.4rem;"><i class="bi bi-arrow-right-circle" style="color: rgba(255, 255, 255, 0.95);"></i> View full FAQ</a></li>
+                <li><a href="{{ url('/services') }}" style="color: rgba(255, 255, 255, 0.95); font-size: 0.9rem; text-decoration: none; display: flex; align-items: center; gap: 0.4rem;"><i class="bi bi-arrow-right-circle" style="color: rgba(255, 255, 255, 0.95);"></i> Our Services</a></li>
+                <li><a href="{{ url('/contractors') }}" style="color: rgba(255, 255, 255, 0.95); font-size: 0.9rem; text-decoration: none; display: flex; align-items: center; gap: 0.4rem;"><i class="bi bi-arrow-right-circle" style="color: rgba(255, 255, 255, 0.95);"></i> Become a Partner</a></li>
+                            </ul>
                         </div>
                     </div>
                 </div>
@@ -623,6 +666,26 @@
                 }
             }
             e.target.value = value;
+        });
+
+        // Intersection Observer for scroll animations
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+        
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach((entry, index) => {
+                if (entry.isIntersecting) {
+                    setTimeout(() => {
+                        entry.target.classList.add('visible');
+                    }, index * 150);
+                }
+            });
+        }, observerOptions);
+        
+        document.querySelectorAll('[data-animate]').forEach(el => {
+            observer.observe(el);
         });
     </script>
 </body>
