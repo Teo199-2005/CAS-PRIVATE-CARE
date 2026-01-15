@@ -64,7 +64,6 @@
         ],
         'sameAs' => [
             'https://www.facebook.com/casprivatecare',
-            'https://www.twitter.com/casprivatecare',
             'https://www.instagram.com/casprivatecare',
             'https://www.linkedin.com/company/casprivatecare'
         ]

@@ -2383,7 +2383,6 @@ font-size: 1.1rem !important;
                         <p class="hero-social-text">TRUSTED BY 1,000+ FAMILIES IN NEW YORK</p>
                         <div class="hero-social-icons">
                             <a href="https://www.facebook.com/casprivatecare" class="hero-social-icon" aria-label="Follow us on Facebook"><i class="bi bi-facebook"></i></a>
-                            <a href="https://www.twitter.com/casprivatecare" class="hero-social-icon" aria-label="Follow us on Twitter"><i class="bi bi-twitter"></i></a>
                             <a href="https://www.instagram.com/casprivatecare" class="hero-social-icon" aria-label="Follow us on Instagram"><i class="bi bi-instagram"></i></a>
                             <a href="https://www.linkedin.com/company/casprivatecare" class="hero-social-icon" aria-label="Follow us on LinkedIn"><i class="bi bi-linkedin"></i></a>
                         </div>

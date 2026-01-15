@@ -340,9 +340,6 @@
                 <a href="https://www.facebook.com/sharer/sharer.php?u={{ urlencode(request()->url()) }}" target="_blank" class="share-btn facebook" title="Share on Facebook">
                     <i class="bi bi-facebook"></i>
                 </a>
-                <a href="https://twitter.com/intent/tweet?url={{ urlencode(request()->url()) }}&text={{ urlencode($post->title) }}" target="_blank" class="share-btn twitter" title="Share on Twitter">
-                    <i class="bi bi-twitter"></i>
-                </a>
                 <a href="https://www.linkedin.com/shareArticle?mini=true&url={{ urlencode(request()->url()) }}&title={{ urlencode($post->title) }}" target="_blank" class="share-btn linkedin" title="Share on LinkedIn">
                     <i class="bi bi-linkedin"></i>
                 </a>

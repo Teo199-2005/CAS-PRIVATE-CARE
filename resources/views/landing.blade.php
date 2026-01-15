@@ -64,7 +64,6 @@
         ],
         'sameAs' => [
             'https://www.facebook.com/casprivatecare',
-            'https://www.twitter.com/casprivatecare',
             'https://www.instagram.com/casprivatecare',
             'https://www.linkedin.com/company/casprivatecare'
         ]
@@ -248,7 +247,7 @@
             display: flex;
             align-items: center;
             gap: 1rem;
-            flex-wrap: wrap;
+            flex-wrap: nowrap;
             justify-content: center;
         }
 
@@ -258,31 +257,62 @@
             margin: 0;
             font-weight: 500;
             letter-spacing: 1px;
+            white-space: nowrap;
         }
 
         .hero-social-icons {
             display: flex;
             gap: 0.75rem;
+            align-items: center;
+        }
+
+        .hero-social-icon {
+            flex: 0 0 auto;
         }
 
         .hero-social-icon {
             width: 42px;
             height: 42px;
-            background: rgba(255, 255, 255, 0.2);
+            background: rgba(15, 23, 42, 0.55);
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            color: #3b82f6;
+            color: #ffffff;
             text-decoration: none;
             transition: all 0.3s;
             font-size: 1.1rem;
-            border: 1px solid rgba(255, 255, 255, 0.25);
+            border: 1px solid rgba(255, 255, 255, 0.45);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            box-shadow: 0 10px 24px rgba(15, 23, 42, 0.18);
         }
 
         .hero-social-icon:hover {
-            background: rgba(255, 255, 255, 0.85);
+            background: rgba(15, 23, 42, 0.75);
             transform: translateY(-3px);
+            border-color: rgba(255, 255, 255, 0.5);
+            box-shadow: 0 14px 34px rgba(15, 23, 42, 0.28);
+        }
+
+        /* Keep "CONNECT WITH US" perfectly aligned with icon row */
+        .hero-social-container {
+            display: flex;
+            align-items: baseline;
+            gap: 0.85rem;
+        }
+
+        .hero-social-text {
+            margin: 0;
+            line-height: 1;
+            padding-top: 2px; /* nudges baseline to visually center with circular icons */
+            white-space: nowrap;
+        }
+
+        .hero-social-icons {
+            display: flex;
+            align-items: center;
+            height: 42px;
         }
 
         /* About Section Feature Cards */
@@ -3115,7 +3145,7 @@ font-size: 1.1rem !important;
                     <img src="{{ asset('cover.jpg') }}" alt="CAS Private Care LLC Cover" class="hero-cover-image">
                 </div>
                 <div class="hero-social-container">
-                    <p class="hero-social-text">CONNECT WITH US</p>
+                    <p class="hero-social-text">CONNECT WITH US:</p>
                     <div class="hero-social-icons">
                         <a href="https://www.facebook.com/profile.php?id=61584831099232" target="_blank" rel="noopener noreferrer" class="hero-social-icon" aria-label="Follow us on Facebook" onclick="window.open(this.href, '_blank'); return false;"><i class="bi bi-facebook"></i></a>
                         <a href="https://www.linkedin.com/in/CASprivatecare" target="_blank" rel="noopener noreferrer" class="hero-social-icon" aria-label="Follow us on LinkedIn" onclick="window.open(this.href, '_blank'); return false;"><i class="bi bi-linkedin"></i></a>
