@@ -466,6 +466,11 @@
             <span style="display:none">{{ ensureItemPlaceIndicator(item) }}</span>
             {{ item.place_indicator || item.location || 'Unknown ZIP' }}
           </template>
+          <template v-slot:item.preferred_hourly_rate="{ item }">
+            <span>
+              ${{ item.preferred_hourly_rate_min ?? 20 }} - ${{ item.preferred_hourly_rate_max ?? 50 }}/hr
+            </span>
+          </template>
           <template v-slot:item.status="{ item }">
             <v-chip
               :color="getUserStatusColor(item.status)"
@@ -6982,6 +6987,7 @@ const caregiverHeaders = [
   { title: 'Phone', key: 'phone' },
   { title: 'Zip Code', key: 'zip_code' },
   { title: 'Location', key: 'location' },
+  { title: 'Preferred Hourly Rate', key: 'preferred_hourly_rate', sortable: false },
   { title: 'Status', key: 'status' },
   { title: 'Rating', key: 'rating' },
   { title: 'Actions', key: 'actions', sortable: false },
