@@ -15,7 +15,6 @@
                     Services <i class="bi bi-chevron-down" style="font-size: 0.8rem; margin-left: 0.5rem;"></i>
                 </a>
                 <div class="dropdown-menu" id="servicesMenu">
-                    <a href="{{ url('/services') }}">All Services</a>
                     <a href="{{ url('/caregiver-new-york') }}">Caregiver</a>
                     <a href="{{ url('/housekeeper-new-york') }}">Housekeeper</a>
                 </div>
