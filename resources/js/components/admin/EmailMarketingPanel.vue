@@ -241,24 +241,24 @@ The CAS Private Care Team"
           </thead>
           <tbody>
             <tr v-for="camp in campaigns" :key="camp.id">
-              <td>
+              <td data-label="Campaign">
                 <div class="campaign-name">{{ camp.name }}</div>
                 <div class="campaign-subject">{{ camp.subject }}</div>
               </td>
-              <td>
+              <td data-label="Status">
                 <span :class="['status-badge', camp.status]">{{ camp.status }}</span>
               </td>
-              <td>{{ camp.sent_count || 0 }}</td>
-              <td>
+              <td data-label="Sent">{{ camp.sent_count || 0 }}</td>
+              <td data-label="Opens">
                 {{ camp.open_count || 0 }}
                 <span class="rate" v-if="camp.sent_count">({{ ((camp.open_count / camp.sent_count) * 100).toFixed(1) }}%)</span>
               </td>
-              <td>
+              <td data-label="Clicks">
                 {{ camp.click_count || 0 }}
                 <span class="rate" v-if="camp.sent_count">({{ ((camp.click_count / camp.sent_count) * 100).toFixed(1) }}%)</span>
               </td>
-              <td>{{ formatDate(camp.sent_at || camp.created_at) }}</td>
-              <td>
+              <td data-label="Date">{{ formatDate(camp.sent_at || camp.created_at) }}</td>
+              <td data-label="Actions">
                 <button @click="viewCampaign(camp)" class="action-btn" title="View Analytics">
                   <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
@@ -1007,6 +1007,13 @@ export default {
   gap: 24px;
 }
 
+/* Form Row - two columns side by side */
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
 @media (max-width: 768px) {
   .form-grid {
     grid-template-columns: 1fr;
@@ -1036,15 +1043,6 @@ export default {
   outline: none;
   border-color: #dc2626;
   box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
-}
-
-.form-row {
-  display: flex;
-  gap: 16px;
-}
-
-.form-row .form-group {
-  flex: 1;
 }
 
 .form-textarea {
@@ -1509,477 +1507,687 @@ export default {
   }
 }
 
-/* ============================================
+/* =====================================================
    MOBILE RESPONSIVE STYLES
-   ============================================ */
+   ===================================================== */
 
-/* Tablet and below (768px) */
+/* Tablet and below (max-width: 1024px) */
+@media (max-width: 1024px) {
+  .email-marketing-panel {
+    padding: 16px;
+  }
+  
+  .panel-header h2 {
+    font-size: 20px;
+  }
+  
+  .compose-layout {
+    flex-direction: column;
+  }
+  
+  .compose-left,
+  .compose-right {
+    flex: none;
+    width: 100%;
+    max-width: 100%;
+  }
+  
+  .compose-right {
+    position: static;
+    order: -1; /* Move recipients above compose on tablet */
+  }
+  
+  .recipients-card {
+    max-height: 350px;
+    margin-bottom: 20px;
+  }
+  
+  .campaigns-table {
+    overflow-x: auto;
+  }
+  
+  .campaigns-table table {
+    min-width: 700px;
+  }
+}
+
+/* Mobile devices (max-width: 768px) */
 @media (max-width: 768px) {
   .email-marketing-panel {
     padding: 12px;
   }
-
+  
   .panel-header {
     margin-bottom: 16px;
     text-align: center;
   }
-
+  
   .panel-header h2 {
-    font-size: 20px;
+    font-size: 18px;
+    margin-bottom: 4px;
   }
-
+  
   .panel-header p {
     font-size: 13px;
   }
-
-  /* Stats Grid - 2 columns on tablet, 1 on mobile */
+  
+  /* Stats Grid - 2 columns on mobile */
   .stats-grid {
     grid-template-columns: repeat(2, 1fr);
-    gap: 12px;
+    gap: 10px;
     margin-bottom: 16px;
   }
-
+  
   .stat-card {
     padding: 14px;
-    gap: 12px;
+    flex-direction: column;
+    text-align: center;
+    gap: 10px;
   }
-
+  
   .stat-icon {
     width: 40px;
     height: 40px;
   }
-
+  
+  .stat-icon svg {
+    width: 20px;
+    height: 20px;
+  }
+  
   .stat-value {
     font-size: 20px;
   }
-
+  
   .stat-label {
-    font-size: 12px;
+    font-size: 11px;
   }
-
-  /* Tabs - Full width */
+  
+  /* Tabs - full width on mobile */
   .tabs {
-    flex-wrap: wrap;
-    gap: 8px;
+    flex-direction: row;
+    gap: 6px;
     padding-bottom: 12px;
+    margin-bottom: 16px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
   }
-
+  
   .tab {
+    padding: 10px 16px;
+    font-size: 13px;
+    white-space: nowrap;
     flex: 1;
-    min-width: 45%;
-    padding: 10px 12px;
-    font-size: 14px;
     text-align: center;
   }
-
-  /* Compose Layout - Stack vertically */
-  .compose-layout {
-    flex-direction: column;
-  }
-
-  .compose-left,
-  .compose-right {
-    width: 100%;
-    max-width: 100%;
-    flex: none;
-  }
-
-  .compose-right {
-    position: static;
-    margin-top: 16px;
-  }
-
-  /* Compose Card */
+  
+  /* Compose Cards */
   .compose-card {
     padding: 16px;
-    margin-bottom: 16px;
+    margin-bottom: 12px;
+    border-radius: 10px;
   }
-
+  
   .compose-card-title {
-    font-size: 16px;
-    margin-bottom: 16px;
+    font-size: 15px;
+    margin-bottom: 14px;
     padding-bottom: 10px;
   }
-
-  /* Form Row - Stack on mobile */
+  
+  /* Form Row - stack on mobile */
   .form-row {
+    display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 0;
   }
-
+  
   .form-group {
     margin-bottom: 12px;
   }
-
+  
   .form-group label {
     font-size: 13px;
     margin-bottom: 6px;
   }
-
+  
   .form-input {
     padding: 10px 12px;
     font-size: 14px;
+    border-radius: 6px;
   }
-
+  
   .form-textarea {
-    font-size: 14px;
     padding: 10px 12px;
+    font-size: 14px;
+    min-height: 180px;
+    border-radius: 6px;
   }
-
-  /* Content Toolbar - Wrap buttons */
+  
+  /* Content Toolbar - wrap on mobile */
   .content-toolbar {
     flex-wrap: wrap;
     gap: 6px;
-    padding: 10px;
+    padding: 8px 10px;
   }
-
+  
   .toolbar-label {
     width: 100%;
-    margin-bottom: 6px;
-  }
-
-  .toolbar-btn {
-    padding: 8px 10px;
     font-size: 12px;
+    margin-bottom: 4px;
+  }
+  
+  .toolbar-btn {
+    padding: 6px 10px;
+    font-size: 11px;
+    gap: 4px;
     flex: 1;
-    min-width: calc(50% - 6px);
+    min-width: auto;
     justify-content: center;
   }
-
+  
   .toolbar-icon {
     width: 14px;
     height: 14px;
   }
-
-  /* Recipients Card */
-  .recipients-card {
-    padding: 16px;
-    max-height: 400px;
-  }
-
-  .recipients-card h3 {
-    font-size: 16px;
-  }
-
-  .recipients-header {
-    flex-direction: column;
-    gap: 10px;
-    align-items: flex-start;
-  }
-
-  .recipients-header h3 {
-    font-size: 15px;
-  }
-
-  .recipients-actions {
-    width: 100%;
-    justify-content: space-between;
-  }
-
-  .btn-link {
-    font-size: 13px;
-  }
-
-  .recipients-list {
-    max-height: 250px;
-  }
-
-  .recipient-item {
-    padding: 10px 8px;
-    flex-wrap: wrap;
-    gap: 8px;
-  }
-
-  .recipient-info {
-    flex: 1;
-    min-width: 0;
-  }
-
-  .recipient-name {
-    font-size: 13px;
-    display: block;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  .recipient-email {
-    font-size: 11px;
-    display: block;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  .recipient-bookings {
-    font-size: 11px;
-    flex-shrink: 0;
-  }
-
-  /* Action Buttons */
-  .action-buttons {
-    flex-direction: column;
-    gap: 8px;
-  }
-
-  .btn-primary,
-  .btn-secondary,
-  .btn-success {
-    width: 100%;
-    padding: 12px 16px;
-    font-size: 14px;
-    justify-content: center;
-  }
-
-  /* Form Hint */
+  
   .form-hint {
     font-size: 11px;
-    padding: 8px 10px;
+    padding: 6px 10px;
   }
-
-  /* Campaigns Table - Card view */
+  
+  .hint-icon {
+    width: 14px;
+    height: 14px;
+  }
+  
+  /* Recipients Card */
+  .compose-right {
+    order: 1; /* Keep recipients below on mobile for better UX */
+  }
+  
+  .recipients-card {
+    padding: 14px;
+    max-height: none; /* Remove height restriction on mobile */
+    overflow: visible;
+  }
+  
+  .recipients-card h3 {
+    font-size: 14px;
+    margin-bottom: 10px;
+    padding-bottom: 8px;
+  }
+  
+  .recipients-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+  
+  .recipients-header h3 {
+    font-size: 15px;
+    font-weight: 600;
+    border: none;
+    padding: 0;
+    margin: 0;
+    text-align: center;
+  }
+  
+  .recipients-actions {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  
+  .btn-link {
+    font-size: 13px;
+    padding: 10px 12px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    text-align: center;
+    color: #dc2626;
+    font-weight: 500;
+  }
+  
+  .recipients-list {
+    max-height: 250px;
+    overflow-y: auto;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    margin-bottom: 16px;
+  }
+  
+  .recipients-empty {
+    padding: 24px;
+    text-align: center;
+    color: #64748b;
+    background: #f8fafc;
+    border-radius: 8px;
+    margin-bottom: 16px;
+  }
+  
+  .recipient-item {
+    padding: 10px 12px;
+    gap: 10px;
+    border-bottom: 1px solid #f1f5f9;
+  }
+  
+  .recipient-item:last-child {
+    border-bottom: none;
+  }
+  
+  .recipient-item input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+  }
+  
+  .recipient-name {
+    font-size: 14px;
+    font-weight: 500;
+  }
+  
+  .recipient-email {
+    font-size: 12px;
+  }
+  
+  .recipient-bookings {
+    padding: 4px 10px;
+    font-size: 11px;
+    border-radius: 12px;
+  }
+  
+  /* Action Buttons - improved mobile layout */
+  .action-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 0;
+    padding-top: 0;
+    border-top: none;
+  }
+  
+  .btn {
+    padding: 14px 18px;
+    font-size: 14px;
+    width: 100%;
+    text-align: center;
+    border-radius: 10px;
+    font-weight: 600;
+  }
+  
+  .btn-primary {
+    order: -1; /* Move primary action to top on mobile */
+    background: #dc2626;
+    color: white;
+    box-shadow: 0 2px 8px rgba(220, 38, 38, 0.3);
+  }
+  
+  .btn-secondary {
+    background: white;
+    border: 1px solid #e2e8f0;
+    color: #374151;
+  }
+  
+  .btn-full {
+    order: -1;
+  }
+  
+  /* Campaigns Table - Cards on mobile */
+  .campaigns-section {
+    overflow: visible;
+  }
+  
   .campaigns-table {
-    display: block;
-    overflow-x: auto;
+    overflow: visible;
+    box-shadow: none;
+    background: transparent;
   }
-
+  
+  .campaigns-table table,
+  .campaigns-table thead,
+  .campaigns-table tbody,
+  .campaigns-table th,
+  .campaigns-table td,
+  .campaigns-table tr {
+    display: block;
+  }
+  
   .campaigns-table thead {
     display: none;
   }
-
-  .campaigns-table tbody tr {
-    display: flex;
-    flex-direction: column;
-    padding: 12px;
-    margin-bottom: 12px;
+  
+  .campaigns-table tr {
     background: white;
     border-radius: 10px;
+    margin-bottom: 12px;
+    padding: 14px;
     box-shadow: 0 1px 3px rgba(0,0,0,0.1);
   }
-
-  .campaigns-table tbody td {
+  
+  .campaigns-table td {
+    padding: 6px 0;
+    border: none;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 8px 0;
-    border-bottom: 1px solid #f1f5f9;
   }
-
-  .campaigns-table tbody td:last-child {
-    border-bottom: none;
-    justify-content: flex-end;
-    gap: 8px;
-    padding-top: 12px;
-  }
-
-  .campaigns-table tbody td::before {
+  
+  .campaigns-table td::before {
     content: attr(data-label);
     font-weight: 600;
+    font-size: 12px;
     color: #64748b;
+    text-transform: uppercase;
+  }
+  
+  .campaigns-table td:first-child {
+    flex-direction: column;
+    align-items: flex-start;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #e2e8f0;
+    margin-bottom: 6px;
+  }
+  
+  .campaigns-table td:first-child::before {
+    display: none;
+  }
+  
+  .campaign-name {
+    font-size: 14px;
+  }
+  
+  .campaign-subject {
     font-size: 12px;
   }
-
-  /* Modal styles */
+  
+  .campaigns-table td:last-child {
+    justify-content: flex-end;
+    padding-top: 10px;
+    border-top: 1px solid #e2e8f0;
+    margin-top: 6px;
+  }
+  
+  .campaigns-table td:last-child::before {
+    display: none;
+  }
+  
+  .action-btn {
+    padding: 8px;
+  }
+  
+  /* Empty State */
+  .empty-state {
+    padding: 40px 16px;
+  }
+  
+  .empty-state svg {
+    width: 48px;
+    height: 48px;
+  }
+  
+  .empty-state p {
+    font-size: 14px;
+  }
+  
+  /* Modals - fullscreen on mobile */
+  .modal-overlay {
+    align-items: flex-end;
+    padding: 0;
+  }
+  
   .modal {
-    width: 95%;
-    max-width: 95%;
-    margin: 10px;
+    max-width: 100%;
+    width: 100%;
     max-height: 90vh;
+    border-radius: 16px 16px 0 0;
   }
-
+  
+  .preview-modal,
+  .analytics-modal {
+    max-width: 100%;
+  }
+  
   .modal-header {
-    padding: 16px;
+    padding: 16px 18px;
   }
-
+  
   .modal-header h3 {
-    font-size: 18px;
+    font-size: 16px;
   }
-
+  
+  .close-btn {
+    font-size: 20px;
+    padding: 4px;
+  }
+  
   .modal-body {
-    padding: 16px;
-    max-height: 65vh;
+    padding: 16px 18px;
+    max-height: 70vh;
   }
-
-  /* Analytics stats */
+  
+  .preview-subject {
+    padding: 10px;
+    font-size: 13px;
+  }
+  
+  .preview-content {
+    padding: 12px;
+    font-size: 14px;
+  }
+  
+  /* Analytics Stats - 2 columns on mobile */
   .analytics-stats {
     grid-template-columns: repeat(2, 1fr);
     gap: 10px;
   }
-
+  
   .analytics-stat {
     padding: 12px;
   }
-
-  .analytics-stat .value {
-    font-size: 16px;
+  
+  .analytics-stat .label {
+    font-size: 11px;
   }
-
-  /* Notification */
+  
+  .analytics-stat .value {
+    font-size: 15px;
+  }
+  
+  .analytics-section h5 {
+    font-size: 13px;
+  }
+  
+  .analytics-section li {
+    font-size: 12px;
+  }
+  
+  /* Notification - full width on mobile */
   .notification {
     left: 12px;
     right: 12px;
     bottom: 12px;
+    padding: 14px 18px;
+    font-size: 13px;
     text-align: center;
-    font-size: 14px;
-    padding: 12px 16px;
   }
 }
 
-/* Small phones (480px and below) */
+/* Small mobile devices (max-width: 480px) */
 @media (max-width: 480px) {
   .email-marketing-panel {
-    padding: 8px;
+    padding: 10px;
   }
-
-  .panel-header h2 {
-    font-size: 18px;
-  }
-
-  /* Stats Grid - 1 column */
-  .stats-grid {
-    grid-template-columns: 1fr;
-    gap: 10px;
-  }
-
-  .stat-card {
-    padding: 12px;
-  }
-
-  .stat-value {
-    font-size: 18px;
-  }
-
-  /* Tabs - Full width each */
-  .tab {
-    min-width: 100%;
-    padding: 12px;
-  }
-
-  /* Compose Card */
-  .compose-card {
-    padding: 12px;
-    border-radius: 10px;
-  }
-
-  .compose-card-title {
-    font-size: 15px;
-  }
-
-  /* Content Toolbar */
-  .content-toolbar {
-    padding: 8px;
-  }
-
-  .toolbar-btn {
-    padding: 6px 8px;
-    font-size: 11px;
-    min-width: calc(50% - 4px);
-  }
-
-  /* Recipients */
-  .recipients-card {
-    padding: 12px;
-    max-height: 350px;
-  }
-
-  .recipients-list {
-    max-height: 200px;
-  }
-
-  .recipient-item {
-    padding: 8px 6px;
-  }
-
-  .recipient-name {
-    font-size: 12px;
-  }
-
-  .recipient-email {
-    font-size: 10px;
-  }
-
-  /* Buttons */
-  .btn-primary,
-  .btn-secondary,
-  .btn-success {
-    padding: 10px 14px;
-    font-size: 13px;
-  }
-
-  /* Modal */
-  .modal {
-    width: 100%;
-    max-width: 100%;
-    margin: 0;
-    border-radius: 16px 16px 0 0;
-    max-height: 95vh;
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-  }
-
-  .modal-body {
-    max-height: 70vh;
-  }
-
-  /* Analytics */
-  .analytics-stats {
-    grid-template-columns: 1fr;
-  }
-}
-
-/* Extra small phones (380px and below) */
-@media (max-width: 380px) {
-  .email-marketing-panel {
-    padding: 6px;
-  }
-
+  
   .panel-header h2 {
     font-size: 16px;
   }
-
+  
   .panel-header p {
     font-size: 12px;
   }
-
-  .compose-card {
+  
+  /* Stats - smaller on very small screens */
+  .stats-grid {
+    gap: 8px;
+  }
+  
+  .stat-card {
     padding: 10px;
   }
-
+  
+  .stat-icon {
+    width: 32px;
+    height: 32px;
+  }
+  
+  .stat-icon svg {
+    width: 16px;
+    height: 16px;
+  }
+  
+  .stat-value {
+    font-size: 16px;
+  }
+  
+  .stat-label {
+    font-size: 10px;
+  }
+  
+  /* Compose Card */
+  .compose-card {
+    padding: 12px;
+  }
+  
   .compose-card-title {
     font-size: 14px;
   }
-
+  
+  .form-group label {
+    font-size: 12px;
+  }
+  
   .form-input,
   .form-textarea {
     padding: 8px 10px;
     font-size: 13px;
   }
-
-  .toolbar-btn {
-    min-width: 100%;
-    font-size: 12px;
-    padding: 8px;
+  
+  /* Toolbar buttons - 2 columns on very small screens */
+  .content-toolbar {
+    padding: 6px 8px;
   }
-
+  
+  .toolbar-btn {
+    padding: 5px 8px;
+    font-size: 10px;
+  }
+  
+  /* Recipients */
   .recipients-card {
     padding: 10px;
+    max-height: 250px;
   }
-
+  
+  .recipients-list {
+    max-height: 150px;
+  }
+  
+  .recipient-item {
+    padding: 6px 8px;
+  }
+  
   .recipient-name {
-    font-size: 11px;
+    font-size: 12px;
   }
-
+  
   .recipient-email {
+    font-size: 10px;
+  }
+  
+  .recipient-bookings {
+    padding: 2px 6px;
     font-size: 9px;
   }
-
-  .btn-primary,
-  .btn-secondary,
-  .btn-success {
-    padding: 10px 12px;
+  
+  /* Buttons */
+  .btn {
+    padding: 10px 14px;
     font-size: 12px;
+  }
+  
+  /* Campaign cards */
+  .campaigns-table tr {
+    padding: 10px;
+  }
+  
+  .campaign-name {
+    font-size: 13px;
+  }
+  
+  .campaign-subject {
+    font-size: 11px;
+  }
+  
+  .status-badge {
+    padding: 3px 8px;
+    font-size: 10px;
+  }
+  
+  .rate {
+    font-size: 10px;
+  }
+  
+  /* Modal */
+  .modal-header {
+    padding: 12px 14px;
+  }
+  
+  .modal-body {
+    padding: 12px 14px;
+  }
+}
+
+/* Landscape orientation fix for mobile */
+@media (max-height: 500px) and (orientation: landscape) {
+  .modal {
+    max-height: 85vh;
+  }
+  
+  .modal-body {
+    max-height: 55vh;
+  }
+  
+  .recipients-card {
+    max-height: 200px;
+  }
+  
+  .recipients-list {
+    max-height: 120px;
+  }
+}
+
+/* Touch-friendly improvements */
+@media (hover: none) and (pointer: coarse) {
+  .toolbar-btn,
+  .btn,
+  .action-btn,
+  .tab,
+  .btn-link {
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .recipient-item {
+    min-height: 48px;
+  }
+  
+  .recipient-item input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
   }
 }
 </style>

@@ -108,6 +108,16 @@ Route::middleware(['auth'])->prefix('api/auth')->group(function () {
 });
 
 // ============================================
+// SESSION MANAGEMENT ROUTES (Admin Single Session Enforcement)
+// ============================================
+Route::middleware(['auth'])->prefix('api/session')->group(function () {
+    Route::post('/generate-token', [\App\Http\Controllers\SessionController::class, 'generateSessionToken']);
+    Route::get('/validate', [\App\Http\Controllers\SessionController::class, 'validateSession']);
+    Route::get('/heartbeat', [\App\Http\Controllers\SessionController::class, 'heartbeat']);
+    Route::post('/clear', [\App\Http\Controllers\SessionController::class, 'clearSession']);
+});
+
+// ============================================
 // PUBLIC API ROUTES (No authentication)
 // ============================================
 

@@ -9,33 +9,24 @@
             <span aria-hidden="true">☰</span>
         </button>
         <ul class="nav-links" id="navLinks">
-            <!-- Mobile Menu Header with Close Button -->
-            <li class="mobile-menu-header">
-                <span class="mobile-menu-title">Menu</span>
-                <button class="mobile-close-btn" onclick="toggleMenu()" aria-label="Close menu">
-                    <i class="bi bi-x-lg"></i>
-                </button>
-            </li>
-            <li><a href="{{ url('/') }}"><i class="bi bi-house-fill me-2"></i> Home</a></li>
+            <li><a href="{{ url('/') }}">Home</a></li>
             <li class="dropdown" id="servicesDropdown">
                 <a href="{{ url('/services') }}" class="dropdown-toggle" onclick="toggleDropdown(event)">
-                    <span><i class="bi bi-heart-pulse-fill me-2"></i> Services</span>
-                    <i class="bi bi-chevron-down dropdown-arrow"></i>
+                    Services <i class="bi bi-chevron-down" style="font-size: 0.8rem; margin-left: 0.5rem;"></i>
                 </a>
                 <div class="dropdown-menu" id="servicesMenu">
-                    <a href="{{ url('/caregiver-new-york') }}"><i class="bi bi-person-heart me-2"></i> Caregiver</a>
-                    <a href="{{ url('/housekeeper-new-york') }}"><i class="bi bi-house-heart me-2"></i> Housekeeper</a>
+                    <a href="{{ url('/caregiver-new-york') }}">Caregiver</a>
+                    <a href="{{ url('/housekeeper-new-york') }}">Housekeeper</a>
                 </div>
             </li>
-            <li><a href="{{ url('/contractors') }}"><i class="bi bi-file-earmark-person-fill me-2"></i> 1099 Contractors</a></li>
-            <li><a href="{{ url('/training-center') }}"><i class="bi bi-mortarboard-fill me-2"></i> Training Center</a></li>
-            <li><a href="{{ url('/about') }}"><i class="bi bi-info-circle-fill me-2"></i> About</a></li>
-            <li><a href="{{ url('/blog') }}"><i class="bi bi-journal-text me-2"></i> Blog</a></li>
-            <li><a href="{{ url('/contact') }}"><i class="bi bi-envelope-fill me-2"></i> Contact Us</a></li>
-            <li><a href="{{ url('/faq') }}"><i class="bi bi-question-circle-fill me-2"></i> FAQ</a></li>
-            <li class="mobile-divider"></li>
-            <li><a href="{{ url('/login') }}" class="mobile-login-btn"><i class="bi bi-box-arrow-in-right me-2"></i> Login</a></li>
-            <li><a href="{{ url('/register') }}" class="cta-btn"><i class="bi bi-person-plus-fill me-2"></i> Register</a></li>
+            <li><a href="{{ url('/contractors') }}">1099 Contractors</a></li>
+            <li><a href="{{ url('/training-center') }}">Accredited Training Center</a></li>
+            <li><a href="{{ url('/about') }}">About</a></li>
+            <li><a href="{{ url('/blog') }}">Blog</a></li>
+            <li><a href="{{ url('/contact') }}">Contact Us</a></li>
+            <li><a href="{{ url('/faq') }}">FAQ</a></li>
+            <li><a href="{{ url('/login') }}">Login</a></li>
+            <li><a href="{{ url('/register') }}" class="cta-btn">Register</a></li>
         </ul>
     </div>
 </nav>

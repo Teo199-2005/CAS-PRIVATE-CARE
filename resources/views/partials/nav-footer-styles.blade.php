@@ -165,7 +165,7 @@
     }
 
     .cta-btn {
-        background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
+        background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
         color: white !important;
         padding: 0.75rem 1.5rem !important;
         border-radius: 8px;
@@ -175,17 +175,6 @@
         border: 1px solid rgba(37, 99, 235, 0.3);
         position: relative;
         overflow: hidden;
-    }
-
-    /* Ensure nav CTA (Register) never loses its gradient due to more specific link rules */
-    .nav-links a.cta-btn {
-        background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
-        color: white !important;
-        border-color: rgba(37, 99, 235, 0.3) !important;
-    }
-
-    .nav-links a.cta-btn:hover {
-        background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%) !important;
     }
 
     .cta-btn::before {
@@ -204,12 +193,12 @@
     }
 
     .cta-btn:hover {
-        background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%) !important;
+        background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
         border-color: rgba(37, 99, 235, 0.5);
     }
 
     .cta-btn:active {
-        background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%) !important;
+        background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
     }
 
     .mobile-menu-btn {
@@ -440,11 +429,6 @@
             height: 70px;
             padding: 0;
             box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            z-index: 1000;
         }
 
         .nav-container {
@@ -473,23 +457,21 @@
             background: #f8fafc;
         }
 
-        /* FULLSCREEN Mobile Menu Overlay */
+        /* Mobile Menu Dropdown */
         .nav-links {
             display: none;
             position: fixed;
             top: 70px;
             left: 0;
             right: 0;
-            bottom: 0;
             background: white;
             flex-direction: column;
-            padding: 1rem 1rem 100px 1rem;
+            padding: 1rem;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+            max-height: calc(100vh - 70px);
             overflow-y: auto;
-            overflow-x: hidden;
-            -webkit-overflow-scrolling: touch;
             z-index: 999;
-            gap: 0.25rem;
+            gap: 0.5rem;
             align-items: stretch;
             animation: slideDown 0.3s ease;
         }
@@ -511,7 +493,6 @@
 
         .nav-links li {
             width: 100%;
-            flex-shrink: 0;
         }
 
         .nav-links a {
@@ -520,22 +501,15 @@
             justify-content: space-between;
             padding: 1rem 1.25rem;
             width: 100%;
-            font-size: 1.1rem;
-            font-weight: 500;
-            border-radius: 12px;
-            background: #f8fafc;
-            border: 1px solid #e2e8f0;
+            font-size: 1rem;
+            border-radius: 10px;
+            background: transparent;
             transition: all 0.2s ease;
-            min-height: 56px;
-            color: #1e293b;
-            text-decoration: none;
+            min-height: 52px;
         }
 
-        .nav-links a:hover,
         .nav-links a:active {
             background: rgba(59, 130, 246, 0.1);
-            border-color: #3b82f6;
-            color: #3b82f6;
             transform: scale(0.98);
         }
 
@@ -548,9 +522,9 @@
             padding: 0.5rem 0;
             margin-top: 0.5rem;
             margin-left: 1rem;
-            background: #f1f5f9;
+            background: #f8fafc;
             border-radius: 10px;
-            border: 2px solid #e2e8f0;
+            border: 2px solid #e5e7eb;
             display: none; /* Hidden by default on mobile */
         }
 
@@ -562,82 +536,6 @@
         .dropdown-menu a {
             padding: 0.875rem 1.25rem;
             min-height: 48px;
-            background: transparent;
-            border: none;
-        }
-
-        /* Mobile Menu Header */
-        .mobile-menu-header {
-            display: flex !important;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0.75rem 1rem;
-            border-bottom: 2px solid #e2e8f0;
-            margin-bottom: 0.5rem;
-            background: linear-gradient(135deg, #0B4FA2 0%, #1e40af 100%);
-            border-radius: 12px;
-        }
-
-        .mobile-menu-title {
-            font-size: 1.25rem;
-            font-weight: 700;
-            color: white;
-        }
-
-        .mobile-close-btn {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 40px;
-            height: 40px;
-            background: rgba(255, 255, 255, 0.2);
-            border: none;
-            border-radius: 10px;
-            color: white;
-            font-size: 1.25rem;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .mobile-close-btn:active {
-            background: rgba(255, 255, 255, 0.3);
-            transform: scale(0.95);
-        }
-
-        /* Mobile Divider */
-        .mobile-divider {
-            height: 1px;
-            background: #e2e8f0;
-            margin: 0.75rem 0;
-        }
-
-        /* Mobile Login Button */
-        .mobile-login-btn {
-            background: #f1f5f9 !important;
-            border: 2px solid #0B4FA2 !important;
-            color: #0B4FA2 !important;
-        }
-
-        .mobile-login-btn:hover,
-        .mobile-login-btn:active {
-            background: #0B4FA2 !important;
-            color: white !important;
-        }
-
-        /* Dropdown Arrow */
-        .dropdown-arrow {
-            font-size: 0.875rem;
-            transition: transform 0.3s ease;
-        }
-
-        .dropdown.open .dropdown-arrow {
-            transform: rotate(180deg);
-        }
-
-        /* Hide mobile-only elements on desktop */
-        .mobile-menu-header,
-        .mobile-divider {
-            display: none;
         }
 
         .cta-btn {
@@ -647,19 +545,6 @@
             font-size: 1.05rem !important;
             padding: 1rem 1.5rem !important;
             box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
-        }
-        
-        /* Ensure Register button keeps blue gradient on mobile */
-        .nav-links a.cta-btn,
-        .nav-links .cta-btn {
-            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
-            color: white !important;
-            border: 1px solid rgba(37, 99, 235, 0.3) !important;
-        }
-        
-        .nav-links a.cta-btn:hover,
-        .nav-links .cta-btn:hover {
-            background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%) !important;
         }
 
         /* Footer Mobile Styles */
@@ -886,53 +771,40 @@
 
     /* Extra small devices (320px - 480px) */
     @media (max-width: 480px) {
-        /* Ultra-compact mobile navigation for small phones */
+        /* Ultra-compact mobile navigation */
         nav {
-            height: 60px;
+            height: 64px;
         }
 
         .nav-container {
-            padding: 0 0.75rem;
+            padding: 0 0.875rem;
         }
 
         .logo-section img {
-            height: 45px;
+            height: 50px;
         }
 
         .mobile-menu-btn {
-            width: 42px;
-            height: 42px;
-            font-size: 1.4rem;
+            width: 44px;
+            height: 44px;
+            font-size: 1.5rem;
         }
 
-        /* Fullscreen menu for small phones */
         .nav-links {
-            top: 60px;
-            padding: 0.75rem 0.75rem 120px 0.75rem;
-            gap: 0.25rem;
+            top: 64px;
+            max-height: calc(100vh - 64px);
+            padding: 0.875rem;
         }
 
         .nav-links a {
             padding: 0.875rem 1rem;
-            font-size: 1rem;
-            min-height: 52px;
-            border-radius: 10px;
-        }
-
-        .dropdown-menu {
-            margin-left: 0.5rem;
-        }
-
-        .dropdown-menu a {
-            padding: 0.75rem 1rem;
-            min-height: 44px;
             font-size: 0.95rem;
+            min-height: 48px;
         }
 
         .cta-btn {
             font-size: 1rem !important;
             padding: 0.875rem 1.25rem !important;
-            margin-top: 0.5rem;
         }
 
         /* Compact footer on very small screens */
@@ -981,49 +853,6 @@
         .footer-bottom p,
         .footer-bottom-links a {
             font-size: 0.825rem;
-        }
-    }
-
-    /* Extra small phones (320px - 380px) */
-    @media (max-width: 380px) {
-        nav {
-            height: 56px;
-        }
-
-        .nav-container {
-            padding: 0 0.5rem;
-        }
-
-        .logo-section img {
-            height: 40px;
-        }
-
-        .mobile-menu-btn {
-            width: 40px;
-            height: 40px;
-            font-size: 1.25rem;
-        }
-
-        .nav-links {
-            top: 56px;
-            padding: 0.5rem 0.5rem 130px 0.5rem;
-        }
-
-        .nav-links a {
-            padding: 0.75rem 0.875rem;
-            font-size: 0.95rem;
-            min-height: 48px;
-        }
-
-        .dropdown-menu a {
-            padding: 0.625rem 0.875rem;
-            min-height: 40px;
-            font-size: 0.9rem;
-        }
-
-        .cta-btn {
-            font-size: 0.95rem !important;
-            padding: 0.75rem 1rem !important;
         }
     }
 
@@ -1412,6 +1241,4 @@
         }
     }
 </style>
-
-@include('partials.mobile-responsive-fixes')
 

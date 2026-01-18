@@ -47,6 +47,17 @@ class AuthController extends Controller
 
             // Allow login for ALL statuses (pending, Active, approved) - restrictions are handled in dashboard
             if ($user->user_type === 'admin') {
+                // Generate session token for admin users (single session enforcement)
+                // Only for Master Admin, not Admin Staff
+                if ($user->role !== 'Admin Staff') {
+                    $sessionToken = \Illuminate\Support\Str::random(64);
+                    $user->update([
+                        'session_token' => $sessionToken,
+                        'session_started_at' => \Carbon\Carbon::now()
+                    ]);
+                    session(['admin_session_token' => $sessionToken]);
+                }
+                
                 // Check if user has Admin Staff role
                 if ($user->role === 'Admin Staff') {
                     return redirect('/admin-staff/dashboard-vue');

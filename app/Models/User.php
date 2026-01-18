@@ -40,6 +40,9 @@ class User extends Authenticatable
         'stripe_account_id',
         'stripe_connect_id',
         'page_permissions',
+        // Session enforcement for admin single session
+        'session_token',
+        'session_started_at',
         // Contractor onboarding fields
         'w9_submitted',
         'w9_verified',
@@ -83,6 +86,7 @@ class User extends Authenticatable
             'onboarding_completed' => 'boolean',
             'onboarding_completed_at' => 'datetime',
             'payout_minimum_amount' => 'decimal:2',
+            'session_started_at' => 'datetime',
         ];
     }
 

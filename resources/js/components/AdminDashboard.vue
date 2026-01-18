@@ -1,4 +1,41 @@
 <template>
+  <!-- Session Blocked Modal - Overlay that blocks all interaction -->
+  <v-dialog v-model="sessionBlockedModal" persistent max-width="500" :scrim="true" scrim-class="session-blocked-scrim">
+    <v-card class="session-blocked-card">
+      <v-card-title class="session-blocked-header pa-6">
+        <div class="d-flex align-center">
+          <v-icon color="white" size="32" class="mr-3">mdi-account-alert</v-icon>
+          <span class="text-h5 font-weight-bold" style="color: white;">Session Expired</span>
+        </div>
+      </v-card-title>
+      <v-card-text class="pa-6">
+        <div class="text-center mb-6">
+          <v-icon color="error" size="80">mdi-account-lock</v-icon>
+        </div>
+        <p class="text-h6 text-center mb-4" style="color: #1e293b;">
+          Another device has logged into this account
+        </p>
+        <p class="text-body-1 text-center text-grey mb-4">
+          Your session has been superseded by a newer login. For security reasons, only one active session is allowed per Master Admin account.
+        </p>
+        <v-alert type="warning" variant="tonal" class="mb-4">
+          <div class="d-flex align-center">
+            <v-icon class="mr-2">mdi-timer-sand</v-icon>
+            <span>Auto logout in <strong>{{ sessionCountdown }}</strong> seconds...</span>
+          </div>
+        </v-alert>
+        <p class="text-caption text-center text-grey">
+          If this wasn't you, please contact your administrator immediately.
+        </p>
+      </v-card-text>
+      <v-card-actions class="pa-6 pt-0">
+        <v-btn color="error" block size="large" @click="forceLogout" prepend-icon="mdi-logout">
+          Logout Now
+        </v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
+
   <notification-toast
     v-model="notification.show"
     :type="notification.type"
@@ -7729,6 +7766,90 @@ import { useNotification } from '../composables/useNotification';
 
 const { notification, success, error, warning, info } = useNotification();
 
+// ============================================
+// SESSION ENFORCEMENT (Single Session for Master Admin)
+// ============================================
+const sessionBlockedModal = ref(false);
+const sessionCountdown = ref(10);
+let sessionHeartbeatInterval = null;
+let sessionCountdownInterval = null;
+
+// Check session validity with heartbeat
+const checkSessionValidity = async () => {
+  try {
+    const response = await fetch('/api/session/validate', {
+      method: 'GET',
+      headers: {
+        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+      }
+    });
+    const data = await response.json();
+    
+    if (!data.valid && data.reason === 'session_superseded') {
+      // Session has been superseded - show the modal
+      showSessionBlockedModal();
+    }
+  } catch (err) {
+    console.error('Session validation error:', err);
+  }
+};
+
+// Show the blocked modal and start countdown
+const showSessionBlockedModal = () => {
+  if (sessionBlockedModal.value) return; // Already showing
+  
+  sessionBlockedModal.value = true;
+  sessionCountdown.value = 10;
+  
+  // Stop the heartbeat
+  if (sessionHeartbeatInterval) {
+    clearInterval(sessionHeartbeatInterval);
+    sessionHeartbeatInterval = null;
+  }
+  
+  // Start countdown
+  sessionCountdownInterval = setInterval(() => {
+    sessionCountdown.value--;
+    if (sessionCountdown.value <= 0) {
+      forceLogout();
+    }
+  }, 1000);
+};
+
+// Force logout
+const forceLogout = async () => {
+  if (sessionCountdownInterval) {
+    clearInterval(sessionCountdownInterval);
+    sessionCountdownInterval = null;
+  }
+  
+  try {
+    // Clear session on server (won't affect newer sessions)
+    await fetch('/api/session/clear', {
+      method: 'POST',
+      headers: {
+        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+      }
+    });
+  } catch (err) {
+    console.error('Error clearing session:', err);
+  }
+  
+  // Redirect to login
+  window.location.href = '/login';
+};
+
+// Start session heartbeat
+const startSessionHeartbeat = () => {
+  // Check immediately
+  checkSessionValidity();
+  
+  // Then check every 5 seconds
+  sessionHeartbeatInterval = setInterval(checkSessionValidity, 5000);
+};
+
+// ============================================
+
 // Mobile detection for fullscreen dialogs
 const isMobile = ref(typeof window !== 'undefined' ? window.innerWidth <= 768 : false);
 const handleResize = () => {
@@ -7738,6 +7859,13 @@ const handleResize = () => {
 onBeforeUnmount(() => {
   if (typeof window !== 'undefined') {
     window.removeEventListener('resize', handleResize);
+  }
+  // Clean up session intervals
+  if (sessionHeartbeatInterval) {
+    clearInterval(sessionHeartbeatInterval);
+  }
+  if (sessionCountdownInterval) {
+    clearInterval(sessionCountdownInterval);
   }
 });
 
@@ -14596,6 +14724,9 @@ onMounted(() => {
     window.addEventListener('resize', handleResize);
   }
   
+  // Start session enforcement heartbeat (for Master Admin single session)
+  startSessionHeartbeat();
+  
   loadProfile();
   loadAdminStats();
   loadQuickCaregivers();
@@ -15073,6 +15204,26 @@ setInterval(() => {
 * {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
+
+/* ============================================
+   SESSION BLOCKED MODAL STYLES
+   ============================================ */
+.session-blocked-card {
+  border-radius: 16px !important;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3) !important;
+}
+
+.session-blocked-header {
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%) !important;
+}
+
+:deep(.session-blocked-scrim) {
+  background-color: rgba(0, 0, 0, 0.85) !important;
+  backdrop-filter: blur(4px);
+}
+
+/* ============================================ */
 
 /* Hover effect for caregiver cards */
 .hover-card {
