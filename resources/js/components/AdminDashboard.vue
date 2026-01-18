@@ -158,7 +158,7 @@
 
           <v-card elevation="0" class="modern-activity-card">
             <v-card-title class="modern-card-header pa-6">
-              <div class="d-flex align-center justify-space-between">
+              <div class="d-flex align-center justify-space-between flex-wrap ga-2">
                 <div class="d-flex align-center">
                   <v-icon color="error" size="20" class="mr-3">mdi-pulse</v-icon>
                   <span class="modern-title error--text">Recent Platform Activity</span>
@@ -167,7 +167,9 @@
               </div>
             </v-card-title>
             <v-divider></v-divider>
+            <!-- Desktop Table View -->
             <v-data-table 
+              v-if="!isMobile"
               :headers="activityHeaders" 
               :items="recentActivity" 
               :items-per-page="5"
@@ -195,6 +197,22 @@
                 </tr>
               </template>
             </v-data-table>
+            <!-- Mobile Card View -->
+            <div v-else class="mobile-cards-container pa-3" style="max-height: 400px; overflow-y: auto;">
+              <div v-if="recentActivity.length === 0" class="text-center py-4 text-grey">
+                No recent activity
+              </div>
+              <v-card v-for="(item, index) in recentActivity.slice(0, 10)" :key="index" class="mobile-data-card mb-2" elevation="1" rounded="lg">
+                <v-card-text class="pa-3">
+                  <div class="d-flex align-center justify-space-between mb-2">
+                    <span class="font-weight-bold text-body-2">{{ item.user }}</span>
+                    <v-chip :color="getActivityColor(item.type)" size="x-small">{{ item.type }}</v-chip>
+                  </div>
+                  <div class="text-body-2 text-grey-darken-1 mb-1">{{ item.action }}</div>
+                  <div class="text-caption text-grey">{{ item.time }}</div>
+                </v-card-text>
+              </v-card>
+            </div>
           </v-card>
         </v-col>
       </v-row>
@@ -223,13 +241,14 @@
       </div>
 
       <v-card elevation="0">
-        <v-card-title class="card-header pa-8 d-flex justify-space-between align-center">
+        <v-card-title class="card-header pa-8 d-flex justify-space-between align-center flex-wrap ga-2">
           <span class="section-title error--text">Users</span>
-          <v-btn v-if="selectedUsers.length > 0" color="error" variant="outlined" prepend-icon="mdi-delete" @click="deleteSelectedUsers">
+          <v-btn v-if="selectedUsers.length > 0" color="error" variant="outlined" prepend-icon="mdi-delete" @click="deleteSelectedUsers" :size="isMobile ? 'small' : 'default'">
             Delete Selected ({{ selectedUsers.length }})
           </v-btn>
         </v-card-title>
-        <v-data-table v-model="selectedUsers" :headers="userHeaders" :items="filteredUsers" :items-per-page="10" show-select item-value="id" class="elevation-0" density="compact">
+        <!-- Desktop Table View -->
+        <v-data-table v-if="!isMobile" v-model="selectedUsers" :headers="userHeaders" :items="filteredUsers" :items-per-page="10" show-select item-value="id" class="elevation-0" density="compact">
           <template v-slot:item.status="{ item }">
             <v-chip
               :color="getUserStatusColor(item.status)"
@@ -246,6 +265,53 @@
             </div>
           </template>
         </v-data-table>
+        <!-- Mobile Card View -->
+        <div v-else class="mobile-cards-container pa-3">
+          <div v-if="filteredUsers.length === 0" class="text-center py-8 text-grey">
+            No users found
+          </div>
+          <v-card v-for="item in filteredUsers" :key="item.id" class="mobile-data-card mb-3" elevation="2" rounded="lg">
+            <v-card-text class="pa-0">
+              <div class="mobile-card-header d-flex align-center justify-space-between pa-3" style="background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);">
+                <div class="d-flex align-center">
+                  <v-checkbox 
+                    v-model="selectedUsers" 
+                    :value="item.id" 
+                    hide-details 
+                    density="compact" 
+                    color="white" 
+                    class="mr-2"
+                  />
+                  <span class="text-white font-weight-bold text-body-1">{{ item.name }}</span>
+                </div>
+                <v-chip
+                  :color="getUserStatusColor(item.status)"
+                  size="small"
+                  class="font-weight-bold"
+                  :style="(String(item.status).toLowerCase() === 'pending') ? 'background-color: #f59e0b !important; color: #ffffff !important;' : ''"
+                >{{ item.status }}</v-chip>
+              </div>
+              <div class="mobile-card-body pa-3">
+                <div class="mobile-card-row d-flex justify-space-between py-2" style="border-bottom: 1px solid #f3f4f6;">
+                  <span class="mobile-card-label text-grey-darken-1">Email:</span>
+                  <span class="mobile-card-value text-primary" style="word-break: break-all; font-size: 0.85rem;">{{ item.email }}</span>
+                </div>
+                <div class="mobile-card-row d-flex justify-space-between py-2" style="border-bottom: 1px solid #f3f4f6;">
+                  <span class="mobile-card-label text-grey-darken-1">Type:</span>
+                  <span class="mobile-card-value">{{ item.type || item.role }}</span>
+                </div>
+                <div class="mobile-card-row d-flex justify-space-between py-2">
+                  <span class="mobile-card-label text-grey-darken-1">Joined:</span>
+                  <span class="mobile-card-value">{{ item.joined || item.created_at }}</span>
+                </div>
+              </div>
+              <div class="mobile-card-actions d-flex justify-center ga-2 pa-3" style="background: #f9fafb; border-top: 1px solid #e5e7eb;">
+                <v-btn color="primary" variant="tonal" size="small" prepend-icon="mdi-pencil" @click="editUser(item)">Edit</v-btn>
+                <v-btn color="error" variant="tonal" size="small" prepend-icon="mdi-account-cancel" @click="suspendUser(item)">Suspend</v-btn>
+              </div>
+            </v-card-text>
+          </v-card>
+        </div>
       </v-card>
     </div>
 
@@ -452,13 +518,15 @@
         </v-row>
       </div>
       <v-card elevation="0">
-        <v-card-title class="card-header pa-8 d-flex justify-space-between align-center">
+        <v-card-title class="card-header pa-4 pa-md-8 d-flex justify-space-between align-center flex-wrap ga-2">
           <span class="section-title error--text">Caregivers</span>
-          <v-btn v-if="selectedCaregivers.length > 0" color="error" variant="outlined" prepend-icon="mdi-delete" @click="deleteSelectedCaregivers">
-            Delete Selected ({{ selectedCaregivers.length }})
+          <v-btn v-if="selectedCaregivers.length > 0" color="error" variant="outlined" prepend-icon="mdi-delete" size="small" @click="deleteSelectedCaregivers">
+            Delete ({{ selectedCaregivers.length }})
           </v-btn>
         </v-card-title>
-        <v-data-table v-model="selectedCaregivers" :headers="caregiverHeaders" :items="filteredCaregivers" :items-per-page="10" show-select item-value="userId" class="elevation-0" density="compact">
+        
+        <!-- Desktop Table View -->
+        <v-data-table v-if="!isMobile" v-model="selectedCaregivers" :headers="caregiverHeaders" :items="filteredCaregivers" :items-per-page="10" show-select item-value="userId" class="elevation-0" density="compact">
           <template v-slot:item.zip_code="{ item }">
             {{ item.zip_code || 'Unknown ZIP' }}
           </template>
@@ -498,15 +566,75 @@
           <template v-slot:item.actions="{ item }">
             <div class="action-buttons">
               <v-btn class="action-btn-view" icon="mdi-eye" size="small" @click="viewCaregiverDetails(item)"></v-btn>
+              <v-btn class="action-btn-unapprove" icon="mdi-undo" size="small" @click="unapproveApplication(item)" :title="'Unapprove (set back to pending)'"></v-btn>
               <v-btn class="action-btn-edit" icon="mdi-pencil" size="small" @click="openCaregiverDialog(item)"></v-btn>
             </div>
           </template>
         </v-data-table>
+        
+        <!-- Mobile Card View -->
+        <div v-else class="mobile-cards-container pa-3">
+          <v-card v-for="item in filteredCaregivers" :key="item.userId" class="mobile-data-card mb-3" elevation="2">
+            <v-card-text class="pa-0">
+              <!-- Card Header with Name and Status -->
+              <div class="mobile-card-header d-flex justify-space-between align-center pa-3" style="background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);">
+                <div class="d-flex align-center">
+                  <v-checkbox v-model="selectedCaregivers" :value="item.userId" hide-details density="compact" color="white" class="mr-2"></v-checkbox>
+                  <span class="text-white font-weight-bold">{{ item.first_name }} {{ item.last_name }}</span>
+                </div>
+                <v-chip :color="getUserStatusColor(item.status)" size="small" class="font-weight-bold">{{ item.status }}</v-chip>
+              </div>
+              
+              <!-- Card Body with Details -->
+              <div class="mobile-card-body pa-3">
+                <div class="mobile-card-row d-flex justify-space-between py-2" style="border-bottom: 1px solid #f3f4f6;">
+                  <span class="mobile-card-label text-grey-darken-1">Email:</span>
+                  <span class="mobile-card-value text-primary font-weight-medium" style="word-break: break-all;">{{ item.email }}</span>
+                </div>
+                <div class="mobile-card-row d-flex justify-space-between py-2" style="border-bottom: 1px solid #f3f4f6;">
+                  <span class="mobile-card-label text-grey-darken-1">Phone:</span>
+                  <span class="mobile-card-value">{{ item.phone || 'N/A' }}</span>
+                </div>
+                <div class="mobile-card-row d-flex justify-space-between py-2" style="border-bottom: 1px solid #f3f4f6;">
+                  <span class="mobile-card-label text-grey-darken-1">ZIP Code:</span>
+                  <span class="mobile-card-value">{{ item.zip_code || 'Unknown' }}</span>
+                </div>
+                <div class="mobile-card-row d-flex justify-space-between py-2" style="border-bottom: 1px solid #f3f4f6;">
+                  <span class="mobile-card-label text-grey-darken-1">Location:</span>
+                  <span class="mobile-card-value">{{ item.place_indicator || item.location || 'Unknown' }}</span>
+                </div>
+                <div class="mobile-card-row d-flex justify-space-between py-2" style="border-bottom: 1px solid #f3f4f6;">
+                  <span class="mobile-card-label text-grey-darken-1">Hourly Rate:</span>
+                  <span class="mobile-card-value font-weight-bold text-success">${{ item.preferred_hourly_rate_min ?? 20 }} - ${{ item.preferred_hourly_rate_max ?? 50 }}/hr</span>
+                </div>
+                <div class="mobile-card-row d-flex justify-space-between align-center py-2">
+                  <span class="mobile-card-label text-grey-darken-1">Rating:</span>
+                  <div class="d-flex align-center">
+                    <v-rating :model-value="parseFloat(item.rating || 0)" :length="5" :size="16" color="amber" active-color="amber" half-increments readonly density="compact"></v-rating>
+                    <span class="ml-1 text-caption">{{ parseFloat(item.rating || 0).toFixed(1) }}</span>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Card Actions -->
+              <div class="mobile-card-actions d-flex justify-center ga-2 pa-3" style="background: #f9fafb; border-top: 1px solid #e5e7eb;">
+                <v-btn color="primary" variant="tonal" size="small" prepend-icon="mdi-eye" @click="viewCaregiverDetails(item)">View</v-btn>
+                <v-btn color="warning" variant="tonal" size="small" prepend-icon="mdi-undo" @click="unapproveApplication(item)">Undo</v-btn>
+                <v-btn color="info" variant="tonal" size="small" prepend-icon="mdi-pencil" @click="openCaregiverDialog(item)">Edit</v-btn>
+              </div>
+            </v-card-text>
+          </v-card>
+          
+          <!-- Mobile Pagination -->
+          <div v-if="filteredCaregivers.length > 10" class="d-flex justify-center mt-4">
+            <span class="text-caption text-grey">Showing {{ filteredCaregivers.length }} caregivers</span>
+          </div>
+        </div>
       </v-card>
     </div>
 
     <!-- View Caregiver Details Dialog -->
-    <v-dialog v-model="viewCaregiverDialog" max-width="800" scrollable>
+    <v-dialog v-model="viewCaregiverDialog" :max-width="isMobile ? undefined : 800" :fullscreen="isMobile" scrollable>
       <v-card v-if="viewingCaregiver">
         <v-card-title class="pa-6" style="background: #dc2626; color: white;">
           <div class="d-flex align-center justify-space-between w-100">
@@ -825,7 +953,7 @@
     </v-dialog>
 
     <!-- View Client Details Dialog -->
-    <v-dialog v-model="viewClientDialog" max-width="800">
+    <v-dialog v-model="viewClientDialog" :max-width="isMobile ? undefined : 800" :fullscreen="isMobile" scrollable>
       <v-card v-if="viewingClient">
         <v-card-title class="pa-6" style="background: #dc2626; color: white;">
           <div class="d-flex align-center justify-space-between w-100">
@@ -936,10 +1064,15 @@
         </v-row>
       </div>
       <v-card elevation="0">
-        <v-card-title class="card-header pa-8 d-flex justify-space-between align-center">
+        <v-card-title class="card-header pa-4 pa-md-8 d-flex justify-space-between align-center flex-wrap ga-2">
           <span class="section-title deep-purple--text">Housekeepers</span>
+          <v-btn v-if="selectedHousekeepers.length > 0" color="error" variant="outlined" prepend-icon="mdi-delete" size="small" @click="deleteSelectedHousekeepers">
+            Delete ({{ selectedHousekeepers.length }})
+          </v-btn>
         </v-card-title>
-        <v-data-table :headers="housekeeperHeaders" :items="filteredHousekeepers" :items-per-page="10" class="elevation-0" density="compact">
+        
+        <!-- Desktop Table View -->
+        <v-data-table v-if="!isMobile" v-model="selectedHousekeepers" :headers="housekeeperHeaders" :items="filteredHousekeepers" :items-per-page="10" show-select item-value="userId" class="elevation-0" density="compact">
           <template v-slot:item.location="{ item }">
             {{ item.location || 'Unknown' }}
           </template>
@@ -969,12 +1102,144 @@
           <template v-slot:item.actions="{ item }">
             <div class="action-buttons">
               <v-btn class="action-btn-view" icon="mdi-eye" size="small" @click="viewHousekeeperDetails(item)"></v-btn>
+              <v-btn class="action-btn-unapprove" icon="mdi-undo" size="small" @click="unapproveApplication(item)" :title="'Unapprove (set back to pending)'"></v-btn>
               <v-btn class="action-btn-edit" icon="mdi-pencil" size="small" @click="openHousekeeperDialog(item)"></v-btn>
             </div>
           </template>
         </v-data-table>
+        
+        <!-- Mobile Card View -->
+        <div v-else class="mobile-cards-container pa-3">
+          <v-card v-for="item in filteredHousekeepers" :key="item.userId" class="mobile-data-card mb-3" elevation="2">
+            <v-card-text class="pa-0">
+              <div class="mobile-card-header d-flex justify-space-between align-center pa-3" style="background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);">
+                <div class="d-flex align-center">
+                  <v-checkbox v-model="selectedHousekeepers" :value="item.userId" hide-details density="compact" color="white" class="mr-2"></v-checkbox>
+                  <span class="text-white font-weight-bold">{{ item.first_name }} {{ item.last_name }}</span>
+                </div>
+                <v-chip :color="getUserStatusColor(item.status)" size="small" class="font-weight-bold">{{ item.status }}</v-chip>
+              </div>
+              <div class="mobile-card-body pa-3">
+                <div class="mobile-card-row d-flex justify-space-between py-2" style="border-bottom: 1px solid #f3f4f6;">
+                  <span class="mobile-card-label text-grey-darken-1">Email:</span>
+                  <span class="mobile-card-value text-primary font-weight-medium" style="word-break: break-all;">{{ item.email }}</span>
+                </div>
+                <div class="mobile-card-row d-flex justify-space-between py-2" style="border-bottom: 1px solid #f3f4f6;">
+                  <span class="mobile-card-label text-grey-darken-1">Phone:</span>
+                  <span class="mobile-card-value">{{ item.phone || 'N/A' }}</span>
+                </div>
+                <div class="mobile-card-row d-flex justify-space-between py-2" style="border-bottom: 1px solid #f3f4f6;">
+                  <span class="mobile-card-label text-grey-darken-1">Location:</span>
+                  <span class="mobile-card-value">{{ item.location || 'Unknown' }}</span>
+                </div>
+                <div class="mobile-card-row d-flex justify-space-between align-center py-2">
+                  <span class="mobile-card-label text-grey-darken-1">Rating:</span>
+                  <div class="d-flex align-center">
+                    <v-rating :model-value="parseFloat(item.rating || 0)" :length="5" :size="16" color="amber" active-color="amber" half-increments readonly density="compact"></v-rating>
+                    <span class="ml-1 text-caption">{{ parseFloat(item.rating || 0).toFixed(1) }}</span>
+                  </div>
+                </div>
+              </div>
+              <div class="mobile-card-actions d-flex justify-center ga-2 pa-3" style="background: #f9fafb; border-top: 1px solid #e5e7eb;">
+                <v-btn color="primary" variant="tonal" size="small" prepend-icon="mdi-eye" @click="viewHousekeeperDetails(item)">View</v-btn>
+                <v-btn color="warning" variant="tonal" size="small" prepend-icon="mdi-undo" @click="unapproveApplication(item)">Undo</v-btn>
+                <v-btn color="info" variant="tonal" size="small" prepend-icon="mdi-pencil" @click="openHousekeeperDialog(item)">Edit</v-btn>
+              </div>
+            </v-card-text>
+          </v-card>
+        </div>
       </v-card>
     </div>
+
+    <!-- View Housekeeper Details Dialog -->
+    <v-dialog v-model="viewHousekeeperDialog" :max-width="isMobile ? undefined : 800" :fullscreen="isMobile" scrollable>
+      <v-card v-if="viewingHousekeeper">
+        <v-card-title class="pa-6" style="background: #dc2626; color: white;">
+          <div class="d-flex align-center justify-space-between w-100">
+            <span class="section-title" style="color: white;">Housekeeper Details</span>
+            <v-btn icon="mdi-close" variant="text" style="color: white;" @click="viewHousekeeperDialog = false"></v-btn>
+          </div>
+        </v-card-title>
+        <v-card-text class="pa-6" style="max-height: 60vh; overflow-y: auto;">
+          <v-row>
+            <v-col cols="12" class="text-center mb-4">
+              <v-avatar size="120" color="#6A1B9A" class="mb-3">
+                <span class="text-h3 font-weight-bold text-white">{{ viewingHousekeeper.name.split(' ').map(n => n[0]).join('') }}</span>
+              </v-avatar>
+              <h2>{{ viewingHousekeeper.name }}</h2>
+              <v-chip :color="getUserStatusColor(viewingHousekeeper.status)" class="mt-2">{{ viewingHousekeeper.status }}</v-chip>
+
+              <!-- Rating Display -->
+              <div class="mt-4">
+                <div class="d-flex align-center justify-center">
+                  <v-rating
+                    :model-value="parseFloat(viewingHousekeeper.rating || 0)"
+                    :length="5"
+                    :size="32"
+                    color="amber"
+                    active-color="amber"
+                    half-increments
+                    readonly
+                  ></v-rating>
+                  <span class="ml-2 text-h6">{{ parseFloat(viewingHousekeeper.rating || 0).toFixed(1) }}</span>
+                </div>
+              </div>
+            </v-col>
+          </v-row>
+
+          <v-divider class="mb-4"></v-divider>
+
+          <v-row>
+            <v-col cols="12" md="6">
+              <div class="detail-section">
+                <div class="detail-label">Email</div>
+                <div class="detail-value">{{ viewingHousekeeper.email }}</div>
+              </div>
+            </v-col>
+            <v-col cols="12" md="6">
+              <div class="detail-section">
+                <div class="detail-label">Phone</div>
+                <div class="detail-value">{{ viewingHousekeeper.phone || 'N/A' }}</div>
+              </div>
+            </v-col>
+            <v-col cols="12" md="6">
+              <div class="detail-section">
+                <div class="detail-label">Location</div>
+                <div class="detail-value">{{ viewingHousekeeper.location || 'Unknown' }}</div>
+              </div>
+            </v-col>
+            <v-col cols="12" md="6">
+              <div class="detail-section">
+                <div class="detail-label">ZIP Code</div>
+                <div class="detail-value">{{ viewingHousekeeper.zip_code || 'Unknown ZIP' }}</div>
+              </div>
+            </v-col>
+            <v-col cols="12" md="6">
+              <div class="detail-section">
+                <div class="detail-label">Experience</div>
+                <div class="detail-value">{{ viewingHousekeeper.years_experience || 0 }} years</div>
+              </div>
+            </v-col>
+            <v-col cols="12" md="6">
+              <div class="detail-section">
+                <div class="detail-label">Hourly Rate</div>
+                <div class="detail-value">
+                  <v-chip color="success" size="small">
+                    <v-icon size="14" class="mr-1">mdi-cash</v-icon>
+                    ${{ viewingHousekeeper.hourly_rate || 20 }}/hr
+                  </v-chip>
+                </div>
+              </div>
+            </v-col>
+          </v-row>
+        </v-card-text>
+        <v-card-actions class="pa-6 pt-0">
+          <v-spacer />
+          <v-btn color="grey" variant="outlined" @click="viewHousekeeperDialog = false">Close</v-btn>
+          <v-btn color="error" @click="openHousekeeperDialog(viewingHousekeeper); viewHousekeeperDialog = false">Edit</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
 
     <!-- Clients Management Section -->
     <div v-if="currentSection === 'clients'">
@@ -995,13 +1260,15 @@
         </v-row>
       </div>
       <v-card elevation="0">
-        <v-card-title class="card-header pa-8 d-flex justify-space-between align-center">
+        <v-card-title class="card-header pa-4 pa-md-8 d-flex justify-space-between align-center flex-wrap ga-2">
           <span class="section-title error--text">Clients</span>
-          <v-btn v-if="selectedClients.length > 0" color="error" variant="outlined" prepend-icon="mdi-delete" @click="deleteSelectedClients">
-            Delete Selected ({{ selectedClients.length }})
+          <v-btn v-if="selectedClients.length > 0" color="error" variant="outlined" prepend-icon="mdi-delete" size="small" @click="deleteSelectedClients">
+            Delete ({{ selectedClients.length }})
           </v-btn>
         </v-card-title>
-        <v-data-table v-model="selectedClients" :headers="clientHeaders" :items="filteredClients" :items-per-page="10" show-select item-value="id" class="elevation-0" density="compact">
+        
+        <!-- Desktop Table View -->
+        <v-data-table v-if="!isMobile" v-model="selectedClients" :headers="clientHeaders" :items="filteredClients" :items-per-page="10" show-select item-value="id" class="elevation-0" density="compact">
           <template v-slot:item.zip_code="{ item }">
             {{ item.zip_code || 'Unknown ZIP' }}
           </template>
@@ -1026,6 +1293,43 @@
             </div>
           </template>
         </v-data-table>
+        
+        <!-- Mobile Card View -->
+        <div v-else class="mobile-cards-container pa-3">
+          <v-card v-for="item in filteredClients" :key="item.id" class="mobile-data-card mb-3" elevation="2">
+            <v-card-text class="pa-0">
+              <div class="mobile-card-header d-flex justify-space-between align-center pa-3" style="background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);">
+                <div class="d-flex align-center">
+                  <v-checkbox v-model="selectedClients" :value="item.id" hide-details density="compact" color="white" class="mr-2"></v-checkbox>
+                  <span class="text-white font-weight-bold">{{ item.first_name }} {{ item.last_name }}</span>
+                </div>
+                <v-chip :color="getUserStatusColor(item.status)" size="small" class="font-weight-bold">{{ item.status }}</v-chip>
+              </div>
+              <div class="mobile-card-body pa-3">
+                <div class="mobile-card-row d-flex justify-space-between py-2" style="border-bottom: 1px solid #f3f4f6;">
+                  <span class="mobile-card-label text-grey-darken-1">Email:</span>
+                  <span class="mobile-card-value text-primary font-weight-medium" style="word-break: break-all;">{{ item.email }}</span>
+                </div>
+                <div class="mobile-card-row d-flex justify-space-between py-2" style="border-bottom: 1px solid #f3f4f6;">
+                  <span class="mobile-card-label text-grey-darken-1">Phone:</span>
+                  <span class="mobile-card-value">{{ item.phone || 'N/A' }}</span>
+                </div>
+                <div class="mobile-card-row d-flex justify-space-between py-2" style="border-bottom: 1px solid #f3f4f6;">
+                  <span class="mobile-card-label text-grey-darken-1">ZIP Code:</span>
+                  <span class="mobile-card-value">{{ item.zip_code || 'Unknown' }}</span>
+                </div>
+                <div class="mobile-card-row d-flex justify-space-between py-2">
+                  <span class="mobile-card-label text-grey-darken-1">Location:</span>
+                  <span class="mobile-card-value">{{ item.place_indicator || item.location || 'Unknown' }}</span>
+                </div>
+              </div>
+              <div class="mobile-card-actions d-flex justify-center ga-2 pa-3" style="background: #f9fafb; border-top: 1px solid #e5e7eb;">
+                <v-btn color="primary" variant="tonal" size="small" prepend-icon="mdi-eye" @click="viewClientDetails(item)">View</v-btn>
+                <v-btn color="info" variant="tonal" size="small" prepend-icon="mdi-pencil" @click="openClientDialog(item)">Edit</v-btn>
+              </div>
+            </v-card-text>
+          </v-card>
+        </div>
       </v-card>
     </div>
 
@@ -1045,13 +1349,15 @@
         </v-row>
       </div>
       <v-card elevation="0">
-        <v-card-title class="card-header pa-8 d-flex justify-space-between align-center">
+        <v-card-title class="card-header pa-4 pa-md-8 d-flex justify-space-between align-center flex-wrap ga-2">
           <span class="section-title error--text">Marketing Partner</span>
-          <v-btn v-if="selectedMarketingStaff.length > 0" color="error" variant="outlined" prepend-icon="mdi-delete" @click="deleteSelectedMarketingStaff">
-            Delete Selected ({{ selectedMarketingStaff.length }})
+          <v-btn v-if="selectedMarketingStaff.length > 0" color="error" variant="outlined" prepend-icon="mdi-delete" size="small" @click="deleteSelectedMarketingStaff">
+            Delete ({{ selectedMarketingStaff.length }})
           </v-btn>
         </v-card-title>
-        <v-data-table v-model="selectedMarketingStaff" :headers="marketingStaffHeaders" :items="filteredMarketingStaff" :items-per-page="10" show-select item-value="id" class="elevation-0" density="compact">
+        
+        <!-- Desktop Table View -->
+        <v-data-table v-if="!isMobile" v-model="selectedMarketingStaff" :headers="marketingStaffHeaders" :items="filteredMarketingStaff" :items-per-page="10" show-select item-value="id" class="elevation-0" density="compact">
           <template v-slot:item.zip_code="{ item }">
             {{ item.zip_code || 'Unknown ZIP' }}
           </template>
@@ -1077,6 +1383,7 @@
           <template v-slot:item.actions="{ item }">
             <div class="action-buttons">
               <v-btn class="action-btn-view" icon="mdi-eye" size="small" @click="viewMarketingStaffDetails(item)"></v-btn>
+              <v-btn class="action-btn-unapprove" icon="mdi-undo" size="small" @click="unapproveApplication(item)" :title="'Unapprove (set back to pending)'"></v-btn>
               <v-btn class="action-btn-edit" icon="mdi-pencil" size="small" @click="openMarketingStaffDialog(item)"></v-btn>
               <v-btn 
                 v-if="parseFloat(item.commissionEarned) > 0" 
@@ -1090,11 +1397,54 @@
             </div>
           </template>
         </v-data-table>
+        
+        <!-- Mobile Card View -->
+        <div v-else class="mobile-cards-container pa-3">
+          <v-card v-for="item in filteredMarketingStaff" :key="item.id" class="mobile-data-card mb-3" elevation="2">
+            <v-card-text class="pa-0">
+              <div class="mobile-card-header d-flex justify-space-between align-center pa-3" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);">
+                <div class="d-flex align-center">
+                  <v-checkbox v-model="selectedMarketingStaff" :value="item.id" hide-details density="compact" color="white" class="mr-2"></v-checkbox>
+                  <span class="text-white font-weight-bold">{{ item.first_name }} {{ item.last_name }}</span>
+                </div>
+                <v-chip :color="getUserStatusColor(item.status)" size="small" class="font-weight-bold">{{ item.status }}</v-chip>
+              </div>
+              <div class="mobile-card-body pa-3">
+                <div class="mobile-card-row d-flex justify-space-between py-2" style="border-bottom: 1px solid #f3f4f6;">
+                  <span class="mobile-card-label text-grey-darken-1">Email:</span>
+                  <span class="mobile-card-value text-primary font-weight-medium" style="word-break: break-all;">{{ item.email }}</span>
+                </div>
+                <div class="mobile-card-row d-flex justify-space-between py-2" style="border-bottom: 1px solid #f3f4f6;">
+                  <span class="mobile-card-label text-grey-darken-1">Phone:</span>
+                  <span class="mobile-card-value">{{ item.phone || 'N/A' }}</span>
+                </div>
+                <div class="mobile-card-row d-flex justify-space-between py-2" style="border-bottom: 1px solid #f3f4f6;">
+                  <span class="mobile-card-label text-grey-darken-1">Referral Code:</span>
+                  <v-chip color="primary" size="small" class="font-weight-bold">{{ item.referralCode }}</v-chip>
+                </div>
+                <div class="mobile-card-row d-flex justify-space-between py-2" style="border-bottom: 1px solid #f3f4f6;">
+                  <span class="mobile-card-label text-grey-darken-1">Clients:</span>
+                  <v-chip color="info" size="small">{{ item.clientsAcquired }}</v-chip>
+                </div>
+                <div class="mobile-card-row d-flex justify-space-between py-2">
+                  <span class="mobile-card-label text-grey-darken-1">Commission:</span>
+                  <span class="font-weight-bold text-success">${{ item.commissionEarned }}</span>
+                </div>
+              </div>
+              <div class="mobile-card-actions d-flex justify-center flex-wrap ga-2 pa-3" style="background: #f9fafb; border-top: 1px solid #e5e7eb;">
+                <v-btn color="primary" variant="tonal" size="small" prepend-icon="mdi-eye" @click="viewMarketingStaffDetails(item)">View</v-btn>
+                <v-btn color="warning" variant="tonal" size="small" prepend-icon="mdi-undo" @click="unapproveApplication(item)">Undo</v-btn>
+                <v-btn color="info" variant="tonal" size="small" prepend-icon="mdi-pencil" @click="openMarketingStaffDialog(item)">Edit</v-btn>
+                <v-btn v-if="parseFloat(item.commissionEarned) > 0" color="success" variant="tonal" size="small" prepend-icon="mdi-cash-multiple" @click="payMarketingCommission(item)" :loading="payingCommission === item.id">Pay</v-btn>
+              </div>
+            </v-card-text>
+          </v-card>
+        </div>
       </v-card>
     </div>
 
     <!-- View Marketing Partner Details Dialog -->
-    <v-dialog v-model="viewMarketingStaffDialog" max-width="800">
+    <v-dialog v-model="viewMarketingStaffDialog" :max-width="isMobile ? undefined : 800" :fullscreen="isMobile" scrollable>
       <v-card v-if="viewingMarketingStaff">
         <v-card-title class="pa-6" style="background: #dc2626; color: white;">
           <div class="d-flex align-center justify-space-between w-100">
@@ -1193,7 +1543,7 @@
     </v-dialog>
 
     <!-- Add/Edit Marketing Partner Dialog -->
-    <v-dialog v-model="marketingStaffDialog" max-width="900" scrollable>
+    <v-dialog v-model="marketingStaffDialog" :max-width="isMobile ? undefined : 900" :fullscreen="isMobile" scrollable>
       <v-card>
         <v-card-title class="pa-6" style="background: #dc2626; color: white;">
           <span class="section-title" style="color: white;">{{ editingMarketingStaff ? 'Edit Marketing Partner' : 'Add Marketing Partner' }}</span>
@@ -1318,13 +1668,16 @@
         </v-row>
       </div>
       <v-card elevation="0">
-        <v-card-title class="card-header pa-8 d-flex justify-space-between align-center">
+        <v-card-title class="card-header pa-4 pa-md-8 d-flex justify-space-between align-center flex-wrap ga-2">
           <span class="section-title error--text">Admin Staff Management</span>
-          <v-btn v-if="selectedAdminStaff.length > 0" color="error" variant="outlined" prepend-icon="mdi-delete" @click="deleteSelectedAdminStaff">
-            Delete Selected ({{ selectedAdminStaff.length }})
+          <v-btn v-if="selectedAdminStaff.length > 0" color="error" variant="outlined" prepend-icon="mdi-delete" size="small" @click="deleteSelectedAdminStaff">
+            Delete ({{ selectedAdminStaff.length }})
           </v-btn>
         </v-card-title>
+        
+        <!-- Desktop Table View -->
         <v-data-table 
+          v-if="!isMobile"
           v-model="selectedAdminStaff" 
           :headers="adminStaffHeaders" 
           :items="filteredAdminStaff" 
@@ -1358,15 +1711,54 @@
           <template v-slot:item.actions="{ item }">
             <div class="action-buttons">
               <v-btn class="action-btn-view" icon="mdi-eye" size="small" @click="viewAdminStaffDetails(item)"></v-btn>
+              <v-btn class="action-btn-unapprove" icon="mdi-undo" size="small" @click="unapproveApplication(item)" :title="'Unapprove (set back to pending)'"></v-btn>
               <v-btn class="action-btn-edit" icon="mdi-pencil" size="small" @click="openAdminStaffDialog(item)"></v-btn>
             </div>
           </template>
         </v-data-table>
+        
+        <!-- Mobile Card View -->
+        <div v-else class="mobile-cards-container pa-3">
+          <v-card v-for="item in filteredAdminStaff" :key="item.id" class="mobile-data-card mb-3" elevation="2">
+            <v-card-text class="pa-0">
+              <div class="mobile-card-header d-flex justify-space-between align-center pa-3" style="background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);">
+                <div class="d-flex align-center">
+                  <v-checkbox v-model="selectedAdminStaff" :value="item.id" hide-details density="compact" color="white" class="mr-2"></v-checkbox>
+                  <span class="text-white font-weight-bold">{{ item.first_name }} {{ item.last_name }}</span>
+                </div>
+                <v-chip :color="getUserStatusColor(item.status)" size="small" class="font-weight-bold">{{ item.status }}</v-chip>
+              </div>
+              <div class="mobile-card-body pa-3">
+                <div class="mobile-card-row d-flex justify-space-between py-2" style="border-bottom: 1px solid #f3f4f6;">
+                  <span class="mobile-card-label text-grey-darken-1">Email:</span>
+                  <span class="mobile-card-value text-primary font-weight-medium" style="word-break: break-all;">{{ item.email }}</span>
+                </div>
+                <div class="mobile-card-row d-flex justify-space-between py-2" style="border-bottom: 1px solid #f3f4f6;">
+                  <span class="mobile-card-label text-grey-darken-1">Phone:</span>
+                  <span class="mobile-card-value">{{ item.phone || 'N/A' }}</span>
+                </div>
+                <div class="mobile-card-row d-flex justify-space-between py-2" style="border-bottom: 1px solid #f3f4f6;">
+                  <span class="mobile-card-label text-grey-darken-1">Location:</span>
+                  <span class="mobile-card-value">{{ item.place_indicator || item.location || 'Unknown' }}</span>
+                </div>
+                <div class="mobile-card-row d-flex justify-space-between py-2">
+                  <span class="mobile-card-label text-grey-darken-1">Email Verified:</span>
+                  <v-chip :color="item.email_verified === 'Yes' ? 'success' : 'warning'" size="small">{{ item.email_verified }}</v-chip>
+                </div>
+              </div>
+              <div class="mobile-card-actions d-flex justify-center ga-2 pa-3" style="background: #f9fafb; border-top: 1px solid #e5e7eb;">
+                <v-btn color="primary" variant="tonal" size="small" prepend-icon="mdi-eye" @click="viewAdminStaffDetails(item)">View</v-btn>
+                <v-btn color="warning" variant="tonal" size="small" prepend-icon="mdi-undo" @click="unapproveApplication(item)">Undo</v-btn>
+                <v-btn color="info" variant="tonal" size="small" prepend-icon="mdi-pencil" @click="openAdminStaffDialog(item)">Edit</v-btn>
+              </div>
+            </v-card-text>
+          </v-card>
+        </div>
       </v-card>
     </div>
 
     <!-- View Admin Staff Details Dialog -->
-    <v-dialog v-model="viewAdminStaffDialog" max-width="800">
+    <v-dialog v-model="viewAdminStaffDialog" :max-width="isMobile ? undefined : 800" :fullscreen="isMobile" scrollable>
       <v-card v-if="viewingAdminStaff">
         <v-card-title class="pa-6" style="background: #dc2626; color: white;">
           <div class="d-flex align-center justify-space-between w-100">
@@ -1502,7 +1894,7 @@
     </v-dialog>
 
     <!-- Add/Edit Admin Staff Dialog -->
-    <v-dialog v-model="adminStaffDialog" max-width="800" scrollable>
+    <v-dialog v-model="adminStaffDialog" :max-width="isMobile ? undefined : 800" :fullscreen="isMobile" scrollable>
       <v-card>
         <v-card-title class="pa-6" style="background: #dc2626; color: white;">
           <span class="section-title" style="color: white;">{{ editingAdminStaff ? 'Edit Admin Staff' : 'Add Admin Staff' }}</span>
@@ -1757,13 +2149,15 @@
         </v-row>
       </div>
       <v-card elevation="0">
-        <v-card-title class="card-header pa-8 d-flex justify-space-between align-center">
+        <v-card-title class="card-header pa-4 pa-md-8 d-flex justify-space-between align-center flex-wrap ga-2">
           <span class="section-title error--text">Accredited Training Center</span>
-          <v-btn v-if="selectedTrainingCenters.length > 0" color="error" variant="outlined" prepend-icon="mdi-delete" @click="deleteSelectedTrainingCenters">
-            Delete Selected ({{ selectedTrainingCenters.length }})
+          <v-btn v-if="selectedTrainingCenters.length > 0" color="error" variant="outlined" prepend-icon="mdi-delete" size="small" @click="deleteSelectedTrainingCenters">
+            Delete ({{ selectedTrainingCenters.length }})
           </v-btn>
         </v-card-title>
-        <v-data-table v-model="selectedTrainingCenters" :headers="trainingCenterHeaders" :items="filteredTrainingCenters" :items-per-page="10" show-select item-value="id" class="elevation-0" density="compact">
+        
+        <!-- Desktop Table View -->
+        <v-data-table v-if="!isMobile" v-model="selectedTrainingCenters" :headers="trainingCenterHeaders" :items="filteredTrainingCenters" :items-per-page="10" show-select item-value="id" class="elevation-0" density="compact">
           <template v-slot:item.location="{ item }">
             <span style="display:none">{{ ensureItemPlaceIndicator(item) }}</span>
             {{ item.place_indicator || item.location || 'Unknown ZIP' }}
@@ -1792,6 +2186,7 @@
           <template v-slot:item.actions="{ item }">
             <div class="action-buttons">
               <v-btn class="action-btn-view" icon="mdi-eye" size="small" @click="viewTrainingCenterDetails(item)"></v-btn>
+              <v-btn class="action-btn-unapprove" icon="mdi-undo" size="small" @click="unapproveApplication(item)" :title="'Unapprove (set back to pending)'"></v-btn>
               <v-btn class="action-btn-edit" icon="mdi-pencil" size="small" @click="openTrainingCenterDialog(item)"></v-btn>
               <v-btn 
                 v-if="parseFloat(item.commissionEarned) > 0" 
@@ -1805,11 +2200,54 @@
             </div>
           </template>
         </v-data-table>
+        
+        <!-- Mobile Card View -->
+        <div v-else class="mobile-cards-container pa-3">
+          <v-card v-for="item in filteredTrainingCenters" :key="item.id" class="mobile-data-card mb-3" elevation="2">
+            <v-card-text class="pa-0">
+              <div class="mobile-card-header d-flex justify-space-between align-center pa-3" style="background: linear-gradient(135deg, #ea580c 0%, #c2410c 100%);">
+                <div class="d-flex align-center">
+                  <v-checkbox v-model="selectedTrainingCenters" :value="item.id" hide-details density="compact" color="white" class="mr-2"></v-checkbox>
+                  <span class="text-white font-weight-bold">{{ item.name }}</span>
+                </div>
+                <v-chip :color="getUserStatusColor(item.status)" size="small" class="font-weight-bold">{{ item.status }}</v-chip>
+              </div>
+              <div class="mobile-card-body pa-3">
+                <div class="mobile-card-row d-flex justify-space-between py-2" style="border-bottom: 1px solid #f3f4f6;">
+                  <span class="mobile-card-label text-grey-darken-1">Email:</span>
+                  <span class="mobile-card-value text-primary font-weight-medium" style="word-break: break-all;">{{ item.email }}</span>
+                </div>
+                <div class="mobile-card-row d-flex justify-space-between py-2" style="border-bottom: 1px solid #f3f4f6;">
+                  <span class="mobile-card-label text-grey-darken-1">Phone:</span>
+                  <span class="mobile-card-value">{{ item.phone || 'N/A' }}</span>
+                </div>
+                <div class="mobile-card-row d-flex justify-space-between py-2" style="border-bottom: 1px solid #f3f4f6;">
+                  <span class="mobile-card-label text-grey-darken-1">Location:</span>
+                  <span class="mobile-card-value">{{ item.place_indicator || item.location || 'Unknown' }}</span>
+                </div>
+                <div class="mobile-card-row d-flex justify-space-between py-2" style="border-bottom: 1px solid #f3f4f6;">
+                  <span class="mobile-card-label text-grey-darken-1">Caregivers:</span>
+                  <v-chip color="info" size="small">{{ item.caregiverCount }}</v-chip>
+                </div>
+                <div class="mobile-card-row d-flex justify-space-between py-2">
+                  <span class="mobile-card-label text-grey-darken-1">Commission:</span>
+                  <span class="font-weight-bold text-success">${{ item.commissionEarned }}</span>
+                </div>
+              </div>
+              <div class="mobile-card-actions d-flex justify-center flex-wrap ga-2 pa-3" style="background: #f9fafb; border-top: 1px solid #e5e7eb;">
+                <v-btn color="primary" variant="tonal" size="small" prepend-icon="mdi-eye" @click="viewTrainingCenterDetails(item)">View</v-btn>
+                <v-btn color="warning" variant="tonal" size="small" prepend-icon="mdi-undo" @click="unapproveApplication(item)">Undo</v-btn>
+                <v-btn color="info" variant="tonal" size="small" prepend-icon="mdi-pencil" @click="openTrainingCenterDialog(item)">Edit</v-btn>
+                <v-btn v-if="parseFloat(item.commissionEarned) > 0" color="success" variant="tonal" size="small" prepend-icon="mdi-cash-multiple" @click="payTrainingCommission(item)" :loading="payingCommission === item.id">Pay</v-btn>
+              </div>
+            </v-card-text>
+          </v-card>
+        </div>
       </v-card>
     </div>
 
     <!-- View Training Center Details Dialog -->
-    <v-dialog v-model="viewTrainingCenterDialog" max-width="900" scrollable>
+    <v-dialog v-model="viewTrainingCenterDialog" :max-width="isMobile ? undefined : 900" :fullscreen="isMobile" scrollable>
       <v-card v-if="viewingTrainingCenter">
         <v-card-title class="pa-6" style="background: #dc2626; color: white;">
           <div class="d-flex align-center justify-space-between w-100">
@@ -1938,7 +2376,7 @@
     </v-dialog>
 
     <!-- Add/Edit Training Center Dialog -->
-    <v-dialog v-model="trainingCenterDialog" max-width="900" scrollable>
+    <v-dialog v-model="trainingCenterDialog" :max-width="isMobile ? undefined : 900" :fullscreen="isMobile" scrollable>
       <v-card>
         <v-card-title class="pa-6" style="background: #dc2626; color: white;">
           <span class="section-title" style="color: white;">{{ editingTrainingCenter ? 'Edit Training Center' : 'Add Training Center' }}</span>
@@ -2042,10 +2480,12 @@
     <!-- Contractors Application Section -->
     <div v-if="currentSection === 'pending'">
       <v-card elevation="0">
-        <v-card-title class="card-header pa-8">
+        <v-card-title class="card-header pa-4 pa-md-8">
           <span class="section-title error--text">Contractors Application</span>
         </v-card-title>
-        <v-data-table :headers="applicationHeaders" :items="pendingApplications" :items-per-page="10" class="elevation-0 table-no-checkbox">
+        
+        <!-- Desktop Table View -->
+        <v-data-table v-if="!isMobile" :headers="applicationHeaders" :items="pendingApplications" :items-per-page="10" class="elevation-0 table-no-checkbox">
           <template v-slot:item.type="{ item }">
             <v-chip 
               v-if="item.type === 'Housekeeper'"
@@ -2089,11 +2529,59 @@
             </div>
           </template>
         </v-data-table>
+        
+        <!-- Mobile Card View -->
+        <div v-else class="mobile-cards-container pa-3">
+          <v-card v-for="item in pendingApplications" :key="item.id" class="mobile-data-card mb-3" elevation="2">
+            <v-card-text class="pa-0">
+              <div class="mobile-card-header d-flex justify-space-between align-center pa-3" :style="'background: linear-gradient(135deg, ' + (item.type === 'Caregiver' ? '#16a34a 0%, #15803d' : (item.type === 'Housekeeper' ? '#6A1B9A 0%, #4a148c' : (item.type === 'Marketing Partner' ? '#2563eb 0%, #1d4ed8' : '#f59e0b 0%, #d97706'))) + ' 100%);'">
+                <span class="text-white font-weight-bold">{{ item.name }}</span>
+                <v-chip 
+                  v-if="item.type === 'Housekeeper'"
+                  color="white"
+                  size="small" 
+                  class="font-weight-bold"
+                  prepend-icon="mdi-broom"
+                >
+                  {{ item.type }}
+                </v-chip>
+                <v-chip 
+                  v-else
+                  color="white"
+                  size="small" 
+                  class="font-weight-bold" 
+                  :prepend-icon="item.type === 'Caregiver' ? 'mdi-account-heart' : (item.type === 'Marketing Partner' ? 'mdi-bullhorn-variant' : 'mdi-school')"
+                >
+                  {{ item.type }}
+                </v-chip>
+              </div>
+              <div class="mobile-card-body pa-3">
+                <div class="mobile-card-row d-flex justify-space-between py-2" style="border-bottom: 1px solid #f3f4f6;">
+                  <span class="mobile-card-label text-grey-darken-1">Email:</span>
+                  <span class="mobile-card-value text-primary font-weight-medium" style="word-break: break-all;">{{ item.email }}</span>
+                </div>
+                <div class="mobile-card-row d-flex justify-space-between py-2" style="border-bottom: 1px solid #f3f4f6;">
+                  <span class="mobile-card-label text-grey-darken-1">Applied:</span>
+                  <span class="mobile-card-value">{{ item.applied_at ? new Date(item.applied_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : 'N/A' }}</span>
+                </div>
+                <div class="mobile-card-row d-flex justify-space-between py-2">
+                  <span class="mobile-card-label text-grey-darken-1">Status:</span>
+                  <v-chip :color="(item.status && item.status.toLowerCase() === 'approved') ? 'success' : 'warning'" size="small" class="font-weight-bold">{{ (item.status && item.status.toLowerCase() === 'approved') ? 'Approved' : 'Pending' }}</v-chip>
+                </div>
+              </div>
+              <div class="mobile-card-actions d-flex justify-center ga-2 pa-3" style="background: #f9fafb; border-top: 1px solid #e5e7eb;">
+                <v-btn color="primary" variant="tonal" size="small" prepend-icon="mdi-eye" @click="viewApplication(item)">View</v-btn>
+                <v-btn color="success" variant="tonal" size="small" prepend-icon="mdi-check" @click="approveApplication(item)">Approve</v-btn>
+                <v-btn color="error" variant="tonal" size="small" prepend-icon="mdi-close" @click="rejectApplication(item)">Reject</v-btn>
+              </div>
+            </v-card-text>
+          </v-card>
+        </div>
       </v-card>
     </div>
 
     <!-- View Application Details Dialog -->
-    <v-dialog v-model="viewApplicationDialog" max-width="800">
+    <v-dialog v-model="viewApplicationDialog" :max-width="isMobile ? undefined : 800" :fullscreen="isMobile" scrollable>
       <v-card v-if="viewingApplication">
         <v-card-title class="pa-6" style="background: #dc2626; color: white;">
           <div class="d-flex align-center justify-space-between w-100">
@@ -2220,7 +2708,8 @@
         <v-card-title class="card-header pa-8">
           <span class="section-title error--text">Password Reset Requests</span>
         </v-card-title>
-        <v-data-table :headers="passwordResetHeaders" :items="passwordResets" :items-per-page="10" class="elevation-0 table-no-checkbox">
+        <!-- Desktop Table View -->
+        <v-data-table v-if="!isMobile" :headers="passwordResetHeaders" :items="passwordResets" :items-per-page="10" class="elevation-0 table-no-checkbox">
           <template v-slot:item.status="{ item }">
             <v-chip :color="item.status === 'Completed' ? 'success' : 'warning'" size="small" class="font-weight-bold" :prepend-icon="getStatusIcon(item.status)">{{ item.status }}</v-chip>
           </template>
@@ -2234,6 +2723,34 @@
             </div>
           </template>
         </v-data-table>
+        <!-- Mobile Card View -->
+        <div v-else class="mobile-cards-container pa-3">
+          <div v-if="passwordResets.length === 0" class="text-center py-8 text-grey">
+            No password reset requests found
+          </div>
+          <v-card v-for="item in passwordResets" :key="item.id" class="mobile-data-card mb-3" elevation="2" rounded="lg">
+            <v-card-text class="pa-0">
+              <div class="mobile-card-header d-flex align-center justify-space-between pa-3" style="background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);">
+                <span class="text-white font-weight-bold text-body-1">{{ item.email || item.name }}</span>
+                <v-chip :color="item.status === 'Completed' ? 'success' : 'warning'" size="small" class="font-weight-bold" :prepend-icon="getStatusIcon(item.status)">{{ item.status }}</v-chip>
+              </div>
+              <div class="mobile-card-body pa-3">
+                <div class="mobile-card-row d-flex justify-space-between py-2" style="border-bottom: 1px solid #f3f4f6;">
+                  <span class="mobile-card-label text-grey-darken-1">User Type:</span>
+                  <v-chip :color="item.userType === 'Caregiver' ? 'success' : 'primary'" size="x-small" class="font-weight-bold" :prepend-icon="item.userType === 'Caregiver' ? 'mdi-account-heart' : 'mdi-account'">{{ item.userType }}</v-chip>
+                </div>
+                <div class="mobile-card-row d-flex justify-space-between py-2" style="border-bottom: 1px solid #f3f4f6;">
+                  <span class="mobile-card-label text-grey-darken-1">Requested:</span>
+                  <span class="mobile-card-value">{{ item.requested_at || item.created_at }}</span>
+                </div>
+              </div>
+              <div class="mobile-card-actions d-flex justify-center pa-3" style="background: #f9fafb; border-top: 1px solid #e5e7eb;">
+                <v-btn v-if="item.status === 'Pending'" color="success" variant="tonal" size="small" prepend-icon="mdi-check" @click="processPasswordReset(item)">Process Reset</v-btn>
+                <v-chip v-else color="success" size="small" prepend-icon="mdi-check-circle">Completed</v-chip>
+              </div>
+            </v-card-text>
+          </v-card>
+        </div>
       </v-card>
     </div>
 
@@ -2255,13 +2772,14 @@
 
       <v-card elevation="0">
         <v-card-title class="card-header pa-8">
-          <div class="d-flex justify-space-between align-center w-100">
+          <div class="d-flex justify-space-between align-center w-100 flex-wrap ga-2">
             <span class="section-title error--text">Client Time Tracking</span>
-            <div class="d-flex gap-2">
+            <div class="d-flex gap-2 flex-wrap">
               <v-btn 
                 color="info" 
                 prepend-icon="mdi-history" 
                 @click="timeTrackingHistoryDialog = true"
+                :size="isMobile ? 'small' : 'default'"
               >
                 View History
               </v-btn>
@@ -2270,13 +2788,15 @@
                 prepend-icon="mdi-refresh" 
                 @click="refreshTimeTracking"
                 :loading="false"
+                :size="isMobile ? 'small' : 'default'"
               >
                 Refresh Data
               </v-btn>
             </div>
           </div>
         </v-card-title>
-        <v-data-table :headers="timeTrackingHeaders" :items="filteredTimeTracking" :items-per-page="15" class="elevation-0 table-no-checkbox">
+        <!-- Desktop Table View -->
+        <v-data-table v-if="!isMobile" :headers="timeTrackingHeaders" :items="filteredTimeTracking" :items-per-page="15" class="elevation-0 table-no-checkbox">
           <template v-slot:item.client="{ item }">
             <div class="font-weight-bold text-h6">{{ item.client }}</div>
           </template>
@@ -2363,6 +2883,56 @@
             </div>
           </template>
         </v-data-table>
+        <!-- Mobile Card View -->
+        <div v-else class="mobile-cards-container pa-3">
+          <div v-if="filteredTimeTracking.length === 0" class="text-center py-8 text-grey">
+            No time tracking records found
+          </div>
+          <v-card v-for="item in filteredTimeTracking" :key="item.id" class="mobile-data-card mb-3" elevation="2" rounded="lg">
+            <v-card-text class="pa-0">
+              <div class="mobile-card-header d-flex align-center justify-space-between pa-3" style="background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);">
+                <span class="text-white font-weight-bold text-body-1">{{ item.client }}</span>
+                <v-chip 
+                  :color="item.status === 'Active' ? 'success' : 'grey-darken-1'" 
+                  size="small" 
+                  class="font-weight-bold"
+                  variant="flat"
+                >
+                  {{ item.status }}
+                </v-chip>
+              </div>
+              <div class="mobile-card-body pa-3">
+                <div class="mobile-card-row py-2" style="border-bottom: 1px solid #f3f4f6;">
+                  <span class="mobile-card-label text-grey-darken-1 d-block mb-2">Assigned Caregivers:</span>
+                  <div v-if="item.caregivers.length === 0" class="text-grey text-caption">
+                    No caregivers assigned
+                  </div>
+                  <div v-else class="d-flex flex-column gap-2">
+                    <div v-for="caregiver in item.caregivers" :key="caregiver.id" class="pa-2" style="border: 1px solid #e0e0e0; border-radius: 8px; background: #f9fafb;">
+                      <div class="d-flex align-center justify-space-between flex-wrap ga-1">
+                        <span class="font-weight-medium text-body-2">{{ caregiver.name }}</span>
+                        <v-chip 
+                          :color="caregiver.status === 'Clocked In' ? 'success' : 'default'" 
+                          size="x-small" 
+                          variant="flat"
+                        >
+                          {{ caregiver.status }}
+                        </v-chip>
+                      </div>
+                      <div v-if="caregiver.status === 'Clocked In'" class="text-caption text-grey mt-1">
+                        <div>Clock In: {{ caregiver.clockIn || 'N/A' }}</div>
+                        <div>Today: {{ formatHours(caregiver.todayHours) }} | Week: {{ formatHours(caregiver.weekHours) }}</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="mobile-card-actions d-flex justify-center pa-3" style="background: #f9fafb; border-top: 1px solid #e5e7eb;">
+                <v-btn color="primary" variant="tonal" size="small" prepend-icon="mdi-eye" @click="viewClientCaregivers(item)">View Details</v-btn>
+              </div>
+            </v-card-text>
+          </v-card>
+        </div>
       </v-card>
     </div>
 
@@ -2386,13 +2956,15 @@
       </div>
 
       <v-card elevation="0">
-        <v-card-title class="card-header pa-8 d-flex justify-space-between align-center">
+        <v-card-title class="card-header pa-4 pa-md-8 d-flex justify-space-between align-center flex-wrap ga-2">
           <span class="section-title error--text">Client Bookings</span>
-          <v-btn v-if="selectedBookings.length > 0" color="error" variant="outlined" prepend-icon="mdi-delete" @click="deleteSelectedBookings">
-            Delete Selected ({{ selectedBookings.length }})
+          <v-btn v-if="selectedBookings.length > 0" color="error" variant="outlined" prepend-icon="mdi-delete" size="small" @click="deleteSelectedBookings">
+            Delete ({{ selectedBookings.length }})
           </v-btn>
         </v-card-title>
-        <v-data-table v-model="selectedBookings" :headers="bookingHeaders" :items="filteredBookings" :items-per-page="10" :items-per-page-options="[10, 25, 50, -1]" show-select item-value="id" class="elevation-0 admin-bookings-table" density="compact">
+        
+        <!-- Desktop Table View -->
+        <v-data-table v-if="!isMobile" v-model="selectedBookings" :headers="bookingHeaders" :items="filteredBookings" :items-per-page="10" :items-per-page-options="[10, 25, 50, -1]" show-select item-value="id" class="elevation-0 admin-bookings-table" density="compact">
           <template v-slot:item.formattedPrice="{ item }">
             <div class="price-cell">
               <span v-if="item.referralDiscountApplied && item.referralDiscountApplied > 0" class="original-price-strike">
@@ -2451,29 +3023,31 @@
             <div class="action-buttons">
               <v-btn v-if="item.status === 'pending'" class="action-btn-approve" icon="mdi-check" size="small" @click="approveBooking(item)"></v-btn>
               <v-btn v-if="item.status === 'pending'" class="action-btn-reject" icon="mdi-close" size="small" @click="rejectBooking(item)"></v-btn>
-              <v-btn class="action-btn-view" icon="mdi-eye" size="small" @click="viewBooking(item)"></v-btn>
-              <!-- Assignment / management actions depend on service type -->
+              <v-btn class="action-btn-view" icon="mdi-eye" size="small" title="View Booking Details" @click="viewBooking(item)"></v-btn>
+              <!-- View assigned caregivers/housekeepers -->
               <v-btn
                 v-if="(item.status === 'approved' || item.status === 'confirmed') && !String(item.service || item.service_type || '').toLowerCase().includes('housekeeping')"
                 class="action-btn-caregivers"
                 icon="mdi-account-group"
                 size="small"
+                title="View Assigned Caregivers"
                 @click="viewAssignedCaregivers(item)"
               ></v-btn>
 
               <v-btn
                 v-if="(item.status === 'approved' || item.status === 'confirmed') && String(item.service || item.service_type || '').toLowerCase().includes('housekeeping')"
-                class="action-btn-housekeepers"
-                icon="mdi-broom"
+                class="action-btn-view-assigned"
+                icon="mdi-account-eye"
                 size="small"
                 title="View Assigned Housekeepers"
                 @click="viewAssignedHousekeepers(item)"
               ></v-btn>
 
+              <!-- Assign caregivers/housekeepers -->
               <v-btn
                 v-if="item.status === 'approved' || item.status === 'confirmed'"
-                :class="String(item.service || item.service_type || '').toLowerCase().includes('housekeeping') ? 'action-btn-housekeepers' : 'action-btn-edit'"
-                :icon="String(item.service || item.service_type || '').toLowerCase().includes('housekeeping') ? 'mdi-broom' : 'mdi-account-plus'"
+                :class="String(item.service || item.service_type || '').toLowerCase().includes('housekeeping') ? 'action-btn-assign' : 'action-btn-assign'"
+                :icon="String(item.service || item.service_type || '').toLowerCase().includes('housekeeping') ? 'mdi-account-plus' : 'mdi-account-plus'"
                 size="small"
                 :title="String(item.service || item.service_type || '').toLowerCase().includes('housekeeping') ? 'Assign Housekeepers' : 'Assign Caregivers'"
                 @click="String(item.service || item.service_type || '').toLowerCase().includes('housekeeping') ? assignHousekeeperDialog(item) : assignCaregiverDialog(item)"
@@ -2481,6 +3055,66 @@
             </div>
           </template>
         </v-data-table>
+        
+        <!-- Mobile Card View for Bookings -->
+        <div v-else class="mobile-cards-container pa-3">
+          <v-card v-for="item in filteredBookings" :key="item.id" class="mobile-data-card mb-3" elevation="2">
+            <v-card-text class="pa-0">
+              <div class="mobile-card-header d-flex justify-space-between align-center pa-3" style="background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);">
+                <div class="d-flex align-center">
+                  <v-checkbox v-model="selectedBookings" :value="item.id" hide-details density="compact" color="white" class="mr-2"></v-checkbox>
+                  <span class="text-white font-weight-bold text-truncate" style="max-width: 150px;">{{ item.client }}</span>
+                </div>
+                <v-chip :color="getBookingStatusColor(item.status)" size="small" class="font-weight-bold">{{ item.status }}</v-chip>
+              </div>
+              <div class="mobile-card-body pa-3">
+                <div class="mobile-card-row d-flex justify-space-between py-2" style="border-bottom: 1px solid #f3f4f6;">
+                  <span class="mobile-card-label text-grey-darken-1">Service:</span>
+                  <span class="mobile-card-value font-weight-medium">{{ item.service }}</span>
+                </div>
+                <div class="mobile-card-row d-flex justify-space-between py-2" style="border-bottom: 1px solid #f3f4f6;">
+                  <span class="mobile-card-label text-grey-darken-1">Hours/Day:</span>
+                  <span class="mobile-card-value">{{ item.hoursPerDay }}h</span>
+                </div>
+                <div class="mobile-card-row d-flex justify-space-between py-2" style="border-bottom: 1px solid #f3f4f6;">
+                  <span class="mobile-card-label text-grey-darken-1">Duration:</span>
+                  <span class="mobile-card-value">{{ item.durationDays }} days</span>
+                </div>
+                <div class="mobile-card-row d-flex justify-space-between py-2" style="border-bottom: 1px solid #f3f4f6;">
+                  <span class="mobile-card-label text-grey-darken-1">Price:</span>
+                  <span class="mobile-card-value font-weight-bold text-success">{{ item.formattedPrice }}</span>
+                </div>
+                <div class="mobile-card-row d-flex justify-space-between py-2" style="border-bottom: 1px solid #f3f4f6;">
+                  <span class="mobile-card-label text-grey-darken-1">Payment:</span>
+                  <v-chip :color="item.paymentStatus === 'paid' ? 'success' : 'warning'" size="x-small">{{ item.paymentStatus === 'paid' ? 'Paid' : 'Unpaid' }}</v-chip>
+                </div>
+                <div class="mobile-card-row d-flex justify-space-between align-center py-2" style="border-bottom: 1px solid #f3f4f6;">
+                  <span class="mobile-card-label text-grey-darken-1">Assigned:</span>
+                  <div class="d-flex align-center" style="min-width: 80px;">
+                    <span class="mr-2 text-caption">{{ item.assignedCount }}/{{ item.caregiversNeeded }}</span>
+                    <v-progress-linear :model-value="(item.assignedCount / item.caregiversNeeded) * 100" :color="item.assignedCount >= item.caregiversNeeded ? 'success' : 'warning'" height="4" rounded style="width: 50px;"></v-progress-linear>
+                  </div>
+                </div>
+                <div class="mobile-card-row d-flex justify-space-between py-2">
+                  <span class="mobile-card-label text-grey-darken-1">Coverage:</span>
+                  <span class="mobile-card-value text-caption">{{ item.coverageStart }} - {{ item.coverageEnd }}</span>
+                </div>
+              </div>
+              <div class="mobile-card-actions d-flex justify-center flex-wrap ga-2 pa-3" style="background: #f9fafb; border-top: 1px solid #e5e7eb;">
+                <v-btn v-if="item.status === 'pending'" color="success" variant="tonal" size="small" prepend-icon="mdi-check" @click="approveBooking(item)">Approve</v-btn>
+                <v-btn v-if="item.status === 'pending'" color="error" variant="tonal" size="small" prepend-icon="mdi-close" @click="rejectBooking(item)">Reject</v-btn>
+                <v-btn color="primary" variant="tonal" size="small" prepend-icon="mdi-eye" @click="viewBooking(item)">View</v-btn>
+                <v-btn v-if="(item.status === 'approved' || item.status === 'confirmed')" color="info" variant="tonal" size="small" prepend-icon="mdi-account-plus" @click="String(item.service || item.service_type || '').toLowerCase().includes('housekeeping') ? assignHousekeeperDialog(item) : assignCaregiverDialog(item)">Assign</v-btn>
+              </div>
+            </v-card-text>
+          </v-card>
+          
+          <!-- Empty state -->
+          <div v-if="filteredBookings.length === 0" class="text-center pa-6">
+            <v-icon size="64" color="grey-lighten-1">mdi-calendar-blank</v-icon>
+            <p class="text-grey mt-2">No bookings found</p>
+          </div>
+        </div>
       </v-card>
     </div>
 
@@ -2499,7 +3133,9 @@
         </v-card-title>
         
         <v-card-text class="pa-0">
+          <!-- Desktop Table View -->
           <v-data-table
+            v-if="!isMobile"
             :headers="reviewHeaders"
             :items="allReviews"
             :items-per-page="10"
@@ -2549,6 +3185,62 @@
               </div>
             </template>
           </v-data-table>
+          <!-- Mobile Card View -->
+          <div v-else class="mobile-cards-container pa-3">
+            <div v-if="loadingReviews" class="text-center py-8">
+              <v-progress-circular indeterminate color="primary"></v-progress-circular>
+            </div>
+            <div v-else-if="allReviews.length === 0" class="text-center py-8 text-grey">
+              No reviews found
+            </div>
+            <v-card v-else v-for="item in allReviews" :key="item.id" class="mobile-data-card mb-3" elevation="2" rounded="lg">
+              <v-card-text class="pa-0">
+                <div class="mobile-card-header d-flex align-center justify-space-between pa-3" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);">
+                  <span class="text-white font-weight-bold text-body-1">{{ item.caregiver_name || item.caregiver }}</span>
+                  <v-chip
+                    :color="item.recommend ? 'success' : 'error'"
+                    size="small"
+                    variant="flat"
+                  >
+                    <v-icon start size="small">{{ item.recommend ? 'mdi-thumb-up' : 'mdi-thumb-down' }}</v-icon>
+                    {{ item.recommend ? 'Yes' : 'No' }}
+                  </v-chip>
+                </div>
+                <div class="mobile-card-body pa-3">
+                  <div class="mobile-card-row d-flex justify-space-between align-center py-2" style="border-bottom: 1px solid #f3f4f6;">
+                    <span class="mobile-card-label text-grey-darken-1">Rating:</span>
+                    <div class="d-flex align-center">
+                      <v-rating
+                        :model-value="item.rating"
+                        readonly
+                        density="compact"
+                        size="x-small"
+                        color="amber"
+                        active-color="amber"
+                      ></v-rating>
+                      <span class="ml-1 font-weight-bold text-caption">{{ item.rating }}.0</span>
+                    </div>
+                  </div>
+                  <div class="mobile-card-row d-flex justify-space-between py-2" style="border-bottom: 1px solid #f3f4f6;">
+                    <span class="mobile-card-label text-grey-darken-1">Client:</span>
+                    <span class="mobile-card-value">{{ item.client_name || item.client }}</span>
+                  </div>
+                  <div class="mobile-card-row py-2" style="border-bottom: 1px solid #f3f4f6;">
+                    <span class="mobile-card-label text-grey-darken-1 d-block mb-1">Comment:</span>
+                    <span class="mobile-card-value text-caption">{{ item.comment || 'No comment' }}</span>
+                  </div>
+                  <div class="mobile-card-row d-flex justify-space-between py-2">
+                    <span class="mobile-card-label text-grey-darken-1">Date:</span>
+                    <span class="mobile-card-value text-grey">{{ item.created_at }}</span>
+                  </div>
+                </div>
+                <div class="mobile-card-actions d-flex justify-center ga-2 pa-3" style="background: #f9fafb; border-top: 1px solid #e5e7eb;">
+                  <v-btn color="info" variant="tonal" size="small" prepend-icon="mdi-eye" @click="viewReviewDetails(item)">View</v-btn>
+                  <v-btn color="error" variant="tonal" size="small" prepend-icon="mdi-delete" @click="deleteReview(item.id)">Delete</v-btn>
+                </div>
+              </v-card-text>
+            </v-card>
+          </div>
         </v-card-text>
       </v-card>
     </div>
@@ -2606,6 +3298,11 @@
           </v-card>
         </v-col>
       </v-row>
+    </div>
+
+    <!-- Email Marketing Section -->
+    <div v-if="currentSection === 'email-marketing'">
+      <email-marketing-panel />
     </div>
 
     <!-- Payments Section -->
@@ -2871,7 +3568,8 @@
             <v-card-title class="card-header pa-4">
               <span class="section-title-compact error--text">Client Payments</span>
             </v-card-title>
-            <v-data-table :headers="clientPaymentHeaders" :items="clientPayments" :items-per-page="10" class="elevation-0 table-no-checkbox">
+            <!-- Desktop Table View -->
+            <v-data-table v-if="!isMobile" :headers="clientPaymentHeaders" :items="clientPayments" :items-per-page="10" class="elevation-0 table-no-checkbox">
               <template v-slot:item.status="{ item }">
                 <v-chip :color="getPaymentStatusColor(item.status)" size="small" class="font-weight-bold">{{ item.status }}</v-chip>
               </template>
@@ -2882,6 +3580,38 @@
                 </div>
               </template>
             </v-data-table>
+            <!-- Mobile Card View -->
+            <div v-else class="mobile-cards-container pa-3">
+              <div v-if="clientPayments.length === 0" class="text-center py-8 text-grey">
+                No client payments found
+              </div>
+              <v-card v-for="item in clientPayments" :key="item.id" class="mobile-data-card mb-3" elevation="2" rounded="lg">
+                <v-card-text class="pa-0">
+                  <div class="mobile-card-header d-flex align-center justify-space-between pa-3" style="background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);">
+                    <span class="text-white font-weight-bold text-body-1">{{ item.client_name || item.client }}</span>
+                    <v-chip :color="getPaymentStatusColor(item.status)" size="small" class="font-weight-bold">{{ item.status }}</v-chip>
+                  </div>
+                  <div class="mobile-card-body pa-3">
+                    <div class="mobile-card-row d-flex justify-space-between py-2" style="border-bottom: 1px solid #f3f4f6;">
+                      <span class="mobile-card-label text-grey-darken-1">Amount:</span>
+                      <span class="mobile-card-value font-weight-bold text-success">${{ item.amount }}</span>
+                    </div>
+                    <div class="mobile-card-row d-flex justify-space-between py-2" style="border-bottom: 1px solid #f3f4f6;">
+                      <span class="mobile-card-label text-grey-darken-1">Date:</span>
+                      <span class="mobile-card-value">{{ item.date }}</span>
+                    </div>
+                    <div v-if="item.description" class="mobile-card-row d-flex justify-space-between py-2">
+                      <span class="mobile-card-label text-grey-darken-1">Description:</span>
+                      <span class="mobile-card-value text-caption">{{ item.description }}</span>
+                    </div>
+                  </div>
+                  <div class="mobile-card-actions d-flex justify-center ga-2 pa-3" style="background: #f9fafb; border-top: 1px solid #e5e7eb;">
+                    <v-btn color="primary" variant="tonal" size="small" prepend-icon="mdi-eye" @click="viewPayment(item)">View</v-btn>
+                    <v-btn v-if="item.status === 'Pending'" color="success" variant="tonal" size="small" prepend-icon="mdi-check" @click="markPaid(item)">Mark Paid</v-btn>
+                  </div>
+                </v-card-text>
+              </v-card>
+            </div>
           </v-card>
         </v-tabs-window-item>
 
@@ -2975,7 +3705,8 @@
             <v-card-title class="card-header pa-4">
               <span class="section-title-compact error--text">Caregiver Payments</span>
             </v-card-title>
-            <v-data-table :headers="paymentHeaders" :items="caregiverPayments" :items-per-page="10" class="elevation-0 table-no-checkbox">
+            <!-- Desktop Table View -->
+            <v-data-table v-if="!isMobile" :headers="paymentHeaders" :items="caregiverPayments" :items-per-page="10" class="elevation-0 table-no-checkbox">
               <template v-slot:item.bank_status="{ item }">
                 <v-chip :color="item.bank_connected ? 'success' : 'warning'" size="small" variant="flat">
                   <v-icon start size="small">{{ item.bank_connected ? 'mdi-check-circle' : 'mdi-alert-circle' }}</v-icon>
@@ -3019,6 +3750,43 @@
                 </div>
               </template>
             </v-data-table>
+            <!-- Mobile Card View -->
+            <div v-else class="mobile-cards-container pa-3">
+              <div v-if="caregiverPayments.length === 0" class="text-center py-8 text-grey">
+                No caregiver payments found
+              </div>
+              <v-card v-for="item in caregiverPayments" :key="item.id" class="mobile-data-card mb-3" elevation="2" rounded="lg">
+                <v-card-text class="pa-0">
+                  <div class="mobile-card-header d-flex align-center justify-space-between pa-3" style="background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);">
+                    <span class="text-white font-weight-bold text-body-1">{{ item.name }}</span>
+                    <v-chip :color="getPaymentStatusColor(item.status)" size="small" class="font-weight-bold">{{ item.status }}</v-chip>
+                  </div>
+                  <div class="mobile-card-body pa-3">
+                    <div class="mobile-card-row d-flex justify-space-between py-2" style="border-bottom: 1px solid #f3f4f6;">
+                      <span class="mobile-card-label text-grey-darken-1">Bank Status:</span>
+                      <v-chip :color="item.bank_connected ? 'success' : 'warning'" size="x-small" variant="flat">
+                        <v-icon start size="x-small">{{ item.bank_connected ? 'mdi-check-circle' : 'mdi-alert-circle' }}</v-icon>
+                        {{ item.bank_status }}
+                      </v-chip>
+                    </div>
+                    <div class="mobile-card-row d-flex justify-space-between py-2" style="border-bottom: 1px solid #f3f4f6;">
+                      <span class="mobile-card-label text-grey-darken-1">Hours Worked:</span>
+                      <span class="mobile-card-value">{{ item.hours_worked || item.hours }} hrs</span>
+                    </div>
+                    <div class="mobile-card-row d-flex justify-space-between py-2" style="border-bottom: 1px solid #f3f4f6;">
+                      <span class="mobile-card-label text-grey-darken-1">Amount Due:</span>
+                      <span class="mobile-card-value font-weight-bold text-success">${{ item.amount || item.total }}</span>
+                    </div>
+                  </div>
+                  <div class="mobile-card-actions d-flex justify-center ga-2 pa-3" style="background: #f9fafb; border-top: 1px solid #e5e7eb;">
+                    <v-btn color="primary" variant="tonal" size="small" prepend-icon="mdi-eye" @click="viewPaymentDetails(item)">View</v-btn>
+                    <v-btn v-if="item.can_pay && isFriday" color="success" variant="tonal" size="small" prepend-icon="mdi-cash-fast" @click="payCaregiver(item)">Pay</v-btn>
+                    <v-chip v-else-if="item.can_pay && !isFriday" color="grey" size="small">Friday Only</v-chip>
+                    <v-chip v-else-if="!item.bank_connected" color="warning" size="small">No Bank</v-chip>
+                  </div>
+                </v-card-text>
+              </v-card>
+            </div>
           </v-card>
         </v-tabs-window-item>
 
@@ -3055,7 +3823,8 @@
             <v-card-title class="card-header pa-4">
               <span class="section-title-compact error--text">Housekeeper Payments</span>
             </v-card-title>
-            <v-data-table :headers="housekeeperPaymentHeaders" :items="filteredHousekeeperPayments" :items-per-page="10" class="elevation-0 table-no-checkbox">
+            <!-- Desktop Table View -->
+            <v-data-table v-if="!isMobile" :headers="housekeeperPaymentHeaders" :items="filteredHousekeeperPayments" :items-per-page="10" class="elevation-0 table-no-checkbox">
               <template v-slot:item.bank_status="{ item }">
                 <v-chip :color="item.bank_connected ? 'success' : 'warning'" size="small" variant="flat">
                   <v-icon start size="small">{{ item.bank_connected ? 'mdi-check-circle' : 'mdi-alert-circle' }}</v-icon>
@@ -3088,6 +3857,42 @@
                 </div>
               </template>
             </v-data-table>
+            <!-- Mobile Card View -->
+            <div v-else class="mobile-cards-container pa-3">
+              <div v-if="filteredHousekeeperPayments.length === 0" class="text-center py-8 text-grey">
+                No housekeeper payments found
+              </div>
+              <v-card v-for="item in filteredHousekeeperPayments" :key="item.id" class="mobile-data-card mb-3" elevation="2" rounded="lg">
+                <v-card-text class="pa-0">
+                  <div class="mobile-card-header d-flex align-center justify-space-between pa-3" style="background: linear-gradient(135deg, #6A1B9A 0%, #4A148C 100%);">
+                    <span class="text-white font-weight-bold text-body-1">{{ item.name }}</span>
+                    <v-chip :color="getPaymentStatusColor(item.status)" size="small" class="font-weight-bold">{{ item.status }}</v-chip>
+                  </div>
+                  <div class="mobile-card-body pa-3">
+                    <div class="mobile-card-row d-flex justify-space-between py-2" style="border-bottom: 1px solid #f3f4f6;">
+                      <span class="mobile-card-label text-grey-darken-1">Bank Status:</span>
+                      <v-chip :color="item.bank_connected ? 'success' : 'warning'" size="x-small" variant="flat">
+                        <v-icon start size="x-small">{{ item.bank_connected ? 'mdi-check-circle' : 'mdi-alert-circle' }}</v-icon>
+                        {{ item.bank_status }}
+                      </v-chip>
+                    </div>
+                    <div class="mobile-card-row d-flex justify-space-between py-2" style="border-bottom: 1px solid #f3f4f6;">
+                      <span class="mobile-card-label text-grey-darken-1">Hours Worked:</span>
+                      <span class="mobile-card-value">{{ item.hours_worked || item.hours }} hrs</span>
+                    </div>
+                    <div class="mobile-card-row d-flex justify-space-between py-2" style="border-bottom: 1px solid #f3f4f6;">
+                      <span class="mobile-card-label text-grey-darken-1">Amount Due:</span>
+                      <span class="mobile-card-value font-weight-bold text-success">${{ item.amount || item.total }}</span>
+                    </div>
+                  </div>
+                  <div class="mobile-card-actions d-flex justify-center ga-2 pa-3" style="background: #f9fafb; border-top: 1px solid #e5e7eb;">
+                    <v-btn color="primary" variant="tonal" size="small" prepend-icon="mdi-eye" @click="viewHousekeeperPaymentDetails(item)">View</v-btn>
+                    <v-btn v-if="item.can_pay && isFriday" color="success" variant="tonal" size="small" prepend-icon="mdi-cash-fast" @click="payHousekeeper(item)">Pay</v-btn>
+                    <v-chip v-else-if="!item.bank_connected" color="warning" size="small">No Bank</v-chip>
+                  </div>
+                </v-card-text>
+              </v-card>
+            </div>
           </v-card>
         </v-tabs-window-item>
 
@@ -3198,7 +4003,9 @@
             <v-card-title class="card-header pa-4">
               <span class="section-title-compact error--text">Marketing Staff Commissions</span>
             </v-card-title>
+            <!-- Desktop Table View -->
             <v-data-table 
+              v-if="!isMobile"
               :headers="marketingCommissionHeaders" 
               :items="filteredMarketingCommissions" 
               :items-per-page="10" 
@@ -3261,6 +4068,47 @@
                 </div>
               </template>
             </v-data-table>
+            <!-- Mobile Card View -->
+            <div v-else class="mobile-cards-container pa-3">
+              <div v-if="filteredMarketingCommissions.length === 0" class="text-center py-8 text-grey">
+                No marketing commissions found
+              </div>
+              <v-card v-for="item in filteredMarketingCommissions" :key="item.id" class="mobile-data-card mb-3" elevation="2" rounded="lg">
+                <v-card-text class="pa-0">
+                  <div class="mobile-card-header d-flex align-center justify-space-between pa-3" style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);">
+                    <span class="text-white font-weight-bold text-body-1">{{ item.name }}</span>
+                    <v-chip :color="item.payment_status === 'Paid' ? 'success' : 'warning'" size="small" class="font-weight-bold">{{ item.payment_status }}</v-chip>
+                  </div>
+                  <div class="mobile-card-body pa-3">
+                    <div class="mobile-card-row d-flex justify-space-between py-2" style="border-bottom: 1px solid #f3f4f6;">
+                      <span class="mobile-card-label text-grey-darken-1">Bank Status:</span>
+                      <v-chip :color="item.bank_connected ? 'success' : 'warning'" size="x-small" variant="flat">
+                        <v-icon start size="x-small">{{ item.bank_connected ? 'mdi-check-circle' : 'mdi-alert-circle' }}</v-icon>
+                        {{ item.bank_status }}
+                      </v-chip>
+                    </div>
+                    <div class="mobile-card-row d-flex justify-space-between py-2" style="border-bottom: 1px solid #f3f4f6;">
+                      <span class="mobile-card-label text-grey-darken-1">Referrals:</span>
+                      <span class="mobile-card-value">{{ item.referral_count || 0 }}</span>
+                    </div>
+                    <div class="mobile-card-row d-flex justify-space-between py-2" style="border-bottom: 1px solid #f3f4f6;">
+                      <span class="mobile-card-label text-grey-darken-1">Total Earned:</span>
+                      <span class="mobile-card-value font-weight-bold">${{ item.total_earned || 0 }}</span>
+                    </div>
+                    <div class="mobile-card-row d-flex justify-space-between py-2">
+                      <span class="mobile-card-label text-grey-darken-1">Pending:</span>
+                      <span class="mobile-card-value font-weight-bold text-warning">${{ item.pending_commission || 0 }}</span>
+                    </div>
+                  </div>
+                  <div class="mobile-card-actions d-flex justify-center ga-2 pa-3" style="background: #f9fafb; border-top: 1px solid #e5e7eb;">
+                    <v-btn color="primary" variant="tonal" size="small" prepend-icon="mdi-eye" @click="viewMarketingCommissionDetails(item)">View</v-btn>
+                    <v-btn v-if="item.pending_commission > 0 && item.bank_connected && isFriday" color="success" variant="tonal" size="small" prepend-icon="mdi-cash-fast" @click="payMarketingCommission(item)" :loading="item.paying">Pay</v-btn>
+                    <v-chip v-else-if="item.pending_commission > 0 && !isFriday" color="grey" size="small">Friday Only</v-chip>
+                    <v-chip v-else-if="!item.bank_connected" color="warning" size="small">No Bank</v-chip>
+                  </div>
+                </v-card-text>
+              </v-card>
+            </div>
           </v-card>
         </v-tabs-window-item>
 
@@ -3371,7 +4219,9 @@
             <v-card-title class="card-header pa-4">
               <span class="section-title-compact error--text">Training Center Commissions</span>
             </v-card-title>
+            <!-- Desktop Table View -->
             <v-data-table 
+              v-if="!isMobile"
               :headers="trainingCommissionHeaders" 
               :items="filteredTrainingCommissions" 
               :items-per-page="10" 
@@ -3434,6 +4284,47 @@
                 </div>
               </template>
             </v-data-table>
+            <!-- Mobile Card View -->
+            <div v-else class="mobile-cards-container pa-3">
+              <div v-if="filteredTrainingCommissions.length === 0" class="text-center py-8 text-grey">
+                No training commissions found
+              </div>
+              <v-card v-for="item in filteredTrainingCommissions" :key="item.id" class="mobile-data-card mb-3" elevation="2" rounded="lg">
+                <v-card-text class="pa-0">
+                  <div class="mobile-card-header d-flex align-center justify-space-between pa-3" style="background: linear-gradient(135deg, #d97706 0%, #b45309 100%);">
+                    <span class="text-white font-weight-bold text-body-1">{{ item.name }}</span>
+                    <v-chip :color="item.payment_status === 'Paid' ? 'success' : 'warning'" size="small" class="font-weight-bold">{{ item.payment_status }}</v-chip>
+                  </div>
+                  <div class="mobile-card-body pa-3">
+                    <div class="mobile-card-row d-flex justify-space-between py-2" style="border-bottom: 1px solid #f3f4f6;">
+                      <span class="mobile-card-label text-grey-darken-1">Bank Status:</span>
+                      <v-chip :color="item.bank_connected ? 'success' : 'warning'" size="x-small" variant="flat">
+                        <v-icon start size="x-small">{{ item.bank_connected ? 'mdi-check-circle' : 'mdi-alert-circle' }}</v-icon>
+                        {{ item.bank_status }}
+                      </v-chip>
+                    </div>
+                    <div class="mobile-card-row d-flex justify-space-between py-2" style="border-bottom: 1px solid #f3f4f6;">
+                      <span class="mobile-card-label text-grey-darken-1">Caregivers:</span>
+                      <span class="mobile-card-value">{{ item.caregiver_count || 0 }}</span>
+                    </div>
+                    <div class="mobile-card-row d-flex justify-space-between py-2" style="border-bottom: 1px solid #f3f4f6;">
+                      <span class="mobile-card-label text-grey-darken-1">Total Earned:</span>
+                      <span class="mobile-card-value font-weight-bold">${{ item.total_earned || 0 }}</span>
+                    </div>
+                    <div class="mobile-card-row d-flex justify-space-between py-2">
+                      <span class="mobile-card-label text-grey-darken-1">Pending:</span>
+                      <span class="mobile-card-value font-weight-bold text-warning">${{ item.pending_commission || 0 }}</span>
+                    </div>
+                  </div>
+                  <div class="mobile-card-actions d-flex justify-center ga-2 pa-3" style="background: #f9fafb; border-top: 1px solid #e5e7eb;">
+                    <v-btn color="primary" variant="tonal" size="small" prepend-icon="mdi-eye" @click="viewTrainingCommissionDetails(item)">View</v-btn>
+                    <v-btn v-if="item.pending_commission > 0 && item.bank_connected && isFriday" color="success" variant="tonal" size="small" prepend-icon="mdi-cash-fast" @click="payTrainingCommission(item)" :loading="item.paying">Pay</v-btn>
+                    <v-chip v-else-if="item.pending_commission > 0 && !isFriday" color="grey" size="small">Friday Only</v-chip>
+                    <v-chip v-else-if="!item.bank_connected" color="warning" size="small">No Bank</v-chip>
+                  </div>
+                </v-card-text>
+              </v-card>
+            </div>
           </v-card>
         </v-tabs-window-item>
 
@@ -3460,7 +4351,8 @@
             <v-card-title class="card-header pa-4">
               <span class="section-title-compact error--text">All Transactions</span>
             </v-card-title>
-            <v-data-table :headers="transactionHeaders" :items="allTransactions" :items-per-page="15" class="elevation-0 table-no-checkbox">
+            <!-- Desktop Table View -->
+            <v-data-table v-if="!isMobile" :headers="transactionHeaders" :items="allTransactions" :items-per-page="15" class="elevation-0 table-no-checkbox">
               <template v-slot:item.type="{ item }">
                 <v-chip :color="getTransactionTypeColor(item.type)" size="small" class="font-weight-bold">{{ item.type }}</v-chip>
               </template>
@@ -3470,13 +4362,43 @@
                 </span>
               </template>
             </v-data-table>
+            <!-- Mobile Card View -->
+            <div v-else class="mobile-cards-container pa-3">
+              <div v-if="allTransactions.length === 0" class="text-center py-8 text-grey">
+                No transactions found
+              </div>
+              <v-card v-for="(item, index) in allTransactions" :key="index" class="mobile-data-card mb-3" elevation="2" rounded="lg">
+                <v-card-text class="pa-0">
+                  <div class="mobile-card-header d-flex align-center justify-space-between pa-3" :style="item.type === 'Payment' ? 'background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);' : 'background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);'">
+                    <span class="text-white font-weight-bold text-body-1">{{ item.description || item.reference }}</span>
+                    <v-chip :color="getTransactionTypeColor(item.type)" size="small" class="font-weight-bold">{{ item.type }}</v-chip>
+                  </div>
+                  <div class="mobile-card-body pa-3">
+                    <div class="mobile-card-row d-flex justify-space-between py-2" style="border-bottom: 1px solid #f3f4f6;">
+                      <span class="mobile-card-label text-grey-darken-1">Amount:</span>
+                      <span class="mobile-card-value font-weight-bold" :class="item.type === 'Payment' ? 'text-success' : 'text-error'">
+                        {{ item.type === 'Payment' ? '+' : '-' }}${{ item.amount }}
+                      </span>
+                    </div>
+                    <div class="mobile-card-row d-flex justify-space-between py-2" style="border-bottom: 1px solid #f3f4f6;">
+                      <span class="mobile-card-label text-grey-darken-1">Date:</span>
+                      <span class="mobile-card-value">{{ item.date || item.created_at }}</span>
+                    </div>
+                    <div v-if="item.status" class="mobile-card-row d-flex justify-space-between py-2">
+                      <span class="mobile-card-label text-grey-darken-1">Status:</span>
+                      <v-chip :color="item.status === 'Completed' ? 'success' : 'warning'" size="x-small">{{ item.status }}</v-chip>
+                    </div>
+                  </div>
+                </v-card-text>
+              </v-card>
+            </div>
           </v-card>
         </v-tabs-window-item>
       </v-tabs-window>
     </div>
 
     <!-- Payment Confirmation Dialog -->
-    <v-dialog v-model="paymentConfirmDialog" max-width="550" persistent scrollable>
+    <v-dialog v-model="paymentConfirmDialog" :max-width="isMobile ? undefined : 550" :fullscreen="isMobile" persistent scrollable>
       <v-card elevation="8" class="rounded-lg">
         <!-- Header with Navy Blue -->
         <v-card-title class="pa-4" style="background: linear-gradient(135deg, #1565c0 0%, #0d47a1 100%);">
@@ -3597,7 +4519,7 @@
     </v-dialog>
 
     <!-- Payment Details Dialog -->
-    <v-dialog v-model="caregiverPaymentDetailsDialog" max-width="550" scrollable>
+    <v-dialog v-model="caregiverPaymentDetailsDialog" :max-width="isMobile ? undefined : 550" :fullscreen="isMobile" scrollable>
       <v-card elevation="8" class="rounded-lg">
         <!-- Header with Navy Blue -->
         <v-card-title class="pa-4" style="background: linear-gradient(135deg, #1565c0 0%, #0d47a1 100%);">
@@ -3869,7 +4791,7 @@
     </div>
 
     <!-- Send Announcement Dialog -->
-    <v-dialog v-model="announceDialog" max-width="600">
+    <v-dialog v-model="announceDialog" :max-width="isMobile ? undefined : 600" :fullscreen="isMobile" scrollable>
       <v-card>
         <v-card-title class="pa-6" style="background: #dc2626; color: white;">
           <span class="section-title" style="color: white;">Send Announcement</span>
@@ -3896,7 +4818,7 @@
     </v-dialog>
 
     <!-- Test Email Dialog -->
-    <v-dialog v-model="testEmailDialog" max-width="500">
+    <v-dialog v-model="testEmailDialog" :max-width="isMobile ? undefined : 500" :fullscreen="isMobile" scrollable>
       <v-card>
         <v-card-title class="pa-6" style="background: #dc2626; color: white;">
           <span class="section-title" style="color: white;">Test Email Configuration</span>
@@ -3924,7 +4846,7 @@
     </v-dialog>
 
     <!-- Add User Dialog -->
-    <v-dialog v-model="addUserDialog" max-width="600">
+    <v-dialog v-model="addUserDialog" :max-width="isMobile ? undefined : 600" :fullscreen="isMobile" scrollable>
       <v-card>
         <v-card-title class="pa-6" style="background: #dc2626; color: white;">
           <span class="section-title" style="color: white;">Add New User</span>
@@ -3986,7 +4908,7 @@
     </v-dialog>
 
     <!-- Payment Details Dialog -->
-    <v-dialog v-model="paymentDetailsDialog" max-width="700">
+    <v-dialog v-model="paymentDetailsDialog" :max-width="isMobile ? undefined : 700" :fullscreen="isMobile" scrollable>
       <v-card v-if="selectedPayment">
         <v-card-title class="pa-6" style="background: #dc2626; color: white;">
           <v-icon start color="white">mdi-cash-multiple</v-icon>
@@ -4079,7 +5001,7 @@
     </v-dialog>
 
     <!-- Client Dialog -->
-    <v-dialog v-model="clientDialog" max-width="900" scrollable>
+    <v-dialog v-model="clientDialog" :max-width="isMobile ? undefined : 900" :fullscreen="isMobile" scrollable>
       <v-card>
         <v-card-title class="pa-6" style="background: #dc2626; color: white;">
           <span class="section-title" style="color: white;">{{ editingClient ? 'Edit Client' : 'Add Client' }}</span>
@@ -4188,7 +5110,7 @@
     </v-dialog>
 
     <!-- Caregiver Contacts Dialog -->
-    <v-dialog v-model="caregiverContactsDialog" max-width="900">
+    <v-dialog v-model="caregiverContactsDialog" :max-width="isMobile ? undefined : 900" :fullscreen="isMobile" scrollable>
       <v-card>
         <v-card-title class="pa-6" style="background: #dc2626; color: white;">
           <span class="section-title" style="color: white;">All Caregiver Contacts</span>
@@ -4254,7 +5176,7 @@
     </v-dialog>
 
     <!-- Caregiver Dialog -->
-    <v-dialog v-model="caregiverDialog" max-width="900" scrollable>
+    <v-dialog v-model="caregiverDialog" :max-width="isMobile ? undefined : 900" :fullscreen="isMobile" scrollable>
       <v-card>
         <v-card-title class="pa-6" style="background: #dc2626; color: white;">
           <span class="section-title" style="color: white;">{{ editingCaregiver ? 'Edit Caregiver' : 'Add Caregiver' }}</span>
@@ -4408,7 +5330,7 @@
     </v-dialog>
 
     <!-- Add/Edit Housekeeper Dialog -->
-    <v-dialog v-model="housekeeperDialog" max-width="900" scrollable>
+    <v-dialog v-model="housekeeperDialog" :max-width="isMobile ? undefined : 900" :fullscreen="isMobile" scrollable>
       <v-card>
         <v-card-title class="pa-6" style="background: #dc2626; color: white;">
           <span class="section-title" style="color: white;">{{ editingHousekeeper ? 'Edit Housekeeper' : 'Add Housekeeper' }}</span>
@@ -4559,7 +5481,7 @@
     </v-dialog>
 
     <!-- Confirmation Dialog -->
-    <v-dialog v-model="confirmDialog" max-width="500">
+    <v-dialog v-model="confirmDialog" :max-width="isMobile ? undefined : 500" :fullscreen="isMobile" scrollable>
       <v-card>
         <v-card-title class="pa-6" style="background: #dc2626; color: white;">
           <div class="d-flex align-center justify-space-between w-100">
@@ -4582,7 +5504,7 @@
     </v-dialog>
 
     <!-- Add Booking Dialog -->
-    <v-dialog v-model="addBookingDialog" max-width="900" scrollable>
+    <v-dialog v-model="addBookingDialog" :max-width="isMobile ? undefined : 900" :fullscreen="isMobile" scrollable>
       <v-card>
         <v-card-title class="pa-6" style="background: #dc2626; color: white;">
           <span class="section-title" style="color: white;">Add New Booking</span>
@@ -4724,7 +5646,7 @@
     </v-dialog>
 
     <!-- Assign Caregiver Dialog -->
-    <v-dialog v-model="assignDialog" max-width="1200" scrollable>
+    <v-dialog v-model="assignDialog" :max-width="isMobile ? undefined : 1200" :fullscreen="isMobile" scrollable>
       <v-card class="assign-dialog-card">
         <v-card-title class="assign-dialog-header pa-6">
           <div class="d-flex align-center justify-space-between w-100">
@@ -4976,7 +5898,7 @@
     </v-dialog>
 
     <!-- Assign Housekeeper Dialog (custom, copied from caregiver assign dialog) -->
-    <v-dialog v-model="assignHousekeeperDialogOpen" max-width="1200" scrollable>
+    <v-dialog v-model="assignHousekeeperDialogOpen" :max-width="isMobile ? undefined : 1200" :fullscreen="isMobile" scrollable>
       <v-card class="assign-dialog-card">
         <v-card-title class="assign-dialog-header pa-6">
           <div class="d-flex align-center justify-space-between w-100">
@@ -5212,7 +6134,7 @@
     </v-dialog>
 
     <!-- View Booking Details Dialog -->
-    <v-dialog v-model="viewBookingDialog" max-width="900" scrollable>
+    <v-dialog v-model="viewBookingDialog" :max-width="isMobile ? undefined : 900" :fullscreen="isMobile" scrollable>
       <v-card v-if="viewingBooking" max-height="80vh">
         <v-card-title class="pa-6" style="background: #dc2626; color: white;">
           <div class="d-flex align-center justify-space-between w-100">
@@ -5568,7 +6490,7 @@
     </v-dialog>
 
     <!-- View Time Details Dialog -->
-    <v-dialog v-model="viewTimeDetailsDialog" max-width="800" scrollable>
+    <v-dialog v-model="viewTimeDetailsDialog" :max-width="isMobile ? undefined : 800" :fullscreen="isMobile" scrollable>
       <v-card v-if="selectedTimeEntry" max-height="80vh">
         <v-card-title class="pa-6" style="background: #dc2626; color: white;">
           <span class="section-title" style="color: white;">Time Tracking History - {{ selectedTimeEntry.caregiver }}</span>
@@ -5665,7 +6587,7 @@
     </v-dialog>
 
     <!-- Edit Time Entry Dialog -->
-    <v-dialog v-model="editTimeEntryDialog" max-width="600">
+    <v-dialog v-model="editTimeEntryDialog" :max-width="isMobile ? undefined : 600" :fullscreen="isMobile" scrollable>
       <v-card v-if="selectedTimeEntry">
         <v-card-title class="pa-6" style="background: #dc2626; color: white;">
           <span class="section-title" style="color: white;">Edit Time Entry</span>
@@ -5703,7 +6625,7 @@
     </v-dialog>
 
     <!-- View Client Caregivers Dialog -->
-    <v-dialog v-model="viewClientCaregiversDialog" max-width="1000" scrollable>
+    <v-dialog v-model="viewClientCaregiversDialog" :max-width="isMobile ? undefined : 1000" :fullscreen="isMobile" scrollable>
       <v-card v-if="selectedClientEntry" max-height="80vh">
         <v-card-title class="pa-6" style="background: #dc2626; color: white;">
           <span class="section-title" style="color: white;">Client: {{ selectedClientEntry.client }}</span>
@@ -5768,7 +6690,7 @@
     </v-dialog>
 
     <!-- Time Tracking History Dialog -->
-    <v-dialog v-model="timeTrackingHistoryDialog" max-width="1200" scrollable>
+    <v-dialog v-model="timeTrackingHistoryDialog" :max-width="isMobile ? undefined : 1200" :fullscreen="isMobile" scrollable>
       <v-card max-height="90vh">
         <v-card-title class="pa-6" style="background: #3b82f6; color: white;">
           <div class="d-flex align-center justify-space-between w-100">
@@ -5943,7 +6865,7 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
-    <v-dialog v-model="viewAssignedCaregiversDialog" max-width="1200" scrollable>
+    <v-dialog v-model="viewAssignedCaregiversDialog" :max-width="isMobile ? undefined : 1200" :fullscreen="isMobile" scrollable>
       <v-card v-if="viewingBookingCaregivers">
         <!-- Header -->
         <v-toolbar color="success" dark>
@@ -6248,7 +7170,7 @@
       </v-card>
     </v-dialog>
 
-  <v-dialog v-model="viewAssignedHousekeepersDialog" max-width="1200" scrollable>
+  <v-dialog v-model="viewAssignedHousekeepersDialog" :max-width="isMobile ? undefined : 1200" :fullscreen="isMobile" scrollable>
       <v-card v-if="viewingBookingHousekeepers">
         <v-toolbar color="purple" dark>
           <v-toolbar-title>
@@ -6520,7 +7442,7 @@
     </v-dialog>
 
     <!-- Schedule Management Dialog -->
-    <v-dialog v-model="scheduleDialog" max-width="1000" persistent scrollable>
+    <v-dialog v-model="scheduleDialog" :max-width="isMobile ? undefined : 1000" :fullscreen="isMobile" persistent scrollable>
       <v-card class="schedule-dialog-card">
         <v-card-title class="d-flex align-center pa-6 bg-primary">
           <v-icon color="white" class="mr-3" size="28">mdi-calendar-clock</v-icon>
@@ -6796,15 +7718,28 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted } from 'vue';
+import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue';
 import DashboardTemplate from './DashboardTemplate.vue';
 import StatCard from './shared/StatCard.vue';
 import NotificationToast from './shared/NotificationToast.vue';
 import NotificationCenter from './shared/NotificationCenter.vue';
 import EmailVerificationBanner from './EmailVerificationBanner.vue';
+import EmailMarketingPanel from './admin/EmailMarketingPanel.vue';
 import { useNotification } from '../composables/useNotification';
 
 const { notification, success, error, warning, info } = useNotification();
+
+// Mobile detection for fullscreen dialogs
+const isMobile = ref(typeof window !== 'undefined' ? window.innerWidth <= 768 : false);
+const handleResize = () => {
+  isMobile.value = window.innerWidth <= 768;
+};
+
+onBeforeUnmount(() => {
+  if (typeof window !== 'undefined') {
+    window.removeEventListener('resize', handleResize);
+  }
+});
 
 const currentSection = ref(localStorage.getItem('adminSection') || 'dashboard');
 const userEmailVerified = ref(false);
@@ -6946,6 +7881,7 @@ const clients = ref([]);
 // Selection refs for bulk operations
 const selectedUsers = ref([]);
 const selectedCaregivers = ref([]);
+const selectedHousekeepers = ref([]);
 const selectedClients = ref([]);
 const selectedMarketingStaff = ref([]);
 const selectedTrainingCenters = ref([]);
@@ -6955,6 +7891,9 @@ const pendingApplications = ref([]);
 
 const viewApplicationDialog = ref(false);
 const viewingApplication = ref(null);
+
+const viewHousekeeperDialog = ref(false);
+const viewingHousekeeper = ref(null);
 
 const loadApplications = async () => {
   try {
@@ -7317,6 +8256,7 @@ const navItems = ref([
   { icon: 'mdi-clock-time-four', title: 'Time Tracking', value: 'time-tracking', category: 'BOOKINGS' },
   { icon: 'mdi-star', title: 'Reviews & Ratings', value: 'reviews', category: 'FEEDBACK' },
   { icon: 'mdi-bullhorn', title: 'Announcements', value: 'announcements', category: 'COMMUNICATIONS' },
+  { icon: 'mdi-email-newsletter', title: 'Email Marketing', value: 'email-marketing', category: 'COMMUNICATIONS' },
   { icon: 'mdi-credit-card', title: 'Payments', value: 'payments', category: 'FINANCIAL' },
   { icon: 'mdi-chart-line', title: 'Analytics', value: 'analytics', category: 'REPORTS' },
   { icon: 'mdi-account-circle', title: 'Profile', value: 'profile', category: 'ACCOUNT' },
@@ -7750,7 +8690,8 @@ const loadHousekeepers = async () => {
 };
 
 const viewHousekeeperDetails = (housekeeper) => {
-  alert(`Viewing details for ${housekeeper.name}\n\nEmail: ${housekeeper.email}\nPhone: ${housekeeper.phone}\nExperience: ${housekeeper.years_experience} years\nRating: ${housekeeper.rating}/5`);
+  viewingHousekeeper.value = housekeeper;
+  viewHousekeeperDialog.value = true;
 };
 
 const settings = ref({
@@ -9513,6 +10454,42 @@ const approveApplication = async (application) => {
   );
 };
 
+const unapproveApplication = async (application) => {
+  const resolvedId = application?.id ?? application?.userId;
+  if (!resolvedId) {
+    error('Unable to unapprove: missing user id.', 'Unapprove Failed');
+    return;
+  }
+  showConfirm(
+    'Unapprove Application',
+    `Unapprove ${application.name}? This will move them back to Pending and they may lose access to their dashboard.`,
+    async () => {
+      try {
+        const response = await fetch(`/api/admin/applications/${resolvedId}/unapprove`, {
+          method: 'POST',
+          headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+          }
+        });
+        const result = await response.json();
+        if (result.success) {
+          warning(`${application.name} has been moved back to Pending.`, 'Application Unapproved');
+        } else {
+          error('Failed to unapprove application. Please try again.', 'Unapprove Failed');
+        }
+        loadApplications();
+        loadUsers();
+        loadHousekeepers();
+      } catch (err) {
+        error('Failed to unapprove application. Please try again.', 'Unapprove Failed');
+      }
+    },
+    'warning',
+    'Unapprove',
+    'mdi-undo'
+  );
+};
+
 const rejectApplication = async (application) => {
   showConfirm(
     'Reject Application',
@@ -10956,6 +11933,76 @@ let data;
         await loadUsers();
       } catch (err) {
         error(`Failed to delete caregivers: ${err.message}`, 'Delete Failed');
+      }
+    }
+  );
+};
+
+const deleteSelectedHousekeepers = async () => {
+  if (selectedHousekeepers.value.length === 0) return;
+  showConfirm(
+    'Delete Selected Housekeepers',
+    `Are you sure you want to delete ${selectedHousekeepers.value.length} housekeeper(s)? This action cannot be undone.`,
+    async () => {
+      try {
+        let deletedCount = 0;
+        let failedCount = 0;
+        const userIdsToDelete = [...selectedHousekeepers.value]; // userIds
+
+        for (const userId of userIdsToDelete) {
+          try {
+            if (!userId || isNaN(userId)) {
+              failedCount++;
+              continue;
+            }
+
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+            if (!csrfToken) {
+              failedCount++;
+              continue;
+            }
+
+            const response = await fetch(`/api/admin/users/${userId}`, {
+              method: 'DELETE',
+              headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': csrfToken,
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+              }
+            });
+
+            const contentType = response.headers.get('content-type');
+            let data;
+            if (contentType && contentType.includes('application/json')) {
+              data = await response.json();
+            } else {
+              failedCount++;
+              continue;
+            }
+
+            if (response.ok && data.success) {
+              deletedCount++;
+            } else {
+              failedCount++;
+            }
+          } catch (err) {
+            failedCount++;
+          }
+        }
+
+        if (failedCount === 0) {
+          success(`${deletedCount} housekeeper(s) deleted successfully!`, 'Housekeepers Deleted');
+        } else if (deletedCount > 0) {
+          warning(`${deletedCount} housekeeper(s) deleted, but ${failedCount} failed.`, 'Partial Success');
+        } else {
+          error('Failed to delete housekeepers. Please try again.', 'Delete Failed');
+        }
+
+        selectedHousekeepers.value = [];
+        await loadUsers();
+      } catch (err) {
+        error('Failed to delete housekeepers. Please try again.', 'Delete Failed');
       }
     }
   );
@@ -13544,6 +14591,11 @@ const addMobileTableLabels = () => {
 };
 
 onMounted(() => {
+  // Add resize listener for mobile detection
+  if (typeof window !== 'undefined') {
+    window.addEventListener('resize', handleResize);
+  }
+  
   loadProfile();
   loadAdminStats();
   loadQuickCaregivers();
@@ -15839,6 +16891,30 @@ setInterval(() => {
   box-shadow: 0 4px 8px rgba(123, 31, 162, 0.3) !important;
 }
 
+/* View Assigned button - Teal/Cyan color */
+.action-btn-view-assigned {
+  background-color: #0891b2 !important;
+  color: white !important;
+}
+
+.action-btn-view-assigned:hover {
+  background-color: #0e7490 !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 8px rgba(8, 145, 178, 0.3) !important;
+}
+
+/* Assign button - Orange color */
+.action-btn-assign {
+  background-color: #ea580c !important;
+  color: white !important;
+}
+
+.action-btn-assign:hover {
+  background-color: #c2410c !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 8px rgba(234, 88, 12, 0.3) !important;
+}
+
 /* Assigned Caregivers Modal Styles */
 .caregivers-booking-summary {
   background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
@@ -16353,7 +17429,140 @@ setInterval(() => {
   animation: pulse-glow 2s ease-in-out infinite;
 }
 
-</style>
+/* ============================== */
+/* Mobile Cards Styling */
+/* ============================== */
+.mobile-cards-container {
+  background: #f9fafb;
+  min-height: 200px;
+}
+
+.mobile-data-card {
+  border-radius: 12px !important;
+  overflow: hidden;
+  transition: all 0.2s ease;
+}
+
+.mobile-data-card:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12) !important;
+  transform: translateY(-2px);
+}
+
+.mobile-card-header {
+  border-radius: 12px 12px 0 0;
+}
+
+.mobile-card-body {
+  background: white;
+}
+
+.mobile-card-row {
+  min-height: 44px;
+}
+
+.mobile-card-label {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  flex-shrink: 0;
+  min-width: 90px;
+}
+
+.mobile-card-value {
+  font-size: 0.875rem;
+  text-align: right;
+  flex: 1;
+}
+
+.mobile-card-actions {
+  border-radius: 0 0 12px 12px;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.mobile-card-actions .v-btn {
+  min-width: auto !important;
+  flex: 1 1 auto;
+  max-width: calc(50% - 4px);
+  font-size: 0.75rem !important;
+  padding: 0 12px !important;
+}
+
+.mobile-card-actions .v-chip {
+  font-size: 0.7rem !important;
+}
+
+@media (max-width: 480px) {
+  .mobile-card-actions {
+    flex-direction: column;
+    gap: 6px;
+  }
+  
+  .mobile-card-actions .v-btn {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 100% !important;
+  }
+  
+  .mobile-card-label {
+    min-width: 70px;
+    font-size: 0.75rem;
+  }
+  
+  .mobile-card-value {
+    font-size: 0.8125rem;
+  }
+}
+
+@media (min-width: 481px) and (max-width: 768px) {
+  .mobile-card-actions .v-btn {
+    flex: 0 0 auto;
+    min-width: 80px !important;
+    max-width: none;
+  }
+}
+
+/* Mobile Card Header Button Fixes */
+@media (max-width: 768px) {
+  .card-header {
+    padding: 16px !important;
+  }
+  
+  .card-header .d-flex {
+    flex-wrap: wrap !important;
+    gap: 12px !important;
+  }
+  
+  .card-header .section-title {
+    font-size: 1.1rem !important;
+    width: 100%;
+  }
+  
+  .card-header .d-flex.gap-2,
+  .card-header .d-flex.ga-2 {
+    width: 100%;
+    justify-content: flex-start !important;
+  }
+  
+  .card-header .d-flex.gap-2 .v-btn,
+  .card-header .d-flex.ga-2 .v-btn {
+    flex: 1 1 auto;
+    max-width: calc(50% - 6px);
+    font-size: 0.75rem !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .card-header .d-flex.gap-2 .v-btn,
+  .card-header .d-flex.ga-2 .v-btn {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+  
+  .card-header .d-flex.gap-2,
+  .card-header .d-flex.ga-2 {
+    flex-direction: column;
+  }
+}
 
 /* Time Tracking History Styles */
 .history-stat-card {
@@ -16428,3 +17637,4 @@ setInterval(() => {
   color: white !important;
 }
 
+</style>

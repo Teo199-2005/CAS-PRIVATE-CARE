@@ -25,6 +25,7 @@ import ConnectPaymentMethod from './components/ConnectPaymentMethod.vue';
 import EmailVerificationModal from './components/EmailVerificationModal.vue';
 import DashboardWrapper from './components/DashboardWrapper.vue';
 import LandingPage from './components/LandingPage.vue';
+import TaxPayrollSection from './components/TaxPayrollSection.vue';
 
 const vuetify = createVuetify({
     components,
@@ -64,6 +65,7 @@ if (document.getElementById('caregiver-dashboard-app')) {
         components: {
             CaregiverDashboard,
             DashboardWrapper,
+            TaxPayrollSection,
         },
     });
     app.use(vuetify);
@@ -75,6 +77,7 @@ if (document.getElementById('housekeeper-dashboard-app')) {
         components: {
             HousekeeperDashboard,
             DashboardWrapper,
+            TaxPayrollSection,
         },
     });
     app.use(vuetify);

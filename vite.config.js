@@ -6,7 +6,7 @@ import tailwindcss from '@tailwindcss/vite';
 export default defineConfig({
     plugins: [
         laravel({
-            input: ['resources/css/app.css', 'resources/js/app.js'],
+            input: ['resources/css/app.css', 'resources/js/app.js', 'resources/js/app-complex.js'],
             refresh: true,
         }),
         vue({
@@ -32,17 +32,44 @@ export default defineConfig({
     build: {
         // Enable CSS minification
         cssMinify: true,
+        // Target modern browsers for smaller bundle size
+        target: 'es2020',
         // Optimize chunk splitting for better caching
         rollupOptions: {
             output: {
-                manualChunks: {
-                    'vendor': ['vue', 'vuetify'],
+                manualChunks(id) {
+                    // Separate vendor chunks for better caching
+                    if (id.includes('node_modules')) {
+                        if (id.includes('vue') || id.includes('@vue')) {
+                            return 'vendor-vue';
+                        }
+                        if (id.includes('vuetify') || id.includes('@mdi')) {
+                            return 'vendor-vuetify';
+                        }
+                        if (id.includes('chart.js')) {
+                            return 'vendor-charts';
+                        }
+                        if (id.includes('axios')) {
+                            return 'vendor-axios';
+                        }
+                        return 'vendor';
+                    }
+                    // Separate dashboard components for lazy loading
+                    if (id.includes('/components/') && id.includes('Dashboard')) {
+                        return 'dashboards';
+                    }
                 },
+                // Optimize asset file names for caching
+                chunkFileNames: 'assets/js/[name]-[hash].js',
+                entryFileNames: 'assets/js/[name]-[hash].js',
+                assetFileNames: 'assets/[ext]/[name]-[hash].[ext]',
             },
         },
-        // Enable source maps for debugging (disable in production if not needed)
+        // Disable source maps in production for smaller bundle
         sourcemap: false,
-        // Minify output
+        // Minify output with esbuild (faster than terser)
         minify: 'esbuild',
+        // Set chunk size warning limit
+        chunkSizeWarningLimit: 500,
     },
 });

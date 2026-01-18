@@ -274,6 +274,30 @@ Route::prefix('api')->middleware(['web', 'auth'])->group(function () {
     // Payment Status Update
     Route::post('/bookings/update-payment-status', [PaymentPageController::class, 'updatePaymentStatus']);
     Route::get('/client/payment-methods', [\App\Http\Controllers\ClientPaymentController::class, 'getPaymentMethods']);
+    
+    // ==========================================
+    // CONTRACTOR PAYROLL & TAX ROUTES
+    // ==========================================
+    
+    // Tax Documents (Contractors - W9 submission)
+    Route::post('/tax/w9', [\App\Http\Controllers\TaxDocumentController::class, 'submitW9']);
+    Route::get('/tax/w9-status', [\App\Http\Controllers\TaxDocumentController::class, 'getW9Status']);
+    Route::get('/tax/onboarding-status', [\App\Http\Controllers\TaxDocumentController::class, 'getOnboardingStatus']);
+    Route::post('/tax/onboarding-step', [\App\Http\Controllers\TaxDocumentController::class, 'updateOnboardingStep']);
+    
+    // Payroll (Contractors)
+    Route::get('/payroll/schedule', [\App\Http\Controllers\PayrollController::class, 'getPayoutSchedule']);
+    Route::post('/payroll/preferences', [\App\Http\Controllers\PayrollController::class, 'updatePayoutPreferences']);
+    Route::get('/payroll/history', [\App\Http\Controllers\PayrollController::class, 'getPayoutHistory']);
+    Route::get('/payroll/onboarding', [\App\Http\Controllers\PayrollController::class, 'getOnboardingStatus']);
+    
+    // Tax Estimates (Contractors)
+    Route::get('/tax/estimate', [\App\Http\Controllers\PayrollController::class, 'getTaxEstimate']);
+    Route::get('/tax/compliance', [\App\Http\Controllers\PayrollController::class, 'getComplianceStatus']);
+    
+    // 1099 Forms (Contractors)
+    Route::get('/tax/1099', [\App\Http\Controllers\Form1099Controller::class, 'getMyForms']);
+    Route::get('/tax/1099/{formId}/download', [\App\Http\Controllers\Form1099Controller::class, 'download']);
 });
 
 // ============================================
@@ -291,6 +315,7 @@ Route::prefix('api')->middleware(['web', 'auth', 'user.type:admin'])->group(func
     Route::get('/admin/applications', [AdminController::class, 'getApplications']);
     Route::post('/admin/applications/{id}/approve', [AdminController::class, 'approveApplication']);
     Route::post('/admin/applications/{id}/reject', [AdminController::class, 'rejectApplication']);
+    Route::post('/admin/applications/{id}/unapprove', [AdminController::class, 'unapproveApplication']);
     
     // Staff Management
     Route::get('/admin/marketing-staff', [AdminController::class, 'getMarketingStaff']);
@@ -360,6 +385,42 @@ Route::prefix('api')->middleware(['web', 'auth', 'user.type:admin'])->group(func
     Route::post('/referral-codes', [\App\Http\Controllers\ReferralCodeController::class, 'store']);
     Route::put('/referral-codes/{id}', [\App\Http\Controllers\ReferralCodeController::class, 'update']);
     Route::get('/referral-codes/commission-stats', [\App\Http\Controllers\ReferralCodeController::class, 'getCommissionStats']);
+    
+    // ==========================================
+    // PAYROLL & TAX MANAGEMENT (Admin)
+    // ==========================================
+    
+    // Tax Documents (Admin)
+    Route::get('/admin/tax-documents', [\App\Http\Controllers\TaxDocumentController::class, 'adminGetTaxDocuments']);
+    Route::post('/admin/tax-documents/{id}/verify', [\App\Http\Controllers\TaxDocumentController::class, 'adminVerifyDocument']);
+    Route::post('/admin/tax-documents/{id}/reject', [\App\Http\Controllers\TaxDocumentController::class, 'adminRejectDocument']);
+    Route::get('/admin/tax-documents/{id}/download', [\App\Http\Controllers\TaxDocumentController::class, 'downloadDocument']);
+    Route::get('/admin/contractor-tax-summary', [\App\Http\Controllers\TaxDocumentController::class, 'adminGetContractorTaxSummary']);
+    
+    // Payroll Settings & Management (Admin)
+    Route::get('/admin/payroll/settings', [\App\Http\Controllers\PayrollController::class, 'adminGetPayoutSettings']);
+    Route::post('/admin/payroll/settings', [\App\Http\Controllers\PayrollController::class, 'adminUpdatePayoutSettings']);
+    Route::get('/admin/payroll/scheduled-payouts', [\App\Http\Controllers\PayrollController::class, 'adminGetScheduledPayouts']);
+    Route::post('/admin/payroll/trigger', [\App\Http\Controllers\PayrollController::class, 'adminTriggerPayout']);
+    Route::get('/admin/payroll/{payoutId}', [\App\Http\Controllers\PayrollController::class, 'adminGetPayoutDetails']);
+    Route::get('/admin/payroll/pending-contractors', [\App\Http\Controllers\PayrollController::class, 'adminGetContractorsPendingPayout']);
+    
+    // Compliance (Admin)
+    Route::post('/admin/compliance/run-checks', [\App\Http\Controllers\PayrollController::class, 'adminRunComplianceChecks']);
+    Route::get('/admin/compliance/summary', [\App\Http\Controllers\PayrollController::class, 'adminGetComplianceSummary']);
+    
+    // 1099 Forms (Admin)
+    Route::get('/admin/1099/summary', [\App\Http\Controllers\Form1099Controller::class, 'adminGetSummary']);
+    Route::get('/admin/1099/forms', [\App\Http\Controllers\Form1099Controller::class, 'adminGetForms']);
+    Route::post('/admin/1099/generate', [\App\Http\Controllers\Form1099Controller::class, 'adminGenerateForms']);
+    Route::get('/admin/1099/preview/{userId}', [\App\Http\Controllers\Form1099Controller::class, 'adminPreviewForm']);
+    Route::post('/admin/1099/{formId}/finalize', [\App\Http\Controllers\Form1099Controller::class, 'adminFinalizeForm']);
+    Route::post('/admin/1099/{formId}/send', [\App\Http\Controllers\Form1099Controller::class, 'adminSendForm']);
+    Route::post('/admin/1099/bulk-finalize', [\App\Http\Controllers\Form1099Controller::class, 'adminBulkFinalize']);
+    Route::post('/admin/1099/bulk-send', [\App\Http\Controllers\Form1099Controller::class, 'adminBulkSend']);
+    Route::get('/admin/1099/{formId}/download', [\App\Http\Controllers\Form1099Controller::class, 'adminDownloadForm']);
+    Route::post('/admin/1099/{formId}/correction', [\App\Http\Controllers\Form1099Controller::class, 'adminCreateCorrection']);
+    Route::get('/admin/1099/contractors-requiring', [\App\Http\Controllers\Form1099Controller::class, 'adminGetContractorsRequiring1099']);
 });
 
 // ============================================
@@ -446,3 +507,40 @@ Route::middleware(['auth'])->prefix('api/stripe')->group(function () {
 
 // Stripe Webhook (no auth required)
 Route::post('/api/stripe/webhook', [\App\Http\Controllers\StripeController::class, 'webhook']);
+
+// ============================================
+// EMAIL MARKETING & TRACKING ROUTES
+// ============================================
+
+// Public tracking routes (no auth - for email opens/clicks)
+Route::get('/email/track/open/{trackingToken}', [\App\Http\Controllers\Admin\AdminEmailController::class, 'trackOpen'])->name('email.track.open');
+Route::get('/email/track/click/{trackingToken}', [\App\Http\Controllers\Admin\AdminEmailController::class, 'trackClick'])->name('email.track.click');
+
+// Admin Email Marketing Routes
+Route::prefix('api/admin/email-marketing')->middleware(['web', 'auth', 'user.type:admin'])->group(function () {
+    // Dashboard & Stats
+    Route::get('/dashboard', [\App\Http\Controllers\Admin\AdminEmailController::class, 'getDashboardStats']);
+    
+    // Campaigns
+    Route::get('/campaigns', [\App\Http\Controllers\Admin\AdminEmailController::class, 'getCampaigns']);
+    Route::get('/campaigns/{id}', [\App\Http\Controllers\Admin\AdminEmailController::class, 'getCampaign']);
+    Route::post('/campaigns', [\App\Http\Controllers\Admin\AdminEmailController::class, 'createCampaign']);
+    Route::put('/campaigns/{id}', [\App\Http\Controllers\Admin\AdminEmailController::class, 'updateCampaign']);
+    Route::delete('/campaigns/{id}', [\App\Http\Controllers\Admin\AdminEmailController::class, 'deleteCampaign']);
+    Route::post('/campaigns/{id}/send', [\App\Http\Controllers\Admin\AdminEmailController::class, 'sendCampaign']);
+    Route::get('/campaigns/{id}/analytics', [\App\Http\Controllers\Admin\AdminEmailController::class, 'getCampaignAnalytics']);
+    
+    // Client Targeting
+    Route::get('/clients', [\App\Http\Controllers\Admin\AdminEmailController::class, 'getClients']);
+    Route::get('/filter-options', [\App\Http\Controllers\Admin\AdminEmailController::class, 'getFilterOptions']);
+    
+    // Preview & Testing
+    Route::post('/preview', [\App\Http\Controllers\Admin\AdminEmailController::class, 'previewCampaign']);
+    Route::post('/test-email', [\App\Http\Controllers\Admin\AdminEmailController::class, 'sendTestEmail']);
+});
+
+// Contractor Notification Settings Routes
+Route::prefix('api/contractor/notifications')->middleware(['web', 'auth'])->group(function () {
+    Route::get('/settings', [\App\Http\Controllers\ContractorNotificationController::class, 'getSettings']);
+    Route::post('/settings', [\App\Http\Controllers\ContractorNotificationController::class, 'updateSettings']);
+});

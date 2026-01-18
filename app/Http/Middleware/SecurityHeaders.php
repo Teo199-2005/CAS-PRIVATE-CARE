@@ -17,20 +17,27 @@ class SecurityHeaders
     {
         $response = $next($request);
 
-        // Add security headers
+        // Core security headers
         $response->headers->set('X-Content-Type-Options', 'nosniff');
         $response->headers->set('X-Frame-Options', 'SAMEORIGIN');
         $response->headers->set('X-XSS-Protection', '1; mode=block');
         $response->headers->set('Referrer-Policy', 'strict-origin-when-cross-origin');
         
-        // Only add HSTS if using HTTPS
-        if ($request->secure() || config('app.env') === 'production') {
-            $response->headers->set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+        // Permissions Policy (formerly Feature-Policy)
+        $response->headers->set('Permissions-Policy', 'geolocation=(self), camera=(), microphone=(), payment=(self), usb=(), magnetometer=(), gyroscope=(), accelerometer=()');
+        
+        // Cross-Origin policies for additional security
+        $response->headers->set('Cross-Origin-Opener-Policy', 'same-origin-allow-popups');
+        $response->headers->set('Cross-Origin-Resource-Policy', 'cross-origin');
+        
+        // Only add HSTS if using HTTPS in production
+        if ($request->secure() && config('app.env') === 'production') {
+            $response->headers->set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
         }
         
-        // Content Security Policy - DISABLED for now due to Vue.js/Vite compatibility issues
-        // TODO: Re-enable with proper CSP policy after testing in production
-        // The other security headers (X-Content-Type-Options, X-Frame-Options, etc.) are still active and provide good protection
+        // CSP is DISABLED - too many external dependencies (cdnjs, vite dev server, etc.)
+        // The other security headers above provide good protection
+        // To enable CSP in the future, all external scripts need to be audited and added
 
         return $response;
     }

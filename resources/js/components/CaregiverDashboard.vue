@@ -216,6 +216,16 @@
                 </v-col>
               </v-row>
 
+              <!-- Tax & Payroll Section -->
+              <v-row>
+                <v-col cols="12">
+                  <tax-payroll-section 
+                    user-type="caregiver"
+                    primary-color="success"
+                  />
+                </v-col>
+              </v-row>
+
             </v-col>
           </v-row>
         </div>
@@ -419,7 +429,7 @@
                     
                     <!-- Stripe Connect Not Enabled Warning -->
                     <v-alert type="warning" variant="tonal" class="mb-4 text-left">
-                      <div class="font-weight-bold mb-2">⚠️ Stripe Connect Setup Required</div>
+                      <div class="font-weight-bold mb-2">Stripe Connect Setup Required</div>
                       <p class="text-body-2 mb-2">
                         The platform administrator needs to enable Stripe Connect to allow caregiver payouts.
                       </p>
@@ -430,7 +440,7 @@
                     
                     <!-- Available Payout Methods -->
                     <v-alert color="info" variant="tonal" class="mb-4 text-left">
-                      <div class="font-weight-bold mb-3">📋 Available Payout Methods (Coming Soon):</div>
+                      <div class="font-weight-bold mb-3">Available Payout Methods (Coming Soon):</div>
                       <div class="d-flex align-center mb-2">
                         <v-icon color="info" class="mr-2">mdi-bank</v-icon>
                         <span><strong>Bank Account</strong> - Direct deposit (ACH) to your bank</span>
@@ -1587,6 +1597,7 @@ import NotificationCenter from './shared/NotificationCenter.vue';
 import AlertModal from './shared/AlertModal.vue';
 import NotificationToast from './shared/NotificationToast.vue';
 import EmailVerificationBanner from './EmailVerificationBanner.vue';
+import TaxPayrollSection from './TaxPayrollSection.vue';
 import { useNotification } from '../composables/useNotification.js';
 import { useNYLocationData } from '../composables/useNYLocationData.js';
 
@@ -4817,13 +4828,23 @@ onMounted(async () => {
 }
 
 @media (max-width: 480px) {
-  /* Stack table rows as cards on very small screens */
+  /* Allow horizontal scroll but don't force min-width */
   :deep(.v-data-table .v-table__wrapper table) {
-    min-width: 600px;
+    min-width: 100% !important;
+    width: max-content;
   }
 
   :deep(.v-data-table .v-table__wrapper) {
     border-radius: 8px !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Compact table cells */
+  :deep(.v-data-table th),
+  :deep(.v-data-table td) {
+    padding: 0.5rem 0.375rem !important;
+    font-size: 0.75rem !important;
   }
 
   /* Compact table cards */

@@ -3,15 +3,34 @@ Disallow: /admin/
 Disallow: /api/
 Disallow: /client/dashboard
 Disallow: /caregiver/dashboard
+Disallow: /housekeeper/dashboard
 Disallow: /marketing/dashboard
 Disallow: /training/dashboard
 Disallow: /storage/
 Disallow: /build/
+Disallow: /connect-bank-account
+Disallow: /stripe-connect-onboarding
+Disallow: /payment
+Disallow: /profile
+Disallow: /reset-password
 
 # Allow search engines to index public pages
 Allow: /
 Allow: /login
 Allow: /register
+Allow: /blog
+Allow: /services
+Allow: /contact
+Allow: /about
+Allow: /faq
+Allow: /privacy
+Allow: /terms
+Allow: /hire-caregiver-new-york
+Allow: /housekeeping-new-york
+Allow: /personal-assistant-new-york
 
-# Sitemap location - update with your actual domain
-# Sitemap: https://yoursite.com/sitemap.xml
+# Crawl delay for polite crawling
+Crawl-delay: 1
+
+# Sitemap location
+Sitemap: https://casprivatecare.online/sitemap.xml

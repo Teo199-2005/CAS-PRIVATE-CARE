@@ -741,6 +741,35 @@ class AdminController extends Controller
         return response()->json(['resets' => $resets]);
     }
 
+    public function unapproveApplication($id)
+    {
+        $user = User::findOrFail($id);
+
+        // Revert an accidentally approved contractor back to the application pipeline.
+        $user->status = 'pending';
+
+        // If your onboarding/tax fields exist (added by the payroll/tax feature), reset them too.
+        // These checks avoid errors on older DBs/environments.
+        $attributes = $user->getAttributes();
+
+        if (array_key_exists('onboarding_complete', $attributes)) {
+            $user->onboarding_complete = 0;
+        }
+        if (array_key_exists('onboarding_completed_at', $attributes)) {
+            $user->onboarding_completed_at = null;
+        }
+        if (array_key_exists('w9_verified', $attributes)) {
+            $user->w9_verified = 0;
+        }
+        if (array_key_exists('w9_verified_at', $attributes)) {
+            $user->w9_verified_at = null;
+        }
+
+        $user->save();
+
+    return response()->json(['success' => true, 'message' => 'Application unapproved successfully']);
+    }
+
     public function processPasswordReset($id)
     {
         try {

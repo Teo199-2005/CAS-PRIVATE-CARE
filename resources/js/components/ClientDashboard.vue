@@ -254,8 +254,7 @@
                                   :href="`/api/receipts/payment/${booking.id}`"
                                   target="_blank"
                                   elevation="3"
-                                  class="text-none font-weight-bold px-10"
-                                  style="min-width: 220px;"
+                                  class="text-none font-weight-bold px-6 px-sm-10 responsive-btn"
                                 >
                                   View Receipt
                                 </v-btn>
@@ -266,8 +265,7 @@
                                   prepend-icon="mdi-credit-card"
                                   @click="goToPayment(booking)"
                                   elevation="3"
-                                  class="text-none font-weight-bold px-10 pay-now-glow"
-                                  style="min-width: 220px;"
+                                  class="text-none font-weight-bold px-6 px-sm-10 pay-now-glow responsive-btn"
                                 >
                                   Pay Now
                                 </v-btn>
@@ -6819,9 +6817,10 @@ const initSpendingChart = () => {
     overflow-x: auto !important;
   }
 
-  /* Stack table rows as cards on mobile */
+  /* Allow table to scroll horizontally but not overflow container */
   .modern-activity-table table {
-    min-width: 600px;
+    min-width: 100% !important;
+    width: max-content;
   }
 
   /* Make pagination mobile-friendly */
@@ -6836,6 +6835,18 @@ const initSpendingChart = () => {
 
   :deep(.modern-activity-table .v-data-table-footer__info) {
     font-size: 0.75rem !important;
+  }
+}
+
+/* Extra small screen optimizations */
+@media (max-width: 400px) {
+  .modern-activity-table table {
+    font-size: 0.75rem !important;
+  }
+  
+  .modern-activity-table th,
+  .modern-activity-table td {
+    padding: 0.5rem 0.25rem !important;
   }
 }
 
@@ -8600,6 +8611,26 @@ const initSpendingChart = () => {
   }
   50% {
     transform: scale(1.1);
+  }
+}
+
+/* Responsive button styles */
+.responsive-btn {
+  min-width: 180px;
+}
+
+@media (max-width: 600px) {
+  .responsive-btn {
+    min-width: 140px !important;
+    font-size: 0.8rem !important;
+    padding: 8px 12px !important;
+  }
+}
+
+@media (max-width: 400px) {
+  .responsive-btn {
+    min-width: 100% !important;
+    font-size: 0.75rem !important;
   }
 }
 </style>

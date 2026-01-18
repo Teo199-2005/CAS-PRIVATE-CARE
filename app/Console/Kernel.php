@@ -12,6 +12,9 @@ class Kernel extends ConsoleKernel
         Commands\AutoClockOut::class,
         Commands\ProcessRecurringBookings::class,
         Commands\SendRecurringReminderEmails::class,
+        Commands\ProcessScheduledPayouts::class,
+        Commands\Generate1099Forms::class,
+        Commands\RunComplianceChecks::class,
     ];
 
     protected function schedule(Schedule $schedule): void
@@ -30,6 +33,23 @@ class Kernel extends ConsoleKernel
         $schedule->command('bookings:send-recurring-reminders')
             ->dailyAt('09:00')
             ->appendOutputTo(storage_path('logs/recurring-reminders.log'));
+        
+        // Process scheduled payouts - runs daily at 6:00 AM
+        // Checks if today is a payout day and processes accordingly
+        $schedule->command('payouts:process')
+            ->dailyAt('06:00')
+            ->appendOutputTo(storage_path('logs/scheduled-payouts.log'));
+        
+        // Run compliance checks weekly on Mondays at 2:00 AM
+        $schedule->command('compliance:check')
+            ->weeklyOn(1, '02:00')
+            ->appendOutputTo(storage_path('logs/compliance-checks.log'));
+        
+        // Generate 1099 forms annually on January 15th at 3:00 AM
+        // Only runs if it's January 15th
+        $schedule->command('tax:generate-1099')
+            ->yearlyOn(1, 15, '03:00')
+            ->appendOutputTo(storage_path('logs/1099-generation.log'));
     }
 
     protected function commands(): void

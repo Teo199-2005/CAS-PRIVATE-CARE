@@ -1,23 +1,23 @@
 <template>
     <div class="landing">
-        <header class="nav">
-            <a class="brand" href="/">
-                <img class="brandLogo" :src="logoUrl" alt="CAS Private Care" />
+        <header class="nav" role="banner">
+            <a class="brand" href="/" aria-label="CAS Private Care Home">
+                <img class="brandLogo" :src="logoUrl" alt="CAS Private Care Logo" />
                 <span class="brandName">CAS Private Care</span>
             </a>
 
-            <nav class="navLinks">
-                <a href="#services">Services</a>
-                <a href="#how-it-works">How it works</a>
-                <a href="#reviews">Reviews</a>
-                <a href="/blog">Blog</a>
-                <a href="/login" class="btn btnGhost">Login</a>
-                <a href="/register" class="btn btnPrimary">Get started</a>
+            <nav class="navLinks" role="navigation" aria-label="Main navigation">
+                <a href="#services" aria-label="View our services">Services</a>
+                <a href="#how-it-works" aria-label="Learn how it works">How it works</a>
+                <a href="#reviews" aria-label="Read customer reviews">Reviews</a>
+                <a href="/blog" aria-label="Read our blog">Blog</a>
+                <a href="/login" class="btn btnGhost" aria-label="Login to your account">Login</a>
+                <a href="/register" class="btn btnPrimary" aria-label="Get started with CAS Private Care">Get started</a>
             </nav>
         </header>
 
-        <main>
-            <section class="hero">
+        <main role="main">
+            <section class="hero" aria-label="Hero section">
                 <div class="heroGrid">
                     <div class="heroCopy">
                         <p class="pill">Verified caregivers • Housekeeping • Personal assistants</p>
@@ -123,14 +123,14 @@
             </section>
         </main>
 
-        <footer class="footer">
+        <footer class="footer" role="contentinfo">
             <div class="footerInner">
                 <div class="footBrand">CAS Private Care LLC</div>
-                <div class="footLinks">
-                    <a href="/about">About</a>
-                    <a href="/faq">FAQ</a>
-                    <a href="/contact">Contact</a>
-                </div>
+                <nav class="footLinks" aria-label="Footer navigation">
+                    <a href="/about" aria-label="About CAS Private Care">About</a>
+                    <a href="/faq" aria-label="Frequently asked questions">FAQ</a>
+                    <a href="/contact" aria-label="Contact us">Contact</a>
+                </nav>
             </div>
         </footer>
     </div>

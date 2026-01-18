@@ -9,6 +9,9 @@ use App\Mail\ContractorApplicationApprovedEmail;
 use App\Mail\ContractorApplicationRejectedEmail;
 use App\Mail\AnnouncementEmail;
 use App\Mail\WelcomeEmail;
+use App\Mail\PayoutConfirmationEmail;
+use App\Mail\PayoutPendingEmail;
+use App\Mail\PayoutFailedEmail;
 use App\Models\User;
 use App\Models\Booking;
 use Illuminate\Support\Facades\Mail;
@@ -165,6 +168,101 @@ class EmailService
         } catch (\Exception $e) {
             Log::error("Failed to send OTP email to {$user->email}: " . $e->getMessage());
             throw $e;
+        }
+    }
+
+    /**
+     * Send payout confirmation email
+     */
+    public static function sendPayoutConfirmationEmail(
+        User $user,
+        float $amount,
+        string $payoutDate,
+        ?string $periodStart = null,
+        ?string $periodEnd = null,
+        ?float $hoursWorked = null,
+        ?string $transactionId = null,
+        ?string $payoutMethod = 'Direct Deposit'
+    ): void {
+        try {
+            Mail::to($user->email)->send(new PayoutConfirmationEmail(
+                $user,
+                $amount,
+                $payoutDate,
+                $periodStart,
+                $periodEnd,
+                $hoursWorked,
+                $transactionId,
+                $payoutMethod
+            ));
+            
+            Log::info("Payout confirmation email sent to {$user->email}", [
+                'amount' => $amount,
+                'transaction_id' => $transactionId
+            ]);
+        } catch (\Exception $e) {
+            Log::error("Failed to send payout confirmation email to {$user->email}: " . $e->getMessage());
+            // Don't throw - email failure shouldn't break the payout process
+        }
+    }
+
+    /**
+     * Send payout pending/upcoming email
+     */
+    public static function sendPayoutPendingEmail(
+        User $user,
+        float $amount,
+        ?float $hoursWorked = null,
+        ?string $periodStart = null,
+        ?string $periodEnd = null,
+        ?string $scheduledDate = null,
+        ?int $pendingCount = 1
+    ): void {
+        try {
+            Mail::to($user->email)->send(new PayoutPendingEmail(
+                $user,
+                $amount,
+                $hoursWorked,
+                $periodStart,
+                $periodEnd,
+                $scheduledDate,
+                $pendingCount
+            ));
+            
+            Log::info("Payout pending email sent to {$user->email}", [
+                'amount' => $amount,
+                'scheduled_date' => $scheduledDate
+            ]);
+        } catch (\Exception $e) {
+            Log::error("Failed to send payout pending email to {$user->email}: " . $e->getMessage());
+            // Don't throw - email failure shouldn't break the process
+        }
+    }
+
+    /**
+     * Send payout failed email
+     */
+    public static function sendPayoutFailedEmail(
+        User $user,
+        float $amount,
+        ?string $reason = null,
+        ?string $actionRequired = null
+    ): void {
+        try {
+            Mail::to($user->email)->send(new PayoutFailedEmail(
+                $user,
+                $amount,
+                $reason,
+                $actionRequired
+            ));
+            
+            Log::info("Payout failed email sent to {$user->email}", [
+                'amount' => $amount,
+                'reason' => $reason
+            ]);
+        } catch (\Exception $e) {
+            Log::error("Failed to send payout failed email to {$user->email}: " . $e->getMessage());
+            // Don't throw - email failure shouldn't break the process
         }
     }
 }

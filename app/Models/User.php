@@ -40,6 +40,20 @@ class User extends Authenticatable
         'stripe_account_id',
         'stripe_connect_id',
         'page_permissions',
+        // Contractor onboarding fields
+        'w9_submitted',
+        'w9_verified',
+        'w9_submitted_at',
+        'w9_verified_at',
+        'onboarding_step',
+        'onboarding_completed',
+        'onboarding_completed_at',
+        'payout_frequency',
+        'payout_minimum_amount',
+        'payout_day',
+        'tax_classification',
+        'business_name',
+        'ein',
     ];
 
     /**
@@ -62,6 +76,13 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'w9_submitted' => 'boolean',
+            'w9_verified' => 'boolean',
+            'w9_submitted_at' => 'datetime',
+            'w9_verified_at' => 'datetime',
+            'onboarding_completed' => 'boolean',
+            'onboarding_completed_at' => 'datetime',
+            'payout_minimum_amount' => 'decimal:2',
         ];
     }
 
@@ -101,5 +122,67 @@ class User extends Authenticatable
     public function housekeeper()
     {
         return $this->hasOne(Housekeeper::class);
+    }
+    
+    /**
+     * Get tax documents for the user.
+     */
+    public function taxDocuments()
+    {
+        return $this->hasMany(TaxDocument::class);
+    }
+    
+    /**
+     * Get 1099 forms for the user.
+     */
+    public function taxForms1099()
+    {
+        return $this->hasMany(TaxForm1099::class);
+    }
+    
+    /**
+     * Get compliance checks for the user.
+     */
+    public function complianceChecks()
+    {
+        return $this->hasMany(ComplianceCheck::class);
+    }
+    
+    /**
+     * Get latest compliance check.
+     */
+    public function latestComplianceCheck()
+    {
+        return $this->hasOne(ComplianceCheck::class)->latestOfMany('check_date');
+    }
+    
+    /**
+     * Check if user is a contractor type.
+     */
+    public function isContractor(): bool
+    {
+        return in_array($this->user_type, ['caregiver', 'housekeeper', 'marketing', 'training_center']);
+    }
+    
+    /**
+     * Check if contractor onboarding is complete.
+     */
+    public function isOnboardingComplete(): bool
+    {
+        if (!$this->isContractor()) {
+            return true;
+        }
+        
+        return $this->w9_submitted 
+            && $this->w9_verified 
+            && !empty($this->stripe_connect_id);
+    }
+    
+    /**
+     * Get contractor's effective payout frequency.
+     */
+    public function getPayoutFrequency(): string
+    {
+        return $this->payout_frequency ?? 'weekly';
     }
 }

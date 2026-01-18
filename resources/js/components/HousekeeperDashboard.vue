@@ -84,7 +84,7 @@
                       <div>
                         <div v-if="isTimedIn" class="mb-3">
                           <div class="d-flex align-center justify-center mb-3">
-                            <v-chip color="deep-purple" size="large" class="mr-3">
+                            <v-chip variant="flat" size="large" class="mr-3 clocked-in-chip">
                               <v-icon start size="small">mdi-clock-check</v-icon>
                               Clocked In
                             </v-chip>
@@ -173,6 +173,12 @@
                       </div>
                     </v-card-text>
                   </v-card>
+
+                  <!-- Tax & Payroll Widget -->
+                  <tax-payroll-section 
+                    user-type="housekeeper"
+                    primary-color="deep-purple"
+                  />
                 </v-col>
 
               </v-row>
@@ -415,7 +421,7 @@
                     
                     <!-- Stripe Connect Not Enabled Warning -->
                     <v-alert type="warning" variant="tonal" class="mb-4 text-left">
-                      <div class="font-weight-bold mb-2">⚠️ Stripe Connect Setup Required</div>
+                      <div class="font-weight-bold mb-2">Stripe Connect Setup Required</div>
                       <p class="text-body-2 mb-2">
                         The platform administrator needs to enable Stripe Connect to allow caregiver payouts.
                       </p>
@@ -426,7 +432,7 @@
                     
                     <!-- Available Payout Methods -->
                     <v-alert color="info" variant="tonal" class="mb-4 text-left">
-                      <div class="font-weight-bold mb-3">📋 Available Payout Methods (Coming Soon):</div>
+                      <div class="font-weight-bold mb-3">Available Payout Methods (Coming Soon):</div>
                       <div class="d-flex align-center mb-2">
                         <v-icon color="info" class="mr-2">mdi-bank</v-icon>
                         <span><strong>Bank Account</strong> - Direct deposit (ACH) to your bank</span>
@@ -610,7 +616,9 @@
                   </v-chip>
                 </v-card-title>
                 <v-card-text class="pa-0">
+                  <!-- Desktop Table View -->
                   <v-data-table 
+                    v-if="!isMobile"
                     :headers="pastBookingsHeaders" 
                     :items="pastBookings" 
                     :items-per-page="10"
@@ -685,6 +693,51 @@
                       </div>
                     </template>
                   </v-data-table>
+                  <!-- Mobile Card View -->
+                  <div v-else class="mobile-cards-container pa-3">
+                    <div v-if="pastBookings.length === 0" class="text-center py-8">
+                      <v-icon size="64" color="grey-lighten-1">mdi-calendar-blank</v-icon>
+                      <p class="text-grey mt-2">No past bookings found</p>
+                    </div>
+                    <v-card v-for="item in pastBookings" :key="item.id" class="mobile-data-card mb-3" elevation="2" rounded="lg">
+                      <v-card-text class="pa-0">
+                        <div class="mobile-card-header d-flex align-center justify-space-between pa-3" style="background: linear-gradient(135deg, #6A1B9A 0%, #4A148C 100%);">
+                          <div class="d-flex align-center">
+                            <v-avatar color="white" size="28" class="mr-2">
+                              <span class="text-deep-purple text-caption font-weight-bold">{{ item.client.substring(0, 2).toUpperCase() }}</span>
+                            </v-avatar>
+                            <span class="text-white font-weight-bold">{{ item.client }}</span>
+                          </div>
+                          <v-chip :color="item.payment_status === 'Paid' ? 'success' : 'warning'" size="small">{{ item.payment_status }}</v-chip>
+                        </div>
+                        <div class="mobile-card-body pa-3">
+                          <div class="mobile-card-row d-flex justify-space-between py-2" style="border-bottom: 1px solid #f3f4f6;">
+                            <span class="mobile-card-label text-grey-darken-1">Service:</span>
+                            <span class="mobile-card-value">{{ item.service_type }}</span>
+                          </div>
+                          <div class="mobile-card-row d-flex justify-space-between py-2" style="border-bottom: 1px solid #f3f4f6;">
+                            <span class="mobile-card-label text-grey-darken-1">Date:</span>
+                            <span class="mobile-card-value">{{ item.start_date }} ({{ item.duration }})</span>
+                          </div>
+                          <div class="mobile-card-row d-flex justify-space-between py-2" style="border-bottom: 1px solid #f3f4f6;">
+                            <span class="mobile-card-label text-grey-darken-1">Hours:</span>
+                            <span class="mobile-card-value font-weight-bold text-deep-purple">{{ item.total_hours }}h</span>
+                          </div>
+                          <div class="mobile-card-row d-flex justify-space-between py-2" style="border-bottom: 1px solid #f3f4f6;">
+                            <span class="mobile-card-label text-grey-darken-1">Rate:</span>
+                            <v-chip color="deep-purple" size="x-small">${{ item.assigned_rate }}/hr</v-chip>
+                          </div>
+                          <div class="mobile-card-row d-flex justify-space-between py-2">
+                            <span class="mobile-card-label text-grey-darken-1">Earnings:</span>
+                            <span class="mobile-card-value font-weight-bold text-deep-purple text-h6">${{ item.total_earnings }}</span>
+                          </div>
+                        </div>
+                        <div class="mobile-card-actions d-flex justify-center pa-3" style="background: #f9fafb; border-top: 1px solid #e5e7eb;">
+                          <v-btn color="primary" variant="tonal" size="small" prepend-icon="mdi-eye" @click="viewBookingDetails(item)">View Details</v-btn>
+                        </div>
+                      </v-card-text>
+                    </v-card>
+                  </div>
                 </v-card-text>
               </v-card>
             </v-col>
@@ -738,7 +791,8 @@
             <v-card-title class="card-header pa-8">
               <span class="section-title deep-purple--text">Transaction History</span>
             </v-card-title>
-            <v-data-table :headers="transactionHeaders" :items="filteredTransactions" :items-per-page="15" class="elevation-0 table-no-checkbox">
+            <!-- Desktop Table View -->
+            <v-data-table v-if="!isMobile" :headers="transactionHeaders" :items="filteredTransactions" :items-per-page="15" class="elevation-0 table-no-checkbox">
               <template v-slot:item.type="{ item }">
                 <div class="d-flex align-center">
                   <v-icon :color="getTransactionIcon(item.type).color" class="mr-2">{{ getTransactionIcon(item.type).icon }}</v-icon>
@@ -758,6 +812,43 @@
                 <v-btn size="small" color="primary" variant="text" icon="mdi-download" @click="downloadReceipt(item)" />
               </template>
             </v-data-table>
+            <!-- Mobile Card View -->
+            <div v-else class="mobile-cards-container pa-3">
+              <div v-if="filteredTransactions.length === 0" class="text-center py-8 text-grey">
+                No transactions found
+              </div>
+              <v-card v-for="item in filteredTransactions" :key="item.id" class="mobile-data-card mb-3" elevation="2" rounded="lg">
+                <v-card-text class="pa-0">
+                  <div class="mobile-card-header d-flex align-center justify-space-between pa-3" :style="item.type === 'Payment' || item.type === 'Bonus' ? 'background: linear-gradient(135deg, #6A1B9A 0%, #4A148C 100%);' : 'background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);'">
+                    <div class="d-flex align-center">
+                      <v-icon color="white" class="mr-2">{{ getTransactionIcon(item.type).icon }}</v-icon>
+                      <span class="text-white font-weight-bold">{{ item.type }}</span>
+                    </div>
+                    <v-chip :color="getTransactionStatusColor(item.status)" size="small" class="font-weight-bold">{{ item.status }}</v-chip>
+                  </div>
+                  <div class="mobile-card-body pa-3">
+                    <div class="mobile-card-row d-flex justify-space-between py-2" style="border-bottom: 1px solid #f3f4f6;">
+                      <span class="mobile-card-label text-grey-darken-1">Amount:</span>
+                      <span class="font-weight-bold" :class="item.type === 'Payout' || item.type === 'Refund' ? 'text-error' : 'text-deep-purple'">
+                        {{ item.type === 'Payout' || item.type === 'Refund' ? '-' : '+' }}${{ item.amount }}
+                      </span>
+                    </div>
+                    <div class="mobile-card-row d-flex justify-space-between py-2" style="border-bottom: 1px solid #f3f4f6;">
+                      <span class="mobile-card-label text-grey-darken-1">Description:</span>
+                      <span class="mobile-card-value text-caption">{{ item.description }}</span>
+                    </div>
+                    <div class="mobile-card-row d-flex justify-space-between py-2">
+                      <span class="mobile-card-label text-grey-darken-1">Date:</span>
+                      <span class="mobile-card-value">{{ item.date }}</span>
+                    </div>
+                  </div>
+                  <div class="mobile-card-actions d-flex justify-center flex-wrap ga-2 pa-3" style="background: #f9fafb; border-top: 1px solid #e5e7eb;">
+                    <v-btn color="deep-purple" variant="tonal" size="small" prepend-icon="mdi-receipt" @click="viewReceipt(item)">Receipt</v-btn>
+                    <v-btn color="primary" variant="tonal" size="small" prepend-icon="mdi-download" @click="downloadReceipt(item)">Download</v-btn>
+                  </div>
+                </v-card-text>
+              </v-card>
+            </div>
           </v-card>
         </div>
 
@@ -1230,7 +1321,7 @@
         </div>
 
     <!-- Day Details Modal -->
-    <v-dialog v-model="dayModal" max-width="600">
+    <v-dialog v-model="dayModal" :max-width="isMobile ? undefined : 600" :fullscreen="isMobile">
       <v-card v-if="selectedDate">
         <v-card-title class="card-header pa-6">
           <span class="section-title deep-purple--text">{{ selectedDate.fullDate }}</span>
@@ -1272,10 +1363,11 @@
     <!-- Caregivers use Stripe Connect to receive payouts, not add credit cards -->
 
     <!-- Add Appointment Dialog -->
-    <v-dialog v-model="addAppointmentDialog" max-width="600">
+    <v-dialog v-model="addAppointmentDialog" :max-width="isMobile ? undefined : 600" :fullscreen="isMobile">
       <v-card>
-        <v-card-title class="card-header pa-6">
+        <v-card-title class="card-header pa-6 d-flex justify-space-between align-center">
           <span class="section-title deep-purple--text">New Appointment</span>
+          <v-btn v-if="isMobile" icon="mdi-close" variant="text" @click="addAppointmentDialog = false"></v-btn>
         </v-card-title>
         <v-card-text class="pa-6">
           <v-row>
@@ -1305,10 +1397,11 @@
     </v-dialog>
 
     <!-- Notification Settings Dialog -->
-    <v-dialog v-model="notificationSettings" max-width="600">
+    <v-dialog v-model="notificationSettings" :max-width="isMobile ? undefined : 600" :fullscreen="isMobile">
       <v-card>
-        <v-card-title class="card-header pa-6">
+        <v-card-title class="card-header pa-6 d-flex justify-space-between align-center">
           <span class="section-title deep-purple--text">Notification Settings</span>
+          <v-btn v-if="isMobile" icon="mdi-close" variant="text" @click="notificationSettings = false"></v-btn>
         </v-card-title>
         <v-card-text class="pa-6">
           <div class="mb-4">
@@ -1336,9 +1429,12 @@
     <client-profile-modal v-model="clientProfileModal" :client="selectedClient" />
 
     <!-- Contact Dialog -->
-    <v-dialog v-model="contactDialog" max-width="500">
+    <v-dialog v-model="contactDialog" :max-width="isMobile ? undefined : 500" :fullscreen="isMobile">
       <v-card>
-        <v-card-title>Contact Support</v-card-title>
+        <v-card-title class="d-flex justify-space-between align-center">
+          <span>Contact Support</span>
+          <v-btn v-if="isMobile" icon="mdi-close" variant="text" @click="contactDialog = false"></v-btn>
+        </v-card-title>
         <v-card-text>
           <v-list>
             <v-list-item prepend-icon="mdi-email">
@@ -1359,11 +1455,15 @@
     </v-dialog>
 
     <!-- Salary Range Modal -->
-    <v-dialog v-model="salaryRangeDialog" max-width="500">
+    <v-dialog v-model="salaryRangeDialog" :max-width="isMobile ? undefined : 500" :fullscreen="isMobile" scrollable>
       <v-card>
         <v-card-title class="text-h5 bg-deep-purple text-white">
           <v-icon class="mr-2">mdi-cash</v-icon>
           Preferred Salary Range
+          <v-spacer v-if="isMobile"></v-spacer>
+          <v-btn v-if="isMobile" icon variant="text" @click="salaryRangeDialog = false">
+            <v-icon>mdi-close</v-icon>
+          </v-btn>
         </v-card-title>
         <v-card-text class="pt-4">
           <p class="text-body-1 mb-4">Set your preferred hourly rate range ($20 - $50)</p>
@@ -1430,7 +1530,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue';
+import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue';
 import DashboardTemplate from './DashboardTemplate.vue';
 import StatCard from './shared/StatCard.vue';
 import ClientProfileModal from './shared/ClientProfileModal.vue';
@@ -1438,11 +1538,18 @@ import NotificationCenter from './shared/NotificationCenter.vue';
 import AlertModal from './shared/AlertModal.vue';
 import NotificationToast from './shared/NotificationToast.vue';
 import EmailVerificationBanner from './EmailVerificationBanner.vue';
+import TaxPayrollSection from './TaxPayrollSection.vue';
 import { useNotification } from '../composables/useNotification.js';
 import { useNYLocationData } from '../composables/useNYLocationData.js';
 
 const { notification, success } = useNotification();
 const { counties, getCitiesForCounty, loadNYLocationData } = useNYLocationData();
+
+// Mobile detection
+const isMobile = ref(typeof window !== 'undefined' ? window.innerWidth <= 768 : false);
+const handleResize = () => {
+  isMobile.value = window.innerWidth <= 768;
+};
 
 const caregiverId = ref(null);
 const userEmailVerified = ref(false);
@@ -3803,6 +3910,9 @@ watch(currentSection, (newVal) => {
 });
 
 onMounted(async () => {
+  // Add resize listener for mobile detection
+  window.addEventListener('resize', handleResize);
+  
   loadNYLocationData();
   loadTrainingCenters(); // Load training centers on mount
   await loadProfile(); // Load profile first to get caregiver ID
@@ -3839,6 +3949,11 @@ onMounted(async () => {
   
   // Refresh notification count every 30 seconds
   setInterval(loadSidebarNotificationCount, 30000);
+});
+
+// Clean up resize listener
+onBeforeUnmount(() => {
+  window.removeEventListener('resize', handleResize);
 });
 </script>
 
@@ -4671,13 +4786,23 @@ onMounted(async () => {
 }
 
 @media (max-width: 480px) {
-  /* Stack table rows as cards on very small screens */
+  /* Allow horizontal scroll but don't force min-width */
   :deep(.v-data-table .v-table__wrapper table) {
-    min-width: 600px;
+    min-width: 100% !important;
+    width: max-content;
   }
 
   :deep(.v-data-table .v-table__wrapper) {
     border-radius: 8px !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Compact table cells */
+  :deep(.v-data-table th),
+  :deep(.v-data-table td) {
+    padding: 0.5rem 0.375rem !important;
+    font-size: 0.75rem !important;
   }
 
   /* Compact table cards */
@@ -4862,6 +4987,18 @@ onMounted(async () => {
   .balance-amount {
     font-size: 1.25rem !important;
   }
+}
+
+/* Clocked In chip styling */
+.clocked-in-chip {
+  background-color: #673ab7 !important;
+  color: #ffffff !important;
+}
+.clocked-in-chip .v-chip__content {
+  color: #ffffff !important;
+}
+.clocked-in-chip .v-icon {
+  color: #ffffff !important;
 }
 
 .account-balance-card .text-caption {
@@ -5241,6 +5378,70 @@ onMounted(async () => {
   background-color: rgba(123, 31, 162, 0.08) !important;
   transform: translateY(-2px);
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Mobile Card Styles */
+.mobile-cards-container {
+  width: 100%;
+}
+
+.mobile-data-card {
+  overflow: hidden;
+}
+
+.mobile-card-header {
+  min-height: 50px;
+}
+
+.mobile-card-body {
+  background: white;
+}
+
+.mobile-card-row {
+  min-height: 36px;
+  align-items: center;
+}
+
+.mobile-card-label {
+  font-size: 0.85rem;
+  flex-shrink: 0;
+}
+
+.mobile-card-value {
+  text-align: right;
+  word-break: break-word;
+}
+
+.mobile-card-actions {
+  min-height: 50px;
+}
+
+.mobile-card-actions .v-btn {
+  min-width: 80px !important;
+  max-width: 120px;
+  flex: 0 1 auto;
+}
+
+@media (max-width: 768px) {
+  .mobile-card-actions {
+    flex-wrap: wrap !important;
+  }
+  
+  .mobile-card-actions .v-btn {
+    font-size: 0.7rem !important;
+    padding: 0 8px !important;
+    min-width: 70px !important;
+  }
+  
+  .card-header {
+    padding: 16px !important;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  
+  .section-title {
+    font-size: 1.1rem !important;
+  }
 }
 
 </style>

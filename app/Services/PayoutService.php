@@ -7,6 +7,7 @@ use App\Models\TimeTracking;
 use App\Models\PayoutTransaction;
 use App\Models\FinancialLedger;
 use App\Models\PayoutVerification;
+use App\Services\EmailService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -127,6 +128,24 @@ class PayoutService
                 'verified_by' => $adminUserId,
             ]);
             
+            // Step 9: Send payout confirmation email
+            if ($caregiver->user && $caregiver->user->email) {
+                // Get period dates from time tracking records
+                $periodStart = $unpaidRecords->min('work_date');
+                $periodEnd = $unpaidRecords->max('work_date');
+                
+                EmailService::sendPayoutConfirmationEmail(
+                    $caregiver->user,
+                    $amount,
+                    now()->toDateString(),
+                    $periodStart?->format('Y-m-d'),
+                    $periodEnd?->format('Y-m-d'),
+                    $unpaidRecords->sum('hours_worked'),
+                    $payoutTransaction->stripe_transfer_id,
+                    'Direct Deposit'
+                );
+            }
+            
             return [
                 'success' => true,
                 'payout_transaction_id' => $payoutTransaction->id,
@@ -145,6 +164,17 @@ class PayoutService
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
             ]);
+            
+            // Send payout failed email
+            $caregiver = Caregiver::with('user')->find($caregiverId);
+            if ($caregiver && $caregiver->user && $caregiver->user->email) {
+                EmailService::sendPayoutFailedEmail(
+                    $caregiver->user,
+                    $amount,
+                    'We encountered an issue processing your payment.',
+                    'Please ensure your bank account is properly connected. Our team has been notified.'
+                );
+            }
             
             return [
                 'success' => false,

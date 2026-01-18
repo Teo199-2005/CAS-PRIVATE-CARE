@@ -930,7 +930,8 @@ const mobileNavItems = computed(() => {
     -webkit-overflow-scrolling: touch;
   }
   .modern-activity-table table {
-    min-width: 700px;
+    min-width: 100% !important;
+    width: max-content;
   }
 
   /* Generic v-data-table fallback: allow horizontal scroll if no stacked mode */

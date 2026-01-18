@@ -13,3 +13,17 @@ if (token) {
 } else {
     console.error('CSRF token not found');
 }
+
+// Production-safe console wrapper - suppress console.log in production
+if (import.meta.env.PROD) {
+    const noop = () => {};
+    window.console = {
+        ...console,
+        log: noop,
+        debug: noop,
+        info: noop,
+        // Keep warn and error for production debugging
+        warn: console.warn.bind(console),
+        error: console.error.bind(console),
+    };
+}
