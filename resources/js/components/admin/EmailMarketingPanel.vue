@@ -1038,6 +1038,15 @@ export default {
   box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
 }
 
+.form-row {
+  display: flex;
+  gap: 16px;
+}
+
+.form-row .form-group {
+  flex: 1;
+}
+
 .form-textarea {
   width: 100%;
   padding: 12px 16px;
@@ -1497,6 +1506,480 @@ export default {
   to {
     transform: translateY(0);
     opacity: 1;
+  }
+}
+
+/* ============================================
+   MOBILE RESPONSIVE STYLES
+   ============================================ */
+
+/* Tablet and below (768px) */
+@media (max-width: 768px) {
+  .email-marketing-panel {
+    padding: 12px;
+  }
+
+  .panel-header {
+    margin-bottom: 16px;
+    text-align: center;
+  }
+
+  .panel-header h2 {
+    font-size: 20px;
+  }
+
+  .panel-header p {
+    font-size: 13px;
+  }
+
+  /* Stats Grid - 2 columns on tablet, 1 on mobile */
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .stat-card {
+    padding: 14px;
+    gap: 12px;
+  }
+
+  .stat-icon {
+    width: 40px;
+    height: 40px;
+  }
+
+  .stat-value {
+    font-size: 20px;
+  }
+
+  .stat-label {
+    font-size: 12px;
+  }
+
+  /* Tabs - Full width */
+  .tabs {
+    flex-wrap: wrap;
+    gap: 8px;
+    padding-bottom: 12px;
+  }
+
+  .tab {
+    flex: 1;
+    min-width: 45%;
+    padding: 10px 12px;
+    font-size: 14px;
+    text-align: center;
+  }
+
+  /* Compose Layout - Stack vertically */
+  .compose-layout {
+    flex-direction: column;
+  }
+
+  .compose-left,
+  .compose-right {
+    width: 100%;
+    max-width: 100%;
+    flex: none;
+  }
+
+  .compose-right {
+    position: static;
+    margin-top: 16px;
+  }
+
+  /* Compose Card */
+  .compose-card {
+    padding: 16px;
+    margin-bottom: 16px;
+  }
+
+  .compose-card-title {
+    font-size: 16px;
+    margin-bottom: 16px;
+    padding-bottom: 10px;
+  }
+
+  /* Form Row - Stack on mobile */
+  .form-row {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .form-group {
+    margin-bottom: 12px;
+  }
+
+  .form-group label {
+    font-size: 13px;
+    margin-bottom: 6px;
+  }
+
+  .form-input {
+    padding: 10px 12px;
+    font-size: 14px;
+  }
+
+  .form-textarea {
+    font-size: 14px;
+    padding: 10px 12px;
+  }
+
+  /* Content Toolbar - Wrap buttons */
+  .content-toolbar {
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 10px;
+  }
+
+  .toolbar-label {
+    width: 100%;
+    margin-bottom: 6px;
+  }
+
+  .toolbar-btn {
+    padding: 8px 10px;
+    font-size: 12px;
+    flex: 1;
+    min-width: calc(50% - 6px);
+    justify-content: center;
+  }
+
+  .toolbar-icon {
+    width: 14px;
+    height: 14px;
+  }
+
+  /* Recipients Card */
+  .recipients-card {
+    padding: 16px;
+    max-height: 400px;
+  }
+
+  .recipients-card h3 {
+    font-size: 16px;
+  }
+
+  .recipients-header {
+    flex-direction: column;
+    gap: 10px;
+    align-items: flex-start;
+  }
+
+  .recipients-header h3 {
+    font-size: 15px;
+  }
+
+  .recipients-actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .btn-link {
+    font-size: 13px;
+  }
+
+  .recipients-list {
+    max-height: 250px;
+  }
+
+  .recipient-item {
+    padding: 10px 8px;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .recipient-info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .recipient-name {
+    font-size: 13px;
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .recipient-email {
+    font-size: 11px;
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .recipient-bookings {
+    font-size: 11px;
+    flex-shrink: 0;
+  }
+
+  /* Action Buttons */
+  .action-buttons {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .btn-primary,
+  .btn-secondary,
+  .btn-success {
+    width: 100%;
+    padding: 12px 16px;
+    font-size: 14px;
+    justify-content: center;
+  }
+
+  /* Form Hint */
+  .form-hint {
+    font-size: 11px;
+    padding: 8px 10px;
+  }
+
+  /* Campaigns Table - Card view */
+  .campaigns-table {
+    display: block;
+    overflow-x: auto;
+  }
+
+  .campaigns-table thead {
+    display: none;
+  }
+
+  .campaigns-table tbody tr {
+    display: flex;
+    flex-direction: column;
+    padding: 12px;
+    margin-bottom: 12px;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  }
+
+  .campaigns-table tbody td {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid #f1f5f9;
+  }
+
+  .campaigns-table tbody td:last-child {
+    border-bottom: none;
+    justify-content: flex-end;
+    gap: 8px;
+    padding-top: 12px;
+  }
+
+  .campaigns-table tbody td::before {
+    content: attr(data-label);
+    font-weight: 600;
+    color: #64748b;
+    font-size: 12px;
+  }
+
+  /* Modal styles */
+  .modal {
+    width: 95%;
+    max-width: 95%;
+    margin: 10px;
+    max-height: 90vh;
+  }
+
+  .modal-header {
+    padding: 16px;
+  }
+
+  .modal-header h3 {
+    font-size: 18px;
+  }
+
+  .modal-body {
+    padding: 16px;
+    max-height: 65vh;
+  }
+
+  /* Analytics stats */
+  .analytics-stats {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+
+  .analytics-stat {
+    padding: 12px;
+  }
+
+  .analytics-stat .value {
+    font-size: 16px;
+  }
+
+  /* Notification */
+  .notification {
+    left: 12px;
+    right: 12px;
+    bottom: 12px;
+    text-align: center;
+    font-size: 14px;
+    padding: 12px 16px;
+  }
+}
+
+/* Small phones (480px and below) */
+@media (max-width: 480px) {
+  .email-marketing-panel {
+    padding: 8px;
+  }
+
+  .panel-header h2 {
+    font-size: 18px;
+  }
+
+  /* Stats Grid - 1 column */
+  .stats-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .stat-card {
+    padding: 12px;
+  }
+
+  .stat-value {
+    font-size: 18px;
+  }
+
+  /* Tabs - Full width each */
+  .tab {
+    min-width: 100%;
+    padding: 12px;
+  }
+
+  /* Compose Card */
+  .compose-card {
+    padding: 12px;
+    border-radius: 10px;
+  }
+
+  .compose-card-title {
+    font-size: 15px;
+  }
+
+  /* Content Toolbar */
+  .content-toolbar {
+    padding: 8px;
+  }
+
+  .toolbar-btn {
+    padding: 6px 8px;
+    font-size: 11px;
+    min-width: calc(50% - 4px);
+  }
+
+  /* Recipients */
+  .recipients-card {
+    padding: 12px;
+    max-height: 350px;
+  }
+
+  .recipients-list {
+    max-height: 200px;
+  }
+
+  .recipient-item {
+    padding: 8px 6px;
+  }
+
+  .recipient-name {
+    font-size: 12px;
+  }
+
+  .recipient-email {
+    font-size: 10px;
+  }
+
+  /* Buttons */
+  .btn-primary,
+  .btn-secondary,
+  .btn-success {
+    padding: 10px 14px;
+    font-size: 13px;
+  }
+
+  /* Modal */
+  .modal {
+    width: 100%;
+    max-width: 100%;
+    margin: 0;
+    border-radius: 16px 16px 0 0;
+    max-height: 95vh;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+  }
+
+  .modal-body {
+    max-height: 70vh;
+  }
+
+  /* Analytics */
+  .analytics-stats {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Extra small phones (380px and below) */
+@media (max-width: 380px) {
+  .email-marketing-panel {
+    padding: 6px;
+  }
+
+  .panel-header h2 {
+    font-size: 16px;
+  }
+
+  .panel-header p {
+    font-size: 12px;
+  }
+
+  .compose-card {
+    padding: 10px;
+  }
+
+  .compose-card-title {
+    font-size: 14px;
+  }
+
+  .form-input,
+  .form-textarea {
+    padding: 8px 10px;
+    font-size: 13px;
+  }
+
+  .toolbar-btn {
+    min-width: 100%;
+    font-size: 12px;
+    padding: 8px;
+  }
+
+  .recipients-card {
+    padding: 10px;
+  }
+
+  .recipient-name {
+    font-size: 11px;
+  }
+
+  .recipient-email {
+    font-size: 9px;
+  }
+
+  .btn-primary,
+  .btn-secondary,
+  .btn-success {
+    padding: 10px 12px;
+    font-size: 12px;
   }
 }
 </style>

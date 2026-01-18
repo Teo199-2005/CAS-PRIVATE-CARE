@@ -155,7 +155,7 @@
             <h3>Helpful Links</h3>
             <ul>
                 <li><a href="{{ url('/services') }}">Our Services</a></li>
-                <li><a href="{{ url('/book-service') }}">Book a Service</a></li>
+                <li><a href="{{ url('/book') }}">Book a Service</a></li>
                 <li><a href="{{ url('/blog') }}">Blog</a></li>
                 <li><a href="{{ url('/faq') }}">FAQ</a></li>
             </ul>

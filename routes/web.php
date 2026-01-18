@@ -72,6 +72,14 @@ Route::get('/blog/category/{category}', [BlogController::class, 'category'])->na
 Route::get('/contact', [ContactController::class, 'show'])->name('contact');
 Route::post('/contact', [ContactController::class, 'submit'])->middleware('throttle:3,1')->name('contact.submit');
 
+// Book Service Redirect - Redirects to login if not authenticated, then to book-service
+Route::get('/book', function () {
+    if (auth()->check()) {
+        return redirect('/book-service');
+    }
+    return redirect('/login?redirect=/book-service');
+})->name('book');
+
 // Authentication (with rate limiting for security)
 Route::get('/login', [PageController::class, 'login'])->name('login');
 Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:5,1');

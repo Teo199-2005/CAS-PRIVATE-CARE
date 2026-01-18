@@ -530,6 +530,9 @@
 
         <form method="POST" action="{{ route('login') }}">
             @csrf
+            @if(request()->has('redirect'))
+            <input type="hidden" name="redirect" value="{{ request('redirect') }}">
+            @endif
             @if($errors->any())
             <div style="background: #fee; border: 1px solid #fcc; padding: 0.75rem; border-radius: 8px; margin-bottom: 1rem; color: #c00;">
                 {{ $errors->first() }}

@@ -61,6 +61,12 @@ class AuthController extends Controller
             } elseif (in_array($user->user_type, ['training', 'training_center'])) {
                 return redirect('/training/dashboard-vue');
             } else {
+                // Client - check for redirect parameter
+                $redirectUrl = $request->input('redirect') ?? session('url.intended');
+                if ($redirectUrl && str_starts_with($redirectUrl, '/')) {
+                    session()->forget('url.intended');
+                    return redirect($redirectUrl);
+                }
                 return redirect('/client/dashboard-vue');
             }
         }
