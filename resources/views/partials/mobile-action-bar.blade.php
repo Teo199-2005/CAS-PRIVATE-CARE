@@ -80,7 +80,7 @@
             <i class="bi bi-telephone-fill"></i>
             <span>Call Now</span>
         </a>
-        <a href="{{ url('/book') }}" class="mobile-action-btn primary">
+        <a href="{{ url('/login') }}" class="mobile-action-btn primary">
             <i class="bi bi-calendar-check-fill"></i>
             <span>Book Care</span>
         </a>
