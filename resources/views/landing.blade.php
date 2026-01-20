@@ -1325,6 +1325,22 @@
             margin-top: 4rem;
         }
 
+        /* Reviews Grid - Base Styles */
+        .reviews-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+        }
+        
+        .review-card {
+            background: rgba(255, 255, 255, 0.92);
+            padding: 2.1rem;
+            border-radius: 18px;
+            box-shadow: 0 18px 55px rgba(15, 23, 42, 0.08);
+            position: relative;
+            transition: transform .25s ease, box-shadow .25s ease;
+        }
+
         #locations .location-card {
             box-shadow: 0 15px 45px rgba(0, 0, 0, 0.2);
         }
@@ -2110,11 +2126,12 @@
                 line-height: 1.6;
             }
 
-            /* Steps Section - Mobile Layout (2x2 grid) */
+            /* Steps Section - Mobile Layout (SINGLE COLUMN for readability) */
             .steps-container {
-                grid-template-columns: repeat(2, 1fr);
-                gap: 1.25rem;
-                margin-top: 2.5rem;
+                display: grid !important;
+                grid-template-columns: 1fr !important;
+                gap: 1rem !important;
+                margin-top: 1.5rem;
                 position: relative;
             }
 
@@ -2123,26 +2140,24 @@
             }
 
             .step {
-                padding: 2rem 1.25rem;
+                padding: 1.25rem;
                 background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
-                border-radius: 20px;
+                border-radius: 16px;
                 border: 2px solid #e2e8f0;
-                box-shadow: 0 8px 24px rgba(30, 58, 138, 0.1), 
-                            0 2px 8px rgba(0, 0, 0, 0.05);
+                box-shadow: 0 4px 16px rgba(30, 58, 138, 0.08);
                 position: relative;
                 display: flex;
-                flex-direction: column;
-                align-items: center;
+                flex-direction: row;
+                align-items: flex-start;
                 gap: 1rem;
-                text-align: center;
+                text-align: left;
                 z-index: 1;
                 transition: all 0.3s ease;
             }
 
             .step:hover {
-                transform: translateY(-4px);
-                box-shadow: 0 12px 32px rgba(59, 130, 246, 0.15),
-                            0 4px 12px rgba(0, 0, 0, 0.08);
+                transform: translateY(-2px);
+                box-shadow: 0 8px 24px rgba(59, 130, 246, 0.12);
                 border-color: #3b82f6;
             }
 
@@ -2151,40 +2166,197 @@
             }
 
             .step-number {
-                width: 60px;
-                height: 60px;
-                font-size: 1.5rem;
-                margin: 0 auto 0.5rem;
+                width: 45px;
+                height: 45px;
+                min-width: 45px;
+                font-size: 1.1rem;
+                margin: 0;
                 flex-shrink: 0;
                 position: relative;
                 z-index: 2;
                 background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
-                box-shadow: 0 8px 24px rgba(249, 115, 22, 0.4),
-                            0 4px 12px rgba(249, 115, 22, 0.2);
+                box-shadow: 0 4px 12px rgba(249, 115, 22, 0.3);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                border-radius: 50%;
+                color: white;
+                font-weight: 800;
             }
 
             .step-content {
                 flex: 1;
-                width: 100%;
+                width: auto;
             }
 
-            .step h3 {
-                font-size: 1.15rem;
-                margin-bottom: 0.75rem;
-                line-height: 1.4;
+            .step-content h3 {
+                font-size: 1rem;
+                margin-bottom: 0.35rem;
+                line-height: 1.3;
                 font-weight: 700;
-                background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
-                -webkit-background-clip: text;
-                -webkit-text-fill-color: transparent;
-                background-clip: text;
+            }
+            
+            .step-content h3 span {
+                display: inline !important;
+                font-size: 1rem !important;
             }
 
-            .step p {
-                font-size: 0.875rem;
-                line-height: 1.6;
+            .step-content p {
+                font-size: 0.85rem;
+                line-height: 1.5;
                 margin: 0;
-                color: #475569;
+                color: #64748b;
                 font-weight: 400;
+                display: block;
+            }
+            
+            #how-it-works {
+                padding: 2.5rem 1rem !important;
+            }
+            
+            #how-it-works .section-header {
+                margin-bottom: 1.5rem;
+            }
+            
+            #how-it-works .section-header h2 {
+                font-size: 1.5rem;
+                margin-bottom: 0.5rem;
+            }
+            
+            #how-it-works .section-header p {
+                font-size: 0.85rem;
+                line-height: 1.4;
+            }
+
+            /* ===== REVIEWS SECTION - Mobile Responsive ===== */
+            section[style*="linear-gradient"][style*="f8fafc"] .section-header h2,
+            section[style*="Reviews From"] h2 {
+                font-size: 1.5rem !important;
+                line-height: 1.3 !important;
+            }
+            
+            section[style*="linear-gradient"][style*="f8fafc"] .section-header p {
+                font-size: 0.85rem !important;
+            }
+            
+            /* Rating highlights grid - single column on mobile */
+            .rating-highlights-grid {
+                display: grid !important;
+                grid-template-columns: 1fr !important;
+                gap: 0.75rem !important;
+                margin-bottom: 1.5rem !important;
+            }
+            
+            .rating-highlights-grid > div {
+                padding: 1rem !important;
+                border-radius: 12px !important;
+            }
+            
+            /* Reviews grid - SINGLE COLUMN on mobile */
+            .reviews-grid {
+                display: grid !important;
+                grid-template-columns: 1fr !important;
+                gap: 1rem !important;
+            }
+            
+            .reviews-grid .review-card,
+            .reviews-grid > div {
+                padding: 1.25rem !important;
+                border-radius: 14px !important;
+                max-width: 100% !important;
+                overflow: hidden !important;
+            }
+            
+            /* Review card avatar */
+            .reviews-grid > div > div:nth-child(2) {
+                gap: 0.75rem !important;
+            }
+            
+            .reviews-grid > div > div:nth-child(2) > div:first-child {
+                width: 45px !important;
+                height: 45px !important;
+                min-width: 45px !important;
+                font-size: 1rem !important;
+            }
+            
+            /* Review card name */
+            .reviews-grid > div > div:nth-child(2) h4 {
+                font-size: 1rem !important;
+            }
+            
+            /* Review card location */
+            .reviews-grid > div > div:nth-child(2) p {
+                font-size: 0.8rem !important;
+            }
+            
+            /* Review card stars row */
+            .reviews-grid > div > div:nth-child(3) {
+                font-size: 0.9rem !important;
+                margin-bottom: 0.75rem !important;
+                flex-wrap: wrap !important;
+                gap: 0.5rem !important;
+            }
+            
+            /* Review card quote */
+            .reviews-grid > div > p {
+                font-size: 0.9rem !important;
+                line-height: 1.6 !important;
+                margin-bottom: 0.75rem !important;
+            }
+            
+            /* Verified badge on review cards */
+            .reviews-grid > div > div:first-child {
+                font-size: 0.65rem !important;
+                padding: 0.2rem 0.45rem !important;
+                top: 0.75rem !important;
+                right: 0.75rem !important;
+            }
+            
+            /* Across NYC section */
+            .across-nyc-grid {
+                grid-template-columns: 1fr !important;
+                gap: 1.25rem !important;
+            }
+            
+            /* NYC badges container */
+            div[style*="flex-wrap: wrap"][style*="justify-content: center"] {
+                gap: 0.5rem !important;
+            }
+            
+            div[style*="flex-wrap: wrap"][style*="justify-content: center"] > span {
+                font-size: 0.7rem !important;
+                padding: 0.35rem 0.5rem !important;
+            }
+            
+            div[style*="flex-wrap: wrap"][style*="justify-content: center"] > span > span {
+                width: 24px !important;
+                height: 24px !important;
+            }
+            
+            /* Across NYC title */
+            h3[style*="font-size: 2.2rem"] {
+                font-size: 1.35rem !important;
+            }
+            
+            /* Across NYC content box */
+            div[style*="backdrop-filter: blur"] {
+                padding: 1rem !important;
+                border-radius: 12px !important;
+            }
+            
+            div[style*="backdrop-filter: blur"] p {
+                font-size: 0.85rem !important;
+                line-height: 1.6 !important;
+            }
+            
+            /* Quick benefits cards */
+            div[style*="display: grid"][style*="gap: 0.85rem"] {
+                gap: 0.65rem !important;
+            }
+            
+            div[style*="display: grid"][style*="gap: 0.85rem"] > div {
+                padding: 0.75rem !important;
+                border-radius: 10px !important;
             }
 
             /* Services Section - Mobile Layout (2x2 grid) */
@@ -2310,21 +2482,22 @@
             }
 
             .stats-grid {
-                grid-template-columns: 1fr;
-                gap: 1.5rem;
+                grid-template-columns: repeat(2, 1fr);
+                gap: 1rem;
             }
 
             .stat-item {
-                padding: 1.5rem;
+                padding: 1.25rem 1rem;
+                text-align: center;
             }
 
             .stat-item h3 {
-                font-size: 2.5rem;
-                margin-bottom: 0.5rem;
+                font-size: 1.75rem;
+                margin-bottom: 0.25rem;
             }
 
             .stat-item p {
-                font-size: 0.95rem;
+                font-size: 0.8rem;
             }
 
             /* About section mobile */
@@ -2750,8 +2923,9 @@ font-size: 1.1rem !important;
             }
 
             .steps-container {
-                grid-template-columns: repeat(2, 1fr);
-                gap: 1.25rem;
+                display: grid !important;
+                grid-template-columns: 1fr !important;
+                gap: 1rem;
             }
 
             .step::after {
@@ -2759,10 +2933,15 @@ font-size: 1.1rem !important;
             }
 
             .step {
-                padding: 2rem 1.25rem;
+                padding: 1.25rem;
                 background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
                 border: 2px solid #e2e8f0;
                 box-shadow: 0 8px 24px rgba(30, 58, 138, 0.1);
+                text-align: left;
+                display: flex;
+                flex-direction: row;
+                align-items: flex-start;
+                gap: 1rem;
             }
 
             .step:hover {
@@ -2772,23 +2951,39 @@ font-size: 1.1rem !important;
             }
 
             .step-number {
-                width: 60px;
-                height: 60px;
-                font-size: 1.5rem;
-                margin: 0 auto 0.5rem;
-                box-shadow: 0 8px 24px rgba(249, 115, 22, 0.4);
+                width: 50px;
+                height: 50px;
+                min-width: 50px;
+                font-size: 1.25rem;
+                margin: 0;
+                box-shadow: 0 6px 20px rgba(249, 115, 22, 0.35);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                border-radius: 50%;
+                color: white;
+                font-weight: 800;
             }
 
-            .step h3 {
-                font-size: 1.15rem;
-                margin-bottom: 0.75rem;
+            .step-content h3 {
+                font-size: 1.1rem;
+                margin-bottom: 0.5rem;
                 font-weight: 700;
             }
 
-            .step p {
-                font-size: 0.875rem;
-                line-height: 1.6;
+            .step-content p {
+                font-size: 0.9rem;
+                line-height: 1.5;
                 color: #475569;
+                display: block;
+            }
+
+            #how-it-works .section-header h2 {
+                font-size: 1.75rem;
+            }
+            
+            #how-it-works .section-header p {
+                font-size: 0.9rem;
             }
 
             .services-grid {
@@ -2825,6 +3020,44 @@ font-size: 1.1rem !important;
             .stats-grid {
                 grid-template-columns: repeat(2, 1fr);
                 gap: 2rem;
+            }
+
+            /* ===== REVIEWS SECTION - Tablet Responsive ===== */
+            .rating-highlights-grid {
+                display: grid !important;
+                grid-template-columns: 1fr !important;
+                gap: 0.75rem !important;
+                margin-bottom: 2rem !important;
+            }
+            
+            .rating-highlights-grid > div {
+                padding: 1.25rem !important;
+            }
+            
+            .reviews-grid {
+                display: grid !important;
+                grid-template-columns: 1fr !important;
+                gap: 1rem !important;
+            }
+            
+            .reviews-grid .review-card,
+            .reviews-grid > div {
+                padding: 1.5rem !important;
+                max-width: 100% !important;
+            }
+            
+            .reviews-grid > div > p {
+                font-size: 0.95rem !important;
+                line-height: 1.65 !important;
+            }
+            
+            .across-nyc-grid {
+                grid-template-columns: 1fr !important;
+                gap: 1.5rem !important;
+            }
+            
+            div[style*="backdrop-filter: blur"] {
+                padding: 1.5rem !important;
             }
 
             /* CEO section mobile */
@@ -3584,9 +3817,9 @@ font-size: 1.1rem !important;
             </div>
 
             <!-- Detailed Reviews Grid -->
-            <div class="reviews-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 2rem;">
+            <div class="reviews-grid">
                 <!-- Caregiver Review 1 -->
-                <div class="fade-in" style="background: rgba(255, 255, 255, 0.92); padding: 2.1rem; border-radius: 18px; box-shadow: 0 18px 55px rgba(15, 23, 42, 0.08); border: 1px solid rgba(16, 185, 129, 0.18); position: relative; transition: transform .25s ease, box-shadow .25s ease;">
+                <div class="review-card fade-in" style="background: rgba(255, 255, 255, 0.92); padding: 2.1rem; border-radius: 18px; box-shadow: 0 18px 55px rgba(15, 23, 42, 0.08); border: 1px solid rgba(16, 185, 129, 0.18); position: relative; transition: transform .25s ease, box-shadow .25s ease;">
                     <!-- Verified Badge -->
                     <div style="position: absolute; top: 1rem; right: 1rem; background: rgba(16, 185, 129, 0.12); color: #065f46; padding: 0.35rem 0.7rem; border-radius: 999px; font-size: 0.75rem; font-weight: 900; display: inline-flex; align-items: center; gap: 0.35rem; border: 1px solid rgba(16, 185, 129, 0.22);">
                         <i class="bi bi-patch-check-fill" style="color: #10b981;"></i>

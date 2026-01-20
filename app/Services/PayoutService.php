@@ -60,9 +60,13 @@ class PayoutService
                 'initiated_at' => now(),
             ]);
             
-            // Step 4: Create Stripe transfer
+            // Step 4: Create Stripe transfer with idempotency key to prevent double payouts
             try {
                 $stripe = new \Stripe\StripeClient(config('stripe.secret'));
+                
+                // SECURITY: Idempotency key prevents duplicate transfers on network retries
+                $idempotencyKey = 'payout_' . $payoutTransaction->id . '_' . $caregiverId . '_' . now()->timestamp;
+                
                 $transfer = $stripe->transfers->create([
                     'amount' => intval($amount * 100), // Convert to cents
                     'currency' => 'usd',
@@ -74,6 +78,8 @@ class PayoutService
                         'sessions_count' => $unpaidRecords->count(),
                         'total_hours' => $unpaidRecords->sum('hours_worked'),
                     ]
+                ], [
+                    'idempotency_key' => $idempotencyKey
                 ]);
                 
                 // Update with Stripe transfer ID

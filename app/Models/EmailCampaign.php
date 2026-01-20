@@ -13,10 +13,12 @@ class EmailCampaign extends Model
         'name',
         'subject',
         'content',
+        'preview_text',
         'type',
         'target_audience',
         'inactive_days',
         'selected_client_ids',
+        'filters',
         'status',
         'scheduled_at',
         'sent_at',
@@ -30,6 +32,7 @@ class EmailCampaign extends Model
 
     protected $casts = [
         'selected_client_ids' => 'array',
+        'filters' => 'array',
         'scheduled_at' => 'datetime',
         'sent_at' => 'datetime',
     ];

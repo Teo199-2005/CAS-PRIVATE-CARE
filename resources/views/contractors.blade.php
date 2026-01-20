@@ -756,7 +756,29 @@
             }
 
             .benefits-grid {
-                grid-template-columns: 1fr;
+                grid-template-columns: repeat(2, 1fr);
+                gap: 1rem;
+            }
+            
+            .benefit-card {
+                padding: 1.25rem;
+            }
+            
+            .benefit-card h3 {
+                font-size: 1rem;
+            }
+            
+            .benefit-card p {
+                font-size: 0.85rem;
+            }
+            
+            .benefit-icon {
+                width: 50px;
+                height: 50px;
+            }
+            
+            .benefit-icon i {
+                font-size: 1.25rem;
             }
 
             .info-cards {
@@ -764,11 +786,82 @@
             }
 
             .join-steps {
-                grid-template-columns: 1fr;
+                grid-template-columns: repeat(2, 1fr);
+                gap: 1rem;
+            }
+            
+            .step-number {
+                width: 70px;
+                height: 70px;
+                font-size: 1.75rem;
+            }
+            
+            .join-step h3 {
+                font-size: 1rem;
+            }
+            
+            .join-step p {
+                font-size: 0.8rem;
             }
 
             .cta-section h2 {
                 font-size: 2rem;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .benefits-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 0.75rem;
+            }
+            
+            .benefit-card {
+                padding: 1rem;
+            }
+            
+            .benefit-card h3 {
+                font-size: 0.9rem;
+            }
+            
+            .benefit-card p {
+                font-size: 0.8rem;
+                display: -webkit-box;
+                -webkit-line-clamp: 3;
+                -webkit-box-orient: vertical;
+                overflow: hidden;
+            }
+            
+            .benefit-icon {
+                width: 40px;
+                height: 40px;
+            }
+            
+            .benefit-icon i {
+                font-size: 1rem;
+            }
+            
+            .join-steps {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 0.75rem;
+            }
+            
+            .step-number {
+                width: 55px;
+                height: 55px;
+                font-size: 1.5rem;
+                margin-bottom: 0.75rem;
+            }
+            
+            .join-step h3 {
+                font-size: 0.85rem;
+            }
+            
+            .join-step p {
+                font-size: 0.75rem;
+                display: -webkit-box;
+                -webkit-line-clamp: 2;
+                -webkit-box-orient: vertical;
+                overflow: hidden;
             }
         }
     </style>

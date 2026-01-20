@@ -16,7 +16,7 @@ class BookingAssignmentFactory extends Factory
         return [
             'booking_id' => Booking::factory(),
             'caregiver_id' => Caregiver::factory(),
-            'status' => $this->faker->randomElement(['pending', 'confirmed', 'completed', 'cancelled']),
+            'status' => $this->faker->randomElement(['assigned', 'in_progress', 'completed', 'cancelled']),
             'assigned_at' => $this->faker->dateTimeBetween('-30 days', 'now'),
             'assigned_hourly_rate' => $this->faker->randomFloat(2, 25, 45),
         ];

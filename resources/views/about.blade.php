@@ -506,12 +506,44 @@
                 grid-template-columns: 1fr;
             }
 
+            /* Stats section 2x2 grid on mobile */
             .stats-section {
-                grid-template-columns: 1fr;
+                grid-template-columns: repeat(2, 1fr);
+                gap: 1rem;
+            }
+            
+            .stat-card {
+                padding: 1.25rem 1rem;
+            }
+            
+            .stat-number {
+                font-size: 1.75rem;
+            }
+            
+            .stat-label {
+                font-size: 0.8rem;
             }
 
             .founder-section {
                 padding: 2rem;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .stats-section {
+                gap: 0.75rem;
+            }
+            
+            .stat-card {
+                padding: 1rem 0.75rem;
+            }
+            
+            .stat-number {
+                font-size: 1.5rem;
+            }
+            
+            .stat-label {
+                font-size: 0.7rem;
             }
         }
 

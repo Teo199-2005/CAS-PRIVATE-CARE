@@ -368,6 +368,63 @@ The CAS Private Care Team"
       </div>
     </div>
 
+    <!-- Send Campaign Confirmation Modal -->
+    <div v-if="showSendConfirmModal" class="modal-overlay" @click.self="showSendConfirmModal = false">
+      <div class="confirmation-modal">
+        <div class="modal-header warning">
+          <div class="modal-icon">
+            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
+            </svg>
+          </div>
+          <h3>Send Campaign</h3>
+        </div>
+        <div class="modal-body">
+          <p class="confirm-message">Are you sure you want to send this campaign?</p>
+          <div class="campaign-summary">
+            <div class="summary-item">
+              <span class="summary-label">Campaign Name</span>
+              <span class="summary-value">{{ campaign.name }}</span>
+            </div>
+            <div class="summary-item">
+              <span class="summary-label">Subject</span>
+              <span class="summary-value">{{ campaign.subject }}</span>
+            </div>
+            <div class="summary-item highlight">
+              <span class="summary-label">Recipients</span>
+              <span class="summary-value recipients">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                </svg>
+                {{ selectedClientIds.length }} recipient{{ selectedClientIds.length !== 1 ? 's' : '' }}
+              </span>
+            </div>
+          </div>
+          <p class="warning-text">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+            </svg>
+            This action cannot be undone. Emails will be sent immediately.
+          </p>
+        </div>
+        <div class="modal-actions">
+          <button class="btn-cancel" @click="showSendConfirmModal = false">
+            Cancel
+          </button>
+          <button class="btn-confirm" @click="confirmSendCampaign" :disabled="sending">
+            <svg v-if="!sending" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
+            </svg>
+            <svg v-else class="w-5 h-5 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <circle cx="12" cy="12" r="10" stroke-opacity="0.25" stroke-width="4"></circle>
+              <path stroke-opacity="0.75" stroke-width="4" d="M4 12a8 8 0 018-8"></path>
+            </svg>
+            {{ sending ? 'Sending...' : 'Send Campaign' }}
+          </button>
+        </div>
+      </div>
+    </div>
+
     <!-- Notifications -->
     <div v-if="notification" :class="['notification', notification.type]">
       {{ notification.message }}
@@ -421,6 +478,7 @@ export default {
       showPreviewModal: false,
       showTestModal: false,
       showAnalyticsModal: false,
+      showSendConfirmModal: false,
       previewData: {},
       testEmail: '',
       analyticsData: null,
@@ -611,10 +669,11 @@ export default {
     },
     
     async sendCampaign() {
-      if (!confirm(`Are you sure you want to send this campaign to ${this.selectedClientIds.length} recipients?`)) {
-        return;
-      }
-      
+      // Show the styled confirmation modal instead of browser confirm
+      this.showSendConfirmModal = true;
+    },
+    
+    async confirmSendCampaign() {
       try {
         this.sending = true;
         
@@ -624,14 +683,23 @@ export default {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+            'Accept': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || ''
           },
           body: JSON.stringify(this.campaign)
         });
+        
+        // Check if response is ok before parsing JSON
+        if (!createResponse.ok) {
+          const errorText = await createResponse.text();
+          console.error('Create campaign error:', errorText);
+          throw new Error(`Server error: ${createResponse.status}`);
+        }
+        
         const createData = await createResponse.json();
         
         if (!createData.success) {
-          throw new Error(createData.message);
+          throw new Error(createData.message || 'Failed to create campaign');
         }
         
         campaignId = createData.campaign.id;
@@ -641,27 +709,39 @@ export default {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+            'Accept': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || ''
           },
           body: JSON.stringify({
             client_ids: this.selectedClientIds
           })
         });
+        
+        // Check if response is ok before parsing JSON
+        if (!sendResponse.ok) {
+          const errorText = await sendResponse.text();
+          console.error('Send campaign error:', errorText);
+          throw new Error(`Server error: ${sendResponse.status}`);
+        }
+        
         const sendData = await sendResponse.json();
         
         if (sendData.success) {
+          this.showSendConfirmModal = false;
           this.showNotification(sendData.message, 'success');
           this.resetForm();
           this.fetchCampaigns();
           this.fetchDashboardStats();
           this.activeTab = 'campaigns';
         } else {
-          throw new Error(sendData.message);
+          throw new Error(sendData.message || 'Failed to send campaign');
         }
       } catch (error) {
+        console.error('Campaign error:', error);
         this.showNotification(error.message || 'Failed to send campaign', 'error');
       } finally {
         this.sending = false;
+        this.showSendConfirmModal = false;
       }
     },
     
@@ -2188,6 +2268,273 @@ export default {
   .recipient-item input[type="checkbox"] {
     width: 20px;
     height: 20px;
+  }
+}
+
+/* Send Campaign Confirmation Modal */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { 
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+  }
+  to { 
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.confirmation-modal {
+  background: white;
+  border-radius: 20px;
+  width: 100%;
+  max-width: 480px;
+  margin: 20px;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.3);
+  overflow: hidden;
+  animation: slideUp 0.3s ease-out;
+}
+
+.confirmation-modal .modal-header {
+  padding: 28px 32px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  position: relative;
+  overflow: hidden;
+}
+
+.confirmation-modal .modal-header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  opacity: 0.1;
+  background: radial-gradient(circle at top right, rgba(255,255,255,0.3), transparent);
+}
+
+.confirmation-modal .modal-header.warning {
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  color: white;
+}
+
+.confirmation-modal .modal-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  z-index: 1;
+}
+
+.confirmation-modal .modal-icon svg {
+  width: 28px;
+  height: 28px;
+  color: white;
+}
+
+.confirmation-modal .modal-header h3 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+  position: relative;
+  z-index: 1;
+}
+
+.confirmation-modal .modal-body {
+  padding: 32px;
+}
+
+.confirmation-modal .confirm-message {
+  font-size: 1.1rem;
+  color: #374151;
+  margin-bottom: 24px;
+  font-weight: 500;
+}
+
+.confirmation-modal .campaign-summary {
+  background: #f8fafc;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 20px;
+  border: 1px solid #e2e8f0;
+}
+
+.confirmation-modal .summary-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.confirmation-modal .summary-item:last-child {
+  border-bottom: none;
+}
+
+.confirmation-modal .summary-item.highlight {
+  background: #eff6ff;
+  margin: 12px -20px -20px -20px;
+  padding: 16px 20px;
+  border-radius: 0 0 12px 12px;
+  border-bottom: none;
+}
+
+.confirmation-modal .summary-label {
+  font-size: 0.9rem;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.confirmation-modal .summary-value {
+  font-size: 0.95rem;
+  color: #1e293b;
+  font-weight: 600;
+  max-width: 60%;
+  text-align: right;
+  word-break: break-word;
+}
+
+.confirmation-modal .summary-value.recipients {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #3b82f6;
+  font-size: 1.1rem;
+}
+
+.confirmation-modal .summary-value.recipients svg {
+  width: 22px;
+  height: 22px;
+}
+
+.confirmation-modal .warning-text {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+  color: #f59e0b;
+  background: #fffbeb;
+  padding: 12px 16px;
+  border-radius: 10px;
+  border: 1px solid #fef3c7;
+}
+
+.confirmation-modal .warning-text svg {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+.confirmation-modal .modal-actions {
+  display: flex;
+  gap: 12px;
+  padding: 24px 32px;
+  background: #f8fafc;
+  border-top: 1px solid #e2e8f0;
+}
+
+.confirmation-modal .btn-cancel {
+  flex: 1;
+  padding: 14px 24px;
+  border: 2px solid #cbd5e1;
+  background: white;
+  color: #64748b;
+  font-size: 1rem;
+  font-weight: 600;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.confirmation-modal .btn-cancel:hover {
+  background: #f1f5f9;
+  border-color: #94a3b8;
+  color: #475569;
+}
+
+.confirmation-modal .btn-confirm {
+  flex: 1;
+  padding: 14px 24px;
+  border: none;
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  color: white;
+  font-size: 1rem;
+  font-weight: 600;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-shadow: 0 4px 14px rgba(59, 130, 246, 0.4);
+}
+
+.confirmation-modal .btn-confirm:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(59, 130, 246, 0.5);
+}
+
+.confirmation-modal .btn-confirm:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.confirmation-modal .btn-confirm svg {
+  width: 20px;
+  height: 20px;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.confirmation-modal .animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+@media (max-width: 480px) {
+  .confirmation-modal {
+    margin: 16px;
+    border-radius: 16px;
+  }
+  
+  .confirmation-modal .modal-header {
+    padding: 20px 24px;
+  }
+  
+  .confirmation-modal .modal-body {
+    padding: 24px;
+  }
+  
+  .confirmation-modal .modal-actions {
+    flex-direction: column;
+    padding: 20px 24px;
   }
 }
 </style>

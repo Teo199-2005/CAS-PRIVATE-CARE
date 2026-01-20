@@ -23,6 +23,8 @@ return Application::configure(basePath: dirname(__DIR__))
             'user.type' => \App\Http\Middleware\EnsureUserType::class,
             'admin' => \App\Http\Middleware\EnsureAdmin::class,
             'cache.api' => \App\Http\Middleware\CacheApiResponse::class,
+            'rate-limit' => \App\Http\Middleware\RateLimitMiddleware::class,
+            'csp' => \App\Http\Middleware\ContentSecurityPolicy::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

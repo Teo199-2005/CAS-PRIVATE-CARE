@@ -30,26 +30,26 @@
     <!-- Service Schema -->
     <script type="application/ld+json">
     {
-        "@context": "https://schema.org",
-        "@type": "Service",
+        "@@context": "https://schema.org",
+        "@@type": "Service",
         "serviceType": "Home Care Services",
         "provider": {
-            "@type": "Organization",
+            "@@type": "Organization",
             "name": "CAS Private Care LLC",
             "url": "{{ url('/') }}"
         },
         "areaServed": {
-            "@type": "State",
+            "@@type": "State",
             "name": "New York"
         },
         "hasOfferCatalog": {
-            "@type": "OfferCatalog",
+            "@@type": "OfferCatalog",
             "name": "Care Services",
             "itemListElement": [
-                {"@type": "Offer", "itemOffered": {"@type": "Service", "name": "Elderly Care"}},
-                {"@type": "Offer", "itemOffered": {"@type": "Service", "name": "Companion Care"}},
-                {"@type": "Offer", "itemOffered": {"@type": "Service", "name": "Housekeeping"}},
-                {"@type": "Offer", "itemOffered": {"@type": "Service", "name": "Special Needs Care"}}
+                {"@@type": "Offer", "itemOffered": {"@@type": "Service", "name": "Elderly Care"}},
+                {"@@type": "Offer", "itemOffered": {"@@type": "Service", "name": "Companion Care"}},
+                {"@@type": "Offer", "itemOffered": {"@@type": "Service", "name": "Housekeeping"}},
+                {"@@type": "Offer", "itemOffered": {"@@type": "Service", "name": "Special Needs Care"}}
             ]
         }
     }
@@ -686,8 +686,29 @@
                 font-size: 2.5rem;
             }
             
+            /* Hero stats 2x2 grid on mobile */
             .hero-stats {
-                gap: 2rem;
+                display: grid;
+                grid-template-columns: repeat(2, 1fr);
+                gap: 1.25rem;
+                max-width: 320px;
+                margin: 0 auto;
+            }
+            
+            .hero-stat {
+                text-align: center;
+                padding: 0.75rem 0.5rem;
+                background: rgba(255, 255, 255, 0.1);
+                border-radius: 12px;
+                backdrop-filter: blur(10px);
+            }
+            
+            .hero-stat-value {
+                font-size: 1.5rem;
+            }
+            
+            .hero-stat-label {
+                font-size: 0.75rem;
             }
             
             .section-header h2 {
@@ -704,6 +725,25 @@
             
             .cta-buttons {
                 flex-direction: column;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .hero-stats {
+                gap: 0.75rem;
+                max-width: 280px;
+            }
+            
+            .hero-stat {
+                padding: 0.5rem;
+            }
+            
+            .hero-stat-value {
+                font-size: 1.25rem;
+            }
+            
+            .hero-stat-label {
+                font-size: 0.625rem;
             }
         }
     </style>

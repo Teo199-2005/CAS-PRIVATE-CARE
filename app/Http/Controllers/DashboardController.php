@@ -413,8 +413,31 @@ class DashboardController extends Controller
             })
             ->count();
         
-        // Get total revenue from payments
+        // Get total revenue - try Stripe first, fallback to local payments
         $totalRevenue = Payment::where('status', 'completed')->sum('amount');
+        
+        // Try to get more accurate total from Stripe
+        try {
+            \Stripe\Stripe::setApiKey(config('services.stripe.secret'));
+            $balance = \Stripe\Balance::retrieve();
+            
+            // Get total from Stripe charges (succeeded only)
+            $charges = \Stripe\Charge::all(['limit' => 100]);
+            $stripeTotal = 0;
+            foreach ($charges->data as $charge) {
+                if ($charge->status === 'succeeded') {
+                    $stripeTotal += $charge->amount / 100;
+                }
+            }
+            
+            // Use Stripe total if it's higher (more accurate)
+            if ($stripeTotal > $totalRevenue) {
+                $totalRevenue = $stripeTotal;
+            }
+        } catch (\Exception $e) {
+            // Stripe fetch failed, use local payment data
+            \Log::warning('Failed to fetch Stripe revenue: ' . $e->getMessage());
+        }
         
         // Get recent bookings for activity feed
         $recentBookings = Booking::with(['client'])
@@ -449,6 +472,37 @@ class DashboardController extends Controller
             ->count();
         $bookingGrowth = $lastWeekActiveBookings > 0 ? round((($activeBookings - $lastWeekActiveBookings) / $lastWeekActiveBookings) * 100, 1) : 0;
         
+        // Calculate real analytics data
+        // Client spending from completed payments
+        $totalClientSpending = Payment::where('status', 'completed')->sum('amount');
+        $avgClientSpending = $totalClients > 0 ? $totalClientSpending / $totalClients : 0;
+        
+        // Caregiver earnings from payments table + time tracking
+        $caregiverEarningsFromPayments = Payment::where('status', 'completed')->sum('caregiver_amount');
+        $caregiverEarningsFromTimeTracking = 0;
+        try {
+            $caregiverEarningsFromTimeTracking = \App\Models\TimeTracking::where('payment_status', 'paid')->sum('caregiver_earnings');
+        } catch (\Exception $e) {
+            // Time tracking table may not exist
+        }
+        $totalCaregiverEarnings = $caregiverEarningsFromPayments + $caregiverEarningsFromTimeTracking;
+        $avgCaregiverEarnings = $totalCaregivers > 0 ? $totalCaregiverEarnings / $totalCaregivers : 0;
+        
+        // Housekeeper earnings from payments table
+        $totalHousekeeperEarnings = Payment::where('status', 'completed')->sum('housekeeper_amount');
+        $avgHousekeeperEarnings = $totalHousekeepers > 0 ? $totalHousekeeperEarnings / $totalHousekeepers : 0;
+        
+        // New clients this week
+        $newClientsThisWeek = \App\Models\User::where('user_type', 'client')
+            ->where('created_at', '>=', now()->startOfWeek())
+            ->count();
+        
+        // Available caregivers (those with availability_status 'available')
+        $availableCaregivers = Caregiver::where('availability_status', 'available')->count();
+        
+        // Top rated caregivers (4+ star rating)
+        $topRatedCaregivers = Caregiver::where('rating', '>=', 4)->count();
+        
         return response()->json([
             'total_users' => $totalUsers,
             'total_clients' => $totalClients,
@@ -462,7 +516,16 @@ class DashboardController extends Controller
             'user_growth' => $userGrowth,
             'booking_growth' => $bookingGrowth,
             'recent_bookings' => $recentBookings,
-            'pending_applications' => \App\Models\User::where('user_type', 'caregiver')->whereDoesntHave('caregiver')->get()
+            'pending_applications' => \App\Models\User::where('user_type', 'caregiver')->whereDoesntHave('caregiver')->get(),
+            // Real analytics data
+            'avg_client_spending' => round($avgClientSpending, 2),
+            'avg_caregiver_earnings' => round($avgCaregiverEarnings, 2),
+            'avg_housekeeper_earnings' => round($avgHousekeeperEarnings, 2),
+            'new_clients_this_week' => $newClientsThisWeek,
+            'available_caregivers' => $availableCaregivers,
+            'top_rated_caregivers' => $topRatedCaregivers,
+            'total_caregiver_earnings' => round($totalCaregiverEarnings, 2),
+            'total_housekeeper_earnings' => round($totalHousekeeperEarnings, 2),
         ]);
     }
 

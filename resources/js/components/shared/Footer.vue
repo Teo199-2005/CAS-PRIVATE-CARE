@@ -105,15 +105,49 @@
 }
 
 @media (max-width: 768px) {
+  .dashboard-footer {
+    padding: 12px 16px;
+  }
+  
   .footer-content {
     flex-direction: column;
-    gap: 12px;
+    gap: 8px;
     text-align: center;
   }
   
   .footer-left,
   .footer-right {
     justify-content: center;
+    width: 100%;
+  }
+  
+  .footer-right {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  
+  .copyright {
+    font-size: 0.75rem;
+    width: 100%;
+    order: 1;
+  }
+  
+  .separator {
+    display: none;
+  }
+  
+  .version {
+    font-size: 0.65rem;
+    padding: 2px 6px;
+    order: 2;
+  }
+  
+  .powered-text {
+    font-size: 0.6rem;
+  }
+  
+  .stripe-logo {
+    width: 40px;
   }
 }
 </style>

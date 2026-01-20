@@ -513,7 +513,8 @@ class StripePaymentService
     }
 
     /**
-     * Check if caregiver has completed onboarding
+     * Check if caregiver has completed onboarding and can receive payouts
+     * SECURITY: Also checks for pending requirements that could block payouts
      */
     public function isConnectAccountComplete(Caregiver $caregiver): bool
     {
@@ -524,7 +525,28 @@ class StripePaymentService
 
             $account = Account::retrieve($caregiver->stripe_connect_id);
             
-            return $account->charges_enabled && $account->payouts_enabled;
+            // Check for pending requirements that would block payouts
+            $hasPastDue = !empty($account->requirements->past_due);
+            $hasCurrentlyDue = !empty($account->requirements->currently_due);
+            
+            if ($hasPastDue) {
+                Log::warning('Connect account has past_due requirements - payouts may be blocked', [
+                    'caregiver_id' => $caregiver->id,
+                    'account_id' => $account->id,
+                    'past_due' => $account->requirements->past_due,
+                ]);
+            }
+            
+            if ($hasCurrentlyDue) {
+                Log::info('Connect account has currently_due requirements', [
+                    'caregiver_id' => $caregiver->id,
+                    'account_id' => $account->id,
+                    'currently_due' => $account->requirements->currently_due,
+                ]);
+            }
+            
+            // Account must have charges and payouts enabled, and no past_due requirements
+            return $account->charges_enabled && $account->payouts_enabled && !$hasPastDue;
         } catch (\Exception $e) {
             Log::error('Connect Account Check Failed', [
                 'caregiver_id' => $caregiver->id,
@@ -562,6 +584,14 @@ class StripePaymentService
             }
 
             $amount = $timeTracking->caregiver_earnings;
+            
+            // SECURITY: Validate amount is positive
+            if ($amount <= 0) {
+                throw new \Exception('Invalid transfer amount: must be positive');
+            }
+
+            // SECURITY: Idempotency key prevents duplicate transfers on network retries
+            $idempotencyKey = 'transfer_caregiver_' . $timeTracking->id . '_' . $caregiver->id;
 
             $transfer = Transfer::create([
                 'amount' => round($amount * 100), // Cents
@@ -574,6 +604,8 @@ class StripePaymentService
                     'hours_worked' => $timeTracking->hours_worked,
                     'payment_type' => 'caregiver_earnings'
                 ]
+            ], [
+                'idempotency_key' => $idempotencyKey
             ]);
 
             // Mark as paid
@@ -614,6 +646,14 @@ class StripePaymentService
                 throw new \Exception('Marketing partner has no Connect account');
             }
 
+            // SECURITY: Validate amount is positive
+            if ($amount <= 0) {
+                throw new \Exception('Invalid transfer amount: must be positive');
+            }
+
+            // SECURITY: Idempotency key prevents duplicate transfers
+            $idempotencyKey = 'marketing_transfer_' . $marketingUser->id . '_' . ($metadata['time_tracking_id'] ?? now()->timestamp);
+
             $transfer = Transfer::create([
                 'amount' => round($amount * 100),
                 'currency' => 'usd',
@@ -623,6 +663,8 @@ class StripePaymentService
                     'user_id' => $marketingUser->id,
                     'payment_type' => 'marketing_commission'
                 ], $metadata)
+            ], [
+                'idempotency_key' => $idempotencyKey
             ]);
 
             return [
@@ -654,6 +696,14 @@ class StripePaymentService
                 throw new \Exception('Training center has no Connect account');
             }
 
+            // SECURITY: Validate amount is positive
+            if ($amount <= 0) {
+                throw new \Exception('Invalid transfer amount: must be positive');
+            }
+
+            // SECURITY: Idempotency key prevents duplicate transfers
+            $idempotencyKey = 'training_transfer_' . $trainingUser->id . '_' . ($metadata['time_tracking_id'] ?? now()->timestamp);
+
             $transfer = Transfer::create([
                 'amount' => round($amount * 100),
                 'currency' => 'usd',
@@ -663,6 +713,8 @@ class StripePaymentService
                     'user_id' => $trainingUser->id,
                     'payment_type' => 'training_commission'
                 ], $metadata)
+            ], [
+                'idempotency_key' => $idempotencyKey
             ]);
 
             return [

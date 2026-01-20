@@ -326,8 +326,12 @@ class ScheduledPayoutService
         DB::beginTransaction();
         
         try {
-            // Create Stripe transfer
+            // Create Stripe transfer with idempotency key to prevent duplicates
             $stripe = new \Stripe\StripeClient(config('stripe.secret'));
+            
+            // SECURITY: Idempotency key prevents duplicate transfers on network retries
+            $idempotencyKey = 'scheduled_payout_' . $scheduledPayoutId . '_' . $user->id . '_' . now()->format('Ymd');
+            
             $transfer = $stripe->transfers->create([
                 'amount' => intval($amount * 100), // Convert to cents
                 'currency' => 'usd',
@@ -338,6 +342,8 @@ class ScheduledPayoutService
                     'contractor_type' => $contractorType,
                     'scheduled_payout_id' => $scheduledPayoutId
                 ]
+            ], [
+                'idempotency_key' => $idempotencyKey
             ]);
             
             // Mark time trackings as paid

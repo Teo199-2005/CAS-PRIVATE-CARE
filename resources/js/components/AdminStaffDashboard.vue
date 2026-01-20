@@ -3726,7 +3726,7 @@
 
           <!-- Summary Stats -->
           <v-row class="mb-4">
-            <v-col cols="12" md="3">
+            <v-col cols="6" md="3">
               <v-card class="history-stat-card" elevation="2">
                 <v-card-text class="pa-4 text-center">
                   <v-icon color="success" size="32" class="mb-2">mdi-account-clock</v-icon>
@@ -3735,7 +3735,7 @@
                 </v-card-text>
               </v-card>
             </v-col>
-            <v-col cols="12" md="3">
+            <v-col cols="6" md="3">
               <v-card class="history-stat-card" elevation="2">
                 <v-card-text class="pa-4 text-center">
                   <v-icon color="info" size="32" class="mb-2">mdi-clock</v-icon>
@@ -3744,7 +3744,7 @@
                 </v-card-text>
               </v-card>
             </v-col>
-            <v-col cols="12" md="3">
+            <v-col cols="6" md="3">
               <v-card class="history-stat-card" elevation="2">
                 <v-card-text class="pa-4 text-center">
                   <v-icon color="warning" size="32" class="mb-2">mdi-account-multiple</v-icon>
@@ -3753,7 +3753,7 @@
                 </v-card-text>
               </v-card>
             </v-col>
-            <v-col cols="12" md="3">
+            <v-col cols="6" md="3">
               <v-card class="history-stat-card" elevation="2">
                 <v-card-text class="pa-4 text-center">
                   <v-icon color="error" size="32" class="mb-2">mdi-chart-line</v-icon>
@@ -12712,6 +12712,21 @@ onMounted(async () => {
   :deep(.v-data-table .v-table__wrapper tbody tr td .v-chip) {
     font-size: 0.75rem !important;
     padding: 4px 10px !important;
+    max-width: none !important;
+    white-space: nowrap !important;
+  }
+
+  /* Icon-only status chips on mobile - hide text, show icon */
+  :deep(.v-data-table .v-table__wrapper tbody tr td .v-chip .v-chip__content) {
+    display: flex !important;
+    align-items: center !important;
+    gap: 4px !important;
+  }
+
+  /* Ensure chip text is visible on mobile */
+  :deep(.v-data-table .v-table__wrapper tbody tr td .v-chip) {
+    overflow: visible !important;
+    text-overflow: unset !important;
   }
 
   /* Progress bars on mobile */

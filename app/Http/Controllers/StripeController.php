@@ -10,6 +10,7 @@ use App\Models\Housekeeper;
 use App\Models\TimeTracking;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
 
 class StripeController extends Controller
 {
@@ -39,6 +40,17 @@ class StripeController extends Controller
     public function __construct(StripePaymentService $stripeService)
     {
         $this->stripeService = $stripeService;
+    }
+
+    /**
+     * Handle incoming Stripe webhook
+     * Delegates to StripeWebhookController
+     * POST /api/stripe/webhook
+     */
+    public function webhook(Request $request)
+    {
+        $webhookController = app(\App\Http\Controllers\StripeWebhookController::class);
+        return $webhookController->handleWebhook($request);
     }
 
     /**
@@ -117,6 +129,10 @@ class StripeController extends Controller
      * Process payment using a payment method
      * POST /api/stripe/setup-intent
      * Used by PaymentPage.vue to charge the card for a booking
+     * 
+     * SECURITY: Uses database transaction with row locking to prevent:
+     * - Race conditions (double payment on simultaneous requests)
+     * - Data inconsistency (partial updates if any step fails)
      */
     public function processPaymentWithMethod(Request $request)
     {
@@ -130,8 +146,6 @@ class StripeController extends Controller
             $request->validate([
                 'payment_method_id' => 'required|string',
                 'booking_id' => 'required|integer',
-                // amount (cents) is ignored for security; totals are calculated server-side
-                'amount' => 'required|integer|min:100', // Amount in cents
             ]);
 
             $stripe = new \Stripe\StripeClient(config('stripe.secret_key'));
@@ -147,95 +161,119 @@ class StripeController extends Controller
                 $user->save();
             }
 
-            // Get the booking
-            $booking = \App\Models\Booking::findOrFail($request->booking_id);
+            // SECURITY: Use database transaction with row-level locking
+            return \Illuminate\Support\Facades\DB::transaction(function () use ($request, $user, $stripe) {
+                // Lock the booking row to prevent concurrent payments
+                $booking = \App\Models\Booking::where('id', $request->booking_id)
+                    ->lockForUpdate()
+                    ->firstOrFail();
 
-            // Verify booking belongs to user (client_id in bookings refers to user_id)
-            if ($booking->client_id !== $user->id) {
-                Log::warning('Unauthorized payment attempt', [
-                    'user_id' => $user->id,
-                    'booking_id' => $request->booking_id,
-                    'booking_client_id' => $booking->client_id
-                ]);
-                return response()->json(['success' => false, 'message' => 'Unauthorized - This booking does not belong to you'], 403);
-            }
-
-            // Attach payment method to customer (if not already)
-            try {
-                $stripe->paymentMethods->attach(
-                    $request->payment_method_id,
-                    ['customer' => $user->stripe_customer_id]
-                );
-            } catch (\Stripe\Exception\CardException $e) {
-                // Payment method may already be attached, continue
-                Log::info('Payment method attach skipped: ' . $e->getMessage());
-            }
-
-            // Calculate target total server-side
-            $targetAmount = (float) app(\App\Http\Controllers\BookingController::class)->calculateBookingTotal($booking);
-
-            // Determine card country (best-effort before charge). If unavailable, default US.
-            $cardCountry = 'US';
-            try {
-                $pm = $stripe->paymentMethods->retrieve($request->payment_method_id, []);
-                if ($pm && isset($pm->card) && isset($pm->card->country) && is_string($pm->card->country)) {
-                    $cardCountry = strtoupper($pm->card->country);
+                // Verify booking belongs to user (client_id in bookings refers to user_id)
+                if ($booking->client_id !== $user->id) {
+                    Log::warning('Unauthorized payment attempt', [
+                        'user_id' => $user->id,
+                        'booking_id' => $request->booking_id,
+                        'booking_client_id' => $booking->client_id
+                    ]);
+                    return response()->json(['success' => false, 'message' => 'Unauthorized - This booking does not belong to you'], 403);
                 }
-            } catch (\Exception $e) {
-                // keep default
-            }
 
-            $processingFee = $this->calculateProcessingFee($targetAmount, $cardCountry);
-            $adjustedAmount = $this->calculateAdjustedTotal($targetAmount, $cardCountry);
-            $amountInCents = (int) round($adjustedAmount * 100);
+                // Check if already paid (race-condition safe with lock)
+                if ($booking->payment_status === 'paid') {
+                    return response()->json(['success' => false, 'message' => 'Booking has already been paid'], 400);
+                }
 
-            // Create and confirm Payment Intent
-            $paymentIntent = $stripe->paymentIntents->create([
-                'amount' => $amountInCents,
-                'currency' => 'usd',
-                'customer' => $user->stripe_customer_id,
-                'payment_method' => $request->payment_method_id,
-                'off_session' => true,
-                'confirm' => true,
-                'metadata' => [
+                // Attach payment method to customer (if not already)
+                try {
+                    $stripe->paymentMethods->attach(
+                        $request->payment_method_id,
+                        ['customer' => $user->stripe_customer_id]
+                    );
+                } catch (\Stripe\Exception\CardException $e) {
+                    // Payment method may already be attached, continue
+                    Log::info('Payment method attach skipped: ' . $e->getMessage());
+                }
+
+                // Calculate target total server-side (never trust client amount)
+                $targetAmount = (float) app(\App\Http\Controllers\BookingController::class)->calculateBookingTotal($booking);
+
+                // SECURITY: Validate calculated amount is positive
+                if ($targetAmount <= 0) {
+                    Log::alert('Zero/negative amount calculated', [
+                        'booking_id' => $booking->id,
+                        'calculated_amount' => $targetAmount
+                    ]);
+                    return response()->json(['success' => false, 'message' => 'Invalid booking amount'], 400);
+                }
+
+                // Determine card country (best-effort before charge). If unavailable, default US.
+                $cardCountry = 'US';
+                try {
+                    $pm = $stripe->paymentMethods->retrieve($request->payment_method_id, []);
+                    if ($pm && isset($pm->card) && isset($pm->card->country) && is_string($pm->card->country)) {
+                        $cardCountry = strtoupper($pm->card->country);
+                    }
+                } catch (\Exception $e) {
+                    // keep default
+                }
+
+                $processingFee = $this->calculateProcessingFee($targetAmount, $cardCountry);
+                $adjustedAmount = $this->calculateAdjustedTotal($targetAmount, $cardCountry);
+                $amountInCents = (int) round($adjustedAmount * 100);
+
+                // SECURITY: Idempotency key prevents duplicate charges on network retry
+                $idempotencyKey = 'payment_' . $booking->id . '_' . $user->id . '_' . now()->format('Ymd');
+
+                // Create and confirm Payment Intent
+                $paymentIntent = $stripe->paymentIntents->create([
+                    'amount' => $amountInCents,
+                    'currency' => 'usd',
+                    'customer' => $user->stripe_customer_id,
+                    'payment_method' => $request->payment_method_id,
+                    'off_session' => true,
+                    'confirm' => true,
+                    'metadata' => [
+                        'booking_id' => $request->booking_id,
+                        'user_id' => $user->id,
+                        'client_id' => $user->id // Same as user_id (booking.client_id = user.id)
+                    ],
+                    'description' => 'Booking #' . $request->booking_id . ' - ' . $booking->service_type,
+                ], [
+                    'idempotency_key' => $idempotencyKey
+                ]);
+
+                Log::info('Payment processed successfully', [
+                    'payment_intent_id' => $paymentIntent->id,
                     'booking_id' => $request->booking_id,
-                    'user_id' => $user->id,
-                    'client_id' => $user->id // Same as user_id (booking.client_id = user.id)
-                ],
-                'description' => 'Booking #' . $request->booking_id . ' - ' . $booking->service_type,
-            ]);
+                    'amount' => $amountInCents
+                ]);
 
-            Log::info('Payment processed successfully', [
-                'payment_intent_id' => $paymentIntent->id,
-                'booking_id' => $request->booking_id,
-                'amount' => $amountInCents
-            ]);
+                // Update booking payment status
+                $booking->update([
+                    'payment_status' => 'paid',
+                    'stripe_payment_intent_id' => $paymentIntent->id,
+                    'payment_date' => now(),
+                ]);
 
-            // Update booking payment status
-            $booking->update([
-                'payment_status' => 'paid',
-                'stripe_payment_intent_id' => $paymentIntent->id,
-                'payment_date' => now(),
-            ]);
+                // Create payment record
+                \App\Models\Payment::create([
+                    'client_id' => $user->id,
+                    'booking_id' => $booking->id,
+                    'transaction_id' => $paymentIntent->id,
+                    'amount' => $amountInCents / 100, // Convert from cents
+                    'processing_fee' => $processingFee,
+                    'status' => 'completed',
+                    'payment_method' => 'credit_card',
+                    'notes' => 'Booking payment for #' . $booking->id,
+                    'paid_at' => now(),
+                ]);
 
-            // Create payment record
-            \App\Models\Payment::create([
-                'client_id' => $user->id,
-                'booking_id' => $booking->id,
-                'transaction_id' => $paymentIntent->id,
-                'amount' => $amountInCents / 100, // Convert from cents
-                'processing_fee' => $processingFee,
-                'status' => 'completed',
-                'payment_method' => 'credit_card',
-                'notes' => 'Booking payment for #' . $booking->id,
-                'paid_at' => now(),
-            ]);
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Payment processed successfully',
-                'payment_intent_id' => $paymentIntent->id
-            ]);
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Payment processed successfully',
+                    'payment_intent_id' => $paymentIntent->id
+                ]);
+            });
 
         } catch (\Stripe\Exception\CardException $e) {
             Log::error('Stripe card error: ' . $e->getMessage());
@@ -277,6 +315,7 @@ class StripeController extends Controller
                 'customer' => $user->stripe_customer_id,
                 'type' => 'card',
             ]);
+
 
             $methods = array_map(function($pm) {
                 return [
@@ -660,6 +699,13 @@ class StripeController extends Controller
     /**
      * Handle Stripe webhooks
      * POST /stripe/webhook
+     * 
+     * NOTE: This is a LEGACY handler. The primary webhook handler is in
+     * StripeWebhookController.php which has more complete event handling.
+     * This method is kept for backward compatibility with any existing
+     * webhook endpoints that may be configured.
+     * 
+     * SECURITY: Validates webhook signature to prevent fake payment injections
      */
     public function handleWebhook(Request $request)
     {
@@ -667,26 +713,69 @@ class StripeController extends Controller
         $sigHeader = $request->header('Stripe-Signature');
         $webhookSecret = config('stripe.webhook_secret');
 
+        // SECURITY: Reject webhooks without valid signature
+        if (empty($webhookSecret)) {
+            Log::error('Stripe webhook secret not configured');
+            return response()->json(['error' => 'Webhook secret not configured'], 500);
+        }
+
         try {
             $event = \Stripe\Webhook::constructEvent(
                 $payload,
                 $sigHeader,
                 $webhookSecret
             );
+        } catch (\UnexpectedValueException $e) {
+            Log::error('Stripe webhook invalid payload: ' . $e->getMessage());
+            return response()->json(['error' => 'Invalid payload'], 400);
+        } catch (\Stripe\Exception\SignatureVerificationException $e) {
+            Log::error('Stripe webhook invalid signature: ' . $e->getMessage());
+            return response()->json(['error' => 'Invalid signature'], 400);
         } catch (\Exception $e) {
+            Log::error('Stripe webhook verification failed: ' . $e->getMessage());
             return response()->json(['error' => 'Invalid signature'], 400);
         }
+
+        Log::info('Stripe webhook received (legacy handler): ' . $event->type, ['event_id' => $event->id]);
 
         // Handle events
         switch ($event->type) {
             case 'payment_intent.succeeded':
-                // Log successful payment
-                \Log::info('Payment succeeded', ['payment_intent' => $event->data->object->id]);
+                $paymentIntent = $event->data->object;
+                Log::info('Payment succeeded', ['payment_intent' => $paymentIntent->id]);
+                
+                // Update booking if metadata contains booking_id
+                if (!empty($paymentIntent->metadata->booking_id)) {
+                    $booking = \App\Models\Booking::find($paymentIntent->metadata->booking_id);
+                    if ($booking && $booking->payment_status !== 'paid') {
+                        $booking->update([
+                            'payment_status' => 'paid',
+                            'stripe_payment_intent_id' => $paymentIntent->id,
+                            'payment_date' => now(),
+                        ]);
+                        Log::info('Booking marked as paid via webhook', ['booking_id' => $booking->id]);
+                    }
+                }
                 break;
 
             case 'payment_intent.payment_failed':
-                // Handle failed payment
-                \Log::error('Payment failed', ['payment_intent' => $event->data->object->id]);
+                $paymentIntent = $event->data->object;
+                Log::error('Payment failed', ['payment_intent' => $paymentIntent->id]);
+                
+                // SECURITY: Alert on failed payments for monitoring
+                Log::alert('Payment intent failed - requires review', [
+                    'payment_intent_id' => $paymentIntent->id,
+                    'amount' => $paymentIntent->amount / 100,
+                    'failure_message' => $paymentIntent->last_payment_error->message ?? 'Unknown',
+                ]);
+                
+                // Update booking status if applicable
+                if (!empty($paymentIntent->metadata->booking_id)) {
+                    $booking = \App\Models\Booking::find($paymentIntent->metadata->booking_id);
+                    if ($booking) {
+                        $booking->update(['payment_status' => 'failed']);
+                    }
+                }
                 break;
 
             case 'account.updated':
@@ -698,8 +787,16 @@ class StripeController extends Controller
                         'stripe_charges_enabled' => $account->charges_enabled,
                         'stripe_payouts_enabled' => $account->payouts_enabled
                     ]);
+                    Log::info('Caregiver Connect account updated', [
+                        'caregiver_id' => $caregiver->id,
+                        'charges_enabled' => $account->charges_enabled,
+                        'payouts_enabled' => $account->payouts_enabled,
+                    ]);
                 }
                 break;
+                
+            default:
+                Log::info('Unhandled webhook event type: ' . $event->type);
         }
 
         return response()->json(['success' => true]);
@@ -760,57 +857,68 @@ class StripeController extends Controller
             return response()->json(['error' => 'Unauthorized'], 403);
         }
 
-        $marketingUser = User::findOrFail($userId);
+        // SECURITY: Wrap in transaction with row locking to prevent race conditions
+        return DB::transaction(function () use ($userId) {
+            $marketingUser = User::findOrFail($userId);
 
-        if ($marketingUser->user_type !== 'marketing') {
-            return response()->json(['error' => 'User is not marketing staff'], 400);
-        }
+            if ($marketingUser->user_type !== 'marketing') {
+                return response()->json(['error' => 'User is not marketing staff'], 400);
+            }
 
-        // Get all pending commissions
-        $pendingCommissions = TimeTracking::where('marketing_partner_id', $userId)
-            ->where('payment_status', 'pending')
-            ->whereNotNull('marketing_partner_commission')
-            ->where('marketing_partner_commission', '>', 0)
-            ->get();
+            // SECURITY: Lock rows for update to prevent concurrent payments
+            $pendingCommissions = TimeTracking::where('marketing_partner_id', $userId)
+                ->where('payment_status', 'pending')
+                ->whereNotNull('marketing_partner_commission')
+                ->where('marketing_partner_commission', '>', 0)
+                ->lockForUpdate()
+                ->get();
 
-        if ($pendingCommissions->isEmpty()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'No pending commissions to pay'
-            ], 400);
-        }
+            if ($pendingCommissions->isEmpty()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'No pending commissions to pay'
+                ], 400);
+            }
 
-        $totalAmount = $pendingCommissions->sum('marketing_partner_commission');
+            $totalAmount = $pendingCommissions->sum('marketing_partner_commission');
 
-        // Transfer to marketing staff
-        $result = $this->stripeService->transferToMarketing($marketingUser, $totalAmount, [
-            'commission_count' => $pendingCommissions->count(),
-            'payment_date' => now()->toDateString()
-        ]);
-
-        if (!$result['success']) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Transfer failed: ' . $result['error']
-            ], 400);
-        }
-
-        // Mark commissions as paid
-        TimeTracking::where('marketing_partner_id', $userId)
-            ->where('payment_status', 'pending')
-            ->whereNotNull('marketing_partner_commission')
-            ->update([
-                'payment_status' => 'paid',
-                'paid_at' => now()
+            // Transfer to marketing staff (StripePaymentService now has idempotency)
+            $result = $this->stripeService->transferToMarketing($marketingUser, $totalAmount, [
+                'commission_count' => $pendingCommissions->count(),
+                'payment_date' => now()->toDateString(),
+                'time_tracking_id' => $pendingCommissions->pluck('id')->implode('_')
             ]);
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Commission paid successfully',
-            'amount' => $totalAmount,
-            'transfer_id' => $result['transfer_id'],
-            'entries_paid' => $pendingCommissions->count()
-        ]);
+            if (!$result['success']) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Transfer failed: ' . $result['error']
+                ], 400);
+            }
+
+            // Mark commissions as paid (inside transaction)
+            TimeTracking::whereIn('id', $pendingCommissions->pluck('id'))
+                ->update([
+                    'payment_status' => 'paid',
+                    'paid_at' => now(),
+                    'marketing_commission_paid_at' => now(),
+                    'marketing_commission_stripe_transfer_id' => $result['transfer_id']
+                ]);
+
+            Log::info('Marketing commission paid via StripeController', [
+                'user_id' => $userId,
+                'amount' => $totalAmount,
+                'transfer_id' => $result['transfer_id']
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Commission paid successfully',
+                'amount' => $totalAmount,
+                'transfer_id' => $result['transfer_id'],
+                'entries_paid' => $pendingCommissions->count()
+            ]);
+        }); // End transaction
     }
 
     /**
@@ -868,57 +976,68 @@ class StripeController extends Controller
             return response()->json(['error' => 'Unauthorized'], 403);
         }
 
-        $trainingUser = User::findOrFail($userId);
+        // SECURITY: Wrap in transaction with row locking to prevent race conditions
+        return DB::transaction(function () use ($userId) {
+            $trainingUser = User::findOrFail($userId);
 
-        if (!in_array($trainingUser->user_type, ['training', 'training_center'])) {
-            return response()->json(['error' => 'User is not training center'], 400);
-        }
+            if (!in_array($trainingUser->user_type, ['training', 'training_center'])) {
+                return response()->json(['error' => 'User is not training center'], 400);
+            }
 
-        // Get all pending commissions
-        $pendingCommissions = TimeTracking::where('training_center_user_id', $userId)
-            ->where('payment_status', 'pending')
-            ->whereNotNull('training_center_commission')
-            ->where('training_center_commission', '>', 0)
-            ->get();
+            // SECURITY: Lock rows for update to prevent concurrent payments
+            $pendingCommissions = TimeTracking::where('training_center_user_id', $userId)
+                ->where('payment_status', 'pending')
+                ->whereNotNull('training_center_commission')
+                ->where('training_center_commission', '>', 0)
+                ->lockForUpdate()
+                ->get();
 
-        if ($pendingCommissions->isEmpty()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'No pending commissions to pay'
-            ], 400);
-        }
+            if ($pendingCommissions->isEmpty()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'No pending commissions to pay'
+                ], 400);
+            }
 
-        $totalAmount = $pendingCommissions->sum('training_center_commission');
+            $totalAmount = $pendingCommissions->sum('training_center_commission');
 
-        // Transfer to training center
-        $result = $this->stripeService->transferToTraining($trainingUser, $totalAmount, [
-            'commission_count' => $pendingCommissions->count(),
-            'payment_date' => now()->toDateString()
-        ]);
-
-        if (!$result['success']) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Transfer failed: ' . $result['error']
-            ], 400);
-        }
-
-        // Mark commissions as paid
-        TimeTracking::where('training_center_user_id', $userId)
-            ->where('payment_status', 'pending')
-            ->whereNotNull('training_center_commission')
-            ->update([
-                'payment_status' => 'paid',
-                'paid_at' => now()
+            // Transfer to training center (StripePaymentService now has idempotency)
+            $result = $this->stripeService->transferToTraining($trainingUser, $totalAmount, [
+                'commission_count' => $pendingCommissions->count(),
+                'payment_date' => now()->toDateString(),
+                'time_tracking_id' => $pendingCommissions->pluck('id')->implode('_')
             ]);
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Commission paid successfully',
-            'amount' => $totalAmount,
-            'transfer_id' => $result['transfer_id'],
-            'entries_paid' => $pendingCommissions->count()
-        ]);
+            if (!$result['success']) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Transfer failed: ' . $result['error']
+                ], 400);
+            }
+
+            // Mark commissions as paid (inside transaction)
+            TimeTracking::whereIn('id', $pendingCommissions->pluck('id'))
+                ->update([
+                    'payment_status' => 'paid',
+                    'paid_at' => now(),
+                    'training_commission_paid_at' => now(),
+                    'training_commission_stripe_transfer_id' => $result['transfer_id']
+                ]);
+
+            Log::info('Training commission paid via StripeController', [
+                'user_id' => $userId,
+                'amount' => $totalAmount,
+                'transfer_id' => $result['transfer_id']
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Commission paid successfully',
+                'amount' => $totalAmount,
+                'transfer_id' => $result['transfer_id'],
+                'entries_paid' => $pendingCommissions->count()
+            ]);
+        }); // End transaction
     }
 
     /**

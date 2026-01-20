@@ -381,14 +381,25 @@ Route::get('/bookings/{id}', [\App\Http\Controllers\BookingController::class, 'g
 // Booking payment status update
 Route::post('/bookings/update-payment-status', [\App\Http\Controllers\BookingController::class, 'updatePaymentStatus']);
 
-// Client payment management (Stripe)
-Route::middleware('auth')->group(function () {
-    Route::post('/client/payments/setup-intent', [\App\Http\Controllers\ClientPaymentController::class, 'createSetupIntent']);
-    Route::get('/client/payments/methods', [\App\Http\Controllers\ClientPaymentController::class, 'listPaymentMethods']);
-    Route::post('/client/payments/attach', [\App\Http\Controllers\ClientPaymentController::class, 'attachPaymentMethod']);
-    Route::post('/client/payments/detach/{pmId}', [\App\Http\Controllers\ClientPaymentController::class, 'detachPaymentMethod']);
-    Route::post('/client/subscriptions', [\App\Http\Controllers\ClientPaymentController::class, 'createSubscription']);
-    Route::post('/client/subscriptions/{id}/cancel', [\App\Http\Controllers\ClientPaymentController::class, 'cancelSubscription']);
+// ============================================
+// CLIENT PAYMENT MANAGEMENT (Stripe)
+// SECURITY: Strict rate limiting to prevent carding attacks
+// - Payment write operations: 5 requests per minute
+// - Payment read operations: 30 requests per minute
+// ============================================
+Route::middleware(['auth', 'throttle:5,1'])->prefix('client/payments')->group(function () {
+    Route::post('/setup-intent', [\App\Http\Controllers\ClientPaymentController::class, 'createSetupIntent']);
+    Route::post('/attach', [\App\Http\Controllers\ClientPaymentController::class, 'attachPaymentMethod']);
+    Route::post('/detach/{pmId}', [\App\Http\Controllers\ClientPaymentController::class, 'detachPaymentMethod']);
+});
+
+Route::middleware(['auth', 'throttle:30,1'])->prefix('client/payments')->group(function () {
+    Route::get('/methods', [\App\Http\Controllers\ClientPaymentController::class, 'listPaymentMethods']);
+});
+
+Route::middleware(['auth', 'throttle:5,1'])->prefix('client/subscriptions')->group(function () {
+    Route::post('/', [\App\Http\Controllers\ClientPaymentController::class, 'createSubscription']);
+    Route::post('/{id}/cancel', [\App\Http\Controllers\ClientPaymentController::class, 'cancelSubscription']);
 });
 
 Route::post('/bookings/{id}/unassign', function ($id, Request $request) {
@@ -1322,10 +1333,18 @@ Route::prefix('reviews')->group(function () {
 }); // End throttle:60,1 middleware group
 
 // ============================================
-// CRITICAL PAYMENT ROUTES (Stricter Rate Limit - 10/min)
+// CRITICAL PAYMENT ROUTES (Stricter Rate Limit)
+// SECURITY: 3 requests per minute for payment creation
+// This prevents carding attacks and abuse
 // ============================================
-Route::middleware(['throttle:10,1'])->group(function () {
+Route::middleware(['auth', 'throttle:3,1'])->group(function () {
     Route::post('/stripe/process-payment/{id}', [App\Http\Controllers\StripeController::class, 'processPayment']);
+    Route::post('/stripe/create-payment-intent', [\App\Http\Controllers\ClientPaymentController::class, 'createPaymentIntent']);
+    Route::post('/stripe/charge-saved-method', [\App\Http\Controllers\ClientPaymentController::class, 'chargeSavedMethod']);
+    Route::post('/stripe/setup-intent', [App\Http\Controllers\StripeController::class, 'createSetupIntent']);
+});
+
+Route::middleware(['throttle:10,1'])->group(function () {
     Route::post('/admin/bookings/{id}/approve', function($id) {
         // Admin booking approval logic
     });

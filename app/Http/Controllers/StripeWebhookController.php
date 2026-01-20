@@ -252,10 +252,19 @@ class StripeWebhookController extends Controller
 
     /**
      * Handle failed one-time payment intent
+     * SECURITY: Logs critical alerts for admin monitoring
      */
     protected function handlePaymentIntentFailed($paymentIntent)
     {
-        Log::warning('Payment intent failed', ['payment_intent_id' => $paymentIntent->id]);
+        // SECURITY: Critical alert for failed payments - enables admin monitoring
+        Log::alert('CRITICAL: Payment intent failed - requires review', [
+            'payment_intent_id' => $paymentIntent->id,
+            'amount' => isset($paymentIntent->amount) ? $paymentIntent->amount / 100 : 'unknown',
+            'failure_code' => $paymentIntent->last_payment_error->code ?? 'unknown',
+            'failure_message' => $paymentIntent->last_payment_error->message ?? 'Unknown error',
+            'customer_id' => $paymentIntent->customer ?? 'unknown',
+            'metadata' => $paymentIntent->metadata ?? [],
+        ]);
 
         $booking = Booking::where('stripe_payment_intent_id', $paymentIntent->id)
             ->orWhere('payment_intent_id', $paymentIntent->id)
@@ -266,7 +275,30 @@ class StripeWebhookController extends Controller
                 'payment_status' => 'failed'
             ]);
 
-            Log::warning('Booking marked as failed payment', ['booking_id' => $booking->id]);
+            Log::warning('Booking marked as failed payment', [
+                'booking_id' => $booking->id,
+                'client_id' => $booking->client_id,
+                'payment_intent' => $paymentIntent->id,
+            ]);
+            
+            // Log for admin dashboard visibility
+            try {
+                // Create a record for admin review if model exists
+                if (class_exists('\App\Models\FailedPayment')) {
+                    \App\Models\FailedPayment::create([
+                        'booking_id' => $booking->id,
+                        'client_id' => $booking->client_id,
+                        'payment_intent_id' => $paymentIntent->id,
+                        'amount' => isset($paymentIntent->amount) ? $paymentIntent->amount / 100 : 0,
+                        'failure_reason' => $paymentIntent->last_payment_error->message ?? 'Unknown',
+                        'requires_action' => true,
+                        'created_at' => now(),
+                    ]);
+                }
+            } catch (\Exception $e) {
+                // Model may not exist, continue
+                Log::info('FailedPayment model not available for tracking');
+            }
         }
     }
 }

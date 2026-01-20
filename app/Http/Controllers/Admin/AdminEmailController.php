@@ -44,11 +44,11 @@ class AdminEmailController extends Controller
             'success' => true,
             'campaign' => $campaign,
             'stats' => [
-                'sent' => $campaign->sent_count,
-                'opened' => $campaign->open_count,
-                'clicked' => $campaign->click_count,
-                'open_rate' => $campaign->open_rate,
-                'click_rate' => $campaign->click_rate
+                'sent' => $campaign->emails_sent,
+                'opened' => $campaign->emails_opened,
+                'clicked' => $campaign->emails_clicked,
+                'open_rate' => $campaign->emails_sent > 0 ? round(($campaign->emails_opened / $campaign->emails_sent) * 100, 2) : 0,
+                'click_rate' => $campaign->emails_sent > 0 ? round(($campaign->emails_clicked / $campaign->emails_sent) * 100, 2) : 0
             ]
         ]);
     }
@@ -273,22 +273,23 @@ class AdminEmailController extends Controller
                 $emailLog = EmailLog::create([
                     'campaign_id' => $campaign->id,
                     'user_id' => $client->id,
-                    'email' => $client->email,
+                    'subject' => $campaign->subject,
+                    'email_type' => 'marketing',
                     'status' => 'pending'
                 ]);
 
                 // Process content with personalization
                 $processedContent = $this->processContent($campaign->content, $client);
 
-                // Send email
+                // Send email - constructor signature: EmailCampaign, User, trackingId, customContent
                 Mail::to($client->email)->send(new MarketingCampaignEmail(
                     $campaign,
                     $client,
-                    $processedContent,
-                    $emailLog->tracking_token
+                    $emailLog->tracking_id,
+                    $processedContent
                 ));
 
-                $emailLog->update(['status' => 'sent']);
+                $emailLog->update(['status' => 'sent', 'sent_at' => now()]);
                 $sentCount++;
 
             } catch (\Exception $e) {
@@ -307,7 +308,9 @@ class AdminEmailController extends Controller
         $campaign->update([
             'status' => 'sent',
             'sent_at' => now(),
-            'sent_count' => $sentCount
+            'emails_sent' => $sentCount,
+            'emails_failed' => $failedCount,
+            'total_recipients' => $clients->count()
         ]);
 
         return response()->json([
@@ -395,7 +398,7 @@ class AdminEmailController extends Controller
      */
     public function trackOpen($trackingToken)
     {
-        $emailLog = EmailLog::where('tracking_token', $trackingToken)->first();
+        $emailLog = EmailLog::where('tracking_id', $trackingToken)->first();
 
         if ($emailLog) {
             $emailLog->markAsOpened();
@@ -403,7 +406,7 @@ class AdminEmailController extends Controller
             // Update campaign open count
             $campaign = $emailLog->campaign;
             if ($campaign) {
-                $campaign->increment('open_count');
+                $campaign->increment('emails_opened');
             }
         }
 
@@ -419,7 +422,7 @@ class AdminEmailController extends Controller
     {
         $url = $request->input('url', url('/'));
         
-        $emailLog = EmailLog::where('tracking_token', $trackingToken)->first();
+        $emailLog = EmailLog::where('tracking_id', $trackingToken)->first();
 
         if ($emailLog) {
             $emailLog->markAsClicked($url);
@@ -427,7 +430,7 @@ class AdminEmailController extends Controller
             // Update campaign click count
             $campaign = $emailLog->campaign;
             if ($campaign) {
-                $campaign->increment('click_count');
+                $campaign->increment('emails_clicked');
             }
         }
 
@@ -502,7 +505,7 @@ class AdminEmailController extends Controller
 
         $recentCampaigns = EmailCampaign::orderBy('created_at', 'desc')
             ->take(5)
-            ->get(['id', 'name', 'status', 'sent_count', 'open_count', 'click_count', 'sent_at']);
+            ->get(['id', 'name', 'status', 'emails_sent', 'emails_opened', 'emails_clicked', 'sent_at']);
 
         return response()->json([
             'success' => true,

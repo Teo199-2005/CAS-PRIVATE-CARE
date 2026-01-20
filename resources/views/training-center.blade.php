@@ -565,7 +565,7 @@
 <body>
     @include('partials.navigation')
 
-    @include('partials.trust-strip')
+    {{-- Trust strip removed from training center - not relevant to training content --}}
 
     <!-- Hero Section -->
     <section class="hero">

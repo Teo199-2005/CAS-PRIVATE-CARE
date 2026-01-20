@@ -34,6 +34,15 @@ use App\Http\Controllers\MarketingStaffController;
 use App\Http\Controllers\TrainingCenterController;
 use App\Http\Controllers\DebugController;
 use App\Http\Controllers\AvatarController;
+use App\Http\Controllers\HealthController;
+
+// ============================================
+// HEALTH CHECK ROUTES (for monitoring & DevOps)
+// ============================================
+Route::get('/health', [HealthController::class, 'index'])->name('health');
+Route::get('/health/detailed', [HealthController::class, 'detailed'])->name('health.detailed');
+Route::get('/health/ready', [HealthController::class, 'ready'])->name('health.ready');
+Route::get('/health/live', [HealthController::class, 'live'])->name('health.live');
 
 // ============================================
 // PUBLIC ROUTES
@@ -56,6 +65,8 @@ Route::get('/caregiver-staten-island', [PageController::class, 'caregiverStatenI
 Route::get('/contractor-partner', [PageController::class, 'contractorPartner'])->name('contractor-partner');
 Route::get('/faq', [PageController::class, 'faq'])->name('faq');
 Route::get('/about', [PageController::class, 'about'])->name('about');
+Route::get('/privacy', [PageController::class, 'privacy'])->name('privacy');
+Route::get('/terms', [PageController::class, 'terms'])->name('terms');
 Route::get('/housekeeping-personal-assistant', [PageController::class, 'housekeepingPersonalAssistant'])->name('housekeeping-personal-assistant');
 Route::get('/housekeeping-new-york', [PageController::class, 'housekeepingNewYork'])->name('housekeeping-new-york');
 Route::get('/personal-assistant-new-york', [PageController::class, 'personalAssistantNewYork'])->name('personal-assistant-new-york');

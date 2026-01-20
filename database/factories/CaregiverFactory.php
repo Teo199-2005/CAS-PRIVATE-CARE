@@ -15,9 +15,9 @@ class CaregiverFactory extends Factory
         return [
             'user_id' => User::factory(),
             'years_experience' => $this->faker->numberBetween(1, 20),
-            'availability_status' => $this->faker->randomElement(['available', 'busy', 'unavailable']),
+            'availability_status' => $this->faker->randomElement(['available', 'busy', 'offline']),
             'bio' => $this->faker->paragraph(),
-            'gender' => $this->faker->randomElement(['male', 'female', 'other']),
+            'gender' => $this->faker->randomElement(['male', 'female']),
             'preferred_hourly_rate_min' => 25.00,
             'preferred_hourly_rate_max' => 40.00,
             'has_hha' => $this->faker->boolean(),

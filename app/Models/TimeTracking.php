@@ -3,10 +3,13 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Carbon\Carbon;
 
 class TimeTracking extends Model
 {
+    use HasFactory;
+    
     protected $table = 'time_trackings'; // Explicitly set table name
     
     protected $fillable = [
@@ -23,13 +26,25 @@ class TimeTracking extends Model
         'caregiver_earnings',
         'marketing_partner_id',
         'marketing_partner_commission',
+        'marketing_commission_paid_at',
+        'marketing_commission_stripe_transfer_id',
+        'marketing_paid',
         'training_center_user_id',
         'training_center_commission',
+        'training_commission_paid_at',
+        'training_commission_stripe_transfer_id',
+        'training_paid',
         'agency_commission',
         'total_client_charge',
         'paid_at',
         'payment_status',
-        'booking_id'
+        'booking_id',
+        'stripe_transfer_id',
+        'actual_minutes_worked',
+        'scheduled_minutes',
+        'late_minutes',
+        'is_late',
+        'minutes_difference'
     ];
 
     protected $casts = [
@@ -42,7 +57,12 @@ class TimeTracking extends Model
         'training_center_commission' => 'decimal:2',
         'agency_commission' => 'decimal:2',
         'total_client_charge' => 'decimal:2',
-        'paid_at' => 'datetime'
+        'paid_at' => 'datetime',
+        'marketing_commission_paid_at' => 'datetime',
+        'training_commission_paid_at' => 'datetime',
+        'is_late' => 'boolean',
+        'marketing_paid' => 'boolean',
+        'training_paid' => 'boolean'
     ];
 
     public function caregiver()

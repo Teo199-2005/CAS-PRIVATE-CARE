@@ -80,33 +80,45 @@
             <v-col cols="12" md="4">
               <v-card class="mb-3 compact-card d-flex flex-column" elevation="0">
                 <v-card-title class="card-header pa-4">
-                  <span class="section-title-compact error--text">System Overview</span>
+                  <span class="section-title-compact error--text">Staff Overview</span>
                 </v-card-title>
                 <v-card-text class="pa-4 flex-grow-1 d-flex flex-column justify-space-between">
                   <div>
                     <div class="mb-3">
-                      <div class="d-flex justify-space-between mb-1">
-                        <span class="summary-label-compact">Active Users</span>
-                        <span class="summary-value-compact error--text">{{ stats[0].value }}</span>
+                      <div class="d-flex justify-space-between align-center mb-1">
+                        <div class="d-flex align-center">
+                          <v-icon color="success" size="18" class="mr-2">mdi-account-heart</v-icon>
+                          <span class="summary-label-compact">Caregivers</span>
+                        </div>
+                        <span class="summary-value-compact success--text">{{ caregivers.length }}</span>
                       </div>
-                      <v-progress-linear :model-value="userProgress" color="error" height="6" rounded />
-                      <div class="text-caption text-grey mt-1">{{ userGrowth }}</div>
                     </div>
                     <div class="mb-3">
-                      <div class="d-flex justify-space-between mb-1">
-                        <span class="summary-label-compact">Server Load</span>
-                        <span class="summary-value-compact">68%</span>
+                      <div class="d-flex justify-space-between align-center mb-1">
+                        <div class="d-flex align-center">
+                          <v-icon color="purple" size="18" class="mr-2">mdi-broom</v-icon>
+                          <span class="summary-label-compact">Housekeepers</span>
+                        </div>
+                        <span class="summary-value-compact" style="color: #6A1B9A;">{{ housekeepers.length }}</span>
                       </div>
-                      <v-progress-linear :model-value="68" color="warning" height="6" rounded />
-                      <div class="text-caption text-grey mt-1">Normal range</div>
                     </div>
                     <div class="mb-3">
-                      <div class="d-flex justify-space-between mb-1">
-                        <span class="summary-label-compact">Revenue Goal</span>
-                        <span class="summary-value-compact">{{ stats[2].value }}</span>
+                      <div class="d-flex justify-space-between align-center mb-1">
+                        <div class="d-flex align-center">
+                          <v-icon color="info" size="18" class="mr-2">mdi-account-group</v-icon>
+                          <span class="summary-label-compact">Clients</span>
+                        </div>
+                        <span class="summary-value-compact info--text">{{ clients.length }}</span>
                       </div>
-                      <v-progress-linear :model-value="revenueProgress" color="success" height="6" rounded />
-                      <div class="text-caption text-grey mt-1">Target: ${{ revenueTarget }}/month</div>
+                    </div>
+                    <div class="mb-3">
+                      <div class="d-flex justify-space-between align-center mb-1">
+                        <div class="d-flex align-center">
+                          <v-icon color="warning" size="18" class="mr-2">mdi-file-document-outline</v-icon>
+                          <span class="summary-label-compact">Pending Applications</span>
+                        </div>
+                        <span class="summary-value-compact warning--text">{{ pendingApplications.length }}</span>
+                      </div>
                     </div>
                   </div>
                 </v-card-text>
@@ -115,48 +127,48 @@
             <v-col cols="12" md="4">
               <v-card elevation="0" class="mb-3 compact-card d-flex flex-column">
                 <v-card-title class="card-header pa-4">
-                  <span class="section-title-compact error--text">Platform Metrics</span>
+                  <span class="section-title-compact error--text">Booking Status</span>
                 </v-card-title>
                 <v-card-text class="pa-4 flex-grow-1">
                   <v-row class="metric-grid">
                     <v-col cols="6" class="pa-2">
                       <div class="metric-card">
                         <div class="d-flex align-center mb-2">
-                          <v-icon color="error" size="20" class="mr-2">mdi-calendar-check</v-icon>
-                          <span class="metric-label-grid">Bookings</span>
+                          <v-icon color="warning" size="20" class="mr-2">mdi-clock-outline</v-icon>
+                          <span class="metric-label-grid">Pending</span>
                         </div>
-                        <div class="metric-value-grid error--text">{{ platformMetrics.bookings }}</div>
-                        <div class="metric-change-grid success--text">+8.5%</div>
+                        <div class="metric-value-grid warning--text">{{ bookingStats.pending }}</div>
+                        <div class="metric-change-grid text-grey">Awaiting</div>
                       </div>
                     </v-col>
                     <v-col cols="6" class="pa-2">
                       <div class="metric-card">
                         <div class="d-flex align-center mb-2">
-                          <v-icon color="info" size="20" class="mr-2">mdi-speedometer</v-icon>
-                          <span class="metric-label-grid">Response</span>
+                          <v-icon color="info" size="20" class="mr-2">mdi-calendar-clock</v-icon>
+                          <span class="metric-label-grid">Active</span>
                         </div>
-                        <div class="metric-value-grid">{{ platformMetrics.response }}</div>
-                        <div class="metric-change-grid success--text">-0.3s</div>
+                        <div class="metric-value-grid info--text">{{ bookingStats.active }}</div>
+                        <div class="metric-change-grid text-grey">In Progress</div>
                       </div>
                     </v-col>
                     <v-col cols="6" class="pa-2">
                       <div class="metric-card">
                         <div class="d-flex align-center mb-2">
-                          <v-icon color="warning" size="20" class="mr-2">mdi-alert-circle</v-icon>
-                          <span class="metric-label-grid">Errors</span>
+                          <v-icon color="success" size="20" class="mr-2">mdi-check-circle</v-icon>
+                          <span class="metric-label-grid">Completed</span>
                         </div>
-                        <div class="metric-value-grid warning--text">{{ platformMetrics.errors }}</div>
-                        <div class="metric-change-grid success--text">-0.01%</div>
+                        <div class="metric-value-grid success--text">{{ bookingStats.completed }}</div>
+                        <div class="metric-change-grid text-grey">Done</div>
                       </div>
                     </v-col>
                     <v-col cols="6" class="pa-2">
                       <div class="metric-card">
                         <div class="d-flex align-center mb-2">
-                          <v-icon color="success" size="20" class="mr-2">mdi-account-multiple</v-icon>
-                          <span class="metric-label-grid">Sessions</span>
+                          <v-icon color="error" size="20" class="mr-2">mdi-close-circle</v-icon>
+                          <span class="metric-label-grid">Cancelled</span>
                         </div>
-                        <div class="metric-value-grid info--text">{{ platformMetrics.sessions }}</div>
-                        <div class="metric-change-grid">Live</div>
+                        <div class="metric-value-grid error--text">{{ bookingStats.cancelled }}</div>
+                        <div class="metric-change-grid text-grey">Closed</div>
                       </div>
                     </v-col>
                   </v-row>
@@ -197,59 +209,106 @@
             <v-card-title class="modern-card-header pa-6">
               <div class="d-flex align-center justify-space-between flex-wrap ga-2">
                 <div class="d-flex align-center">
-                  <v-icon color="error" size="20" class="mr-3">mdi-pulse</v-icon>
-                  <span class="modern-title error--text">Recent Platform Activity</span>
+                  <v-icon color="error" size="20" class="mr-3">mdi-lightning-bolt</v-icon>
+                  <span class="modern-title error--text">Quick Actions</span>
                 </div>
-                <v-chip color="grey-lighten-2" size="small" class="activity-count">{{ recentActivity.length }} items</v-chip>
               </div>
             </v-card-title>
             <v-divider></v-divider>
-            <!-- Desktop Table View -->
-            <v-data-table 
-              v-if="!isMobile"
-              :headers="activityHeaders" 
-              :items="recentActivity" 
-              :items-per-page="5"
-              :items-per-page-options="[5, 10, 25]"
-              class="elevation-0 modern-activity-table table-no-checkbox"
-              height="300"
-              hide-default-header
-            >
-              <template v-slot:headers>
-                <tr class="modern-header-row">
-                  <th class="modern-header-cell time-col">TIME</th>
-                  <th class="modern-header-cell user-col">USER</th>
-                  <th class="modern-header-cell action-col">ACTION</th>
-                  <th class="modern-header-cell type-col">TYPE</th>
-                </tr>
-              </template>
-              <template v-slot:item="{ item }">
-                <tr class="modern-row">
-                  <td class="modern-cell time-cell">{{ item.time }}</td>
-                  <td class="modern-cell user-cell">{{ item.user }}</td>
-                  <td class="modern-cell action-cell">{{ item.action }}</td>
-                  <td class="modern-cell type-cell">
-                    <v-chip :color="getActivityColor(item.type)" size="small" class="modern-type-chip">{{ item.type }}</v-chip>
-                  </td>
-                </tr>
-              </template>
-            </v-data-table>
-            <!-- Mobile Card View -->
-            <div v-else class="mobile-cards-container pa-3" style="max-height: 400px; overflow-y: auto;">
-              <div v-if="recentActivity.length === 0" class="text-center py-4 text-grey">
-                No recent activity
-              </div>
-              <v-card v-for="(item, index) in recentActivity.slice(0, 10)" :key="index" class="mobile-data-card mb-2" elevation="1" rounded="lg">
-                <v-card-text class="pa-3">
-                  <div class="d-flex align-center justify-space-between mb-2">
-                    <span class="font-weight-bold text-body-2">{{ item.user }}</span>
-                    <v-chip :color="getActivityColor(item.type)" size="x-small">{{ item.type }}</v-chip>
-                  </div>
-                  <div class="text-body-2 text-grey-darken-1 mb-1">{{ item.action }}</div>
-                  <div class="text-caption text-grey">{{ item.time }}</div>
-                </v-card-text>
-              </v-card>
-            </div>
+            <v-card-text class="pa-4">
+              <v-row>
+                <v-col cols="6" sm="4" md="2">
+                  <v-btn 
+                    variant="tonal" 
+                    color="success" 
+                    block 
+                    class="quick-action-btn py-6"
+                    @click="currentSection = 'caregivers'"
+                  >
+                    <div class="d-flex flex-column align-center">
+                      <v-icon size="28" class="mb-2">mdi-account-heart</v-icon>
+                      <span class="text-caption font-weight-medium">Caregivers</span>
+                      <span class="text-h6 font-weight-bold">{{ caregivers.length }}</span>
+                    </div>
+                  </v-btn>
+                </v-col>
+                <v-col cols="6" sm="4" md="2">
+                  <v-btn 
+                    variant="tonal" 
+                    color="purple" 
+                    block 
+                    class="quick-action-btn py-6"
+                    @click="currentSection = 'housekeepers'"
+                  >
+                    <div class="d-flex flex-column align-center">
+                      <v-icon size="28" class="mb-2">mdi-broom</v-icon>
+                      <span class="text-caption font-weight-medium">Housekeepers</span>
+                      <span class="text-h6 font-weight-bold">{{ housekeepers.length }}</span>
+                    </div>
+                  </v-btn>
+                </v-col>
+                <v-col cols="6" sm="4" md="2">
+                  <v-btn 
+                    variant="tonal" 
+                    color="info" 
+                    block 
+                    class="quick-action-btn py-6"
+                    @click="currentSection = 'clients'"
+                  >
+                    <div class="d-flex flex-column align-center">
+                      <v-icon size="28" class="mb-2">mdi-account-group</v-icon>
+                      <span class="text-caption font-weight-medium">Clients</span>
+                      <span class="text-h6 font-weight-bold">{{ clients.length }}</span>
+                    </div>
+                  </v-btn>
+                </v-col>
+                <v-col cols="6" sm="4" md="2">
+                  <v-btn 
+                    variant="tonal" 
+                    color="warning" 
+                    block 
+                    class="quick-action-btn py-6"
+                    @click="currentSection = 'pending'"
+                  >
+                    <div class="d-flex flex-column align-center">
+                      <v-icon size="28" class="mb-2">mdi-file-document-outline</v-icon>
+                      <span class="text-caption font-weight-medium">Applications</span>
+                      <span class="text-h6 font-weight-bold">{{ pendingApplications.length }}</span>
+                    </div>
+                  </v-btn>
+                </v-col>
+                <v-col cols="6" sm="4" md="2">
+                  <v-btn 
+                    variant="tonal" 
+                    color="error" 
+                    block 
+                    class="quick-action-btn py-6"
+                    @click="currentSection = 'client-bookings'"
+                  >
+                    <div class="d-flex flex-column align-center">
+                      <v-icon size="28" class="mb-2">mdi-calendar-check</v-icon>
+                      <span class="text-caption font-weight-medium">Bookings</span>
+                      <span class="text-h6 font-weight-bold">{{ bookingStats.active }}</span>
+                    </div>
+                  </v-btn>
+                </v-col>
+                <v-col cols="6" sm="4" md="2">
+                  <v-btn 
+                    variant="tonal" 
+                    color="teal" 
+                    block 
+                    class="quick-action-btn py-6"
+                    @click="currentSection = 'reviews'"
+                  >
+                    <div class="d-flex flex-column align-center">
+                      <v-icon size="28" class="mb-2">mdi-star</v-icon>
+                      <span class="text-caption font-weight-medium">Reviews</span>
+                      <span class="text-h6 font-weight-bold">{{ allReviews.length }}</span>
+                    </div>
+                  </v-btn>
+                </v-col>
+              </v-row>
+            </v-card-text>
           </v-card>
         </v-col>
       </v-row>
@@ -2527,9 +2586,10 @@
             <v-chip 
               v-if="item.type === 'Housekeeper'"
               color="#6A1B9A"
+              text-color="white"
+              variant="flat"
               size="small" 
               class="font-weight-bold housekeeper-chip" 
-              style="background-color: #6A1B9A !important; color: #ffffff !important;"
               prepend-icon="mdi-broom"
             >
               {{ item.type }}
@@ -2575,19 +2635,41 @@
                 <span class="text-white font-weight-bold">{{ item.name }}</span>
                 <v-chip 
                   v-if="item.type === 'Housekeeper'"
-                  color="white"
+                  color="#6A1B9A"
                   size="small" 
                   class="font-weight-bold"
+                  style="color: white !important; background-color: #6A1B9A !important;"
                   prepend-icon="mdi-broom"
                 >
                   {{ item.type }}
                 </v-chip>
                 <v-chip 
-                  v-else
-                  color="white"
+                  v-else-if="item.type === 'Caregiver'"
+                  color="#16a34a"
                   size="small" 
-                  class="font-weight-bold" 
-                  :prepend-icon="item.type === 'Caregiver' ? 'mdi-account-heart' : (item.type === 'Marketing Partner' ? 'mdi-bullhorn-variant' : 'mdi-school')"
+                  class="font-weight-bold"
+                  style="color: white !important; background-color: #16a34a !important;"
+                  prepend-icon="mdi-account-heart"
+                >
+                  {{ item.type }}
+                </v-chip>
+                <v-chip 
+                  v-else-if="item.type === 'Marketing Partner'"
+                  color="#2563eb"
+                  size="small" 
+                  class="font-weight-bold"
+                  style="color: white !important; background-color: #2563eb !important;"
+                  prepend-icon="mdi-bullhorn-variant"
+                >
+                  {{ item.type }}
+                </v-chip>
+                <v-chip 
+                  v-else
+                  color="#f59e0b"
+                  size="small" 
+                  class="font-weight-bold"
+                  style="color: white !important; background-color: #f59e0b !important;"
+                  prepend-icon="mdi-school"
                 >
                   {{ item.type }}
                 </v-chip>
@@ -6817,7 +6899,7 @@
 
           <!-- Summary Stats -->
           <v-row class="mb-4">
-            <v-col cols="12" md="3">
+            <v-col cols="6" md="3">
               <v-card class="history-stat-card" elevation="2">
                 <v-card-text class="pa-4 text-center">
                   <v-icon color="success" size="32" class="mb-2">mdi-account-clock</v-icon>
@@ -6826,7 +6908,7 @@
                 </v-card-text>
               </v-card>
             </v-col>
-            <v-col cols="12" md="3">
+            <v-col cols="6" md="3">
               <v-card class="history-stat-card" elevation="2">
                 <v-card-text class="pa-4 text-center">
                   <v-icon color="info" size="32" class="mb-2">mdi-clock</v-icon>
@@ -6835,7 +6917,7 @@
                 </v-card-text>
               </v-card>
             </v-col>
-            <v-col cols="12" md="3">
+            <v-col cols="6" md="3">
               <v-card class="history-stat-card" elevation="2">
                 <v-card-text class="pa-4 text-center">
                   <v-icon color="warning" size="32" class="mb-2">mdi-account-multiple</v-icon>
@@ -6844,7 +6926,7 @@
                 </v-card-text>
               </v-card>
             </v-col>
-            <v-col cols="12" md="3">
+            <v-col cols="6" md="3">
               <v-card class="history-stat-card" elevation="2">
                 <v-card-text class="pa-4 text-center">
                   <v-icon color="error" size="32" class="mb-2">mdi-chart-line</v-icon>
@@ -8403,7 +8485,7 @@ const stats = ref([
   { title: 'Total Users', value: '0', icon: 'mdi-account-group', color: 'error', change: '+12% this month', changeColor: 'text-success', changeIcon: 'mdi-arrow-up' },
   { title: 'Active Bookings', value: '0', icon: 'mdi-calendar-check', color: 'error', change: '+8% this week', changeColor: 'text-success', changeIcon: 'mdi-arrow-up' },
   { title: 'Total Revenue', value: '$0', icon: 'mdi-currency-usd', color: 'error', change: '+15% this month', changeColor: 'text-success', changeIcon: 'mdi-arrow-up' },
-  { title: 'System Uptime', value: '98.5%', icon: 'mdi-server', color: 'error', change: 'Last 30 days', changeColor: 'text-info', changeIcon: 'mdi-information' },
+  { title: 'Total Staff', value: '0', icon: 'mdi-account-hard-hat', color: 'error', change: 'Caregivers & Housekeepers', changeColor: 'text-info', changeIcon: 'mdi-information' },
 ]);
 
 const loadAdminStats = async () => {
@@ -8625,12 +8707,29 @@ const loadMetrics = async () => {
     const totalCaregivers = data.total_caregivers || 0;
     const totalClients = data.total_clients || 0;
     const totalHousekeepers = data.total_housekeepers || 0;
+    const totalRevenue = data.total_revenue || 0;
     const admins = totalUsers - totalCaregivers - totalClients - totalHousekeepers;
+    
+    // Update counts
     clientMetrics.value[0].value = totalClients.toString();
     caregiverMetrics.value[0].value = totalCaregivers.toString();
     housekeeperMetrics.value[0].value = totalHousekeepers.toString();
     adminCount.value = admins.toString();
     totalUsersForChart.value = totalUsers.toString();
+    
+    // Use REAL analytics data from API
+    // Client metrics
+    clientMetrics.value[2].value = (data.new_clients_this_week || 0).toString(); // New This Week
+    clientMetrics.value[3].value = '$' + (data.avg_client_spending || 0).toFixed(0); // Avg Spending
+    
+    // Caregiver metrics  
+    caregiverMetrics.value[1].value = (data.available_caregivers || 0).toString(); // Available Now
+    caregiverMetrics.value[2].value = (data.top_rated_caregivers || 0).toString(); // Top Rated
+    caregiverMetrics.value[3].value = '$' + (data.avg_caregiver_earnings || 0).toFixed(0); // Avg Earnings
+    
+    // Housekeeper metrics
+    housekeeperMetrics.value[3].value = '$' + (data.avg_housekeeper_earnings || 0).toFixed(0); // Avg Earnings
+    
     const bookingsResp = await fetch('/api/bookings');
     const bookingsData = await bookingsResp.json();
     const allBookings = bookingsData.data || [];
@@ -8640,22 +8739,23 @@ const loadMetrics = async () => {
     bookingStats.value.cancelled = allBookings.filter(b => b.status === 'cancelled').length.toString();
     totalBookingsForChart.value = allBookings.length.toString();
     
-    // Load housekeeper analytics
+    // Update analytics stats with real bookings count
+    analyticsStats.value[3].value = allBookings.length.toString();
+    
+    // Load housekeeper analytics for active/assigned counts
     try {
       const hkResp = await fetch('/api/admin/housekeeper-salaries');
       const hkData = await hkResp.json();
       const payments = hkData.payments || [];
-      housekeeperMetrics.value[1].value = payments.filter(p => p.days_worked > 0).length.toString();
-      housekeeperMetrics.value[2].value = payments.filter(p => p.status !== 'No Hours').length.toString();
-      const totalEarnings = payments.reduce((sum, p) => sum + (p.total_amount || 0), 0);
-      const avgEarnings = payments.length > 0 ? (totalEarnings / payments.length) : 0;
-      housekeeperMetrics.value[3].value = '$' + avgEarnings.toFixed(0);
+      housekeeperMetrics.value[1].value = payments.filter(p => p.days_worked > 0).length.toString(); // Active Today
+      housekeeperMetrics.value[2].value = payments.filter(p => p.status !== 'No Hours').length.toString(); // Assigned
     } catch (hkError) {
-      // Housekeeper stats optional
+      // Keep default values
     }
     
     setTimeout(initCharts, 100);
   } catch (error) {
+    console.error('Error loading metrics:', error);
   }
 };
 
@@ -14800,6 +14900,40 @@ watch([caregivers, clients, pendingApplications, passwordResets, marketingStaff,
   }, 300);
 }, { deep: true });
 
+// Update Total Staff stat when caregivers or housekeepers change
+watch([caregivers, housekeepers], () => {
+  const totalStaff = caregivers.value.length + housekeepers.value.length;
+  stats.value[3].value = totalStaff.toString();
+  stats.value[3].change = `${caregivers.value.length} Caregivers, ${housekeepers.value.length} Housekeepers`;
+}, { deep: true });
+
+// Update Analytics metrics when data changes
+watch([clients, caregivers, housekeepers], () => {
+  // Update Client Metrics
+  clientMetrics.value[0].value = clients.value.length.toString();
+  
+  // Update Caregiver Metrics
+  caregiverMetrics.value[0].value = caregivers.value.length.toString();
+  const availableCaregivers = caregivers.value.filter(c => c.status === 'Available' || c.available === true).length;
+  caregiverMetrics.value[1].value = availableCaregivers.toString();
+  const topRated = caregivers.value.filter(c => c.rating >= 5).length;
+  caregiverMetrics.value[2].value = topRated.toString();
+  
+  // Update Housekeeper Metrics
+  housekeeperMetrics.value[0].value = housekeepers.value.length.toString();
+  const activeHousekeepers = housekeepers.value.filter(h => h.status === 'Available' || h.status === 'Active').length;
+  housekeeperMetrics.value[1].value = activeHousekeepers.toString();
+  const assignedHousekeepers = housekeepers.value.filter(h => h.status === 'Assigned' || h.assigned).length;
+  housekeeperMetrics.value[2].value = assignedHousekeepers.toString();
+  
+  // Update total users for chart
+  totalUsersForChart.value = (clients.value.length + caregivers.value.length + housekeepers.value.length + parseInt(adminCount.value || 0)).toString();
+  
+  // Update analytics stats
+  analyticsStats.value[1].value = clients.value.length.toString();
+  analyticsStats.value[2].value = caregivers.value.length.toString();
+}, { deep: true });
+
 // Re-add labels on window resize
 if (typeof window !== 'undefined') {
   let resizeTimeout;
@@ -15304,6 +15438,22 @@ setInterval(() => {
 
 .modern-activity-card:hover {
   box-shadow: 0 10px 28px rgba(0, 0, 0, 0.15), 0 4px 10px rgba(0, 0, 0, 0.08) !important;
+}
+
+.quick-action-btn {
+  height: auto !important;
+  min-height: 100px;
+  border-radius: 12px !important;
+  transition: transform 0.2s ease, box-shadow 0.2s ease !important;
+}
+
+.quick-action-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+}
+
+.quick-action-btn .v-btn__content {
+  flex-direction: column !important;
 }
 
 .modern-card-header {
@@ -17396,6 +17546,21 @@ setInterval(() => {
   :deep(.v-data-table .v-table__wrapper tbody tr td .v-chip) {
     font-size: 0.75rem !important;
     padding: 4px 10px !important;
+    max-width: none !important;
+    white-space: nowrap !important;
+  }
+
+  /* Icon-only status chips on mobile - hide text, show icon */
+  :deep(.v-data-table .v-table__wrapper tbody tr td .v-chip .v-chip__content) {
+    display: flex !important;
+    align-items: center !important;
+    gap: 4px !important;
+  }
+
+  /* Ensure chip text is visible on mobile */
+  :deep(.v-data-table .v-table__wrapper tbody tr td .v-chip) {
+    overflow: visible !important;
+    text-overflow: unset !important;
   }
 
   /* Progress bars on mobile */
@@ -17785,6 +17950,19 @@ setInterval(() => {
 }
 
 .housekeeper-chip :deep(.mdi) {
+  color: white !important;
+}
+
+.housekeeper-chip :deep(.mdi-broom) {
+  color: white !important;
+}
+
+.housekeeper-chip.v-chip {
+  --v-theme-on-surface: 255, 255, 255 !important;
+  color: white !important;
+}
+
+.housekeeper-chip.v-chip .v-icon {
   color: white !important;
 }
 

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
 use Stripe\StripeClient;
 use App\Models\Booking;
 
@@ -35,7 +36,8 @@ class ClientPaymentController extends Controller
 
     public function __construct()
     {
-        $this->stripe = new StripeClient(env('STRIPE_SECRET'));
+        // SECURITY: Use config() instead of env() for cached config support
+        $this->stripe = new StripeClient(config('stripe.secret_key') ?: config('services.stripe.secret') ?: env('STRIPE_SECRET'));
     }
 
     protected function ensureCustomer($user)
@@ -175,6 +177,8 @@ class ClientPaymentController extends Controller
     /**
      * Create a PaymentIntent for a booking payment
      * This is used when the client wants to pay for a booking
+     * 
+     * SECURITY: Calculates amount server-side, uses row locking to prevent race conditions
      */
     public function createPaymentIntent(Request $request)
     {
@@ -189,67 +193,87 @@ class ClientPaymentController extends Controller
 
             $request->validate([
                 'booking_id' => 'required|integer|exists:bookings,id',
-                'amount' => 'required|integer|min:100', // Amount in cents
             ]);
 
             $bookingId = $request->booking_id;
-            $amount = $request->amount;
 
-            // Get the booking
-            $booking = Booking::findOrFail($bookingId);
+            // SECURITY: Use database transaction with row-level locking
+            return DB::transaction(function () use ($bookingId, $user) {
+                // Lock the booking row to prevent concurrent payment intents
+                $booking = Booking::where('id', $bookingId)
+                    ->lockForUpdate()
+                    ->firstOrFail();
 
-            // Verify booking belongs to user (client_id in bookings refers to user_id)
-            if ($booking->client_id !== $user->id) {
-                Log::warning('Unauthorized payment attempt', [
-                    'user_id' => $user->id,
-                    'booking_id' => $bookingId,
-                    'booking_client_id' => $booking->client_id
+                // Verify booking belongs to user (client_id in bookings refers to user_id)
+                if ($booking->client_id !== $user->id) {
+                    Log::warning('Unauthorized payment attempt', [
+                        'user_id' => $user->id,
+                        'booking_id' => $bookingId,
+                        'booking_client_id' => $booking->client_id
+                    ]);
+                    return response()->json(['message' => 'Unauthorized - booking does not belong to you'], 403);
+                }
+
+                // Check if already paid
+                if ($booking->payment_status === 'paid') {
+                    return response()->json(['message' => 'Booking has already been paid'], 400);
+                }
+
+                // Check Stripe configuration - use config() instead of env()
+                $stripeSecret = config('stripe.secret_key') ?: config('services.stripe.secret') ?: env('STRIPE_SECRET');
+                if (empty($stripeSecret)) {
+                    Log::error('STRIPE_SECRET is not configured');
+                    return response()->json(['message' => 'Payment system not configured'], 500);
+                }
+
+                $customerId = $this->ensureCustomer($user);
+                
+                // SECURITY: Calculate amount server-side, never trust client-provided amount
+                $targetAmount = (float) $this->calculateBookingTotal($booking);
+                
+                // SECURITY: Validate calculated amount is positive
+                if ($targetAmount <= 0) {
+                    Log::alert('Zero/negative amount calculated for payment intent', [
+                        'booking_id' => $booking->id,
+                        'calculated_amount' => $targetAmount
+                    ]);
+                    return response()->json(['message' => 'Invalid booking amount'], 400);
+                }
+                
+                // Calculate with processing fee
+                $adjustedAmount = $this->calculateAdjustedTotal($targetAmount, 'US');
+                $amountInCents = (int) round($adjustedAmount * 100);
+
+                Log::info('Creating payment intent', [
+                    'customer_id' => $customerId,
+                    'amount' => $amountInCents,
+                    'booking_id' => $bookingId
                 ]);
-                return response()->json(['message' => 'Unauthorized - booking does not belong to you'], 403);
-            }
 
-            // Check if already paid
-            if ($booking->payment_status === 'paid') {
-                return response()->json(['message' => 'Booking has already been paid'], 400);
-            }
+                // Create the payment intent
+                $paymentIntent = $this->stripe->paymentIntents->create([
+                    'amount' => $amountInCents,
+                    'currency' => 'usd',
+                    'customer' => $customerId,
+                    'metadata' => [
+                        'booking_id' => $bookingId,
+                        'user_id' => $user->id,
+                        'client_id' => $user->id // Same as user_id (booking.client_id = user.id)
+                    ],
+                    'automatic_payment_methods' => [
+                        'enabled' => true,
+                    ],
+                    'description' => 'Booking #' . $bookingId . ' - ' . $booking->service_type,
+                ]);
 
-            // Check Stripe configuration
-            if (empty(env('STRIPE_SECRET'))) {
-                Log::error('STRIPE_SECRET is not configured');
-                return response()->json(['message' => 'Payment system not configured'], 500);
-            }
+                Log::info('Payment intent created: ' . $paymentIntent->id);
 
-            $customerId = $this->ensureCustomer($user);
-
-            Log::info('Creating payment intent', [
-                'customer_id' => $customerId,
-                'amount' => $amount,
-                'booking_id' => $bookingId
-            ]);
-
-            // Create the payment intent
-            $paymentIntent = $this->stripe->paymentIntents->create([
-                'amount' => $amount,
-                'currency' => 'usd',
-                'customer' => $customerId,
-                'metadata' => [
-                    'booking_id' => $bookingId,
-                    'user_id' => $user->id,
-                    'client_id' => $user->id // Same as user_id (booking.client_id = user.id)
-                ],
-                'automatic_payment_methods' => [
-                    'enabled' => true,
-                ],
-                'description' => 'Booking #' . $bookingId . ' - ' . $booking->service_type,
-            ]);
-
-            Log::info('Payment intent created: ' . $paymentIntent->id);
-
-            return response()->json([
-                'success' => true,
-                'client_secret' => $paymentIntent->client_secret,
-                'payment_intent_id' => $paymentIntent->id
-            ]);
+                return response()->json([
+                    'success' => true,
+                    'client_secret' => $paymentIntent->client_secret,
+                    'payment_intent_id' => $paymentIntent->id
+                ]);
+            });
 
         } catch (\Stripe\Exception\ApiErrorException $e) {
             Log::error('Stripe API error creating payment intent: ' . $e->getMessage(), [
@@ -293,6 +317,12 @@ class ClientPaymentController extends Controller
             'data' => $methods->data,
             'payment_methods' => $methods->data
         ]);
+    }
+
+    // Alias for listPaymentMethods for route compatibility
+    public function getPaymentMethods(Request $request)
+    {
+        return $this->listPaymentMethods($request);
     }
 
     // Attach a payment method (from SetupIntent) to the customer and set as default
@@ -340,6 +370,10 @@ class ClientPaymentController extends Controller
     /**
      * Charge a saved payment method for a booking
      * POST /api/stripe/charge-saved-method
+     * 
+     * SECURITY: Uses database transaction with row locking to prevent:
+     * - Race conditions (double payment on simultaneous requests)
+     * - Data inconsistency (partial updates if any step fails)
      */
     public function chargeSavedMethod(Request $request)
     {
@@ -352,105 +386,122 @@ class ClientPaymentController extends Controller
             $request->validate([
                 'payment_method_id' => 'required|string',
                 'booking_id' => 'required|integer|exists:bookings,id',
-                // amount (cents) is ignored for security; totals are calculated server-side
-                'amount' => 'required|integer|min:100', // Amount in cents
             ]);
 
-            // Get the booking
-            $booking = Booking::findOrFail($request->booking_id);
+            // SECURITY: Use database transaction with row-level locking
+            return DB::transaction(function () use ($request, $user) {
+                // Lock the booking row to prevent concurrent payments
+                $booking = Booking::where('id', $request->booking_id)
+                    ->lockForUpdate()
+                    ->firstOrFail();
 
-            // Verify booking belongs to user
-            if ($booking->client_id !== $user->id) {
-                Log::warning('Unauthorized charge attempt', [
-                    'user_id' => $user->id,
-                    'booking_id' => $request->booking_id,
-                ]);
-                return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
-            }
-
-            // Check if already paid
-            if ($booking->payment_status === 'paid') {
-                return response()->json(['success' => false, 'message' => 'Booking has already been paid'], 400);
-            }
-
-            $customerId = $this->ensureCustomer($user);
-
-            // Calculate target total server-side
-            $targetAmount = (float) $this->calculateBookingTotal($booking);
-
-            // Determine card country (best-effort). If unavailable, default US.
-            $cardCountry = 'US';
-            try {
-                $pm = $this->stripe->paymentMethods->retrieve($request->payment_method_id, []);
-                if ($pm && isset($pm->card) && isset($pm->card->country) && is_string($pm->card->country)) {
-                    $cardCountry = strtoupper($pm->card->country);
+                // Verify booking belongs to user
+                if ($booking->client_id !== $user->id) {
+                    Log::warning('Unauthorized charge attempt', [
+                        'user_id' => $user->id,
+                        'booking_id' => $request->booking_id,
+                    ]);
+                    return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
                 }
-            } catch (\Exception $e) {
-                // keep default
-            }
 
-            $processingFee = $this->calculateProcessingFee($targetAmount, $cardCountry);
-            $adjustedAmount = $this->calculateAdjustedTotal($targetAmount, $cardCountry);
-            $amountInCents = (int) round($adjustedAmount * 100);
+                // Check if already paid (with lock, this is now race-condition safe)
+                if ($booking->payment_status === 'paid') {
+                    return response()->json(['success' => false, 'message' => 'Booking has already been paid'], 400);
+                }
 
-            Log::info('Charging saved payment method', [
-                'user_id' => $user->id,
-                'booking_id' => $request->booking_id,
-                'payment_method_id' => $request->payment_method_id,
-                'amount' => $amountInCents
-            ]);
+                $customerId = $this->ensureCustomer($user);
 
-            // Create and confirm Payment Intent with saved payment method
-            $paymentIntent = $this->stripe->paymentIntents->create([
-                'amount' => $amountInCents,
-                'currency' => 'usd',
-                'customer' => $customerId,
-                'payment_method' => $request->payment_method_id,
-                'off_session' => true,
-                'confirm' => true,
-                'metadata' => [
-                    'booking_id' => $request->booking_id,
+                // Calculate target total server-side (never trust client amount)
+                $targetAmount = (float) $this->calculateBookingTotal($booking);
+                
+                // SECURITY: Validate calculated amount is positive
+                if ($targetAmount <= 0) {
+                    Log::alert('Zero/negative amount calculated', [
+                        'booking_id' => $booking->id,
+                        'calculated_amount' => $targetAmount
+                    ]);
+                    return response()->json(['success' => false, 'message' => 'Invalid booking amount'], 400);
+                }
+
+                // Determine card country (best-effort). If unavailable, default US.
+                $cardCountry = 'US';
+                try {
+                    $pm = $this->stripe->paymentMethods->retrieve($request->payment_method_id, []);
+                    if ($pm && isset($pm->card) && isset($pm->card->country) && is_string($pm->card->country)) {
+                        $cardCountry = strtoupper($pm->card->country);
+                    }
+                } catch (\Exception $e) {
+                    // keep default
+                }
+
+                $processingFee = $this->calculateProcessingFee($targetAmount, $cardCountry);
+                $adjustedAmount = $this->calculateAdjustedTotal($targetAmount, $cardCountry);
+                $amountInCents = (int) round($adjustedAmount * 100);
+
+                Log::info('Charging saved payment method', [
                     'user_id' => $user->id,
-                    'client_id' => $user->id
-                ],
-                'description' => 'Booking #' . $request->booking_id . ' - ' . $booking->service_type,
-            ]);
+                    'booking_id' => $request->booking_id,
+                    'payment_method_id' => $request->payment_method_id,
+                    'amount' => $amountInCents
+                ]);
 
-            Log::info('Payment processed successfully', [
-                'payment_intent_id' => $paymentIntent->id,
-                'booking_id' => $request->booking_id,
-                'status' => $paymentIntent->status
-            ]);
+                // SECURITY: Idempotency key prevents duplicate charges on network retry
+                $idempotencyKey = 'charge_booking_' . $booking->id . '_' . $user->id . '_' . now()->format('Ymd');
 
-            // Update booking payment status and enable recurring by default
-            $booking->update([
-                'payment_status' => 'paid',
-                'stripe_payment_intent_id' => $paymentIntent->id,
-                'payment_date' => now(),
-                'recurring_service' => true, // Auto-enable recurring for paid bookings
-                'auto_pay_enabled' => true, // Enable auto-pay with saved card
-                'recurring_status' => 'active', // Set recurring status to active
-            ]);
+                // Create and confirm Payment Intent with saved payment method
+                $paymentIntent = $this->stripe->paymentIntents->create([
+                    'amount' => $amountInCents,
+                    'currency' => 'usd',
+                    'customer' => $customerId,
+                    'payment_method' => $request->payment_method_id,
+                    'off_session' => true,
+                    'confirm' => true,
+                    'metadata' => [
+                        'booking_id' => $request->booking_id,
+                        'user_id' => $user->id,
+                        'client_id' => $user->id
+                    ],
+                    'description' => 'Booking #' . $request->booking_id . ' - ' . $booking->service_type,
+                ], [
+                    'idempotency_key' => $idempotencyKey
+                ]);
 
-            // Create payment record
-            \App\Models\Payment::create([
-                'client_id' => $user->id,
-                'booking_id' => $booking->id,
-                'transaction_id' => $paymentIntent->id,
-                'amount' => $amountInCents / 100,
-                'processing_fee' => $processingFee,
-                'status' => 'completed',
-                'payment_method' => 'credit_card',
-                'notes' => 'Booking payment using saved card for #' . $booking->id,
-                'paid_at' => now(),
-            ]);
+                Log::info('Payment processed successfully', [
+                    'payment_intent_id' => $paymentIntent->id,
+                    'booking_id' => $request->booking_id,
+                    'status' => $paymentIntent->status
+                ]);
 
-            return response()->json([
-                'success' => true,
-                'message' => 'Payment successful! Auto-renewal has been enabled for this contract.',
-                'payment_intent_id' => $paymentIntent->id,
-                'recurring_enabled' => true
-            ]);
+                // Update booking payment status and enable recurring by default
+                $booking->update([
+                    'payment_status' => 'paid',
+                    'stripe_payment_intent_id' => $paymentIntent->id,
+                    'payment_date' => now(),
+                    'recurring_service' => true, // Auto-enable recurring for paid bookings
+                    'auto_pay_enabled' => true, // Enable auto-pay with saved card
+                    'recurring_status' => 'active', // Set recurring status to active
+                ]);
+
+                // Create payment record
+                \App\Models\Payment::create([
+                    'client_id' => $user->id,
+                    'booking_id' => $booking->id,
+                    'transaction_id' => $paymentIntent->id,
+                    'amount' => $amountInCents / 100,
+                    'processing_fee' => $processingFee,
+                    'status' => 'completed',
+                    'payment_method' => 'credit_card',
+                    'notes' => 'Booking payment using saved card for #' . $booking->id,
+                    'paid_at' => now(),
+                ]);
+
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Payment successful! Auto-renewal has been enabled for this contract.',
+                    'payment_intent_id' => $paymentIntent->id,
+                    'recurring_enabled' => true
+                ]);
+            });
 
         } catch (\Stripe\Exception\CardException $e) {
             Log::error('Stripe card error: ' . $e->getMessage());

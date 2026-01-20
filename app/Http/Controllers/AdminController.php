@@ -2061,87 +2061,97 @@ class AdminController extends Controller
         try {
             $validated = $request->validate([
                 'caregiver_id' => 'required|exists:caregivers,id',
-                'amount' => 'required|numeric|min:0'
+                'amount' => 'required|numeric|min:0.01' // SECURITY: min:0.01 prevents $0 transfers
             ]);
 
-            $caregiver = Caregiver::with('user')->findOrFail($validated['caregiver_id']);
-            
-            // Check if caregiver has bank account connected
-            if (empty($caregiver->user->stripe_connect_id)) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Caregiver has not connected their bank account'
-                ], 400);
-            }
+            // SECURITY: Wrap in transaction with row locking to prevent race conditions
+            return DB::transaction(function () use ($validated) {
+                $caregiver = Caregiver::with('user')->findOrFail($validated['caregiver_id']);
+                
+                // Check if caregiver has bank account connected
+                if (empty($caregiver->user->stripe_connect_id)) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Caregiver has not connected their bank account'
+                    ], 400);
+                }
 
-            // Get unpaid time tracking records for this caregiver
-            $unpaidRecords = \App\Models\TimeTracking::where('caregiver_id', $caregiver->id)
-                ->whereNull('paid_at')
-                ->get();
+                // SECURITY: Lock rows for update to prevent concurrent payments
+                $unpaidRecords = \App\Models\TimeTracking::where('caregiver_id', $caregiver->id)
+                    ->whereNull('paid_at')
+                    ->lockForUpdate()
+                    ->get();
 
-            if ($unpaidRecords->isEmpty()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'No unpaid hours found for this caregiver'
-                ], 400);
-            }
+                if ($unpaidRecords->isEmpty()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'No unpaid hours found for this caregiver'
+                    ], 400);
+                }
 
-            $unpaidAmount = $unpaidRecords->sum('caregiver_earnings');
-            
-            // Validate amount matches
-            if (abs($unpaidAmount - $validated['amount']) > 0.01) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Payment amount does not match unpaid earnings'
-                ], 400);
-            }
+                $unpaidAmount = $unpaidRecords->sum('caregiver_earnings');
+                
+                // Validate amount matches
+                if (abs($unpaidAmount - $validated['amount']) > 0.01) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Payment amount does not match unpaid earnings'
+                    ], 400);
+                }
 
-            // Create Stripe payout
-            try {
+                // Create Stripe payout with idempotency key
                 $stripe = new \Stripe\StripeClient(config('stripe.secret'));
+                
+                // SECURITY: Idempotency key prevents duplicate transfers if admin clicks twice
+                $idempotencyKey = 'caregiver_payout_' . $caregiver->id . '_' . $unpaidRecords->pluck('id')->implode('_');
+                
                 $payout = $stripe->transfers->create([
                     'amount' => intval($validated['amount'] * 100), // Convert to cents
                     'currency' => 'usd',
                     'destination' => $caregiver->user->stripe_connect_id,
-                    'description' => "Payment for " . $unpaidRecords->count() . " work sessions"
+                    'description' => "Payment for " . $unpaidRecords->count() . " work sessions",
+                    'metadata' => [
+                        'caregiver_id' => $caregiver->id,
+                        'record_ids' => $unpaidRecords->pluck('id')->implode(','),
+                        'payment_type' => 'caregiver_earnings'
+                    ]
+                ], [
+                    'idempotency_key' => $idempotencyKey
                 ]);
                 
                 Log::info('Stripe transfer created', [
                     'transfer_id' => $payout->id,
                     'amount' => $validated['amount'],
-                    'destination' => $caregiver->user->stripe_connect_id
+                    'destination' => $caregiver->user->stripe_connect_id,
+                    'idempotency_key' => $idempotencyKey
                 ]);
-            } catch (\Exception $e) {
-                Log::error('Stripe payout failed', ['error' => $e->getMessage()]);
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Stripe payout failed: ' . $e->getMessage()
-                ], 500);
-            }
 
-            // Mark all unpaid records as paid
-            $unpaidRecords->each(function($record) {
-                $record->update([
-                    'paid_at' => now(),
-                    'payment_status' => 'paid'
+                // Mark all unpaid records as paid (inside transaction)
+                $unpaidRecords->each(function($record) use ($payout) {
+                    $record->update([
+                        'paid_at' => now(),
+                        'payment_status' => 'paid',
+                        'stripe_transfer_id' => $payout->id
+                    ]);
+                });
+
+                Log::info('Caregiver payment processed', [
+                    'caregiver_id' => $caregiver->id,
+                    'caregiver_name' => $caregiver->user->name,
+                    'amount' => $validated['amount'],
+                    'records_paid' => $unpaidRecords->count(),
+                    'stripe_connect_id' => $caregiver->user->stripe_connect_id
+                ]);
+
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Payment processed successfully',
+                    'amount' => $validated['amount'],
+                    'caregiver' => $caregiver->user->name,
+                    'records_paid' => $unpaidRecords->count(),
+                    'transfer_id' => $payout->id
                 ]);
             });
-
-            Log::info('Caregiver payment processed', [
-                'caregiver_id' => $caregiver->id,
-                'caregiver_name' => $caregiver->user->name,
-                'amount' => $validated['amount'],
-                'records_paid' => $unpaidRecords->count(),
-                'stripe_connect_id' => $caregiver->user->stripe_connect_id
-            ]);
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Payment processed successfully',
-                'amount' => $validated['amount'],
-                'caregiver' => $caregiver->user->name,
-                'records_paid' => $unpaidRecords->count()
-            ]);
 
         } catch (\Exception $e) {
             Log::error('Caregiver payment failed', [
@@ -2164,87 +2174,97 @@ class AdminController extends Controller
         try {
             $validated = $request->validate([
                 'housekeeper_id' => 'required|exists:housekeepers,id',
-                'amount' => 'required|numeric|min:0'
+                'amount' => 'required|numeric|min:0.01' // SECURITY: min:0.01 prevents $0 transfers
             ]);
 
-            $housekeeper = Housekeeper::with('user')->findOrFail($validated['housekeeper_id']);
-            
-            // Check if housekeeper has bank account connected
-            if (empty($housekeeper->user->stripe_connect_id)) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Housekeeper has not connected their bank account'
-                ], 400);
-            }
+            // SECURITY: Wrap in transaction with row locking to prevent race conditions
+            return DB::transaction(function () use ($validated) {
+                $housekeeper = Housekeeper::with('user')->findOrFail($validated['housekeeper_id']);
+                
+                // Check if housekeeper has bank account connected
+                if (empty($housekeeper->user->stripe_connect_id)) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Housekeeper has not connected their bank account'
+                    ], 400);
+                }
 
-            // Get unpaid time tracking records for this housekeeper
-            $unpaidRecords = \App\Models\TimeTracking::where('housekeeper_id', $housekeeper->id)
-                ->whereNull('paid_at')
-                ->get();
+                // SECURITY: Lock rows for update to prevent concurrent payments
+                $unpaidRecords = \App\Models\TimeTracking::where('housekeeper_id', $housekeeper->id)
+                    ->whereNull('paid_at')
+                    ->lockForUpdate()
+                    ->get();
 
-            if ($unpaidRecords->isEmpty()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'No unpaid hours found for this housekeeper'
-                ], 400);
-            }
+                if ($unpaidRecords->isEmpty()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'No unpaid hours found for this housekeeper'
+                    ], 400);
+                }
 
-            $unpaidAmount = $unpaidRecords->sum('caregiver_earnings'); // Using same field for earnings
-            
-            // Validate amount matches
-            if (abs($unpaidAmount - $validated['amount']) > 0.01) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Payment amount does not match unpaid earnings'
-                ], 400);
-            }
+                $unpaidAmount = $unpaidRecords->sum('caregiver_earnings'); // Using same field for earnings
+                
+                // Validate amount matches
+                if (abs($unpaidAmount - $validated['amount']) > 0.01) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Payment amount does not match unpaid earnings'
+                    ], 400);
+                }
 
-            // Create Stripe payout
-            try {
+                // Create Stripe payout with idempotency key
                 $stripe = new \Stripe\StripeClient(config('stripe.secret'));
+                
+                // SECURITY: Idempotency key prevents duplicate transfers if admin clicks twice
+                $idempotencyKey = 'housekeeper_payout_' . $housekeeper->id . '_' . $unpaidRecords->pluck('id')->implode('_');
+                
                 $payout = $stripe->transfers->create([
                     'amount' => intval($validated['amount'] * 100), // Convert to cents
                     'currency' => 'usd',
                     'destination' => $housekeeper->user->stripe_connect_id,
-                    'description' => "Payment for " . $unpaidRecords->count() . " work sessions"
+                    'description' => "Payment for " . $unpaidRecords->count() . " work sessions",
+                    'metadata' => [
+                        'housekeeper_id' => $housekeeper->id,
+                        'record_ids' => $unpaidRecords->pluck('id')->implode(','),
+                        'payment_type' => 'housekeeper_earnings'
+                    ]
+                ], [
+                    'idempotency_key' => $idempotencyKey
                 ]);
                 
                 Log::info('Stripe transfer created for housekeeper', [
                     'transfer_id' => $payout->id,
                     'amount' => $validated['amount'],
-                    'destination' => $housekeeper->user->stripe_connect_id
+                    'destination' => $housekeeper->user->stripe_connect_id,
+                    'idempotency_key' => $idempotencyKey
                 ]);
-            } catch (\Exception $e) {
-                Log::error('Stripe housekeeper payout failed', ['error' => $e->getMessage()]);
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Stripe payout failed: ' . $e->getMessage()
-                ], 500);
-            }
 
-            // Mark all unpaid records as paid
-            $unpaidRecords->each(function($record) {
-                $record->update([
-                    'paid_at' => now(),
-                    'payment_status' => 'paid'
+                // Mark all unpaid records as paid (inside transaction)
+                $unpaidRecords->each(function($record) use ($payout) {
+                    $record->update([
+                        'paid_at' => now(),
+                        'payment_status' => 'paid',
+                        'stripe_transfer_id' => $payout->id
+                    ]);
+                });
+
+                Log::info('Housekeeper payment processed', [
+                    'housekeeper_id' => $housekeeper->id,
+                    'housekeeper_name' => $housekeeper->user->name,
+                    'amount' => $validated['amount'],
+                    'records_paid' => $unpaidRecords->count(),
+                    'stripe_connect_id' => $housekeeper->user->stripe_connect_id
+                ]);
+
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Payment processed successfully',
+                    'amount' => $validated['amount'],
+                    'housekeeper' => $housekeeper->user->name,
+                    'records_paid' => $unpaidRecords->count(),
+                    'transfer_id' => $payout->id
                 ]);
             });
-
-            Log::info('Housekeeper payment processed', [
-                'housekeeper_id' => $housekeeper->id,
-                'housekeeper_name' => $housekeeper->user->name,
-                'amount' => $validated['amount'],
-                'records_paid' => $unpaidRecords->count(),
-                'stripe_connect_id' => $housekeeper->user->stripe_connect_id
-            ]);
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Payment processed successfully',
-                'amount' => $validated['amount'],
-                'housekeeper' => $housekeeper->user->name,
-                'records_paid' => $unpaidRecords->count()
-            ]);
 
         } catch (\Exception $e) {
             Log::error('Housekeeper payment failed', [
@@ -2325,31 +2345,38 @@ class AdminController extends Controller
      */
     public function payMarketingCommission($userId)
     {
-        $user = User::findOrFail($userId);
-        
-        // Calculate pending commission
-        $pendingCommission = \App\Models\TimeTracking::where('marketing_partner_id', $userId)
-            ->whereNull('marketing_commission_paid_at')
-            ->sum('marketing_partner_commission');
-        
-        if ($pendingCommission <= 0) {
-            return response()->json([
-                'success' => false,
-                'message' => 'No pending commission to pay'
-            ], 400);
-        }
-        
-        // Check if bank is connected
-        if (empty($user->stripe_connect_id)) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Bank account not connected. Please ask the marketing staff to connect their bank account first.'
-            ], 400);
-        }
-        
-        try {
-            // Transfer via Stripe Connect
+        // SECURITY: Wrap in transaction with row locking to prevent race conditions and double payments
+        return DB::transaction(function () use ($userId) {
+            $user = User::findOrFail($userId);
+            
+            // SECURITY: Lock rows for update to prevent concurrent payments
+            $pendingRecords = \App\Models\TimeTracking::where('marketing_partner_id', $userId)
+                ->whereNull('marketing_commission_paid_at')
+                ->lockForUpdate()
+                ->get();
+            
+            $pendingCommission = $pendingRecords->sum('marketing_partner_commission');
+            
+            if ($pendingCommission <= 0) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'No pending commission to pay'
+                ], 400);
+            }
+            
+            // Check if bank is connected
+            if (empty($user->stripe_connect_id)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Bank account not connected. Please ask the marketing staff to connect their bank account first.'
+                ], 400);
+            }
+            
+            // Transfer via Stripe Connect with idempotency key
             \Stripe\Stripe::setApiKey(config('stripe.secret'));
+            
+            // SECURITY: Idempotency key prevents duplicate transfers if admin clicks twice
+            $idempotencyKey = 'marketing_commission_' . $userId . '_' . $pendingRecords->pluck('id')->implode('_');
             
             $transfer = \Stripe\Transfer::create([
                 'amount' => (int)($pendingCommission * 100), // Convert to cents
@@ -2359,17 +2386,27 @@ class AdminController extends Controller
                 'metadata' => [
                     'user_id' => $user->id,
                     'user_type' => 'marketing',
-                    'commission_amount' => $pendingCommission
+                    'commission_amount' => $pendingCommission,
+                    'record_count' => $pendingRecords->count()
                 ]
+            ], [
+                'idempotency_key' => $idempotencyKey
             ]);
             
-            // Mark all pending commissions as paid
-            \App\Models\TimeTracking::where('marketing_partner_id', $userId)
-                ->whereNull('marketing_commission_paid_at')
+            // Mark all pending commissions as paid (inside transaction)
+            \App\Models\TimeTracking::whereIn('id', $pendingRecords->pluck('id'))
                 ->update([
                     'marketing_commission_paid_at' => now(),
                     'marketing_commission_stripe_transfer_id' => $transfer->id
                 ]);
+            
+            Log::info('Marketing commission payment processed', [
+                'user_id' => $userId,
+                'user_name' => $user->name,
+                'amount' => $pendingCommission,
+                'records_paid' => $pendingRecords->count(),
+                'transfer_id' => $transfer->id
+            ]);
             
             return response()->json([
                 'success' => true,
@@ -2377,18 +2414,7 @@ class AdminController extends Controller
                 'transfer_id' => $transfer->id,
                 'amount' => $pendingCommission
             ]);
-            
-        } catch (\Exception $e) {
-            \Log::error('Marketing commission payment failed', [
-                'user_id' => $userId,
-                'error' => $e->getMessage()
-            ]);
-            
-            return response()->json([
-                'success' => false,
-                'message' => 'Payment failed: ' . $e->getMessage()
-            ], 500);
-        }
+        }); // End transaction
     }
 
     /**
@@ -2445,31 +2471,38 @@ class AdminController extends Controller
      */
     public function payTrainingCommission($userId)
     {
-        $user = User::findOrFail($userId);
-        
-        // Calculate pending commission
-        $pendingCommission = \App\Models\TimeTracking::where('training_center_id', $userId)
-            ->whereNull('training_commission_paid_at')
-            ->sum('training_center_commission');
-        
-        if ($pendingCommission <= 0) {
-            return response()->json([
-                'success' => false,
-                'message' => 'No pending commission to pay'
-            ], 400);
-        }
-        
-        // Check if bank is connected
-        if (empty($user->stripe_connect_id)) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Bank account not connected. Please ask the training center to connect their bank account first.'
-            ], 400);
-        }
-        
-        try {
-            // Transfer via Stripe Connect
+        // SECURITY: Wrap in transaction with row locking to prevent race conditions and double payments
+        return DB::transaction(function () use ($userId) {
+            $user = User::findOrFail($userId);
+            
+            // SECURITY: Lock rows for update to prevent concurrent payments
+            $pendingRecords = \App\Models\TimeTracking::where('training_center_id', $userId)
+                ->whereNull('training_commission_paid_at')
+                ->lockForUpdate()
+                ->get();
+            
+            $pendingCommission = $pendingRecords->sum('training_center_commission');
+            
+            if ($pendingCommission <= 0) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'No pending commission to pay'
+                ], 400);
+            }
+            
+            // Check if bank is connected
+            if (empty($user->stripe_connect_id)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Bank account not connected. Please ask the training center to connect their bank account first.'
+                ], 400);
+            }
+            
+            // Transfer via Stripe Connect with idempotency key
             \Stripe\Stripe::setApiKey(config('stripe.secret'));
+            
+            // SECURITY: Idempotency key prevents duplicate transfers if admin clicks twice
+            $idempotencyKey = 'training_commission_' . $userId . '_' . $pendingRecords->pluck('id')->implode('_');
             
             $transfer = \Stripe\Transfer::create([
                 'amount' => (int)($pendingCommission * 100), // Convert to cents
@@ -2479,17 +2512,27 @@ class AdminController extends Controller
                 'metadata' => [
                     'user_id' => $user->id,
                     'user_type' => 'training',
-                    'commission_amount' => $pendingCommission
+                    'commission_amount' => $pendingCommission,
+                    'record_count' => $pendingRecords->count()
                 ]
+            ], [
+                'idempotency_key' => $idempotencyKey
             ]);
             
-            // Mark all pending commissions as paid
-            \App\Models\TimeTracking::where('training_center_id', $userId)
-                ->whereNull('training_commission_paid_at')
+            // Mark all pending commissions as paid (inside transaction)
+            \App\Models\TimeTracking::whereIn('id', $pendingRecords->pluck('id'))
                 ->update([
                     'training_commission_paid_at' => now(),
                     'training_commission_stripe_transfer_id' => $transfer->id
                 ]);
+            
+            Log::info('Training commission payment processed', [
+                'user_id' => $userId,
+                'user_name' => $user->name,
+                'amount' => $pendingCommission,
+                'records_paid' => $pendingRecords->count(),
+                'transfer_id' => $transfer->id
+            ]);
             
             return response()->json([
                 'success' => true,
@@ -2497,18 +2540,7 @@ class AdminController extends Controller
                 'transfer_id' => $transfer->id,
                 'amount' => $pendingCommission
             ]);
-            
-        } catch (\Exception $e) {
-            \Log::error('Training commission payment failed', [
-                'user_id' => $userId,
-                'error' => $e->getMessage()
-            ]);
-            
-            return response()->json([
-                'success' => false,
-                'message' => 'Payment failed: ' . $e->getMessage()
-            ], 500);
-        }
+        }); // End transaction
     }
 
     /**

@@ -801,8 +801,8 @@
           </v-card>
 
           <!-- Summary Stats Cards -->
-          <v-row class="mb-6">
-            <v-col cols="12" md="3">
+          <v-row class="mb-6 earnings-stats-row">
+            <v-col cols="6" md="3">
               <v-card elevation="0" class="stat-card-earnings">
                 <v-card-text class="pa-4">
                   <div class="d-flex align-center justify-space-between">
@@ -821,7 +821,7 @@
                 </v-card-text>
               </v-card>
             </v-col>
-            <v-col cols="12" md="3">
+            <v-col cols="6" md="3">
               <v-card elevation="0" class="stat-card-earnings">
                 <v-card-text class="pa-4">
                   <div class="d-flex align-center justify-space-between">
@@ -839,7 +839,7 @@
                 </v-card-text>
               </v-card>
             </v-col>
-            <v-col cols="12" md="3">
+            <v-col cols="6" md="3">
               <v-card 
                 elevation="2" 
                 class="stat-card-earnings cursor-pointer hover-highlight"
@@ -867,7 +867,7 @@
                 </v-card-text>
               </v-card>
             </v-col>
-            <v-col cols="12" md="3">
+            <v-col cols="6" md="3">
               <v-card elevation="0" class="stat-card-earnings">
                 <v-card-text class="pa-4">
                   <div class="d-flex align-center justify-space-between">
@@ -1003,17 +1003,17 @@
 
             <!-- Earnings Chart & History -->
             <v-col cols="12" md="7">
-              <v-card elevation="0" class="mb-6">
-                <v-card-title class="card-header pa-6 d-flex justify-space-between align-center">
+              <v-card elevation="0" class="mb-6 earnings-chart-card">
+                <v-card-title class="card-header pa-6 earnings-chart-header">
                   <span class="section-title success--text">Earnings Over Time</span>
-                  <v-btn-toggle v-model="earningsChartPeriod" mandatory color="success" size="small">
+                  <v-btn-toggle v-model="earningsChartPeriod" mandatory color="success" size="small" class="period-toggle">
                     <v-btn value="week">Week</v-btn>
                     <v-btn value="month">Month</v-btn>
                     <v-btn value="year">Year</v-btn>
                   </v-btn-toggle>
                 </v-card-title>
                 <v-card-text class="pa-6">
-                  <div class="mb-4 d-flex justify-space-between">
+                  <div class="chart-stats-row mb-4">
                     <div class="chart-stat">
                       <div class="stat-value success--text">{{ earningsChartStats.total }}</div>
                       <div class="stat-label">Total {{ earningsChartPeriod === 'week' ? 'Week' : earningsChartPeriod === 'month' ? 'Month' : 'Year' }}</div>
@@ -1027,7 +1027,7 @@
                       <div class="stat-label">Growth</div>
                     </div>
                   </div>
-                  <div style="height: 250px; position: relative;">
+                  <div class="chart-container" style="height: 250px; position: relative;">
                     <canvas ref="earningsChart"></canvas>
                   </div>
                 </v-card-text>
@@ -2471,46 +2471,9 @@ const loadCaregiverStats = async () => {
       }
     }
     
-    // Fallback: try direct assignment endpoint
-    if (!hasActiveClient) {
-      try {
-        const assignmentResponse = await fetch(`/api/caregiver/${caregiverId.value}/assignments`);
-        const assignmentData = await assignmentResponse.json();
-        
-        if (assignmentData.assignments && assignmentData.assignments.length > 0) {
-          const assignment = assignmentData.assignments[0];
-          if (assignment.client_name) {
-            clientName = assignment.client_name;
-            hasActiveClient = true;
-          } else if (assignment.booking?.client?.name) {
-            clientName = assignment.booking.client.name;
-            hasActiveClient = true;
-          }
-          
-          // Store booking details for clock in/out validation
-          if (assignment.booking) {
-            currentBookingServiceDate.value = assignment.booking.service_date || null;
-            currentBookingStartTime.value = assignment.booking.start_time || null;
-            currentBookingDurationDays.value = assignment.booking.duration_days || null;
-            currentBookingDaySchedules.value = assignment.booking.day_schedules || null;
-            currentBookingStatus.value = assignment.booking.status || null;
-          }
-          
-          // Get contract dates
-          if (assignment.booking?.service_date) {
-            contractStartDate.value = formatContractDate(assignment.booking.service_date);
-          }
-          if (assignment.booking?.end_date) {
-            contractEndDate.value = formatContractDate(assignment.booking.end_date);
-          } else if (assignment.booking?.duration_days && assignment.booking?.service_date) {
-            const startDate = new Date(assignment.booking.service_date);
-            startDate.setDate(startDate.getDate() + parseInt(assignment.booking.duration_days));
-            contractEndDate.value = formatContractDate(startDate.toISOString().split('T')[0]);
-          }
-        }
-      } catch (fallbackError) {
-      }
-    }
+    // Note: The /api/caregiver/{id}/assignments endpoint does not exist
+    // The active_assignments data should already be included in the /api/caregiver/{id}/stats response
+    // If no active client was found from the stats response, show N/A
 
 if (hasActiveClient) {
       const contractInfo = contractStartDate.value && contractEndDate.value 
@@ -3984,7 +3947,8 @@ onMounted(async () => {
     currentTime.value = new Date();
   }, 60000);
   
-  // Refresh assignment status every 5 seconds for real-time updates
+  // Refresh assignment status every 30 seconds for real-time updates
+  // (5 seconds was too aggressive and caused performance issues)
   setInterval(() => {
     if (caregiverId.value) {
       loadCaregiverStats();
@@ -3992,7 +3956,7 @@ onMounted(async () => {
       loadCurrentSession();
       loadPaymentData(); // Refresh payment data in real-time
     }
-  }, 5000);
+  }, 30000);
   
   // Refresh notification count every 30 seconds
   setInterval(loadSidebarNotificationCount, 30000);
@@ -5408,6 +5372,787 @@ onMounted(async () => {
   background-color: rgba(76, 175, 80, 0.08) !important;
   transform: translateY(-2px);
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* =============================================================
+   EARNINGS REPORT - MOBILE RESPONSIVE STYLES
+   ============================================================= */
+
+/* Earnings Report Stats Cards */
+.stat-card-earnings {
+  border-radius: 16px !important;
+  border: 1px solid #e5e7eb !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06) !important;
+  transition: all 0.3s ease !important;
+}
+
+.stat-card-earnings:hover {
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.15) !important;
+}
+
+/* Earnings Breakdown Styles */
+.earnings-breakdown-item {
+  padding: 12px 0;
+}
+
+.earnings-breakdown-detail {
+  padding: 8px 0;
+}
+
+/* Time Tracking Summary */
+.time-tracking-summary {
+  padding: 8px 0;
+}
+
+/* Chart stat styling */
+.chart-stat {
+  text-align: center;
+  padding: 12px 16px;
+  background: #f8fafc;
+  border-radius: 12px;
+}
+
+.chart-stat .stat-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.chart-stat .stat-label {
+  font-size: 0.75rem;
+  color: #6b7280;
+  margin-top: 4px;
+}
+
+/* Earnings Stats Row - 2x2 Grid Styles */
+.earnings-stats-row {
+  margin-left: -6px !important;
+  margin-right: -6px !important;
+}
+
+.earnings-stats-row > .v-col {
+  padding: 6px !important;
+}
+
+/* Earnings Chart Card - Base Styles */
+.earnings-chart-card {
+  border-radius: 16px !important;
+}
+
+.earnings-chart-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.chart-stats-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.chart-container {
+  width: 100%;
+  min-height: 200px;
+}
+
+.period-toggle {
+  border-radius: 8px !important;
+}
+
+.period-toggle .v-btn {
+  text-transform: none !important;
+  font-weight: 600 !important;
+  letter-spacing: 0 !important;
+}
+
+/* =============================================================
+   EARNINGS REPORT - TABLET RESPONSIVE (max-width: 960px)
+   ============================================================= */
+@media (max-width: 960px) {
+  /* Earnings Stats Row - 2x2 grid */
+  .earnings-stats-row {
+    margin-left: -4px !important;
+    margin-right: -4px !important;
+  }
+  
+  .earnings-stats-row > .v-col {
+    padding: 4px !important;
+  }
+
+  /* Earnings Chart Header */
+  .earnings-chart-header {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 12px !important;
+  }
+  
+  .earnings-chart-header .section-title {
+    text-align: center;
+  }
+  
+  .period-toggle {
+    width: 100% !important;
+    display: flex !important;
+  }
+  
+  .period-toggle .v-btn {
+    flex: 1 !important;
+  }
+  
+  /* Chart Stats Row */
+  .chart-stats-row {
+    display: grid !important;
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 10px !important;
+  }
+  
+  .chart-stats-row .chart-stat {
+    text-align: center;
+  }
+  
+  /* Earnings Report Header */
+  [class*="analytics"] .card-header {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 12px !important;
+  }
+  
+  [class*="analytics"] .card-header .d-flex {
+    width: 100% !important;
+    flex-wrap: wrap !important;
+    gap: 10px !important;
+  }
+  
+  /* Stats cards - 2 columns on tablet */
+  .stat-card-earnings .v-card-text {
+    padding: 16px !important;
+  }
+  
+  .stat-card-earnings .text-h5 {
+    font-size: 1.25rem !important;
+  }
+  
+  /* Chart stats row */
+  .chart-stat {
+    padding: 10px 12px;
+  }
+  
+  .chart-stat .stat-value {
+    font-size: 1.25rem;
+  }
+  
+  .chart-stat .stat-label {
+    font-size: 0.7rem;
+  }
+}
+
+/* =============================================================
+   EARNINGS REPORT - MOBILE RESPONSIVE (max-width: 768px)
+   ============================================================= */
+@media (max-width: 768px) {
+  /* ===== EARNINGS OVER TIME CHART WIDGET - MOBILE ===== */
+  .earnings-chart-card {
+    border-radius: 12px !important;
+  }
+  
+  .earnings-chart-header {
+    padding: 14px 16px !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 12px !important;
+  }
+  
+  .earnings-chart-header .section-title {
+    font-size: 1rem !important;
+    text-align: center !important;
+  }
+  
+  .period-toggle {
+    width: 100% !important;
+    display: flex !important;
+    border-radius: 10px !important;
+    overflow: hidden !important;
+  }
+  
+  .period-toggle .v-btn {
+    flex: 1 !important;
+    font-size: 0.8125rem !important;
+    padding: 10px 8px !important;
+    min-height: 40px !important;
+    border-radius: 0 !important;
+  }
+  
+  /* Chart Stats Row - 3 column grid */
+  .chart-stats-row {
+    display: grid !important;
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 8px !important;
+    background: #f8fafc !important;
+    padding: 12px !important;
+    border-radius: 10px !important;
+    margin-bottom: 16px !important;
+  }
+  
+  .chart-stats-row .chart-stat {
+    background: transparent !important;
+    padding: 8px 4px !important;
+    text-align: center !important;
+    border-radius: 0 !important;
+  }
+  
+  .chart-stats-row .chart-stat .stat-value {
+    font-size: 1rem !important;
+  }
+  
+  .chart-stats-row .chart-stat .stat-label {
+    font-size: 0.625rem !important;
+    margin-top: 2px !important;
+  }
+  
+  /* Chart Container */
+  .chart-container {
+    height: 180px !important;
+    min-height: 150px !important;
+  }
+  
+  .earnings-chart-card .v-card-text {
+    padding: 14px !important;
+  }
+
+  /* ===== EARNINGS STATS - 2x2 GRID MOBILE STYLES ===== */
+  .earnings-stats-row {
+    margin-left: -4px !important;
+    margin-right: -4px !important;
+    margin-bottom: 16px !important;
+  }
+  
+  .earnings-stats-row > .v-col {
+    padding: 4px !important;
+  }
+  
+  /* Stat cards in 2x2 grid - stacked layout */
+  .earnings-stats-row .stat-card-earnings {
+    height: 100% !important;
+    border-radius: 12px !important;
+  }
+  
+  .earnings-stats-row .stat-card-earnings .v-card-text {
+    padding: 12px !important;
+    height: 100% !important;
+  }
+  
+  .earnings-stats-row .stat-card-earnings .v-card-text > .d-flex {
+    flex-direction: column !important;
+    align-items: center !important;
+    text-align: center !important;
+    gap: 8px !important;
+  }
+  
+  .earnings-stats-row .stat-card-earnings .v-avatar {
+    width: 36px !important;
+    height: 36px !important;
+    order: -1 !important;
+  }
+  
+  .earnings-stats-row .stat-card-earnings .v-avatar .v-icon {
+    font-size: 18px !important;
+  }
+  
+  .earnings-stats-row .stat-card-earnings .text-h5 {
+    font-size: 1rem !important;
+    line-height: 1.2 !important;
+    margin: 4px 0 !important;
+  }
+  
+  .earnings-stats-row .stat-card-earnings .text-caption {
+    font-size: 0.625rem !important;
+    line-height: 1.3 !important;
+  }
+  
+  .earnings-stats-row .stat-card-earnings .text-caption .v-icon {
+    font-size: 10px !important;
+  }
+
+  /* Earnings Report Section Header */
+  [class*="analytics"] .v-card-title.card-header {
+    padding: 14px 16px !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 12px !important;
+  }
+  
+  [class*="analytics"] .v-card-title.card-header > div:first-child {
+    text-align: center;
+  }
+  
+  [class*="analytics"] .v-card-title.card-header .section-title {
+    font-size: 1.125rem !important;
+  }
+  
+  [class*="analytics"] .v-card-title.card-header .text-caption {
+    font-size: 0.75rem !important;
+  }
+  
+  [class*="analytics"] .v-card-title.card-header .d-flex.align-center.ga-2 {
+    flex-direction: column !important;
+    width: 100% !important;
+    gap: 10px !important;
+  }
+  
+  [class*="analytics"] .v-card-title.card-header .v-select {
+    width: 100% !important;
+  }
+  
+  [class*="analytics"] .v-card-title.card-header .v-btn {
+    width: 100% !important;
+  }
+  
+  /* Stats Cards - 2x2 grid on mobile */
+  .stat-card-earnings {
+    border-radius: 12px !important;
+  }
+  
+  .stat-card-earnings .v-card-text {
+    padding: 12px !important;
+  }
+  
+  .stat-card-earnings .v-card-text > .d-flex {
+    flex-direction: column-reverse !important;
+    text-align: center !important;
+    gap: 10px !important;
+  }
+  
+  .stat-card-earnings .v-avatar {
+    width: 40px !important;
+    height: 40px !important;
+    margin: 0 auto !important;
+  }
+  
+  .stat-card-earnings .v-avatar .v-icon {
+    font-size: 20px !important;
+  }
+  
+  .stat-card-earnings .text-h5 {
+    font-size: 1.125rem !important;
+    margin-top: 4px !important;
+  }
+  
+  .stat-card-earnings .text-caption {
+    font-size: 0.6875rem !important;
+  }
+  
+  /* Salary Range Card clickable */
+  .stat-card-earnings.hover-highlight {
+    cursor: pointer;
+  }
+  
+  .stat-card-earnings.hover-highlight:active {
+    transform: scale(0.98);
+    background: rgba(76, 175, 80, 0.08) !important;
+  }
+  
+  /* Earnings Breakdown Card */
+  .earnings-breakdown-item .d-flex {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 8px !important;
+  }
+  
+  .earnings-breakdown-item .text-h6 {
+    font-size: 1.125rem !important;
+  }
+  
+  .earnings-breakdown-item .text-h5 {
+    font-size: 1.25rem !important;
+  }
+  
+  .earnings-breakdown-detail .d-flex {
+    flex-direction: row !important;
+    justify-content: space-between !important;
+  }
+  
+  .earnings-breakdown-detail span {
+    font-size: 0.8125rem !important;
+  }
+  
+  /* Time Tracking Summary */
+  .time-tracking-summary .d-flex.justify-space-between {
+    gap: 12px;
+  }
+  
+  .time-tracking-summary .text-h5 {
+    font-size: 1.125rem !important;
+  }
+  
+  .time-tracking-summary .v-avatar {
+    width: 36px !important;
+    height: 36px !important;
+  }
+  
+  .time-tracking-summary .v-avatar .v-icon {
+    font-size: 18px !important;
+  }
+  
+  /* Earnings Chart Section */
+  .chart-stat {
+    padding: 8px 10px;
+    border-radius: 8px;
+  }
+  
+  .chart-stat .stat-value {
+    font-size: 1rem !important;
+  }
+  
+  .chart-stat .stat-label {
+    font-size: 0.625rem !important;
+  }
+  
+  /* Chart toggle buttons */
+  .v-btn-toggle.v-btn-group--density-default {
+    display: flex !important;
+    width: 100% !important;
+    margin-top: 8px !important;
+  }
+  
+  .v-btn-toggle .v-btn {
+    flex: 1 !important;
+    font-size: 0.75rem !important;
+    padding: 8px 12px !important;
+  }
+  
+  /* Chart container */
+  [style*="height: 250px"] {
+    height: 180px !important;
+  }
+  
+  /* Earnings History Table - Card view on mobile */
+  :deep(.table-no-checkbox) {
+    overflow: visible !important;
+  }
+  
+  :deep(.table-no-checkbox .v-table__wrapper) {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+  
+  :deep(.table-no-checkbox table) {
+    min-width: 500px !important;
+  }
+}
+
+/* =============================================================
+   EARNINGS REPORT - SMALL MOBILE (max-width: 480px)
+   ============================================================= */
+@media (max-width: 480px) {
+  /* ===== EARNINGS STATS 2x2 GRID - VERY COMPACT ===== */
+  .earnings-stats-row {
+    margin-left: -3px !important;
+    margin-right: -3px !important;
+    margin-bottom: 12px !important;
+  }
+  
+  .earnings-stats-row > .v-col {
+    padding: 3px !important;
+  }
+  
+  .earnings-stats-row .stat-card-earnings {
+    border-radius: 10px !important;
+  }
+  
+  .earnings-stats-row .stat-card-earnings .v-card-text {
+    padding: 10px 8px !important;
+  }
+  
+  .earnings-stats-row .stat-card-earnings .v-avatar {
+    width: 32px !important;
+    height: 32px !important;
+  }
+  
+  .earnings-stats-row .stat-card-earnings .v-avatar .v-icon {
+    font-size: 16px !important;
+  }
+  
+  .earnings-stats-row .stat-card-earnings .text-h5 {
+    font-size: 0.875rem !important;
+  }
+  
+  .earnings-stats-row .stat-card-earnings .text-caption {
+    font-size: 0.5625rem !important;
+    line-height: 1.25 !important;
+  }
+  
+  .earnings-stats-row .stat-card-earnings .text-caption .v-icon {
+    font-size: 8px !important;
+  }
+
+  /* ===== EARNINGS OVER TIME CHART WIDGET - SMALL MOBILE ===== */
+  .earnings-chart-card {
+    border-radius: 10px !important;
+  }
+  
+  .earnings-chart-header {
+    padding: 12px !important;
+    gap: 10px !important;
+  }
+  
+  .earnings-chart-header .section-title {
+    font-size: 0.9375rem !important;
+  }
+  
+  .period-toggle {
+    border-radius: 8px !important;
+  }
+  
+  .period-toggle .v-btn {
+    font-size: 0.6875rem !important;
+    padding: 8px 6px !important;
+    min-height: 36px !important;
+  }
+  
+  /* Chart Stats Row - Very Compact */
+  .chart-stats-row {
+    gap: 6px !important;
+    padding: 10px 8px !important;
+    border-radius: 8px !important;
+    margin-bottom: 12px !important;
+  }
+  
+  .chart-stats-row .chart-stat {
+    padding: 6px 2px !important;
+  }
+  
+  .chart-stats-row .chart-stat .stat-value {
+    font-size: 0.875rem !important;
+  }
+  
+  .chart-stats-row .chart-stat .stat-label {
+    font-size: 0.5625rem !important;
+    line-height: 1.2 !important;
+  }
+  
+  /* Chart Container - Very Compact */
+  .chart-container {
+    height: 150px !important;
+    min-height: 120px !important;
+  }
+  
+  .earnings-chart-card .v-card-text {
+    padding: 10px !important;
+  }
+
+  /* Earnings Report Header - very compact */
+  [class*="analytics"] .v-card-title.card-header {
+    padding: 12px !important;
+  }
+  
+  [class*="analytics"] .v-card-title.card-header .section-title {
+    font-size: 1rem !important;
+  }
+  
+  /* Stats Cards - very compact */
+  .stat-card-earnings {
+    border-radius: 10px !important;
+  }
+  
+  .stat-card-earnings .v-card-text {
+    padding: 10px !important;
+  }
+  
+  .stat-card-earnings .text-h5 {
+    font-size: 1rem !important;
+  }
+  
+  .stat-card-earnings .text-caption {
+    font-size: 0.625rem !important;
+    line-height: 1.3 !important;
+  }
+  
+  .stat-card-earnings .v-avatar {
+    width: 36px !important;
+    height: 36px !important;
+  }
+  
+  .stat-card-earnings .v-avatar .v-icon {
+    font-size: 18px !important;
+  }
+  
+  /* Breakdown Cards - very compact */
+  .earnings-breakdown-item .text-h6,
+  .earnings-breakdown-item .font-weight-medium {
+    font-size: 0.9375rem !important;
+  }
+  
+  .earnings-breakdown-item .text-h5 {
+    font-size: 1.125rem !important;
+  }
+  
+  .earnings-breakdown-detail span {
+    font-size: 0.75rem !important;
+  }
+  
+  /* Progress bar */
+  :deep(.v-progress-linear) {
+    height: 6px !important;
+  }
+  
+  /* Time Tracking Summary - very compact */
+  .time-tracking-summary .text-h5 {
+    font-size: 1rem !important;
+  }
+  
+  .time-tracking-summary .text-caption {
+    font-size: 0.6875rem !important;
+  }
+  
+  .time-tracking-summary .v-avatar {
+    width: 32px !important;
+    height: 32px !important;
+  }
+  
+  .time-tracking-summary .v-avatar .v-icon {
+    font-size: 16px !important;
+  }
+  
+  /* Chart section - very compact */
+  .chart-stat {
+    padding: 6px 8px;
+    border-radius: 6px;
+  }
+  
+  .chart-stat .stat-value {
+    font-size: 0.875rem !important;
+  }
+  
+  .chart-stat .stat-label {
+    font-size: 0.5625rem !important;
+  }
+  
+  /* Chart toggle buttons */
+  .v-btn-toggle .v-btn {
+    font-size: 0.6875rem !important;
+    padding: 6px 10px !important;
+    min-height: 32px !important;
+  }
+  
+  /* Chart height */
+  [style*="height: 250px"],
+  [style*="height: 180px"] {
+    height: 150px !important;
+  }
+  
+  /* Card padding - very compact */
+  .v-card-text.pa-6 {
+    padding: 14px !important;
+  }
+  
+  .v-card-title.card-header.pa-6 {
+    padding: 12px 14px !important;
+  }
+  
+  /* Dividers - tighter spacing */
+  :deep(.v-divider.my-4) {
+    margin-top: 12px !important;
+    margin-bottom: 12px !important;
+  }
+  
+  :deep(.v-divider.my-3) {
+    margin-top: 8px !important;
+    margin-bottom: 8px !important;
+  }
+  
+  /* Row spacing */
+  :deep(.v-row.mb-6) {
+    margin-bottom: 16px !important;
+  }
+  
+  /* Column spacing on mobile */
+  :deep(.v-col) {
+    padding: 6px !important;
+  }
+  
+  /* Earnings history table */
+  :deep(.v-data-table) {
+    border-radius: 12px !important;
+    overflow: hidden !important;
+  }
+  
+  :deep(.v-data-table th) {
+    font-size: 0.6875rem !important;
+    padding: 10px 8px !important;
+  }
+  
+  :deep(.v-data-table td) {
+    font-size: 0.75rem !important;
+    padding: 10px 8px !important;
+  }
+  
+  /* Avatar in table */
+  :deep(.v-data-table .v-avatar) {
+    width: 24px !important;
+    height: 24px !important;
+  }
+  
+  :deep(.v-data-table .v-avatar .text-caption) {
+    font-size: 0.5rem !important;
+  }
+  
+  /* Chips in table */
+  :deep(.v-data-table .v-chip) {
+    font-size: 0.625rem !important;
+    height: 20px !important;
+    padding: 0 6px !important;
+  }
+}
+
+/* =============================================================
+   EARNINGS REPORT - LANDSCAPE MOBILE FIX
+   ============================================================= */
+@media (max-height: 500px) and (orientation: landscape) {
+  /* Reduce chart height in landscape */
+  [style*="height: 250px"],
+  [style*="height: 180px"],
+  [style*="height: 150px"] {
+    height: 120px !important;
+  }
+  
+  /* Compact stats cards in landscape */
+  .stat-card-earnings .v-card-text {
+    padding: 8px !important;
+  }
+  
+  .stat-card-earnings .v-avatar {
+    width: 28px !important;
+    height: 28px !important;
+  }
+}
+
+/* =============================================================
+   TOUCH-FRIENDLY IMPROVEMENTS FOR EARNINGS REPORT
+   ============================================================= */
+@media (hover: none) and (pointer: coarse) {
+  /* Larger touch targets */
+  .stat-card-earnings.hover-highlight {
+    min-height: 100px;
+  }
+  
+  .v-btn-toggle .v-btn {
+    min-height: 44px !important;
+  }
+  
+  /* Remove hover effects on touch */
+  .stat-card-earnings:hover {
+    transform: none !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06) !important;
+  }
+  
+  /* Active state for touch */
+  .stat-card-earnings:active,
+  .stat-card-earnings.hover-highlight:active {
+    transform: scale(0.98) !important;
+    background: rgba(16, 185, 129, 0.08) !important;
+  }
 }
 
 </style>

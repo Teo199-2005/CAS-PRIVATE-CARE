@@ -878,8 +878,8 @@
           </v-card>
 
           <!-- Summary Stats Cards -->
-          <v-row class="mb-6">
-            <v-col cols="12" md="3">
+          <v-row class="mb-6 earnings-stats-row">
+            <v-col cols="6" md="3">
               <v-card elevation="0" class="stat-card-earnings">
                 <v-card-text class="pa-4">
                   <div class="d-flex align-center justify-space-between">
@@ -898,7 +898,7 @@
                 </v-card-text>
               </v-card>
             </v-col>
-            <v-col cols="12" md="3">
+            <v-col cols="6" md="3">
               <v-card elevation="0" class="stat-card-earnings">
                 <v-card-text class="pa-4">
                   <div class="d-flex align-center justify-space-between">
@@ -916,7 +916,7 @@
                 </v-card-text>
               </v-card>
             </v-col>
-            <v-col cols="12" md="3">
+            <v-col cols="6" md="3">
               <v-card 
                 elevation="2" 
                 class="stat-card-earnings cursor-pointer hover-highlight"
@@ -944,7 +944,7 @@
                 </v-card-text>
               </v-card>
             </v-col>
-            <v-col cols="12" md="3">
+            <v-col cols="6" md="3">
               <v-card elevation="0" class="stat-card-earnings">
                 <v-card-text class="pa-4">
                   <div class="d-flex align-center justify-space-between">
@@ -5441,6 +5441,102 @@ onBeforeUnmount(() => {
   
   .section-title {
     font-size: 1.1rem !important;
+  }
+  
+  /* ===== EARNINGS STATS 2x2 GRID - MOBILE ===== */
+  .earnings-stats-row {
+    margin-left: -4px !important;
+    margin-right: -4px !important;
+    margin-bottom: 16px !important;
+  }
+  
+  .earnings-stats-row > .v-col {
+    padding: 4px !important;
+  }
+  
+  .earnings-stats-row .stat-card-earnings {
+    height: 100% !important;
+    border-radius: 12px !important;
+  }
+  
+  .earnings-stats-row .stat-card-earnings .v-card-text {
+    padding: 12px !important;
+    height: 100% !important;
+  }
+  
+  .earnings-stats-row .stat-card-earnings .v-card-text > .d-flex {
+    flex-direction: column !important;
+    align-items: center !important;
+    text-align: center !important;
+    gap: 8px !important;
+  }
+  
+  .earnings-stats-row .stat-card-earnings .v-avatar {
+    width: 36px !important;
+    height: 36px !important;
+    order: -1 !important;
+  }
+  
+  .earnings-stats-row .stat-card-earnings .v-avatar .v-icon {
+    font-size: 18px !important;
+  }
+  
+  .earnings-stats-row .stat-card-earnings .text-h5 {
+    font-size: 1rem !important;
+    line-height: 1.2 !important;
+    margin: 4px 0 !important;
+  }
+  
+  .earnings-stats-row .stat-card-earnings .text-caption {
+    font-size: 0.625rem !important;
+    line-height: 1.3 !important;
+  }
+  
+  .earnings-stats-row .stat-card-earnings .text-caption .v-icon {
+    font-size: 10px !important;
+  }
+}
+
+/* ===== EARNINGS STATS 2x2 GRID - SMALL MOBILE ===== */
+@media (max-width: 480px) {
+  .earnings-stats-row {
+    margin-left: -3px !important;
+    margin-right: -3px !important;
+    margin-bottom: 12px !important;
+  }
+  
+  .earnings-stats-row > .v-col {
+    padding: 3px !important;
+  }
+  
+  .earnings-stats-row .stat-card-earnings {
+    border-radius: 10px !important;
+  }
+  
+  .earnings-stats-row .stat-card-earnings .v-card-text {
+    padding: 10px 8px !important;
+  }
+  
+  .earnings-stats-row .stat-card-earnings .v-avatar {
+    width: 32px !important;
+    height: 32px !important;
+  }
+  
+  .earnings-stats-row .stat-card-earnings .v-avatar .v-icon {
+    font-size: 16px !important;
+  }
+  
+  .earnings-stats-row .stat-card-earnings .text-h5 {
+    font-size: 0.875rem !important;
+  }
+  
+  .earnings-stats-row .stat-card-earnings .text-caption {
+    font-size: 0.5625rem !important;
+    line-height: 1.25 !important;
+  }
+  
+  .earnings-stats-row .stat-card-earnings .text-caption .v-icon {
+    font-size: 8px !important;
   }
 }
 

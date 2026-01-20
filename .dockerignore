@@ -1,0 +1,54 @@
+# CAS Private Care - Docker Ignore
+# Files and directories to exclude from Docker builds
+
+# Git
+.git
+.gitignore
+.gitattributes
+
+# Documentation
+*.md
+docs/
+
+# IDE and Editor files
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Node.js
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Testing
+tests/
+.phpunit.result.cache
+phpunit.xml
+coverage/
+
+# Development files
+.env
+.env.*
+!.env.example
+
+# Docker files (not needed inside container)
+docker-compose*.yml
+Dockerfile*
+.dockerignore
+
+# Build artifacts
+*.log
+
+# Storage (will be mounted as volume)
+storage/logs/*
+storage/framework/cache/*
+storage/framework/sessions/*
+storage/framework/views/*
+
+# Misc
+.editorconfig
+.styleci.yml
+.php-cs-fixer.cache

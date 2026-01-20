@@ -457,23 +457,23 @@
             background: #f8fafc;
         }
 
-        /* Mobile Menu Dropdown */
+        /* Mobile Menu Dropdown - 2x2 Grid Layout */
         .nav-links {
             display: none;
             position: fixed;
             top: 70px;
             left: 0;
             right: 0;
-            background: white;
-            flex-direction: column;
-            padding: 1rem;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+            background: #1a2e44;
+            padding: 0.75rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
             max-height: calc(100vh - 70px);
             overflow-y: auto;
             z-index: 999;
-            gap: 0.5rem;
-            align-items: stretch;
             animation: slideDown 0.3s ease;
+            /* 2x2 Grid Layout */
+            flex-wrap: wrap;
+            gap: 0.5rem;
         }
 
         @keyframes slideDown {
@@ -492,59 +492,94 @@
         }
 
         .nav-links li {
+            width: calc(50% - 0.25rem);
+            flex-shrink: 0;
+        }
+
+        /* Make Register button full width at bottom */
+        .nav-links li:last-child {
             width: 100%;
+            margin-top: 0.25rem;
         }
 
         .nav-links a {
             display: flex;
             align-items: center;
-            justify-content: space-between;
-            padding: 1rem 1.25rem;
+            justify-content: center;
+            text-align: center;
+            padding: 0.75rem 0.5rem;
             width: 100%;
-            font-size: 1rem;
-            border-radius: 10px;
-            background: transparent;
+            font-size: 0.85rem;
+            border-radius: 8px;
+            background: #1e3a5f;
+            border: 1px solid #2d4a6f;
             transition: all 0.2s ease;
-            min-height: 52px;
+            min-height: 44px;
+            font-weight: 500;
+            color: white !important;
+        }
+
+        .nav-links a:hover {
+            background: #2d4a6f;
+            border-color: #3b82f6;
         }
 
         .nav-links a:active {
-            background: rgba(59, 130, 246, 0.1);
+            background: #3b5998;
             transform: scale(0.98);
         }
 
+        /* Hide the chevron icon on mobile for cleaner look */
+        .nav-links .dropdown-toggle i {
+            display: none;
+        }
+
         .dropdown-menu {
-            position: static;
+            position: fixed;
+            top: auto;
+            left: 0.75rem;
+            right: 0.75rem;
             opacity: 1;
             visibility: visible;
             transform: none;
-            box-shadow: none;
-            padding: 0.5rem 0;
-            margin-top: 0.5rem;
-            margin-left: 1rem;
-            background: #f8fafc;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+            padding: 0.5rem;
+            margin-top: 0;
+            margin-left: 0;
+            background: #1e3a5f;
             border-radius: 10px;
-            border: 2px solid #e5e7eb;
-            display: none; /* Hidden by default on mobile */
+            border: 2px solid #2d4a6f;
+            display: none;
+            z-index: 1000;
         }
 
         /* Show dropdown when parent has 'open' class */
         .dropdown.open .dropdown-menu {
-            display: block !important;
+            display: flex !important;
+            flex-wrap: wrap;
+            gap: 0.5rem;
         }
 
         .dropdown-menu a {
-            padding: 0.875rem 1.25rem;
-            min-height: 48px;
+            width: calc(50% - 0.25rem);
+            padding: 0.75rem 0.5rem;
+            min-height: 44px;
+            text-align: center;
+            justify-content: center;
+            background: #2d4a6f !important;
+            color: white !important;
         }
 
         .cta-btn {
             margin-left: 0 !important;
             width: 100%;
             justify-content: center;
-            font-size: 1.05rem !important;
-            padding: 1rem 1.5rem !important;
+            font-size: 0.95rem !important;
+            padding: 0.875rem 1rem !important;
             box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+            background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%) !important;
+            color: white !important;
+            border: none !important;
         }
 
         /* Footer Mobile Styles */
@@ -777,7 +812,7 @@
         }
 
         .nav-container {
-            padding: 0 0.875rem;
+            padding: 0 0.75rem;
         }
 
         .logo-section img {
@@ -790,21 +825,46 @@
             font-size: 1.5rem;
         }
 
+        /* 2x2 Grid - more compact on smaller screens */
         .nav-links {
             top: 64px;
             max-height: calc(100vh - 64px);
-            padding: 0.875rem;
+            padding: 0.5rem;
+            gap: 0.375rem;
+        }
+
+        .nav-links li {
+            width: calc(50% - 0.1875rem);
+        }
+
+        .nav-links li:last-child {
+            width: 100%;
+            margin-top: 0.125rem;
         }
 
         .nav-links a {
-            padding: 0.875rem 1rem;
-            font-size: 0.95rem;
-            min-height: 48px;
+            padding: 0.625rem 0.375rem;
+            font-size: 0.75rem;
+            min-height: 40px;
+            border-radius: 6px;
+        }
+
+        .dropdown-menu {
+            left: 0.5rem;
+            right: 0.5rem;
+            padding: 0.375rem;
+            gap: 0.375rem;
+        }
+
+        .dropdown-menu a {
+            padding: 0.625rem 0.375rem;
+            font-size: 0.75rem;
+            min-height: 40px;
         }
 
         .cta-btn {
-            font-size: 1rem !important;
-            padding: 0.875rem 1.25rem !important;
+            font-size: 0.875rem !important;
+            padding: 0.75rem 1rem !important;
         }
 
         /* Compact footer on very small screens */
