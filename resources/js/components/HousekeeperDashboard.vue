@@ -5488,12 +5488,12 @@ onBeforeUnmount(() => {
   }
   
   .earnings-stats-row .stat-card-earnings .text-caption {
-    font-size: 0.625rem !important;
+    font-size: 0.6875rem !important;
     line-height: 1.3 !important;
   }
   
   .earnings-stats-row .stat-card-earnings .text-caption .v-icon {
-    font-size: 10px !important;
+    font-size: 11px !important;
   }
 }
 
@@ -5531,12 +5531,12 @@ onBeforeUnmount(() => {
   }
   
   .earnings-stats-row .stat-card-earnings .text-caption {
-    font-size: 0.5625rem !important;
+    font-size: 0.6875rem !important;
     line-height: 1.25 !important;
   }
   
   .earnings-stats-row .stat-card-earnings .text-caption .v-icon {
-    font-size: 8px !important;
+    font-size: 11px !important;
   }
 }
 

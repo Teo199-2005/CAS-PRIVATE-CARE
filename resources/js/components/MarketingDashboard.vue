@@ -132,12 +132,53 @@
             </v-card-text>
           </v-card>
           
-          <v-card class="earning-container" elevation="0">
+          <!-- Referral Code & Link Card -->
+          <v-card class="earning-container referral-card" elevation="0">
             <v-card-text class="pa-3">
-              <div class="referral-label mb-2">My Referral Code</div>
-              <div class="referral-code-box">
+              <div class="referral-label mb-2">
+                <v-icon size="16" class="mr-1">mdi-link-variant</v-icon>
+                My Referral Code
+              </div>
+              <div class="referral-code-box mb-3">
                 <div class="referral-code">{{ referralCode }}</div>
-                <v-btn icon="mdi-content-copy" size="small" variant="text" @click="copyReferralCode" class="copy-btn"></v-btn>
+                <v-btn icon="mdi-content-copy" size="small" variant="text" @click="copyReferralCode" class="copy-btn" title="Copy Code"></v-btn>
+              </div>
+              
+              <!-- Full Referral Link -->
+              <div class="referral-link-section">
+                <div class="referral-link-label mb-1">
+                  <v-icon size="14" class="mr-1">mdi-share-variant</v-icon>
+                  Shareable Link
+                </div>
+                <div class="referral-link-box">
+                  <div class="referral-link-text">{{ referralLink }}</div>
+                  <v-btn icon="mdi-content-copy" size="x-small" variant="text" @click="copyReferralLink" class="copy-btn-small" title="Copy Link"></v-btn>
+                </div>
+              </div>
+              
+              <!-- Quick Share Buttons -->
+              <div class="share-buttons mt-3">
+                <v-btn size="x-small" color="success" variant="tonal" @click="shareViaWhatsApp" class="mr-1">
+                  <v-icon size="14">mdi-whatsapp</v-icon>
+                </v-btn>
+                <v-btn size="x-small" color="info" variant="tonal" @click="shareViaEmail" class="mr-1">
+                  <v-icon size="14">mdi-email</v-icon>
+                </v-btn>
+                <v-btn size="x-small" color="primary" variant="tonal" @click="shareViaSMS">
+                  <v-icon size="14">mdi-message-text</v-icon>
+                </v-btn>
+              </div>
+              
+              <!-- Stats -->
+              <div class="referral-stats mt-3 pt-2" style="border-top: 1px solid #e5e7eb;">
+                <div class="d-flex justify-space-between text-caption">
+                  <span class="text-grey">Times Used:</span>
+                  <span class="font-weight-bold">{{ referralCodeStats.usageCount }}</span>
+                </div>
+                <div class="d-flex justify-space-between text-caption">
+                  <span class="text-grey">Total Earned:</span>
+                  <span class="font-weight-bold" style="color: #616161;">${{ referralCodeStats.totalEarned }}</span>
+                </div>
               </div>
             </v-card-text>
           </v-card>
@@ -752,8 +793,16 @@ const referralCode = ref('Loading...');
 const referralCodeStats = ref({
   discount_per_hour: 5.00,
   commission_per_hour: 1.00,
-  usage_count: 0,
-  total_commission_earned: 0,
+  usageCount: 0,
+  totalEarned: '0.00',
+});
+
+// Computed property for the full referral link
+const referralLink = computed(() => {
+  if (referralCode.value && referralCode.value !== 'Loading...' && referralCode.value !== 'Not Generated' && referralCode.value !== 'Contact Admin') {
+    return `${window.location.origin}/book?ref=${referralCode.value}`;
+  }
+  return 'Generating...';
 });
 
 // Load referral code from API
@@ -766,8 +815,8 @@ const loadReferralCode = async () => {
       referralCodeStats.value = {
         discount_per_hour: parseFloat(data.data.discount_per_hour) || 5.00,
         commission_per_hour: parseFloat(data.data.commission_per_hour) || 1.00,
-        usage_count: data.data.usage_count || 0,
-        total_commission_earned: parseFloat(data.data.total_commission_earned) || 0,
+        usageCount: data.data.usage_count || 0,
+        totalEarned: parseFloat(data.data.total_commission_earned || 0).toFixed(2),
       };
     } else {
       // No referral code found - set to "Not Generated"
@@ -996,6 +1045,31 @@ const saveClient = () => {
 const copyReferralCode = () => {
   navigator.clipboard.writeText(referralCode.value);
   success('Referral code copied to clipboard!', 'Code Copied');
+};
+
+// Copy the full referral link
+const copyReferralLink = () => {
+  navigator.clipboard.writeText(referralLink.value);
+  success('Referral link copied to clipboard!', 'Link Copied');
+};
+
+// Share via WhatsApp
+const shareViaWhatsApp = () => {
+  const message = encodeURIComponent(`Book professional caregiving services with CAS Private Care! Use my referral link to get $5/hour discount: ${referralLink.value}`);
+  window.open(`https://wa.me/?text=${message}`, '_blank');
+};
+
+// Share via Email
+const shareViaEmail = () => {
+  const subject = encodeURIComponent('Professional Caregiving Services - CAS Private Care');
+  const body = encodeURIComponent(`Hi,\n\nI'd like to recommend CAS Private Care for professional caregiving services in New York.\n\nUse my referral link to get $5/hour discount on your first booking:\n${referralLink.value}\n\nThey offer verified caregivers, housekeeping services, and more!\n\nBest regards`);
+  window.open(`mailto:?subject=${subject}&body=${body}`, '_blank');
+};
+
+// Share via SMS
+const shareViaSMS = () => {
+  const message = encodeURIComponent(`Get $5/hour off caregiving services with CAS Private Care! Use my link: ${referralLink.value}`);
+  window.open(`sms:?body=${message}`, '_blank');
 };
 
 // ZIP Code to City/State lookup mapping for NY
@@ -1592,6 +1666,65 @@ onMounted(() => {
 
 .copy-btn:hover {
   color: #424242 !important;
+}
+
+/* Referral Link Styles */
+.referral-card {
+  background: linear-gradient(135deg, #fafafa 0%, #f5f5f5 100%) !important;
+}
+
+.referral-link-section {
+  background: #ffffff;
+  border-radius: 8px;
+  padding: 12px;
+  border: 1px dashed #bdbdbd;
+}
+
+.referral-link-label {
+  font-size: 0.7rem;
+  color: #757575;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+}
+
+.referral-link-box {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #e8e8e8;
+  border-radius: 6px;
+  padding: 8px 12px;
+}
+
+.referral-link-text {
+  font-size: 0.75rem;
+  color: #424242;
+  font-family: 'Courier New', monospace;
+  word-break: break-all;
+  flex: 1;
+  margin-right: 8px;
+}
+
+.copy-btn-small {
+  color: #757575 !important;
+  min-width: 28px !important;
+  height: 28px !important;
+}
+
+.copy-btn-small:hover {
+  color: #424242 !important;
+  background: rgba(0, 0, 0, 0.05) !important;
+}
+
+.share-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+}
+
+.referral-stats {
+  font-size: 0.75rem;
 }
 
 .earning-container {

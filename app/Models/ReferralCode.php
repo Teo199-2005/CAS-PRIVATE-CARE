@@ -43,17 +43,44 @@ class ReferralCode extends Model
     }
 
     /**
-     * Generate a unique referral code for a user
+     * Generate a unique referral code for a marketing user
+     * Format: LASTNAME + 4 random digits (e.g., SMITH1234)
      */
-    public static function generateCode($userId)
+    public static function generateCode($userId, $lastName = null)
     {
-        $prefix = 'STAFF';
-        $code = $prefix . '-' . str_pad($userId, 3, '0', STR_PAD_LEFT);
+        // Get the user's last name if not provided
+        if (!$lastName) {
+            $user = \App\Models\User::find($userId);
+            if ($user && $user->name) {
+                // Extract last name from full name
+                $nameParts = explode(' ', trim($user->name));
+                $lastName = count($nameParts) > 1 ? end($nameParts) : $nameParts[0];
+            }
+        }
         
-        // Check if code exists, if so add random suffix
-        $existingCode = self::where('code', $code)->first();
-        if ($existingCode) {
-            $code = $prefix . '-' . strtoupper(substr(md5(uniqid()), 0, 6));
+        // Clean the last name: remove special characters, convert to uppercase
+        $cleanLastName = strtoupper(preg_replace('/[^a-zA-Z]/', '', $lastName ?? 'STAFF'));
+        
+        // Limit last name to 10 characters max
+        $cleanLastName = substr($cleanLastName, 0, 10);
+        
+        // Generate 4 random digits
+        $randomDigits = str_pad(rand(0, 9999), 4, '0', STR_PAD_LEFT);
+        
+        // Create the code
+        $code = $cleanLastName . $randomDigits;
+        
+        // Ensure uniqueness - if code exists, regenerate with different digits
+        $attempts = 0;
+        while (self::where('code', $code)->exists() && $attempts < 10) {
+            $randomDigits = str_pad(rand(0, 9999), 4, '0', STR_PAD_LEFT);
+            $code = $cleanLastName . $randomDigits;
+            $attempts++;
+        }
+        
+        // If still not unique after 10 attempts, add extra random characters
+        if (self::where('code', $code)->exists()) {
+            $code = $cleanLastName . $randomDigits . strtoupper(substr(md5(uniqid()), 0, 2));
         }
         
         return $code;

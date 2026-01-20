@@ -167,9 +167,10 @@ class AuthController extends Controller
             ]);
         } elseif ($validated['user_type'] === 'marketing') {
             // Create referral code for marketing partners (inactive until approved)
+            // Format: LASTNAME + 4 random digits (e.g., SMITH1234)
             \App\Models\ReferralCode::create([
                 'user_id' => $user->id,
-                'code' => \App\Models\ReferralCode::generateCode($user->id),
+                'code' => \App\Models\ReferralCode::generateCode($user->id, $validated['last_name']),
                 'discount_per_hour' => 5.00,
                 'commission_per_hour' => 1.00,
                 'is_active' => false, // Will be activated when approved

@@ -279,7 +279,7 @@
         }
 
         .brand-name {
-            font-family: 'Montserrat', sans-serif;
+            font-family: 'Plus Jakarta Sans', sans-serif;
             font-size: 1.75rem;
             font-weight: 800;
             background: linear-gradient(135deg, #0B4FA2 0%, #0E63B6 100%);
