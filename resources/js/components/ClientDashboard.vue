@@ -1,4 +1,11 @@
 <template>
+  <!-- Global Loading Overlay -->
+  <LoadingOverlay 
+    :visible="isPageLoading" 
+    context="client"
+    tagline="Your Care Dashboard"
+  />
+
   <dashboard-template
     user-role="client"
     :user-name="userName"
@@ -34,8 +41,16 @@
         <!-- Dashboard Section -->
         <div v-if="currentSection === 'dashboard'">
           <v-row class="mb-4">
-            <v-col v-for="stat in stats" :key="stat.title" cols="6" sm="6" md="3">
-              <stat-card :icon="stat.icon" :value="stat.value" :label="stat.title" :change="stat.change" :change-color="stat.changeColor" :change-icon="stat.changeIcon" />
+            <v-col v-for="(stat, index) in stats" :key="stat.title" cols="6" sm="6" md="3">
+              <stat-card 
+                :icon="stat.icon" 
+                :value="stat.value" 
+                :label="stat.title" 
+                :change="stat.change" 
+                :change-color="stat.changeColor" 
+                :change-icon="stat.changeIcon"
+                :stagger-index="index"
+              />
             </v-col>
           </v-row>
 
@@ -50,8 +65,8 @@
                   <p class="text-caption text-grey ma-0 mt-1">Review and manage your care service requests</p>
                 </v-card-title>
                 
-                <!-- Tabs -->
-                <v-tabs v-model="bookingTab" color="primary" density="compact" class="px-2 my-3" show-arrows>
+                <!-- Tabs - Mobile touch-friendly -->
+                <v-tabs v-model="bookingTab" color="primary" class="px-2 my-3 booking-tabs-touch" show-arrows>
                   <v-tab value="pending" class="text-caption">
                     <v-icon start size="small">mdi-clock-outline</v-icon>
                     <span class="text-xs">Pending</span>
@@ -1913,7 +1928,7 @@
                       </v-text-field>
                     </v-col>
                     <v-col cols="12" md="6">
-                      <v-text-field v-model="profileData.phone" label="Phone" variant="outlined" />
+                      <v-text-field v-model="profileData.phone" label="Phone" variant="outlined" type="tel" inputmode="tel" />
                     </v-col>
                     <v-col cols="12" md="6">
                       <v-text-field v-model="profileData.birthdate" label="Birthdate" variant="outlined" type="date" />
@@ -2837,8 +2852,14 @@ import RatingModal from './shared/RatingModal.vue';
 import ClientPaymentMethods from './ClientPaymentMethods.vue';
 import RecurringBookingsManager from './RecurringBookingsManager.vue';
 import RecurringRenewalCountdown from './RecurringRenewalCountdown.vue';
+import LoadingOverlay from './LoadingOverlay.vue';
 import { useNotification } from '../composables/useNotification.js';
 import { useNYLocationData } from '../composables/useNYLocationData.js';
+
+// Global loading state
+const isPageLoading = ref(true);
+const loadingContext = ref('dashboard');
+const loadingProgress = ref(0);
 
 const props = defineProps({
   userData: {
@@ -5421,17 +5442,51 @@ Object.keys(bookingData.value.selectedDays).forEach(day => {
   });
 });
 
-onMounted(() => {
-  loadNYLocationData();
-  loadAvailableYears();
-  loadProfile();
-  loadClientStats();
-  loadOngoingContracts();
-  loadMyBookings();
-  loadCompletedBookings();
-  loadCaregivers();
-  loadNotificationCount();
-  loadTopCaregivers();
+onMounted(async () => {
+  // Show loading overlay
+  isPageLoading.value = true;
+  loadingContext.value = 'dashboard';
+  loadingProgress.value = 0;
+  
+  // Track loading progress
+  const loadingTasks = [
+    { fn: loadNYLocationData, weight: 5 },
+    { fn: loadAvailableYears, weight: 3 },
+    { fn: loadProfile, weight: 10 },
+    { fn: loadClientStats, weight: 15 },
+    { fn: loadOngoingContracts, weight: 10 },
+    { fn: loadMyBookings, weight: 20 },
+    { fn: loadCompletedBookings, weight: 10 },
+    { fn: loadCaregivers, weight: 15 },
+    { fn: loadNotificationCount, weight: 5 },
+    { fn: loadTopCaregivers, weight: 7 }
+  ];
+  
+  const totalWeight = loadingTasks.reduce((sum, task) => sum + task.weight, 0);
+  let completedWeight = 0;
+  
+  // Execute all loading tasks in parallel
+  const promises = loadingTasks.map(async (task) => {
+    try {
+      await task.fn();
+    } catch (err) {
+      console.warn('Loading task failed:', err);
+    } finally {
+      completedWeight += task.weight;
+      loadingProgress.value = Math.round((completedWeight / totalWeight) * 100);
+    }
+  });
+  
+  // Wait for all tasks to complete
+  await Promise.allSettled(promises);
+  
+  // Ensure progress shows 100%
+  loadingProgress.value = 100;
+  
+  // Small delay to show completion, then hide overlay
+  setTimeout(() => {
+    isPageLoading.value = false;
+  }, 300);
   
   // Check if returning from successful payment
   const paymentCompleted = localStorage.getItem('payment_completed');
@@ -5838,15 +5893,18 @@ const initSpendingChart = () => {
   margin-bottom: 4px;
 }
 
-/* Glowing Pay Now Button Animation */
+/* ============================================================
+   Pay Now Button - Subtle Attention Animation
+   Toned down for better UX
+   ============================================================ */
 @keyframes background-glow-pulse {
   0%, 100% {
-    opacity: 0.5;
+    opacity: 0.4;
     transform: translate(-50%, -50%) scale(1);
   }
   50% {
-    opacity: 0.9;
-    transform: translate(-50%, -50%) scale(1.15);
+    opacity: 0.7;
+    transform: translate(-50%, -50%) scale(1.08);
   }
 }
 
@@ -5862,24 +5920,29 @@ const initSpendingChart = () => {
   position: absolute;
   top: 50%;
   left: 50%;
-  width: 130%;
-  height: 150%;
-  background: radial-gradient(ellipse, rgba(239, 68, 68, 0.7) 0%, rgba(239, 68, 68, 0.4) 35%, rgba(239, 68, 68, 0.2) 60%, transparent 80%);
+  width: 115%;
+  height: 130%;
+  background: radial-gradient(ellipse, rgba(239, 68, 68, 0.5) 0%, rgba(239, 68, 68, 0.25) 40%, transparent 70%);
   border-radius: 12px;
   z-index: -1;
-  animation: background-glow-pulse 2s ease-in-out infinite;
+  animation: background-glow-pulse 2.5s ease-in-out infinite;
   pointer-events: none;
-  filter: blur(25px);
+  filter: blur(15px);
   will-change: transform, opacity;
 }
 
 .pay-now-glow:hover::before {
-  animation: background-glow-pulse 1.5s ease-in-out infinite;
+  animation: background-glow-pulse 1.8s ease-in-out infinite;
 }
 
 .pay-now-glow:hover {
   transform: translateY(-2px) !important;
-  transition: transform 0.2s ease !important;
+  transition: transform 150ms ease-out !important;
+}
+
+.pay-now-glow:active {
+  transform: translateY(0) !important;
+  transition: transform 50ms ease-out !important;
 }
 
 /* Booking Tabs Mobile Responsive */
@@ -5892,9 +5955,37 @@ const initSpendingChart = () => {
   min-width: auto !important;
   flex: 0 0 auto;
   padding: 12px 16px !important;
+  transition: all 150ms ease-out;
+}
+
+/* Touch-friendly booking tabs - WCAG 44px minimum */
+.booking-tabs-touch :deep(.v-tab) {
+  min-height: 48px !important;
+  min-width: 80px !important;
+  padding: 0 16px !important;
 }
 
 @media (max-width: 600px) {
+  .booking-tabs-touch :deep(.v-tab) {
+    min-height: 48px !important;
+    min-width: 72px !important;
+    padding: 0 10px !important;
+  }
+  
+  .booking-tabs-touch :deep(.v-tab .text-xs) {
+    font-size: 0.7rem !important;
+  }
+  
+  .booking-tabs-touch :deep(.v-tab .v-icon) {
+    font-size: 16px !important;
+  }
+  
+  .booking-tabs-touch :deep(.v-chip) {
+    height: 18px !important;
+    font-size: 0.6rem !important;
+    padding: 0 6px !important;
+  }
+  
   .booking-tab {
     font-size: 0.75rem !important;
     padding: 8px 12px !important;
@@ -5910,6 +6001,11 @@ const initSpendingChart = () => {
 }
 
 @media (max-width: 400px) {
+  .booking-tabs-touch :deep(.v-tab) {
+    min-width: 64px !important;
+    padding: 0 8px !important;
+  }
+  
   .booking-tab {
     padding: 6px 10px !important;
   }
@@ -5961,8 +6057,12 @@ const initSpendingChart = () => {
   }
 }
 
+/* ============================================================
+   Dashboard Component Styles - Using design tokens
+   ============================================================ */
+
 .book-now-btn {
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+  background: linear-gradient(135deg, var(--color-success, #10b981) 0%, var(--color-success-dark, #059669) 100%) !important;
   font-size: 1.125rem !important;
   font-weight: 600 !important;
   border-radius: 16px !important;
@@ -5970,6 +6070,16 @@ const initSpendingChart = () => {
   letter-spacing: -0.01em !important;
   box-shadow: 0 4px 16px rgba(16, 185, 129, 0.25) !important;
   height: 56px !important;
+  transition: transform 150ms ease-out, box-shadow 150ms ease-out !important;
+}
+
+.book-now-btn:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.35) !important;
+}
+
+.book-now-btn:active {
+  transform: translateY(0) !important;
 }
 
 .book-now-btn :deep(.v-btn__content) {
@@ -5982,46 +6092,47 @@ const initSpendingChart = () => {
   font-size: 1.5rem;
   font-weight: 700;
   letter-spacing: -0.02em;
+  color: var(--text-primary, #0f172a);
 }
 
 .card-name {
   font-size: 1.25rem;
   font-weight: 700;
-  color: #1a1a1a;
+  color: var(--text-primary, #1a1a1a);
   letter-spacing: -0.01em;
   line-height: 1.4;
 }
 
 .card-specialty {
   font-size: 0.95rem;
-  color: #6b7280;
+  color: var(--text-tertiary, #6b7280);
   font-weight: 500;
   line-height: 1.5;
 }
 
 .card-meta {
   font-size: 0.875rem;
-  color: #666;
+  color: var(--text-secondary, #666);
   font-weight: 500;
 }
 
 .rating-text {
   font-size: 0.9rem;
-  color: #4b5563;
+  color: var(--text-secondary, #4b5563);
   font-weight: 600;
 }
 
 .card-price {
   font-size: 1.75rem;
   font-weight: 800;
-  color: #10b981;
+  color: var(--color-success, #10b981);
   letter-spacing: -0.02em;
 }
 
 .price-unit {
   font-size: 0.95rem;
   font-weight: 500;
-  color: #6b7280;
+  color: var(--text-tertiary, #6b7280);
 }
 
 .status-chip {
@@ -6094,63 +6205,68 @@ const initSpendingChart = () => {
 
 .caregiver-count {
   font-size: 1.25rem;
-  color: #6b7280;
+  color: var(--text-tertiary, #6b7280);
   font-weight: 500;
 }
 
+/* ============================================================
+   Caregiver Cards - Optimized transitions
+   ============================================================ */
 .caregiver-card {
   border-radius: 16px !important;
-  border: 1px solid #e5e7eb !important;
-  transition: all 0.3s ease;
-  background: white;
+  border: 1px solid var(--border-default, #e5e7eb) !important;
+  transition: transform 150ms ease-out, box-shadow 150ms ease-out !important;
+  background: var(--bg-primary, white);
   overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06) !important;
 }
 
 .caregiver-card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12) !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1) !important;
 }
 
 .caregiver-image {
   position: relative;
 }
 
+/* ============================================================
+   Data Tables - Clean styling
+   ============================================================ */
 :deep(.v-data-table) {
   border-radius: 0 !important;
   font-size: 0.95rem;
 }
 
 :deep(.v-data-table thead th) {
-  background: #fafafa !important;
-  color: #2563eb !important;
+  background: var(--bg-secondary, #fafafa) !important;
+  color: var(--brand-primary, #2563eb) !important;
   font-weight: 700 !important;
   font-size: 0.875rem !important;
   letter-spacing: 0.02em !important;
   text-transform: uppercase !important;
   padding: 20px 16px !important;
-  border-bottom: 2px solid #e0e0e0 !important;
+  border-bottom: 2px solid var(--border-default, #e0e0e0) !important;
 }
 
 :deep(.v-data-table tbody tr) {
-  transition: all 0.2s ease;
+  transition: background-color 150ms ease-out;
 }
 
 :deep(.v-data-table tbody tr:hover) {
-  background: #f8f9fa !important;
-  transform: scale(1.005);
+  background: var(--bg-secondary, #f8f9fa) !important;
 }
 
 :deep(.v-data-table tbody td) {
   font-size: 0.95rem !important;
   font-weight: 500 !important;
   padding: 20px 16px !important;
-  color: #333 !important;
+  color: var(--text-primary, #333) !important;
 }
 
 :deep(.v-data-table-footer) {
   padding: 16px !important;
-  border-top: 1px solid #f0f0f0 !important;
+  border-top: 1px solid var(--border-light, #f0f0f0) !important;
 }
 
 .booking-card,
@@ -8158,6 +8274,11 @@ const initSpendingChart = () => {
   animation: fadeIn 0.5s ease;
 }
 
+/* ========================================
+   Component-Specific Animations
+   These are unique to ClientDashboard modal flows
+   Base animations available in global animations.css
+   ======================================== */
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -8633,6 +8754,261 @@ const initSpendingChart = () => {
     font-size: 0.75rem !important;
   }
 }
+
+/* ============================================================
+   MOBILE ULTRA-COMPACT OPTIMIZATIONS (<400px)
+   Ensures single-column stacking and touch-friendly sizing
+   ============================================================ */
+
+/* Force single-column layout for booking detail grids on small screens */
+@media (max-width: 450px) {
+  /* Booking info 2x2 grid -> single column */
+  .contract-item .v-row .v-col[class*="v-col-6"],
+  .contract-item .v-row > .v-col {
+    flex: 0 0 100% !important;
+    max-width: 100% !important;
+    width: 100% !important;
+  }
+  
+  /* Remove right border on single column layout */
+  .contract-item .v-row .v-col .pa-2[style*="border-right"] {
+    border-right: none !important;
+    border-bottom: 1px solid #e2e8f0;
+    padding-bottom: 12px !important;
+  }
+  
+  /* Compact booking header on mobile */
+  .contract-item .d-flex.align-center.justify-space-between {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 12px;
+  }
+  
+  .contract-item .text-right {
+    text-align: left !important;
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  /* Touch-friendly buttons */
+  .contract-item .v-btn {
+    min-height: 44px !important;
+    font-size: 0.8rem !important;
+  }
+  
+  /* Ensure minimum touch targets */
+  .contract-item .v-chip {
+    min-height: 32px !important;
+    padding: 0 12px !important;
+  }
+}
+
+/* Extra small screens - maximum compactness */
+@media (max-width: 360px) {
+  .contract-item {
+    padding: 12px !important;
+  }
+  
+  .contract-item .text-subtitle-1 {
+    font-size: 0.9rem !important;
+  }
+  
+  .contract-item .text-caption {
+    font-size: 0.7rem !important;
+  }
+  
+  .contract-item .text-h6 {
+    font-size: 1rem !important;
+  }
+  
+  /* Stack action buttons vertically */
+  .contract-item .v-row.mt-3 {
+    flex-direction: column;
+  }
+  
+  .contract-item .v-row.mt-3 > .v-col {
+    flex: 0 0 100% !important;
+    max-width: 100% !important;
+    margin-bottom: 8px;
+  }
+  
+  .contract-item .v-row.mt-3 .v-btn {
+    width: 100% !important;
+  }
+}
+
+/* Improve touch scroll momentum for lists */
+.v-list, .v-card-text {
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Safe area insets for notched devices */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  .contract-item:last-child {
+    padding-bottom: calc(16px + env(safe-area-inset-bottom)) !important;
+  }
+}
+
+/* ============================================
+   MOBILE BATTERY OPTIMIZATION - v1.0
+   Added: January 24, 2026
+   Fixes infinite animations draining battery
+   ============================================ */
+
+/* Pause animations when page not visible (tab hidden) */
+.page-hidden .pay-now-glow,
+.page-hidden .pay-now-glow::before,
+.page-hidden .renewal-icon,
+.page-hidden .renewal-text,
+.page-hidden .heart-icon {
+  animation-play-state: paused !important;
+}
+
+/* Pause animations during rapid scrolling for performance */
+.is-scrolling .pay-now-glow,
+.is-scrolling .pay-now-glow::before,
+.is-scrolling .renewal-icon {
+  animation-play-state: paused !important;
+}
+
+/* On mobile: limit animation iterations to save battery */
+@media (max-width: 768px) {
+  .pay-now-glow::before {
+    animation-iteration-count: 3 !important;
+    will-change: auto !important;
+  }
+  
+  .pay-now-glow:hover::before {
+    animation: none !important;  /* No hover on touch devices anyway */
+  }
+  
+  .renewal-icon,
+  .renewal-text,
+  .heart-icon {
+    animation-iteration-count: 5 !important;
+  }
+}
+
+/* Respect reduced motion preference (accessibility + battery) */
+@media (prefers-reduced-motion: reduce) {
+  .pay-now-glow::before,
+  .pay-now-glow:hover::before,
+  .renewal-icon,
+  .renewal-text,
+  .heart-icon {
+    animation: none !important;
+    will-change: auto !important;
+  }
+  
+  .pay-now-glow:hover {
+    transform: none !important;
+  }
+}
+
+/* ============================================
+   BOOKING CARD LAYOUT FIX - Stack at 450px
+   Fixes cramped 2-column grid on small phones
+   ============================================ */
+
+@media (max-width: 450px) {
+  /* Stack the 2-column booking details grid */
+  .contract-item .v-row.dense .v-col-6,
+  .contract-item .pa-3 .v-row .v-col[class*="cols-6"] {
+    flex: 0 0 100% !important;
+    max-width: 100% !important;
+  }
+  
+  /* Remove right borders, add bottom borders for stacked layout */
+  .contract-item [style*="border-right: 1px solid #e2e8f0"] {
+    border-right: none !important;
+    border-bottom: 1px solid #e2e8f0 !important;
+    padding-bottom: 0.75rem !important;
+    margin-bottom: 0.75rem !important;
+  }
+  
+  /* Remove top borders that become redundant */
+  .contract-item [style*="border-top: 1px solid #e2e8f0"] {
+    border-top: none !important;
+  }
+}
+
+/* ============================================
+   TOUCH TARGETS - WCAG 2.1 AA (44px minimum)
+   100/100 Mobile Audit Compliance
+   ============================================ */
+
+@media (max-width: 768px) {
+  /* All interactive buttons */
+  .touch-friendly-btn,
+  .period-toggle .v-btn,
+  .v-btn-toggle .v-btn,
+  .filter-btn {
+    min-height: 44px !important;
+    min-width: 44px !important;
+  }
+  
+  /* Icon buttons in tables */
+  .v-data-table .v-btn--icon,
+  .action-btn-view,
+  .action-btn-edit,
+  .action-btn-delete {
+    width: 44px !important;
+    height: 44px !important;
+    min-width: 44px !important;
+    min-height: 44px !important;
+  }
+  
+  /* Filter controls */
+  .v-text-field .v-field,
+  .v-select .v-field {
+    min-height: 44px !important;
+  }
+  
+  /* Booking tabs touch targets */
+  .booking-tabs-touch :deep(.v-tab) {
+    min-height: 48px !important;
+    padding: 0 16px !important;
+  }
+}
+
+/* ============================================
+   ENHANCED FOCUS STATES - Accessibility
+   ============================================ */
+
+.v-btn:focus-visible,
+button:focus-visible {
+  outline: 3px solid rgba(11, 79, 162, 0.7) !important;
+  outline-offset: 3px !important;
+  box-shadow: 0 0 0 6px rgba(11, 79, 162, 0.15) !important;
+}
+
+.v-field:focus-within {
+  outline: 2px solid #0B4FA2 !important;
+  outline-offset: 2px !important;
+}
+
+/* ============================================
+   TABLE SCROLL INDICATORS
+   ============================================ */
+
+@media (max-width: 768px) {
+  :deep(.v-data-table) .v-table__wrapper {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    background: 
+      linear-gradient(to right, white 20px, transparent 60px),
+      linear-gradient(to left, white 20px, transparent 60px) 100% 0,
+      linear-gradient(to right, rgba(0,0,0,0.06) 0, transparent 15px),
+      linear-gradient(to left, rgba(0,0,0,0.06) 0, transparent 15px) 100% 0 !important;
+    background-repeat: no-repeat !important;
+    background-size: 60px 100%, 60px 100%, 15px 100%, 15px 100% !important;
+    background-attachment: local, local, scroll, scroll !important;
+  }
+}
 </style>
+
+
 
 

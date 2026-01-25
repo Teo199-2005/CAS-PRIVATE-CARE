@@ -127,6 +127,51 @@ return [
             'path' => storage_path('logs/laravel.log'),
         ],
 
+        // Custom channels for CAS Private Care
+        'payments' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/payments.log'),
+            'level' => 'info',
+            'days' => 90, // Keep payment logs for 90 days
+        ],
+
+        'security' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/security.log'),
+            'level' => 'warning',
+            'days' => 365, // Keep security logs for 1 year
+        ],
+
+        'api' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/api.log'),
+            'level' => 'info',
+            'days' => 30,
+        ],
+
+        'performance' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/performance.log'),
+            'level' => 'info',
+            'days' => 14,
+        ],
+
+        'bookings' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/bookings.log'),
+            'level' => 'info',
+            'days' => 90,
+        ],
+
+        // Audit log channel for compliance and security review
+        'audit' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/audit.log'),
+            'level' => 'info',
+            'days' => 365, // Keep audit logs for 1 year for compliance
+            'replace_placeholders' => true,
+        ],
+
     ],
 
 ];

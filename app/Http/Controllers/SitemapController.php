@@ -24,15 +24,20 @@ class SitemapController extends Controller
             ['loc' => url('/housekeeping-new-york'), 'priority' => '0.9', 'changefreq' => 'weekly'],
             ['loc' => url('/personal-assistant-new-york'), 'priority' => '0.9', 'changefreq' => 'weekly'],
             ['loc' => url('/housekeeping-personal-assistant'), 'priority' => '0.8', 'changefreq' => 'weekly'],
-            ['loc' => url('/book-service'), 'priority' => '0.9', 'changefreq' => 'weekly'],
+            
+            // Borough/Location SEO pages
+            ['loc' => url('/caregiver-new-york'), 'priority' => '0.9', 'changefreq' => 'weekly'],
+            ['loc' => url('/caregiver-brooklyn'), 'priority' => '0.85', 'changefreq' => 'weekly'],
+            ['loc' => url('/caregiver-manhattan'), 'priority' => '0.85', 'changefreq' => 'weekly'],
+            ['loc' => url('/caregiver-queens'), 'priority' => '0.85', 'changefreq' => 'weekly'],
+            ['loc' => url('/caregiver-bronx'), 'priority' => '0.85', 'changefreq' => 'weekly'],
+            ['loc' => url('/caregiver-staten-island'), 'priority' => '0.85', 'changefreq' => 'weekly'],
+            ['loc' => url('/housekeeper-new-york'), 'priority' => '0.85', 'changefreq' => 'weekly'],
             
             // Training and contractor pages
             ['loc' => url('/training-center'), 'priority' => '0.7', 'changefreq' => 'monthly'],
             ['loc' => url('/contractor-partner'), 'priority' => '0.7', 'changefreq' => 'monthly'],
-            
-            // Auth pages (for SEO visibility)
-            ['loc' => url('/login'), 'priority' => '0.6', 'changefreq' => 'monthly'],
-            ['loc' => url('/register'), 'priority' => '0.7', 'changefreq' => 'monthly'],
+            ['loc' => url('/contractors'), 'priority' => '0.7', 'changefreq' => 'monthly'],
             
             // Legal pages
             ['loc' => url('/privacy'), 'priority' => '0.5', 'changefreq' => 'yearly'],

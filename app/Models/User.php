@@ -67,6 +67,10 @@ class User extends Authenticatable
     protected $hidden = [
         'password',
         'remember_token',
+        'ssn',
+        'itin',
+        'ein',
+        'session_token',
     ];
 
     /**
@@ -79,6 +83,12 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            // Encrypt sensitive data at rest
+            'ssn' => 'encrypted',
+            'itin' => 'encrypted',
+            'ein' => 'encrypted',
+            'date_of_birth' => 'encrypted:date',
+            // Boolean casts
             'w9_submitted' => 'boolean',
             'w9_verified' => 'boolean',
             'w9_submitted_at' => 'datetime',

@@ -2458,7 +2458,7 @@
 
             <div class="form-group">
                 <label for="phone">Phone Number</label>
-                <input type="tel" id="phone" name="phone" class="form-input" placeholder="(646) 282-8282" value="{{ old('phone') }}" required autocomplete="tel" aria-required="true" maxlength="14">
+                <input type="tel" id="phone" name="phone" class="form-input" placeholder="(646) 282-8282" value="{{ old('phone') }}" required autocomplete="tel" aria-required="true" maxlength="14" inputmode="tel">
                 @error('phone')
                     <div class="error-message">{{ $message }}</div>
                 @enderror
@@ -2758,7 +2758,6 @@
         
         // Check if OAuth user exists (means returning from OAuth)
         const hasOAuthUser = {{ session('oauth_user') ? 'true' : 'false' }};
-        console.log('Page load - hasOAuthUser:', hasOAuthUser, 'presetPartner:', presetPartner, 'showPartnerTypes:', showPartnerTypes);
         
         // Map partner types to display names
         const partnerTypeNames = {
@@ -2807,7 +2806,6 @@
                     const url = new URL(googleBtn.href);
                     url.searchParams.set('partner', partnerType);
                     googleBtn.href = url.toString();
-                    console.log('Updated Google OAuth URL:', googleBtn.href);
                 } catch (e) {
                     const baseUrl = googleBtn.href.split('?')[0];
                     googleBtn.href = baseUrl + '?partner=' + encodeURIComponent(partnerType);
@@ -2819,7 +2817,6 @@
                     const url = new URL(facebookBtn.href);
                     url.searchParams.set('partner', partnerType);
                     facebookBtn.href = url.toString();
-                    console.log('Updated Facebook OAuth URL:', facebookBtn.href);
                 } catch (e) {
                     const baseUrl = facebookBtn.href.split('?')[0];
                     facebookBtn.href = baseUrl + '?partner=' + encodeURIComponent(partnerType);
@@ -2833,14 +2830,12 @@
         }
         // If show_partner_types parameter is set, show partner type selection modal directly
         else if (showPartnerTypes) {
-            console.log('show_partner_types parameter detected - showing partner type selection');
             document.getElementById('registrationModal').classList.add('hidden');
             document.getElementById('partnerTypeModal').classList.remove('hidden');
         }
         // If OAuth user exists but no partner in URL, try to get from session or show partner selection
         // (This handles the case where OAuth returns but partner type wasn't preserved in URL)
         else if (hasOAuthUser && !presetPartner) {
-            console.log('OAuth user detected but no partner type in URL - showing partner type selection');
             // Show partner type modal so user can select their type
             // The form will be shown after they select
             document.getElementById('registrationModal').classList.add('hidden');
@@ -2949,7 +2944,6 @@
                     const url = new URL(googleBtn.href);
                     url.searchParams.set('partner', partnerType);
                     googleBtn.href = url.toString();
-                    console.log('Updated Google OAuth URL:', googleBtn.href);
                 } catch (e) {
                     const baseUrl = googleBtn.href.split('?')[0];
                     googleBtn.href = baseUrl + '?partner=' + encodeURIComponent(partnerType);
@@ -2961,7 +2955,6 @@
                     const url = new URL(facebookBtn.href);
                     url.searchParams.set('partner', partnerType);
                     facebookBtn.href = url.toString();
-                    console.log('Updated Facebook OAuth URL:', facebookBtn.href);
                 } catch (e) {
                     const baseUrl = facebookBtn.href.split('?')[0];
                     facebookBtn.href = baseUrl + '?partner=' + encodeURIComponent(partnerType);
@@ -2980,7 +2973,6 @@
                     const url = new URL(e.currentTarget.href);
                     url.searchParams.set('partner', partnerType);
                     e.currentTarget.href = url.toString();
-                    console.log(`${provider} OAuth click - partner type:`, partnerType);
                 }
             }
             
@@ -3073,7 +3065,7 @@
                             }
                         }
                     } catch (error) {
-                        console.error('ZIP code lookup failed:', error);
+                        // ZIP code lookup failed silently
                     }
                     
             // Show a helpful message if lookup fails / not found
@@ -3216,7 +3208,7 @@
                         }
                     }
                 } catch (error) {
-                    console.error('Email check failed:', error);
+                    // Email check failed silently
                 }
             }
 
@@ -3423,5 +3415,7 @@
             }
         });
     </script>
+    
+    @include('partials.cookie-consent')
 </body>
 </html>

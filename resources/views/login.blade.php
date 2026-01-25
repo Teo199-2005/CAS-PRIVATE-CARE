@@ -2,15 +2,25 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+    <meta name="theme-color" content="#1e40af">
     <link rel="icon" type="image/png" href="{{ asset('logo flower.png') }}">
     <title>Login - CAS Private Care LLC</title>
     <meta name="description" content="Login to your CAS Private Care LLC account to manage caregiving services, bookings, and more.">
     <meta name="robots" content="noindex, nofollow">
     <link rel="canonical" href="{{ url('/login') }}">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    
+    <!-- Preload critical resources for performance -->
+    <link rel="preload" href="{{ asset('logo flower.png') }}" as="image">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+    
+    <!-- DNS prefetch for external resources -->
+    <link rel="dns-prefetch" href="https://fonts.googleapis.com">
+    <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 
     <!--
@@ -279,6 +289,10 @@
             font-size: 0.95rem;
         }
 
+        .auth-footer p {
+            margin: 0;
+        }
+
         .auth-footer a {
             color: #3b82f6;
             text-decoration: none;
@@ -287,6 +301,41 @@
 
         .auth-footer a:hover {
             text-decoration: underline;
+        }
+
+        /* Message/Alert Styles */
+        .message {
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+        }
+
+        .message.success {
+            background: #dcfce7;
+            border: 1px solid #bbf7d0;
+            color: #166534;
+        }
+
+        .message.error {
+            background: #fee2e2;
+            border: 1px solid #fecaca;
+            color: #dc2626;
+        }
+
+        .message.info {
+            background: #dbeafe;
+            border: 1px solid #93c5fd;
+            color: #1e40af;
+        }
+
+        /* Form input error state */
+        .form-input.error {
+            border-color: #dc2626;
+            box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
         }
 
         .back-home {
@@ -444,9 +493,128 @@
             outline: 2px solid #3b82f6;
             border-radius: 4px;
         }
+
+        /* Skip Link for Accessibility */
+        .skip-link {
+            position: absolute;
+            top: -100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #1e40af;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0 0 8px 8px;
+            z-index: 9999;
+            font-weight: 600;
+            text-decoration: none;
+            transition: top 0.3s;
+        }
+
+        .skip-link:focus {
+            top: 0;
+        }
+
+        /* Screen reader only class */
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+        }
+
+        /* Reduced motion preference */
+        @media (prefers-reduced-motion: reduce) {
+            *,
+            *::before,
+            *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+
+        /* High contrast mode support */
+        @media (prefers-contrast: high) {
+            .form-input {
+                border-width: 3px;
+            }
+            .btn-submit {
+                border: 2px solid #fff;
+            }
+        }
+
+        /* Additional responsive breakpoints */
+        @media (max-width: 480px) {
+            .auth-container {
+                padding: 1.5rem;
+                margin: 0.5rem;
+                border-radius: 20px;
+            }
+
+            .auth-logo img {
+                height: 100px;
+            }
+
+            .auth-header h1 {
+                font-size: 1.5rem;
+            }
+
+            .form-input {
+                padding: 0.75rem;
+                font-size: 16px; /* Prevents zoom on iOS */
+            }
+
+            .btn-submit {
+                padding: 0.875rem;
+                font-size: 1rem;
+            }
+
+            .back-home {
+                top: 0.5rem;
+                left: 0.5rem;
+            }
+
+            .back-home a {
+                padding: 0.5rem 1rem;
+                font-size: 0.875rem;
+            }
+        }
+
+        @media (min-width: 769px) and (max-width: 1024px) {
+            .auth-container {
+                max-width: 420px;
+            }
+        }
+
+        @media (min-width: 1025px) {
+            .auth-container {
+                max-width: 450px;
+            }
+        }
+
+        /* Print styles */
+        @media print {
+            .auth-bg,
+            .back-home,
+            .social-login,
+            .divider {
+                display: none !important;
+            }
+            .auth-container {
+                box-shadow: none;
+                border: 1px solid #ccc;
+            }
+        }
     </style>
 </head>
 <body>
+    <!-- Skip Link for Accessibility -->
+    <a href="#main-content" class="skip-link">Skip to main content</a>
     <div class="auth-bg">
         <div class="auth-bg-slice"></div>
         <div class="auth-bg-slice"></div>
@@ -454,56 +622,18 @@
     </div>
 
     <div class="back-home">
-        <a href="{{ url('/') }}">
-            <i class="bi bi-arrow-left"></i>
-            Back to Home
+        <a href="{{ url('/') }}" aria-label="Go back to home page">
+            <i class="bi bi-arrow-left" aria-hidden="true"></i>
+            <span>Back to Home</span>
         </a>
     </div>
 
-    {{-- Demo credentials panel - DISABLED for production
-    @if(config('app.env') === 'local' || config('app.debug') === true)
-    <div class="demo-credentials-panel" style="position: fixed; top: 2rem; right: 2rem; z-index: 3; background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); padding: 1rem; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.3); min-width: 220px; display: none;">
-        <h4 style="margin: 0 0 0.75rem 0; color: #1e40af; font-size: 0.9rem; font-weight: 600;">🔧 Demo Credentials (Dev Only)</h4>
-        <div style="margin-bottom: 0.75rem;">
-            <p style="margin: 0 0 0.25rem 0; font-size: 0.8rem; color: #64748b; font-weight: 500;">Client Account:</p>
-            <p style="margin: 0; font-size: 0.75rem; color: #1e40af; font-family: monospace;">client@demo.com</p>
-            <p style="margin: 0 0 0.5rem 0; font-size: 0.75rem; color: #1e40af; font-family: monospace;">password123</p>
-            <button onclick="fillDemo('client')" style="width: 100%; padding: 0.4rem; background: #3b82f6; color: white; border: none; border-radius: 8px; font-size: 0.75rem; font-weight: 600; cursor: pointer; transition: all 0.3s; margin-bottom: 0.5rem;">Fill Client Login</button>
-        </div>
-        <div style="margin-bottom: 0.5rem; padding-top: 0.75rem; border-top: 1px solid #e2e8f0;">
-            <p style="margin: 0 0 0.25rem 0; font-size: 0.8rem; color: #64748b; font-weight: 500;">Caregiver Account:</p>
-            <p style="margin: 0; font-size: 0.75rem; color: #10b981; font-family: monospace;">caregiver@demo.com</p>
-            <p style="margin: 0 0 0.5rem 0; font-size: 0.75rem; color: #10b981; font-family: monospace;">password123</p>
-            <button onclick="fillDemo('caregiver')" style="width: 100%; padding: 0.4rem; background: #10b981; color: white; border: none; border-radius: 8px; font-size: 0.75rem; font-weight: 600; cursor: pointer; transition: all 0.3s; margin-bottom: 0.5rem;">Fill Caregiver Login</button>
-        </div>
-        <div style="margin-bottom: 0.5rem; padding-top: 0.75rem; border-top: 1px solid #e2e8f0;">
-            <p style="margin: 0 0 0.25rem 0; font-size: 0.8rem; color: #64748b; font-weight: 500;">Admin Account:</p>
-            <p style="margin: 0; font-size: 0.75rem; color: #dc2626; font-family: monospace;">admin@demo.com</p>
-            <p style="margin: 0 0 0.5rem 0; font-size: 0.75rem; color: #dc2626; font-family: monospace;">password123</p>
-            <button onclick="fillDemo('admin')" style="width: 100%; padding: 0.4rem; background: #dc2626; color: white; border: none; border-radius: 8px; font-size: 0.75rem; font-weight: 600; cursor: pointer; transition: all 0.3s; margin-bottom: 0.5rem;">Fill Admin Login</button>
-        </div>
-        <div style="margin-bottom: 0.5rem; padding-top: 0.75rem; border-top: 1px solid #e2e8f0;">
-            <p style="margin: 0 0 0.25rem 0; font-size: 0.8rem; color: #64748b; font-weight: 500;">Marketing Staff:</p>
-            <p style="margin: 0; font-size: 0.75rem; color: #616161; font-family: monospace;">marketing@demo.com</p>
-            <p style="margin: 0 0 0.5rem 0; font-size: 0.75rem; color: #616161; font-family: monospace;">password123</p>
-            <button onclick="fillDemo('marketing')" style="width: 100%; padding: 0.4rem; background: #616161; color: white; border: none; border-radius: 8px; font-size: 0.75rem; font-weight: 600; cursor: pointer; transition: all 0.3s; margin-bottom: 0.5rem;">Fill Marketing Login</button>
-        </div>
-        <div style="padding-top: 0.75rem; border-top: 1px solid #e2e8f0;">
-            <p style="margin: 0 0 0.25rem 0; font-size: 0.8rem; color: #64748b; font-weight: 500;">Training Center:</p>
-            <p style="margin: 0; font-size: 0.75rem; color: #616161; font-family: monospace;">training@demo.com</p>
-            <p style="margin: 0 0 0.5rem 0; font-size: 0.75rem; color: #616161; font-family: monospace;">password123</p>
-            <button onclick="fillDemo('training')" style="width: 100%; padding: 0.4rem; background: #616161; color: white; border: none; border-radius: 8px; font-size: 0.75rem; font-weight: 600; cursor: pointer; transition: all 0.3s;">Fill Training Login</button>
-        </div>
-    </div>
-    @endif
-    --}}
-
-    <div class="auth-container">
+    <main class="auth-container" id="main-content" role="main">
         <div class="auth-logo">
-            <img src="{{ asset('logo flower.png') }}" alt="CAS Private Care LLC Logo">
+            <img src="{{ asset('logo flower.png') }}" alt="CAS Private Care LLC - Professional Home Care Services Logo" width="130" height="130">
         </div>
 
-        <div class="auth-header">
+        <header class="auth-header">
             <h1>Welcome Back</h1>
             <p>Login to continue to CAS Private Care LLC</p>
             @if(session('success'))
@@ -514,61 +644,91 @@
             @endif
 
             @if(session('info'))
-                <div style="background: #dbeafe; border: 1px solid #93c5fd; color: #1e40af; padding: 0.75rem; border-radius: 8px; margin-top: 1rem; font-size: 0.9rem; font-weight: 500;">
-                    <i class="bi bi-info-circle" style="margin-right: 0.5rem;"></i>
+                <div class="message info" role="alert" aria-live="polite">
+                    <i class="bi bi-info-circle" aria-hidden="true" style="margin-right: 0.5rem;"></i>
                     {{ session('info') }}
                 </div>
             @endif
-        </div>
+        </header>
 
         <!-- Client-side popup banner (used for showing messages after actions like sending reset link) -->
-        <div id="globalBanner" style="display:none; margin-bottom:1rem;
+        <div id="globalBanner" role="alert" aria-live="assertive" aria-atomic="true" style="display:none; margin-bottom:1rem;
             padding:0.75rem; border-radius:8px; font-weight:600; font-size:0.95rem;">
-            <i id="globalBannerIcon" class="bi bi-check-circle" style="margin-right:0.5rem;"></i>
+            <i id="globalBannerIcon" class="bi bi-check-circle" aria-hidden="true" style="margin-right:0.5rem;"></i>
             <span id="globalBannerMessage"></span>
         </div>
 
-        <form method="POST" action="{{ route('login') }}">
+        <form method="POST" action="{{ route('login') }}" novalidate aria-label="Login form">
             @csrf
             @if(request()->has('redirect'))
             <input type="hidden" name="redirect" value="{{ request('redirect') }}">
             @endif
             @if($errors->any())
-            <div style="background: #fee; border: 1px solid #fcc; padding: 0.75rem; border-radius: 8px; margin-bottom: 1rem; color: #c00;">
+            <div class="message error" role="alert" aria-live="assertive">
+                <i class="bi bi-exclamation-circle" aria-hidden="true" style="margin-right: 0.5rem;"></i>
                 {{ $errors->first() }}
             </div>
             @endif
             <div class="form-group">
-                <label for="email">Email Address</label>
-                <input type="email" id="email" name="email" class="form-input" placeholder="your@email.com" required autocomplete="email" aria-required="true">
+                <label for="email" id="email-label">Email Address <span class="sr-only">(required)</span></label>
+                <input type="email" 
+                       id="email" 
+                       name="email" 
+                       class="form-input" 
+                       placeholder="your@email.com" 
+                       required 
+                       autocomplete="email" 
+                       aria-required="true"
+                       aria-labelledby="email-label"
+                       aria-describedby="email-hint"
+                       inputmode="email">
+                <span id="email-hint" class="sr-only">Enter your registered email address</span>
             </div>
 
             <div class="form-group">
-                <label for="password">Password</label>
+                <label for="password" id="password-label">Password <span class="sr-only">(required)</span></label>
                 <div class="password-wrapper">
-                    <input type="password" id="password" name="password" class="form-input" placeholder="Enter your password" required autocomplete="current-password" aria-required="true">
-                    <button type="button" class="password-toggle" onclick="togglePassword()">
-                        <i class="bi bi-eye" id="toggleIcon"></i>
+                    <input type="password" 
+                           id="password" 
+                           name="password" 
+                           class="form-input" 
+                           placeholder="Enter your password" 
+                           required 
+                           autocomplete="current-password" 
+                           aria-required="true"
+                           aria-labelledby="password-label"
+                           aria-describedby="password-toggle-hint">
+                    <button type="button" 
+                            class="password-toggle" 
+                            onclick="togglePassword()"
+                            aria-label="Show password"
+                            aria-pressed="false"
+                            aria-controls="password">
+                        <i class="bi bi-eye" id="toggleIcon" aria-hidden="true"></i>
                     </button>
+                    <span id="password-toggle-hint" class="sr-only">Click the eye icon to show or hide password</span>
                 </div>
             </div>
 
             <div class="form-options">
                 <label class="remember-me">
-                    <input type="checkbox" name="remember">
+                    <input type="checkbox" name="remember" id="remember" aria-describedby="remember-hint">
                     <span>Remember me</span>
+                    <span id="remember-hint" class="sr-only">Keep me logged in on this device</span>
                 </label>
-                <a href="#" class="forgot-link" onclick="openForgotPasswordModal(event)">Forgot Password?</a>
+                <a href="#" class="forgot-link" onclick="openForgotPasswordModal(event)" role="button">Forgot Password?</a>
             </div>
 
-            <button type="submit" class="btn-submit">Login</button>
+            <button type="submit" class="btn-submit" aria-label="Login to your account">
+                <span>Login</span>
+            </button>
         </form>
 
-        <div class="divider">
+        <div class="divider" role="separator" aria-hidden="true">
             <span>or continue with</span>
         </div>
 
-        <div class="social-login">
+        <nav class="social-login" aria-label="Social login options">
             @php
                 $googleConfig = config('services.google');
                 $facebookConfig = config('services.facebook');
@@ -584,82 +744,162 @@
             @endphp
             
             @if($googleEnabled)
-            <a href="{{ url('/auth/google') }}" class="social-btn">
-                <i class="bi bi-google"></i>
-                Google
+            <a href="{{ url('/auth/google') }}" class="social-btn" aria-label="Continue with Google account">
+                <i class="bi bi-google" aria-hidden="true"></i>
+                <span>Google</span>
             </a>
             @endif
             
             @if($facebookEnabled)
-            <a href="{{ url('/auth/facebook') }}" class="social-btn">
-                <i class="bi bi-facebook"></i>
-                Facebook
+            <a href="{{ url('/auth/facebook') }}" class="social-btn" aria-label="Continue with Facebook account">
+                <i class="bi bi-facebook" aria-hidden="true"></i>
+                <span>Facebook</span>
             </a>
             @endif
-        </div>
+        </nav>
 
-        <div class="auth-footer">
-            Don't have an account? <a href="{{ url('/register') }}">Sign up</a>
-        </div>
-    </div>
+        <footer class="auth-footer">
+            <p>Don't have an account? <a href="{{ url('/register') }}">Sign up</a></p>
+        </footer>
+    </main>
 
     <!-- Forgot Password Modal -->
-    <div id="forgotPasswordModal" class="modal-overlay" style="display: none;">
-        <div class="modal-content">
+    <div id="forgotPasswordModal" 
+         class="modal-overlay" 
+         style="display: none;"
+         role="dialog"
+         aria-modal="true"
+         aria-labelledby="modal-title"
+         aria-describedby="modal-description">
+        <div class="modal-content" role="document">
             <div class="modal-header">
-                <h2>Reset Password</h2>
-                <button type="button" class="modal-close" onclick="closeForgotPasswordModal()">
-                    <i class="bi bi-x"></i>
+                <h2 id="modal-title">Reset Password</h2>
+                <button type="button" 
+                        class="modal-close" 
+                        onclick="closeForgotPasswordModal()"
+                        aria-label="Close password reset dialog">
+                    <i class="bi bi-x" aria-hidden="true"></i>
                 </button>
             </div>
             <div class="modal-body">
-                <p>Enter your email address and we'll send you a link to reset your password.</p>
-                <div id="messageContainer" style="display: none; margin-bottom: 1rem;"></div>
-                <form id="forgotPasswordForm" onsubmit="submitForgotPassword(event)">
+                <p id="modal-description">Enter your email address and we'll send you a link to reset your password.</p>
+                <div id="messageContainer" role="alert" aria-live="polite" style="display: none; margin-bottom: 1rem;"></div>
+                <form id="forgotPasswordForm" onsubmit="submitForgotPassword(event)" aria-label="Password reset form">
                     <div class="form-group">
-                        <label for="resetEmail">Email Address</label>
-                        <input type="email" id="resetEmail" class="form-input" placeholder="your@email.com" required>
+                        <label for="resetEmail" id="reset-email-label">Email Address <span class="sr-only">(required)</span></label>
+                        <input type="email" 
+                               id="resetEmail" 
+                               class="form-input" 
+                               placeholder="your@email.com" 
+                               required
+                               aria-required="true"
+                               aria-labelledby="reset-email-label"
+                               inputmode="email">
                     </div>
-                    <button type="submit" class="btn-submit">Send Reset Link</button>
+                    <button type="submit" class="btn-submit" aria-label="Send password reset link">
+                        <span>Send Reset Link</span>
+                    </button>
                 </form>
             </div>
         </div>
     </div>
 
     <script>
+        // Password visibility toggle with accessibility support
         function togglePassword() {
             const passwordInput = document.getElementById('password');
             const toggleIcon = document.getElementById('toggleIcon');
+            const toggleButton = document.querySelector('.password-toggle');
             
             if (passwordInput.type === 'password') {
                 passwordInput.type = 'text';
                 toggleIcon.classList.remove('bi-eye');
                 toggleIcon.classList.add('bi-eye-slash');
+                toggleButton.setAttribute('aria-label', 'Hide password');
+                toggleButton.setAttribute('aria-pressed', 'true');
             } else {
                 passwordInput.type = 'password';
                 toggleIcon.classList.remove('bi-eye-slash');
                 toggleIcon.classList.add('bi-eye');
+                toggleButton.setAttribute('aria-label', 'Show password');
+                toggleButton.setAttribute('aria-pressed', 'false');
             }
         }
+
+        // Modal management with focus trap
+        let lastFocusedElement = null;
+        const focusableSelectors = 'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
         
         function openForgotPasswordModal(event) {
             event.preventDefault();
-            document.getElementById('forgotPasswordModal').style.display = 'flex';
+            lastFocusedElement = document.activeElement;
+            const modal = document.getElementById('forgotPasswordModal');
+            modal.style.display = 'flex';
+            
             // Pre-fill with current email if available
             const currentEmail = document.getElementById('email').value;
             if (currentEmail) {
                 document.getElementById('resetEmail').value = currentEmail;
             }
+            
+            // Focus the first focusable element in modal
+            const firstFocusable = modal.querySelector(focusableSelectors);
+            if (firstFocusable) {
+                setTimeout(() => firstFocusable.focus(), 100);
+            }
+            
+            // Add event listeners for focus trap and escape key
+            document.addEventListener('keydown', handleModalKeydown);
         }
 
         function closeForgotPasswordModal() {
-            document.getElementById('forgotPasswordModal').style.display = 'none';
+            const modal = document.getElementById('forgotPasswordModal');
+            modal.style.display = 'none';
             document.getElementById('messageContainer').style.display = 'none';
+            document.getElementById('forgotPasswordForm').reset();
+            
+            // Remove event listener
+            document.removeEventListener('keydown', handleModalKeydown);
+            
+            // Restore focus to trigger element
+            if (lastFocusedElement) {
+                lastFocusedElement.focus();
+            }
+        }
+
+        function handleModalKeydown(event) {
+            const modal = document.getElementById('forgotPasswordModal');
+            
+            // Close on Escape
+            if (event.key === 'Escape') {
+                closeForgotPasswordModal();
+                return;
+            }
+            
+            // Focus trap
+            if (event.key === 'Tab') {
+                const focusableElements = modal.querySelectorAll(focusableSelectors);
+                const firstElement = focusableElements[0];
+                const lastElement = focusableElements[focusableElements.length - 1];
+                
+                if (event.shiftKey) {
+                    if (document.activeElement === firstElement) {
+                        event.preventDefault();
+                        lastElement.focus();
+                    }
+                } else {
+                    if (document.activeElement === lastElement) {
+                        event.preventDefault();
+                        firstElement.focus();
+                    }
+                }
+            }
         }
 
         function showMessage(message, type) {
             const container = document.getElementById('messageContainer');
-            container.innerHTML = `<div class="message ${type}">${message}</div>`;
+            const icon = type === 'success' ? 'bi-check-circle' : 'bi-exclamation-circle';
+            container.innerHTML = `<div class="message ${type}" role="alert"><i class="bi ${icon}" aria-hidden="true" style="margin-right: 0.5rem;"></i>${message}</div>`;
             container.style.display = 'block';
         }
 
@@ -695,6 +935,11 @@
         function submitForgotPassword(event) {
             event.preventDefault();
             const email = document.getElementById('resetEmail').value;
+            const submitButton = event.target.querySelector('button[type="submit"]');
+            
+            // Disable button and show loading state
+            submitButton.disabled = true;
+            submitButton.innerHTML = '<span>Sending...</span>';
             
             // Create form data
             const formData = new FormData();
@@ -718,12 +963,14 @@
             })
             .then(data => {
                 closeForgotPasswordModal();
-                // show a top banner confirming the reset link was sent
                 showBanner('Password reset link sent. Please check your email.', 'success');
             })
             .catch(error => {
-                console.error('Error:', error);
                 showMessage(error.message || 'Email not found in our system.', 'error');
+            })
+            .finally(() => {
+                submitButton.disabled = false;
+                submitButton.innerHTML = '<span>Send Reset Link</span>';
             });
         }
 
@@ -735,11 +982,11 @@
             }
         });
 
-        // Remember me functionality
+        // Remember me functionality and initialization
         document.addEventListener('DOMContentLoaded', function() {
             const rememberCheckbox = document.querySelector('input[name="remember"]');
             const emailInput = document.getElementById('email');
-            const form = document.querySelector('form');
+            const form = document.querySelector('form[action*="login"]');
             
             // Load saved email if remember me was checked
             const savedEmail = localStorage.getItem('rememberedEmail');
@@ -757,11 +1004,8 @@
                 }
             });
 
-            // ------------------------------------------------------------
             // Login page auto-refresh / session-sync helpers
-            // ------------------------------------------------------------
-            // 1) Force a one-time reload when returning to /login via back button (bfcache)
-            //    to avoid stale page state.
+            // Force a one-time reload when returning to /login via back button (bfcache)
             try {
                 window.addEventListener('pageshow', function (event) {
                     if (event.persisted) {
@@ -770,19 +1014,48 @@
                 });
             } catch (_) {}
 
-            // 2) If the user keeps the login page open for a while, refresh it periodically.
-            //    This avoids CSRF/session edge cases when switching accounts.
-            //    (Kept conservative to reduce annoyance.)
+            // Periodic refresh to avoid CSRF/session edge cases
             const AUTO_REFRESH_MINUTES = 3;
             setInterval(() => {
-                // Don't refresh if the user is typing
                 const active = document.activeElement;
-                const isTyping = active && (active.id === 'email' || active.id === 'password');
+                const isTyping = active && (active.id === 'email' || active.id === 'password' || active.id === 'resetEmail');
                 if (!isTyping) {
                     window.location.reload();
                 }
             }, AUTO_REFRESH_MINUTES * 60 * 1000);
+
+            // Enhanced form validation with accessibility announcements
+            const inputs = document.querySelectorAll('.form-input[required]');
+            inputs.forEach(input => {
+                input.addEventListener('invalid', function(e) {
+                    e.preventDefault();
+                    this.classList.add('error');
+                    // Announce error to screen readers
+                    const label = document.querySelector(`label[for="${this.id}"]`);
+                    if (label) {
+                        const errorMsg = `${label.textContent.trim()} is required`;
+                        announceToScreenReader(errorMsg);
+                    }
+                });
+                
+                input.addEventListener('input', function() {
+                    this.classList.remove('error');
+                });
+            });
         });
+
+        // Screen reader announcement utility
+        function announceToScreenReader(message) {
+            const announcement = document.createElement('div');
+            announcement.setAttribute('role', 'alert');
+            announcement.setAttribute('aria-live', 'assertive');
+            announcement.setAttribute('aria-atomic', 'true');
+            announcement.className = 'sr-only';
+            announcement.textContent = message;
+            document.body.appendChild(announcement);
+            setTimeout(() => announcement.remove(), 1000);
+        }
     </script>
+    @include('partials.cookie-consent')
 </body>
 </html>

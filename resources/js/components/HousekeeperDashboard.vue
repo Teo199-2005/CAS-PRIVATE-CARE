@@ -1,4 +1,11 @@
 <template>
+  <!-- Global Loading Overlay -->
+  <LoadingOverlay 
+    :visible="isPageLoading" 
+    context="housekeeper"
+    tagline="Housekeeper Portal"
+  />
+
   <dashboard-template
     user-role="housekeeper"
     :user-name="profile.firstName && profile.lastName ? `${profile.firstName} ${profile.lastName}` : 'Demo Housekeeper'"
@@ -10,11 +17,37 @@
     header-subtitle="Manage your cleaning assignments"
     :nav-items="navItems"
     :current-section="currentSection"
-    @section-change="currentSection = $event"
+    @section-change="handleSectionChange"
     @logout="logout"
+    @disabled-click="handleDisabledNavClick"
   >
     <!-- Email Verification Banner -->
     <email-verification-banner />
+
+    <!-- Pending Approval Banner - SECURITY: Alert users their account is restricted -->
+    <v-alert
+      v-if="applicationStatus === 'pending'"
+      type="warning"
+      variant="tonal"
+      prominent
+      class="mb-4"
+      icon="mdi-clock-alert"
+    >
+      <v-alert-title class="font-weight-bold">Application Pending Approval</v-alert-title>
+      <div class="mt-2">
+        Your contractor application is currently under review. Some features are restricted until your application is approved.
+        <br /><br />
+        <strong>To complete your application:</strong>
+        <ol class="mt-2 mb-2" style="margin-left: 20px;">
+          <li>Download and complete the W9 form</li>
+          <li>Submit the completed form to our office</li>
+          <li>Wait for admin approval (typically 1-2 business days)</li>
+        </ol>
+        <v-btn color="primary" variant="outlined" size="small" prepend-icon="mdi-file-document" @click="viewW9Form" class="mt-2">
+          View W9 Form
+        </v-btn>
+      </div>
+    </v-alert>
 
         <!-- Dashboard Section -->
         <div v-if="currentSection === 'dashboard'">
@@ -53,7 +86,7 @@
                 </v-card-text>
               </v-card>
             </v-col>
-            <v-col v-for="stat in stats" :key="stat.title" cols="6" sm="6" md="3">
+            <v-col v-for="(stat, index) in stats" :key="stat.title" cols="6" sm="6" md="3">
               <div 
                 :class="stat.clickable ? 'cursor-pointer' : ''"
                 @click="stat.onClick ? stat.onClick() : null"
@@ -65,7 +98,8 @@
                   :change="stat.change" 
                   :change-color="stat.changeColor" 
                   :change-icon="stat.changeIcon" 
-                  icon-class="deep-purple" 
+                  icon-class="deep-purple"
+                  :stagger-index="index + 1"
                 />
               </div>
             </v-col>
@@ -238,8 +272,8 @@
               <v-col cols="12" md="2">
                 <v-select v-model="availableDateFilter" :items="['All', 'This Week', 'Soon']" label="Date" variant="outlined" density="compact" hide-details />
               </v-col>
-              <v-col cols="12" md="1">
-                <v-btn variant="outlined" size="small" @click="resetAvailableFilters">Reset</v-btn>
+              <v-col cols="12" md="1" class="d-flex align-center">
+                <v-btn variant="outlined" size="default" class="touch-friendly-btn" @click="resetAvailableFilters">Reset</v-btn>
               </v-col>
             </v-row>
           </div>
@@ -1194,7 +1228,7 @@
                       </v-text-field>
                     </v-col>
                     <v-col cols="12" md="6">
-                      <v-text-field v-model="profile.phone" label="Phone" variant="outlined" />
+                      <v-text-field v-model="profile.phone" label="Phone" variant="outlined" type="tel" inputmode="tel" />
                     </v-col>
                     <v-col cols="12" md="6">
                       <v-text-field v-model="profile.birthdate" label="Birthdate" variant="outlined" type="date" />
@@ -1539,11 +1573,17 @@ import AlertModal from './shared/AlertModal.vue';
 import NotificationToast from './shared/NotificationToast.vue';
 import EmailVerificationBanner from './EmailVerificationBanner.vue';
 import TaxPayrollSection from './TaxPayrollSection.vue';
+import LoadingOverlay from './LoadingOverlay.vue';
 import { useNotification } from '../composables/useNotification.js';
 import { useNYLocationData } from '../composables/useNYLocationData.js';
 
 const { notification, success } = useNotification();
 const { counties, getCitiesForCounty, loadNYLocationData } = useNYLocationData();
+
+// Global loading state
+const isPageLoading = ref(true);
+const loadingContext = ref('dashboard');
+const loadingProgress = ref(0);
 
 // Mobile detection
 const isMobile = ref(typeof window !== 'undefined' ? window.innerWidth <= 768 : false);
@@ -1779,13 +1819,42 @@ const calendarDates = computed(() => {
 const sidebarNotifications = ref([]);
 const sidebarUnreadCount = computed(() => sidebarNotifications.value.filter(n => !n.read).length);
 
+// SECURITY: Check if contractor is approved to access restricted features
+const isApproved = computed(() => applicationStatus.value === 'approved');
+
+// Navigation items with pending status restrictions
+// Pending contractors cannot access payment, job listings, or earnings features
 const navItems = computed(() => [
   { icon: 'mdi-view-dashboard', title: 'Dashboard', value: 'dashboard' },
   { icon: 'mdi-bell', title: 'Notifications', value: 'notifications', badge: sidebarUnreadCount.value > 0 },
-  { icon: 'mdi-credit-card', title: 'Payment Information', value: 'payment', category: 'FINANCIAL' },
-  { icon: 'mdi-history', title: 'Transaction History', value: 'transactions', category: 'FINANCIAL' },
-  { icon: 'mdi-account-search', title: 'Job Listings', value: 'available-clients', category: 'WORK' },
-  { icon: 'mdi-chart-bar', title: 'Earnings Report', value: 'analytics', category: 'WORK' },
+  { 
+    icon: 'mdi-credit-card', 
+    title: 'Payment Information', 
+    value: 'payment', 
+    category: 'FINANCIAL',
+    disabled: !isApproved.value  // Disabled until approved
+  },
+  { 
+    icon: 'mdi-history', 
+    title: 'Transaction History', 
+    value: 'transactions', 
+    category: 'FINANCIAL',
+    disabled: !isApproved.value  // Disabled until approved
+  },
+  { 
+    icon: 'mdi-account-search', 
+    title: 'Job Listings', 
+    value: 'available-clients', 
+    category: 'WORK',
+    disabled: !isApproved.value  // Disabled until approved
+  },
+  { 
+    icon: 'mdi-chart-bar', 
+    title: 'Earnings Report', 
+    value: 'analytics', 
+    category: 'WORK',
+    disabled: !isApproved.value  // Disabled until approved
+  },
   { icon: 'mdi-account-circle', title: 'Profile (1099 Contractors)', value: 'profile', category: 'ACCOUNT' }
 ]);
 
@@ -2993,6 +3062,25 @@ const logout = () => {
   window.location.href = '/login';
 };
 
+// Handle clicks on disabled nav items for pending contractors
+const handleDisabledClick = (item) => {
+  if (item.disabled) {
+    alert('Your account is pending approval. Please complete your W9 form and wait for admin approval to access this feature.');
+  }
+};
+
+// Navigate to W9 form for pending contractors
+const goToW9Form = () => {
+  currentView.value = 'profile';
+  // Scroll to W9 section after view changes
+  setTimeout(() => {
+    const w9Section = document.querySelector('[data-section="w9"]');
+    if (w9Section) {
+      w9Section.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, 100);
+};
+
 const filterClients = () => {
   // Filters are reactive
 };
@@ -3910,24 +3998,77 @@ watch(currentSection, (newVal) => {
 });
 
 onMounted(async () => {
+  // Show loading overlay
+  isPageLoading.value = true;
+  loadingContext.value = 'staff';
+  loadingProgress.value = 0;
+  
   // Add resize listener for mobile detection
   window.addEventListener('resize', handleResize);
   
-  loadNYLocationData();
-  loadTrainingCenters(); // Load training centers on mount
-  await loadProfile(); // Load profile first to get caregiver ID
+  const loadingTasks = [
+    { fn: loadNYLocationData, weight: 5 },
+    { fn: loadTrainingCenters, weight: 5 },
+    { fn: loadNotifications, weight: 5 },
+    { fn: loadAvailableClients, weight: 10 },
+    { fn: loadSidebarNotificationCount, weight: 3 }
+  ];
+  
+  const totalWeight = 100;
+  let completedWeight = 0;
+  
+  // Execute initial tasks in parallel
+  const initialPromises = loadingTasks.map(async (task) => {
+    try {
+      await task.fn();
+    } catch (err) {
+      console.warn('Loading task failed:', err);
+    } finally {
+      completedWeight += task.weight;
+      loadingProgress.value = Math.round((completedWeight / totalWeight) * 100);
+    }
+  });
+  
+  await Promise.allSettled(initialPromises);
+  
+  // Load profile first (needs to complete before other housekeeper-specific tasks)
+  loadingProgress.value = 35;
+  await loadProfile();
+  loadingProgress.value = 50;
+  
   if (caregiverId.value) {
-    await loadCaregiverStats(); // Then load stats with the caregiver ID
-    await loadWeekHistory(); // Load week history
-    await loadCurrentSession(); // Check if already clocked in
-    loadEarningsReportData(); // Load earnings report data
-    loadScheduleEvents(); // Load schedule events from database
-    await loadPaymentData(); // Load payment data dynamically from database (NO HARDCODED DATA)
-    await loadPastBookings(); // Load past bookings with time tracking details
+    const housekeeperTasks = [
+      { fn: loadCaregiverStats, weight: 10 },
+      { fn: loadWeekHistory, weight: 10 },
+      { fn: loadCurrentSession, weight: 5 },
+      { fn: loadEarningsReportData, weight: 8 },
+      { fn: loadScheduleEvents, weight: 7 },
+      { fn: loadPaymentData, weight: 5 },
+      { fn: loadPastBookings, weight: 5 }
+    ];
+    
+    const housekeeperPromises = housekeeperTasks.map(async (task) => {
+      try {
+        await task.fn();
+      } catch (err) {
+        console.warn('Loading task failed:', err);
+      } finally {
+        completedWeight += task.weight;
+        loadingProgress.value = Math.min(95, Math.round((completedWeight / totalWeight) * 100));
+      }
+    });
+    
+    await Promise.allSettled(housekeeperPromises);
   }
-  loadNotifications();
-  loadAvailableClients();
-  loadSidebarNotificationCount();
+  
+  // Ensure progress shows 100%
+  loadingProgress.value = 100;
+  
+  // Small delay to show completion, then hide overlay
+  setTimeout(() => {
+    isPageLoading.value = false;
+  }, 300);
+  
   if (currentSection.value === 'analytics') {
     setTimeout(initCharts, 500);
   }
@@ -3937,7 +4078,7 @@ onMounted(async () => {
     currentTime.value = new Date();
   }, 60000);
   
-  // Refresh assignment status every 5 seconds for real-time updates
+  // Refresh assignment status every 30 seconds for real-time updates
   setInterval(() => {
     if (caregiverId.value) {
       loadCaregiverStats();
@@ -3945,7 +4086,7 @@ onMounted(async () => {
       loadCurrentSession();
       loadPaymentData(); // Refresh payment data in real-time
     }
-  }, 5000);
+  }, 30000);
   
   // Refresh notification count every 30 seconds
   setInterval(loadSidebarNotificationCount, 30000);
@@ -5537,6 +5678,121 @@ onBeforeUnmount(() => {
   
   .earnings-stats-row .stat-card-earnings .text-caption .v-icon {
     font-size: 11px !important;
+  }
+}
+
+/* Touch-friendly button targets for mobile (WCAG 2.1 AA: 44px minimum) */
+@media (max-width: 768px) {
+  .touch-friendly-btn,
+  .period-toggle .v-btn,
+  .v-btn-toggle .v-btn {
+    min-height: 44px !important;
+    min-width: 44px !important;
+  }
+  
+  /* Ensure icon buttons in tables have adequate touch targets */
+  .v-data-table .v-btn--icon,
+  .action-btn-view,
+  .action-btn-edit,
+  .action-btn-delete {
+    min-height: 44px !important;
+    min-width: 44px !important;
+    width: 44px !important;
+    height: 44px !important;
+  }
+  
+  /* Filter controls touch optimization */
+  .v-text-field .v-field,
+  .v-select .v-field {
+    min-height: 44px !important;
+  }
+}
+
+/* ============================================
+   BATTERY-CONSCIOUS ANIMATION SYSTEM
+   100/100 Mobile Audit Compliance
+   ============================================ */
+
+/* Pause animations when page is hidden */
+:root[data-page-hidden] .notification-dot,
+:root[data-page-hidden] [class*="pulse"],
+.page-hidden .notification-dot,
+.page-hidden [class*="pulse"] {
+  animation-play-state: paused !important;
+}
+
+/* Pause during rapid scroll */
+.is-scrolling .notification-dot,
+.is-scrolling [class*="pulse"] {
+  animation-play-state: paused !important;
+}
+
+/* Limit infinite animations on mobile */
+@media (max-width: 768px) {
+  .notification-dot {
+    animation-iteration-count: 5 !important;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  
+  .notification-dot,
+  [class*="pulse"] {
+    animation: none !important;
+  }
+}
+
+/* ============================================
+   ENHANCED FOCUS STATES - Accessibility
+   ============================================ */
+
+.v-btn:focus-visible,
+button:focus-visible {
+  outline: 3px solid rgba(124, 58, 237, 0.7) !important;
+  outline-offset: 3px !important;
+  box-shadow: 0 0 0 6px rgba(124, 58, 237, 0.15) !important;
+}
+
+.v-field:focus-within {
+  outline: 2px solid #7C3AED !important;
+  outline-offset: 2px !important;
+}
+
+/* ============================================
+   TABLE SCROLL INDICATORS
+   ============================================ */
+
+@media (max-width: 768px) {
+  :deep(.v-data-table) .v-table__wrapper {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    background: 
+      linear-gradient(to right, white 20px, transparent 60px),
+      linear-gradient(to left, white 20px, transparent 60px) 100% 0,
+      linear-gradient(to right, rgba(0,0,0,0.06) 0, transparent 15px),
+      linear-gradient(to left, rgba(0,0,0,0.06) 0, transparent 15px) 100% 0 !important;
+    background-repeat: no-repeat !important;
+    background-size: 60px 100%, 60px 100%, 15px 100%, 15px 100% !important;
+    background-attachment: local, local, scroll, scroll !important;
+  }
+}
+
+/* ============================================
+   TYPOGRAPHY READABILITY - 13px minimum
+   ============================================ */
+
+@media (max-width: 600px) {
+  .text-caption:not(.v-chip .text-caption):not(.v-tab .text-caption) {
+    font-size: 0.8125rem !important;
+    line-height: 1.5 !important;
   }
 }
 

@@ -15,6 +15,8 @@ use App\Rules\ValidPhoneNumber;
 use App\Rules\ValidNYPhoneNumber;
 use App\Services\NotificationService;
 use App\Services\EmailService;
+use App\Services\LoginThrottleService;
+use App\Services\AuditLogService;
 use Illuminate\Support\Str;
 use Carbon\Carbon;
 
@@ -27,7 +29,27 @@ class AuthController extends Controller
             'password' => 'required'
         ]);
 
+        $email = $credentials['email'];
+        $ip = $request->ip();
+
+        // Check for account lockout before attempting login
+        $lockoutStatus = LoginThrottleService::isLockedOut($email, $ip);
+        if ($lockoutStatus['locked']) {
+            AuditLogService::log(
+                null,
+                AuditLogService::ACTION_LOGIN,
+                AuditLogService::ENTITY_SESSION,
+                null,
+                ['email' => $email, 'blocked' => true, 'reason' => 'account_locked']
+            );
+            return back()->withErrors([
+                'email' => $lockoutStatus['message']
+            ])->withInput();
+        }
+
         if (Auth::attempt($credentials, $request->filled('remember'))) {
+            // Clear failed attempts on successful login
+            LoginThrottleService::clearAttempts($email, $ip);
             $request->session()->regenerate();
             $user = Auth::user();
 
@@ -46,6 +68,9 @@ class AuthController extends Controller
             }
 
             // Allow login for ALL statuses (pending, Active, approved) - restrictions are handled in dashboard
+            // Log successful login
+            AuditLogService::logLogin($user, true);
+
             if ($user->user_type === 'admin') {
                 // Generate session token for admin users (single session enforcement)
                 // Only for Master Admin, not Admin Staff
@@ -82,24 +107,48 @@ class AuthController extends Controller
             }
         }
 
-        return back()->withErrors(['email' => 'Invalid credentials'])->withInput();
+        // Record failed login attempt
+        $throttleResult = LoginThrottleService::recordFailedAttempt($email, $ip);
+        
+        // Log failed login attempt
+        $user = User::where('email', $email)->first();
+        if ($user) {
+            AuditLogService::logLogin($user, false, 'invalid_password');
+        }
+
+        // Build error message with remaining attempts info
+        $errorMessage = 'Invalid credentials.';
+        if ($throttleResult['locked']) {
+            $errorMessage = 'Account temporarily locked due to too many failed attempts. Please try again in 15 minutes.';
+        } elseif ($throttleResult['remaining'] <= 2) {
+            $errorMessage = "Invalid credentials. {$throttleResult['remaining']} attempts remaining before account lockout.";
+        }
+
+        return back()->withErrors(['email' => $errorMessage])->withInput();
     }
 
     public function register(Request $request)
     {
-        // Validate basic fields first
+        // Validate basic fields first with strong password requirements
         $validated = $request->validate([
             'first_name' => 'required|string|max:255|regex:/^[a-zA-Z\s\-\']+$/',
             'last_name' => 'required|string|max:255|regex:/^[a-zA-Z\s\-\']+$/',
             'email' => ['required', 'email', 'max:255', 'unique:users', 'regex:/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/'],
             'phone' => ['required', new ValidNYPhoneNumber],
             'zip_code' => ['required', 'string', 'regex:/^\d{5}$/', 'max:5'],
-            'password' => session('oauth_user') ? 'nullable' : 'required|min:8|max:255|confirmed',
+            'password' => session('oauth_user') ? 'nullable' : [
+                'required',
+                'min:8',
+                'max:255',
+                'confirmed',
+                'regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/',
+            ],
             'user_type' => 'required|in:client,caregiver,housekeeper,marketing,training_center',
             'partner_type' => 'nullable|in:caregiver,housekeeper,housekeeping,personal_assistant,marketing_partner,training_center',
             'terms' => 'required|accepted'
         ], [
-            'password.regex' => 'Password must contain at least one uppercase letter, one lowercase letter, and one number.',
+            'password.regex' => 'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character (@$!%*?&).',
+            'password.min' => 'Password must be at least 8 characters long.',
             'zip_code.regex' => 'Please enter a valid 5-digit ZIP code.'
         ]);
         
@@ -340,7 +389,15 @@ class AuthController extends Controller
         $validated = $request->validate([
             'token' => 'required',
             'email' => 'required|email',
-            'password' => 'required|min:8|confirmed',
+            'password' => [
+                'required',
+                'min:8',
+                'confirmed',
+                'regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/',
+            ],
+        ], [
+            'password.regex' => 'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character (@$!%*?&).',
+            'password.min' => 'Password must be at least 8 characters long.',
         ]);
         
         // Verify token

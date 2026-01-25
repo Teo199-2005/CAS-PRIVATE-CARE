@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use App\Models\Client;
+use App\Rules\NotInPasswordHistory;
+use App\Services\PasswordHistoryService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -54,7 +56,7 @@ class ProfileController extends Controller
             'ssn' => ['nullable', new \App\Rules\ValidSSN, 'max:11'],
             'itin' => ['nullable', new \App\Rules\ValidITIN, 'max:11'],
             'current_password' => 'nullable|string',
-            'new_password' => 'nullable|string|min:8|confirmed',
+            'new_password' => ['nullable', 'string', 'min:8', 'confirmed', new NotInPasswordHistory(Auth::user())],
             'notifications' => 'nullable|array'
         ]);
 
@@ -76,10 +78,16 @@ class ProfileController extends Controller
             $validated['profile_photo'] = $path;
         }
 
-        // Handle password change
+        // Handle password change with history tracking
         if ($validated['current_password'] && $validated['new_password']) {
             if (Hash::check($validated['current_password'], $user->password)) {
-                $user->update(['password' => Hash::make($validated['new_password'])]);
+                $hashedPassword = Hash::make($validated['new_password']);
+                
+                // Record in password history before updating
+                $historyService = new PasswordHistoryService();
+                $historyService->recordPassword($user, $hashedPassword);
+                
+                $user->update(['password' => $hashedPassword]);
             }
         }
 

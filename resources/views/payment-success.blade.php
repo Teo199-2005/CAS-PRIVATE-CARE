@@ -292,8 +292,6 @@
             
             if (bookingId && paymentIntentId) {
                 try {
-                    console.log('🔄 Updating payment status for booking #' + bookingId);
-                    
                     const response = await fetch('/api/bookings/update-payment-status', {
                         method: 'POST',
                         headers: {
@@ -309,16 +307,13 @@
                     const data = await response.json();
                     
                     if (data.success) {
-                        console.log('✅ Payment status updated successfully!');
                         // Set localStorage flags for dashboard to detect
                         localStorage.setItem('payment_completed', 'true');
                         localStorage.setItem('payment_booking_id', bookingId);
                         localStorage.setItem('payment_timestamp', Date.now().toString());
-                    } else {
-                        console.error('❌ Failed to update payment status:', data.message);
                     }
                 } catch (error) {
-                    console.error('❌ Error updating payment status:', error);
+                    // Payment status update failed silently
                 }
             }
         })();
@@ -327,9 +322,6 @@
         setTimeout(() => {
             window.location.href = '/client/dashboard';
         }, 30000);
-
-        // Add confetti effect (optional)
-        console.log('🎉 Payment successful! Booking #{{ $bookingId }} confirmed.');
     </script>
 </body>
 </html>

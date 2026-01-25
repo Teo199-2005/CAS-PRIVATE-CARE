@@ -2,7 +2,9 @@
 .DS_Store
 .env
 .env.backup
+.env.local
 .env.production
+.env.staging
 .env.testing
 .phpactor.json
 .phpunit.result.cache
@@ -20,10 +22,31 @@
 /storage/framework/views
 /storage/*.key
 /storage/pail
+/storage/cacert.pem
 /vendor
 Homestead.json
 Homestead.yaml
 Thumbs.db
 
+# Debug and development scripts (not for production)
+/scripts/debug/
+
+# Security - Never commit these
+*.pem
+*.key
+*.p12
+*.pfx
+
+# Test files that should not be in public
+/public/*-test.html
+/public/*-demo.html
+/public/test-*.html
+/public/diagnostic-*.html
+
 # ignore local browser runtime files
 AppData/Local/BraveSoftware/
+
+# IDE and editor files
+*.swp
+*.swo
+*~

@@ -6,7 +6,7 @@ import tailwindcss from '@tailwindcss/vite';
 export default defineConfig({
     plugins: [
         laravel({
-            input: ['resources/css/app.css', 'resources/js/app.js', 'resources/js/app-complex.js'],
+            input: ['resources/css/app.css', 'resources/css/common.css', 'resources/js/app.js', 'resources/js/app-complex.js'],
             refresh: true,
         }),
         vue({
@@ -26,6 +26,8 @@ export default defineConfig({
     },
     resolve: {
         alias: {
+            // Use full build with template compiler for runtime template compilation
+            // Required because blade templates use inline Vue component tags like <admin-dashboard>
             vue: 'vue/dist/vue.esm-bundler.js',
         },
     },
@@ -71,5 +73,7 @@ export default defineConfig({
         minify: 'esbuild',
         // Set chunk size warning limit
         chunkSizeWarningLimit: 500,
+        // Optimize assets
+        assetsInlineLimit: 4096, // Inline assets < 4kb as base64
     },
 });

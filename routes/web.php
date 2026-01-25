@@ -45,6 +45,11 @@ Route::get('/health/ready', [HealthController::class, 'ready'])->name('health.re
 Route::get('/health/live', [HealthController::class, 'live'])->name('health.live');
 
 // ============================================
+// OFFLINE PAGE (for PWA/Service Worker)
+// ============================================
+Route::view('/offline', 'offline')->name('offline');
+
+// ============================================
 // PUBLIC ROUTES
 // ============================================
 
@@ -129,6 +134,21 @@ Route::middleware(['auth'])->prefix('api/session')->group(function () {
 });
 
 // ============================================
+// TWO-FACTOR AUTHENTICATION ROUTES (Admin/AdminStaff)
+// ============================================
+
+Route::middleware(['auth'])->prefix('admin')->group(function () {
+    Route::get('/2fa/verify', [\App\Http\Controllers\Admin\TwoFactorController::class, 'show'])
+        ->name('admin.2fa.verify');
+    Route::post('/2fa/verify', [\App\Http\Controllers\Admin\TwoFactorController::class, 'verify'])
+        ->name('admin.2fa.verify.submit');
+    Route::post('/2fa/send-otp', [\App\Http\Controllers\Admin\TwoFactorController::class, 'sendOTP'])
+        ->name('admin.2fa.send-otp');
+    Route::post('/2fa/resend', [\App\Http\Controllers\Admin\TwoFactorController::class, 'resendOTP'])
+        ->name('admin.2fa.resend');
+});
+
+// ============================================
 // PUBLIC API ROUTES (No authentication)
 // ============================================
 
@@ -193,6 +213,11 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'show']);
     Route::post('/profile/update', [ProfileController::class, 'update']);
     
+    // Account Deletion & Data Export (GDPR Compliance)
+    Route::get('/account/delete', [\App\Http\Controllers\AccountDeletionController::class, 'show'])->name('account.delete');
+    Route::post('/account/delete', [\App\Http\Controllers\AccountDeletionController::class, 'requestDeletion'])->name('account.delete.confirm');
+    Route::get('/account/export-data', [\App\Http\Controllers\AccountDeletionController::class, 'exportData'])->name('account.export');
+    
     // Available Clients (caregiver)
     Route::get('/available-clients', [CaregiverController::class, 'availableClients']);
     
@@ -242,9 +267,6 @@ Route::prefix('api')->middleware(['web', 'auth'])->group(function () {
         Route::post('/{bookingId}/resume', [\App\Http\Controllers\RecurringBookingController::class, 'resumeRecurring']);
         Route::get('/{bookingId}/next-charge', [\App\Http\Controllers\RecurringBookingController::class, 'getNextChargeDate']);
     });
-    
-    // Debug route (remove in production)
-    Route::get('/debug/client/recurring', [DebugController::class, 'clientRecurring']);
     
     // Admin Recurring Bookings
     Route::get('/admin/recurring-bookings', [\App\Http\Controllers\RecurringBookingController::class, 'adminIndex']);
@@ -480,6 +502,7 @@ if (app()->environment('local', 'development')) {
     Route::get('/reseed-bookings', [DebugController::class, 'reseedBookings']);
     Route::get('/migrate-names', [DebugController::class, 'migrateNames']);
     Route::get('/migrate-status', [DebugController::class, 'migrateStatus']);
+    Route::get('/debug/client/recurring', [DebugController::class, 'clientRecurring'])->middleware('auth');
 }
 
 // ============================================

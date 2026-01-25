@@ -1,5 +1,15 @@
 <template>
     <div class="landing">
+        <!-- Scroll Progress Indicator -->
+        <div class="scroll-progress-bar" :style="{ width: scrollProgress + '%' }"></div>
+        
+        <!-- Floating Background Blobs -->
+        <div class="background-blobs" aria-hidden="true">
+            <div class="blob blob-blue"></div>
+            <div class="blob blob-green"></div>
+            <div class="blob blob-purple"></div>
+        </div>
+
         <header class="nav" role="banner">
             <a class="brand" href="/" aria-label="CAS Private Care Home">
                 <img class="brandLogo" :src="logoUrl" alt="CAS Private Care Logo" />
@@ -7,32 +17,33 @@
             </a>
 
             <nav class="navLinks" role="navigation" aria-label="Main navigation">
-                <a href="#services" aria-label="View our services">Services</a>
-                <a href="#how-it-works" aria-label="Learn how it works">How it works</a>
-                <a href="#reviews" aria-label="Read customer reviews">Reviews</a>
-                <a href="/blog" aria-label="Read our blog">Blog</a>
-                <a href="/login" class="btn btnGhost" aria-label="Login to your account">Login</a>
-                <a href="/register" class="btn btnPrimary" aria-label="Get started with CAS Private Care">Get started</a>
+                <a href="#services" class="nav-link-animated" aria-label="View our services">Services</a>
+                <a href="#how-it-works" class="nav-link-animated" aria-label="Learn how it works">How it works</a>
+                <a href="#reviews" class="nav-link-animated" aria-label="Read customer reviews">Reviews</a>
+                <a href="/blog" class="nav-link-animated" aria-label="Read our blog">Blog</a>
+                <a href="/login" class="btn btnGhost btn-animated" aria-label="Login to your account">Login</a>
+                <a href="/register" class="btn btnPrimary btn-animated" aria-label="Get started with CAS Private Care">Get started</a>
             </nav>
         </header>
 
         <main role="main">
             <section class="hero" aria-label="Hero section">
                 <div class="heroGrid">
-                    <div class="heroCopy">
-                        <p class="pill">Verified caregivers • Housekeeping • Personal assistants</p>
-                        <h1>Find trusted home care in New York—fast.</h1>
-                        <p class="sub">
+                    <div class="heroCopy animate-fade-in">
+                        <p class="pill animate-slide-down">Verified caregivers • Housekeeping • Personal assistants</p>
+                        <h1 class="animate-title">Find trusted home care in New York—fast.</h1>
+                        <p class="sub animate-fade-up">
                             Connect with vetted professionals for caregiving, housekeeping, and personal assistance.
                             Book with confidence and get 24/7 support.
                         </p>
 
                         <div class="heroTabs" role="tablist" aria-label="Service types">
                             <button
-                                v-for="s in services"
+                                v-for="(s, index) in services"
                                 :key="s.key"
-                                class="tab"
+                                class="tab tab-animated"
                                 :class="{ active: activeService === s.key }"
+                                :style="{ animationDelay: (index * 100) + 'ms' }"
                                 type="button"
                                 @click="setService(s.key)"
                             >
@@ -40,42 +51,44 @@
                             </button>
                         </div>
 
-                        <div class="heroCard" id="services">
-                            <h2 class="heroCardTitle">{{ current.title }}</h2>
-                            <p class="heroCardDesc">{{ current.description }}</p>
+                        <transition name="tab-fade" mode="out-in">
+                            <div class="heroCard" id="services" :key="activeService">
+                                <h2 class="heroCardTitle">{{ current.title }}</h2>
+                                <p class="heroCardDesc">{{ current.description }}</p>
 
-                            <div class="heroActions">
-                                <a class="btn btnPrimary" :href="current.ctaHref">{{ current.ctaLabel }}</a>
-                                <a class="btn btnGhost" href="/register">Create an account</a>
+                                <div class="heroActions">
+                                    <a class="btn btnPrimary btn-animated" :href="current.ctaHref">{{ current.ctaLabel }}</a>
+                                    <a class="btn btnGhost btn-animated" href="/register">Create an account</a>
+                                </div>
                             </div>
-                        </div>
+                        </transition>
 
                         <div class="stats" v-if="statsReady">
-                            <div class="stat">
-                                <div class="statValue">{{ stats.caregivers }}</div>
+                            <div class="stat stagger-item" :style="{ animationDelay: '200ms' }">
+                                <div class="statValue stat-value-hover">{{ stats.caregivers }}</div>
                                 <div class="statLabel">Verified caregivers</div>
                             </div>
-                            <div class="stat">
-                                <div class="statValue">{{ stats.clients }}</div>
+                            <div class="stat stagger-item" :style="{ animationDelay: '300ms' }">
+                                <div class="statValue stat-value-hover">{{ stats.clients }}</div>
                                 <div class="statLabel">Happy clients</div>
                             </div>
-                            <div class="stat">
-                                <div class="statValue">{{ stats.reviews }}</div>
+                            <div class="stat stagger-item" :style="{ animationDelay: '400ms' }">
+                                <div class="statValue stat-value-hover">{{ stats.reviews }}</div>
                                 <div class="statLabel">5-star reviews</div>
                             </div>
                         </div>
                     </div>
 
-                    <div class="heroMedia" aria-hidden="true">
-                        <div class="mediaCard">
-                            <div class="mediaBadge">New</div>
+                    <div class="heroMedia animate-fade-right" aria-hidden="true">
+                        <div class="mediaCard card-hover">
+                            <div class="mediaBadge pulse-badge">New</div>
                             <div class="mediaTitle">Care you can trust</div>
                             <div class="mediaText">
                                 Background checks, verified profiles, and support every step of the way.
                             </div>
                         </div>
 
-                        <div class="mediaCard alt">
+                        <div class="mediaCard alt card-hover">
                             <div class="mediaTitle">Transparent pricing</div>
                             <div class="mediaText">See a clear breakdown before you book.</div>
                         </div>
@@ -83,28 +96,28 @@
                 </div>
             </section>
 
-            <section class="section" id="how-it-works">
-                <h2>How it works</h2>
+            <section class="section section-animated" id="how-it-works">
+                <h2 class="section-title-animated">How it works</h2>
                 <div class="steps">
-                    <div class="step">
-                        <div class="stepNum">1</div>
+                    <div class="step step-animated card-hover" style="animation-delay: 0ms">
+                        <div class="stepNum stepNum-animated">1</div>
                         <div class="stepTitle">Tell us what you need</div>
                         <div class="stepText">Pick a service type and share your schedule.</div>
                     </div>
-                    <div class="step">
-                        <div class="stepNum">2</div>
+                    <div class="step step-animated card-hover" style="animation-delay: 150ms">
+                        <div class="stepNum stepNum-animated">2</div>
                         <div class="stepTitle">We match you</div>
                         <div class="stepText">Get matched with verified professionals in your area.</div>
                     </div>
-                    <div class="step">
-                        <div class="stepNum">3</div>
+                    <div class="step step-animated card-hover" style="animation-delay: 300ms">
+                        <div class="stepNum stepNum-animated">3</div>
                         <div class="stepTitle">Book with confidence</div>
                         <div class="stepText">Confirm your booking and get 24/7 support.</div>
                     </div>
                 </div>
             </section>
 
-            <section class="section" id="reviews">
+            <section class="section section-animated" id="reviews">
                 <h2>What people say</h2>
                 <div class="quoteGrid">
                     <figure class="quote">
@@ -138,6 +151,12 @@
 
 <script setup>
 import { computed, onMounted, onUnmounted, ref } from 'vue';
+
+// Scroll progress tracking
+const scrollProgress = ref(0);
+
+// Scroll-triggered animation observer
+let scrollObserver = null;
 
 const services = [
     {
@@ -183,6 +202,34 @@ const statsReady = computed(() => !!stats.value);
 
 let rotateTimerId;
 
+// Update scroll progress
+function updateScrollProgress() {
+    const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+    const scrollHeight = document.documentElement.scrollHeight - window.innerHeight;
+    scrollProgress.value = scrollHeight > 0 ? (scrollTop / scrollHeight) * 100 : 0;
+}
+
+// Setup scroll-triggered animations
+function setupScrollAnimations() {
+    const animatedSections = document.querySelectorAll('.section-animated');
+    
+    scrollObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('visible');
+            }
+        });
+    }, {
+        root: null,
+        rootMargin: '0px 0px -10% 0px',
+        threshold: 0.1
+    });
+
+    animatedSections.forEach(section => {
+        scrollObserver.observe(section);
+    });
+}
+
 async function loadStats() {
     try {
         const res = await fetch('/api/landing/stats', {
@@ -209,6 +256,13 @@ async function loadStats() {
 }
 
 onMounted(() => {
+    // Setup scroll progress tracking
+    window.addEventListener('scroll', updateScrollProgress, { passive: true });
+    updateScrollProgress();
+    
+    // Setup scroll-triggered animations
+    setupScrollAnimations();
+
     // Auto-rotate like the old Blade slider.
     rotateTimerId = window.setInterval(() => {
         const idx = services.findIndex((s) => s.key === activeService.value);
@@ -221,10 +275,435 @@ onMounted(() => {
 
 onUnmounted(() => {
     if (rotateTimerId) window.clearInterval(rotateTimerId);
+    window.removeEventListener('scroll', updateScrollProgress);
+    if (scrollObserver) {
+        scrollObserver.disconnect();
+    }
 });
 </script>
 
 <style scoped>
+/* ========================================
+   CSS Variables for Consistent Transitions
+   ======================================== */
+:root {
+    --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-normal: 250ms cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-slow: 350ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ========================================
+   Scroll Progress Bar
+   ======================================== */
+.scroll-progress-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #3b82f6, #10b981);
+    z-index: 10000;
+    transition: width 50ms linear;
+    box-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
+}
+
+/* ========================================
+   Floating Background Blobs
+   ======================================== */
+.background-blobs {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: -1;
+    overflow: hidden;
+}
+
+.blob {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(80px);
+    opacity: 0.5;
+}
+
+.blob-blue {
+    width: 600px;
+    height: 600px;
+    background: rgba(59, 130, 246, 0.2);
+    top: -200px;
+    left: -100px;
+    animation: floatBlob 8s ease-in-out infinite;
+}
+
+.blob-green {
+    width: 500px;
+    height: 500px;
+    background: rgba(16, 185, 129, 0.15);
+    top: 50%;
+    right: -150px;
+    animation: floatBlobReverse 10s ease-in-out infinite;
+}
+
+.blob-purple {
+    width: 400px;
+    height: 400px;
+    background: rgba(139, 92, 246, 0.12);
+    bottom: -100px;
+    left: 30%;
+    animation: floatBlob 12s ease-in-out infinite;
+}
+
+@keyframes floatBlob {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    25% { transform: translate(20px, -20px) scale(1.05); }
+    50% { transform: translate(30px, -30px) scale(1.1); }
+    75% { transform: translate(10px, -15px) scale(1.03); }
+}
+
+@keyframes floatBlobReverse {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    25% { transform: translate(-15px, 20px) scale(1.03); }
+    50% { transform: translate(-25px, 25px) scale(1.08); }
+    75% { transform: translate(-10px, 10px) scale(1.02); }
+}
+
+/* ========================================
+   Entrance Animations
+   ======================================== */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeInRight {
+    from {
+        opacity: 0;
+        transform: translateX(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes titleReveal {
+    from {
+        opacity: 0;
+        transform: translateY(40px);
+        filter: blur(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+        filter: blur(0);
+    }
+}
+
+@keyframes staggerFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.8; transform: scale(1.05); }
+}
+
+/* Animation Classes */
+.animate-fade-in {
+    animation: fadeInUp 0.8s ease-out forwards;
+}
+
+.animate-fade-up {
+    animation: fadeInUp 0.6s ease-out 0.2s forwards;
+    opacity: 0;
+}
+
+.animate-fade-right {
+    animation: fadeInRight 0.8s ease-out 0.3s forwards;
+    opacity: 0;
+}
+
+.animate-slide-down {
+    animation: slideDown 0.6s ease-out forwards;
+}
+
+.animate-title {
+    animation: titleReveal 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.stagger-item {
+    opacity: 0;
+    animation: staggerFadeIn 0.5s ease forwards;
+}
+
+.pulse-badge {
+    animation: pulse 2s ease-in-out infinite;
+}
+
+/* ========================================
+   Tab Transition
+   ======================================== */
+.tab-fade-enter-active {
+    animation: tabFadeIn 0.3s ease-out;
+}
+
+.tab-fade-leave-active {
+    animation: tabFadeOut 0.2s ease-in;
+}
+
+@keyframes tabFadeIn {
+    from {
+        opacity: 0;
+        transform: translateX(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes tabFadeOut {
+    from {
+        opacity: 1;
+        transform: translateX(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateX(10px);
+    }
+}
+
+/* ========================================
+   Section Animations (Scroll-triggered)
+   ======================================== */
+.section-animated {
+    opacity: 0;
+    transform: translateY(40px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+.section-animated.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.section-title-animated {
+    opacity: 0;
+    animation: fadeInUp 0.6s ease-out forwards;
+}
+
+.section-animated.visible .section-title-animated {
+    opacity: 1;
+}
+
+.step-animated,
+.quote-animated {
+    opacity: 0;
+    animation: staggerFadeIn 0.5s ease forwards;
+    animation-play-state: paused;
+}
+
+.section-animated.visible .step-animated,
+.section-animated.visible .quote-animated {
+    animation-play-state: running;
+}
+
+/* ========================================
+   Card Hover Effects
+   ======================================== */
+.card-hover {
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), 
+                box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.card-hover:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 20px 50px rgba(59, 130, 246, 0.15);
+}
+
+/* ========================================
+   Button Animations
+   ======================================== */
+.btn-animated {
+    position: relative;
+    overflow: hidden;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-animated::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    transition: width 0.5s ease, height 0.5s ease;
+}
+
+.btn-animated:active::after {
+    width: 300px;
+    height: 300px;
+}
+
+.btn-animated:active {
+    transform: scale(0.97);
+}
+
+.btn-animated:focus-visible {
+    outline: 3px solid rgba(59, 130, 246, 0.5);
+    outline-offset: 2px;
+}
+
+/* ========================================
+   Navigation Link Animations
+   ======================================== */
+.nav-link-animated {
+    position: relative;
+}
+
+.nav-link-animated::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background: linear-gradient(90deg, #3b82f6, #10b981);
+    transition: width 0.3s ease;
+}
+
+.nav-link-animated:hover::after {
+    width: 100%;
+}
+
+/* ========================================
+   Tab Animations
+   ======================================== */
+.tab-animated {
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    opacity: 0;
+    animation: staggerFadeIn 0.4s ease forwards;
+}
+
+.tab-animated:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+}
+
+.tab-animated.active {
+    transform: scale(1.02);
+}
+
+/* ========================================
+   Stat Value Hover Effect
+   ======================================== */
+.stat-value-hover {
+    transition: transform 0.2s ease, color 0.2s ease;
+}
+
+.stat:hover .stat-value-hover {
+    transform: scale(1.1);
+    color: #3b82f6;
+}
+
+/* ========================================
+   StepNum Animation
+   ======================================== */
+.stepNum-animated {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.step:hover .stepNum-animated {
+    transform: scale(1.1) rotate(5deg);
+    box-shadow: 0 8px 20px rgba(59, 130, 246, 0.4);
+}
+
+/* ========================================
+   Footer Link Animations
+   ======================================== */
+.footer-link-animated {
+    position: relative;
+    transition: color 0.2s ease;
+}
+
+.footer-link-animated::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background: #1e40af;
+    transition: width 0.3s ease;
+}
+
+.footer-link-animated:hover::after {
+    width: 100%;
+}
+
+.footer-link-animated:hover {
+    color: #1e40af;
+}
+
+/* ========================================
+   Focus States (Accessibility)
+   ======================================== */
+*:focus-visible {
+    outline: 3px solid rgba(59, 130, 246, 0.5);
+    outline-offset: 2px;
+    border-radius: 4px;
+}
+
+/* ========================================
+   Reduced Motion Preferences
+   ======================================== */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+    
+    .section-animated {
+        opacity: 1;
+        transform: none;
+    }
+    
+    .blob {
+        animation: none;
+    }
+}
+
 /* Use the loaded Google Fonts */
 .landing {
     font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -235,6 +714,8 @@ onUnmounted(() => {
     min-height: 100vh;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    position: relative;
+    overflow-x: hidden;
 }
 
 .nav {
@@ -259,12 +740,22 @@ onUnmounted(() => {
     align-items: center;
     text-decoration: none;
     color: inherit;
+    transition: transform 0.2s ease;
+}
+
+.brand:hover {
+    transform: scale(1.02);
 }
 
 .brandLogo {
     width: 34px;
     height: 34px;
     object-fit: contain;
+    transition: transform 0.3s ease;
+}
+
+.brand:hover .brandLogo {
+    transform: rotate(10deg);
 }
 
 .brandName {
@@ -288,6 +779,7 @@ onUnmounted(() => {
     color: #0f172a;
     font-weight: 600;
     opacity: 0.92;
+    transition: opacity 0.2s ease, color 0.2s ease;
 }
 
 .navLinks a:hover {
@@ -667,6 +1159,49 @@ onUnmounted(() => {
     .quoteGrid,
     .stats {
         grid-template-columns: 1fr;
+    }
+}
+
+/* ============================================
+   MOBILE BATTERY OPTIMIZATION - v1.0
+   Added: January 24, 2026
+   Hide decorative blobs on mobile to save battery
+   ============================================ */
+
+@media (max-width: 768px) {
+    /* Hide background blobs on mobile - major battery drain */
+    .blob,
+    .blob-blue,
+    .blob-green,
+    .blob-purple,
+    .background-blobs {
+        display: none !important;
+    }
+}
+
+/* Pause blob animations when page is hidden (desktop) */
+.page-hidden .blob,
+.page-hidden .blob-blue,
+.page-hidden .blob-green,
+.page-hidden .blob-purple {
+    animation-play-state: paused !important;
+}
+
+/* Pause during scrolling for better performance */
+.is-scrolling .blob,
+.is-scrolling .blob-blue,
+.is-scrolling .blob-green,
+.is-scrolling .blob-purple {
+    animation-play-state: paused !important;
+}
+
+/* Respect reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+    .blob,
+    .blob-blue,
+    .blob-green,
+    .blob-purple {
+        animation: none !important;
     }
 }
 </style>

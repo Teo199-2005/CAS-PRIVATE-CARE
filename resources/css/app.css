@@ -1,4 +1,12 @@
+/* ===========================================
+   CAS Private Care - Main Application Styles
+   Import order matters for CSS cascade
+   =========================================== */
+
 @import 'tailwindcss';
+@import './design-tokens.css';
+@import './animations.css';
+@import './mobile-fixes.css';
 
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../storage/framework/views/*.php';
@@ -9,3 +17,113 @@
     --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
         'Segoe UI Symbol', 'Noto Color Emoji';
 }
+
+/* ===========================================
+   Global Base Styles
+   =========================================== */
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+html {
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    height: 100%;
+}
+
+body {
+    font-family: var(--font-primary);
+    line-height: var(--leading-normal);
+    color: var(--text-primary);
+    background-color: var(--bg-primary);
+    min-height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Vue App Container - Sticky Footer Support */
+#admin-dashboard-app,
+#client-dashboard-app,
+#caregiver-dashboard-app,
+#housekeeper-dashboard-app {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Vuetify App - Fill height */
+.v-application {
+    min-height: 100vh !important;
+    display: flex !important;
+    flex-direction: column !important;
+}
+
+/* v-main should be flex container and expand */
+.v-main {
+    display: flex !important;
+    flex-direction: column !important;
+    flex: 1 1 auto !important;
+}
+
+/* Main wrapper fills v-main and pushes footer to bottom */
+.main-wrapper {
+    display: flex !important;
+    flex-direction: column !important;
+    flex: 1 !important;
+    min-height: 100% !important;
+}
+
+/* Content grows, footer stays at bottom */
+.main-wrapper > .content-container {
+    flex: 1 0 auto !important;
+}
+
+.main-wrapper > .dashboard-footer,
+.main-wrapper > footer,
+.main-wrapper .dashboard-footer {
+    flex-shrink: 0 !important;
+    margin-top: auto !important;
+    position: static !important;
+    width: 100% !important;
+}
+
+/* Selection styling */
+::selection {
+    background-color: rgba(var(--brand-primary-rgb), 0.2);
+    color: var(--brand-primary-dark);
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--bg-secondary);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--gray-400);
+    border-radius: var(--radius-full);
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--gray-500);
+}
+
+/* Dark mode scrollbar */
+.dark-mode ::-webkit-scrollbar-track,
+[data-theme="dark"] ::-webkit-scrollbar-track {
+    background: var(--gray-800);
+}
+
+.dark-mode ::-webkit-scrollbar-thumb,
+[data-theme="dark"] ::-webkit-scrollbar-thumb {
+    background: var(--gray-600);
+}
+

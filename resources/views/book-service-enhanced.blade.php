@@ -1167,5 +1167,6 @@
         document.querySelector('[name="special_instructions"]').value = rand(instructions);
     }
     </script>
+    @include('partials.cookie-consent')
 </body>
 </html>

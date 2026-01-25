@@ -9,9 +9,17 @@ use App\Models\User;
 use Illuminate\Support\Facades\Mail;
 use Stripe\Webhook;
 use Stripe\Exception\SignatureVerificationException;
+use App\Services\WebhookRetryService;
 
 class StripeWebhookController extends Controller
 {
+    protected WebhookRetryService $retryService;
+
+    public function __construct(WebhookRetryService $retryService)
+    {
+        $this->retryService = $retryService;
+    }
+
     /**
      * Handle incoming Stripe webhooks
      */
@@ -19,7 +27,7 @@ class StripeWebhookController extends Controller
     {
         $payload = $request->getContent();
         $sig = $request->header('Stripe-Signature');
-        $webhookSecret = env('STRIPE_WEBHOOK_SECRET');
+        $webhookSecret = config('services.stripe.webhook_secret');
 
         if (!$webhookSecret) {
             Log::error('Stripe webhook secret not configured');
@@ -67,6 +75,18 @@ class StripeWebhookController extends Controller
                     $this->handlePaymentIntentFailed($event->data->object);
                     break;
 
+                case 'charge.dispute.created':
+                    $this->handleDisputeCreated($event->data->object);
+                    break;
+
+                case 'charge.dispute.closed':
+                    $this->handleDisputeClosed($event->data->object);
+                    break;
+
+                case 'charge.refunded':
+                    $this->handleChargeRefunded($event->data->object);
+                    break;
+
                 default:
                     Log::info('Unhandled webhook event type: ' . $event->type);
             }
@@ -76,7 +96,17 @@ class StripeWebhookController extends Controller
                 'event_id' => $event->id,
                 'trace' => $e->getTraceAsString()
             ]);
-            return response()->json(['error' => 'Webhook processing failed'], 500);
+
+            // Queue for retry if processing failed
+            $this->retryService->queueForRetry(
+                'stripe',
+                $event->type,
+                json_decode($payload, true),
+                $e->getMessage()
+            );
+
+            // Return 200 to prevent Stripe from retrying (we handle our own retries)
+            return response()->json(['received' => true, 'queued_for_retry' => true]);
         }
 
         return response()->json(['received' => true]);
@@ -298,6 +328,206 @@ class StripeWebhookController extends Controller
             } catch (\Exception $e) {
                 // Model may not exist, continue
                 Log::info('FailedPayment model not available for tracking');
+            }
+        }
+    }
+
+    /**
+     * Handle dispute created event
+     * CRITICAL: Disputes require immediate admin attention
+     * 
+     * @param object $dispute Stripe dispute object
+     */
+    protected function handleDisputeCreated($dispute)
+    {
+        // CRITICAL: Log at highest priority for admin dashboard
+        Log::critical('STRIPE DISPUTE CREATED - IMMEDIATE ACTION REQUIRED', [
+            'dispute_id' => $dispute->id,
+            'charge_id' => $dispute->charge ?? 'unknown',
+            'amount' => isset($dispute->amount) ? $dispute->amount / 100 : 'unknown',
+            'currency' => $dispute->currency ?? 'usd',
+            'reason' => $dispute->reason ?? 'unknown',
+            'status' => $dispute->status ?? 'unknown',
+            'evidence_due_by' => isset($dispute->evidence_details->due_by) 
+                ? date('Y-m-d H:i:s', $dispute->evidence_details->due_by) 
+                : 'unknown',
+        ]);
+
+        // Try to find the related booking via the charge
+        $booking = null;
+        if (isset($dispute->payment_intent)) {
+            $booking = Booking::where('stripe_payment_intent_id', $dispute->payment_intent)
+                ->orWhere('payment_intent_id', $dispute->payment_intent)
+                ->first();
+        }
+
+        // Mark booking as disputed if found
+        if ($booking) {
+            $booking->update([
+                'payment_status' => 'disputed',
+                'dispute_id' => $dispute->id,
+                'dispute_reason' => $dispute->reason ?? 'unknown',
+                'dispute_created_at' => now(),
+            ]);
+
+            Log::warning('Booking marked as disputed', [
+                'booking_id' => $booking->id,
+                'dispute_id' => $dispute->id,
+            ]);
+
+            // Send urgent notification to admin
+            try {
+                \App\Services\NotificationService::create(
+                    null, // All admins
+                    'URGENT: Payment Dispute Created',
+                    "A dispute has been filed for Booking #{$booking->id}. Amount: $" . 
+                        number_format(($dispute->amount ?? 0) / 100, 2) . ". Reason: " . 
+                        ($dispute->reason ?? 'unknown') . ". Evidence due by: " .
+                        (isset($dispute->evidence_details->due_by) 
+                            ? date('F j, Y', $dispute->evidence_details->due_by) 
+                            : 'unknown'),
+                    'Stripe',
+                    'urgent'
+                );
+            } catch (\Exception $e) {
+                Log::error('Failed to create dispute notification: ' . $e->getMessage());
+            }
+
+            // Send email alert to client
+            $client = User::find($booking->client_id);
+            if ($client && $client->email) {
+                try {
+                    Mail::raw(
+                        "A dispute has been filed for your Booking #{$booking->id}.\n\n" .
+                        "Amount: $" . number_format(($dispute->amount ?? 0) / 100, 2) . "\n" .
+                        "Reason: " . ($dispute->reason ?? 'Not specified') . "\n\n" .
+                        "Our team will review this dispute and contact you if we need additional information.\n\n" .
+                        "If you have any questions, please contact support.",
+                        function ($message) use ($client, $booking) {
+                            $message->to($client->email)
+                                ->subject('Payment Dispute Notice - Booking #' . $booking->id);
+                        }
+                    );
+                } catch (\Exception $e) {
+                    Log::error('Failed to send dispute email: ' . $e->getMessage());
+                }
+            }
+        } else {
+            Log::warning('Dispute received but no matching booking found', [
+                'dispute_id' => $dispute->id,
+                'payment_intent' => $dispute->payment_intent ?? 'none',
+            ]);
+        }
+    }
+
+    /**
+     * Handle dispute closed event
+     * 
+     * @param object $dispute Stripe dispute object
+     */
+    protected function handleDisputeClosed($dispute)
+    {
+        Log::info('Stripe dispute closed', [
+            'dispute_id' => $dispute->id,
+            'status' => $dispute->status ?? 'unknown',
+            'outcome' => $dispute->status ?? 'unknown',
+        ]);
+
+        // Find and update the related booking
+        $booking = null;
+        if (isset($dispute->payment_intent)) {
+            $booking = Booking::where('stripe_payment_intent_id', $dispute->payment_intent)
+                ->orWhere('payment_intent_id', $dispute->payment_intent)
+                ->first();
+        }
+
+        if ($booking) {
+            $newStatus = 'paid'; // Default to paid if dispute won
+            
+            if ($dispute->status === 'lost') {
+                $newStatus = 'refunded';
+                Log::warning('Dispute lost - booking refunded', ['booking_id' => $booking->id]);
+            } elseif ($dispute->status === 'won') {
+                Log::info('Dispute won - payment retained', ['booking_id' => $booking->id]);
+            }
+
+            $booking->update([
+                'payment_status' => $newStatus,
+                'dispute_resolved_at' => now(),
+                'dispute_outcome' => $dispute->status ?? 'unknown',
+            ]);
+
+            // Notify admin of outcome
+            try {
+                \App\Services\NotificationService::create(
+                    null,
+                    'Dispute Resolved: ' . ucfirst($dispute->status ?? 'Unknown'),
+                    "Dispute for Booking #{$booking->id} has been " . ($dispute->status ?? 'resolved') . ".",
+                    'Stripe',
+                    'normal'
+                );
+            } catch (\Exception $e) {
+                Log::error('Failed to create dispute resolution notification: ' . $e->getMessage());
+            }
+        }
+    }
+
+    /**
+     * Handle charge refunded event
+     * 
+     * @param object $charge Stripe charge object
+     */
+    protected function handleChargeRefunded($charge)
+    {
+        Log::info('Charge refunded', [
+            'charge_id' => $charge->id,
+            'amount_refunded' => isset($charge->amount_refunded) ? $charge->amount_refunded / 100 : 'unknown',
+            'refund_reason' => $charge->refunds->data[0]->reason ?? 'not specified',
+        ]);
+
+        // Find the related booking
+        $booking = null;
+        if (isset($charge->payment_intent)) {
+            $booking = Booking::where('stripe_payment_intent_id', $charge->payment_intent)
+                ->orWhere('payment_intent_id', $charge->payment_intent)
+                ->first();
+        }
+
+        if ($booking) {
+            // Determine if full or partial refund
+            $originalAmount = $charge->amount ?? 0;
+            $refundedAmount = $charge->amount_refunded ?? 0;
+            $isFullRefund = $refundedAmount >= $originalAmount;
+
+            $booking->update([
+                'payment_status' => $isFullRefund ? 'refunded' : 'partially_refunded',
+                'refund_amount' => $refundedAmount / 100,
+                'refund_date' => now(),
+                'refund_reason' => $charge->refunds->data[0]->reason ?? 'not specified',
+            ]);
+
+            Log::info('Booking marked as ' . ($isFullRefund ? 'fully' : 'partially') . ' refunded', [
+                'booking_id' => $booking->id,
+                'refund_amount' => $refundedAmount / 100,
+            ]);
+
+            // Notify client of refund
+            $client = User::find($booking->client_id);
+            if ($client && $client->email) {
+                try {
+                    Mail::raw(
+                        "A refund has been processed for your Booking #{$booking->id}.\n\n" .
+                        "Refund Amount: $" . number_format($refundedAmount / 100, 2) . "\n" .
+                        "This refund should appear on your statement within 5-10 business days.\n\n" .
+                        "If you have any questions, please contact support.",
+                        function ($message) use ($client, $booking) {
+                            $message->to($client->email)
+                                ->subject('Refund Processed - Booking #' . $booking->id);
+                        }
+                    );
+                } catch (\Exception $e) {
+                    Log::error('Failed to send refund email: ' . $e->getMessage());
+                }
             }
         }
     }

@@ -1,4 +1,11 @@
 <template>
+  <!-- Global Loading Overlay -->
+  <LoadingOverlay 
+    :visible="isPageLoading" 
+    context="training"
+    tagline="Training Center Portal"
+  />
+
   <notification-toast
     v-model="notification.show"
     :type="notification.type"
@@ -61,8 +68,17 @@
             </v-card-text>
           </v-card>
         </v-col>
-        <v-col v-for="stat in stats" :key="stat.title" cols="6" sm="6" md="3">
-          <stat-card :icon="stat.icon" :value="stat.value" :label="stat.title" :change="stat.change" :change-color="stat.changeColor" :change-icon="stat.changeIcon" icon-class="grey-darken-2" />
+        <v-col v-for="(stat, index) in stats" :key="stat.title" cols="6" sm="6" md="3">
+          <stat-card 
+            :icon="stat.icon" 
+            :value="stat.value" 
+            :label="stat.title" 
+            :change="stat.change" 
+            :change-color="stat.changeColor" 
+            :change-icon="stat.changeIcon" 
+            icon-class="grey-darken-2"
+            :stagger-index="index + 1"
+          />
         </v-col>
       </v-row>
 
@@ -598,11 +614,17 @@ import StatCard from './shared/StatCard.vue';
 import NotificationToast from './shared/NotificationToast.vue';
 import NotificationCenter from './shared/NotificationCenter.vue';
 import EmailVerificationBanner from './EmailVerificationBanner.vue';
+import LoadingOverlay from './LoadingOverlay.vue';
 import { useNotification } from '../composables/useNotification';
 import { useNYLocationData } from '../composables/useNYLocationData.js';
 
 const { notification, success, error, warning, info } = useNotification();
 const { counties, getCitiesForCounty, loadNYLocationData } = useNYLocationData();
+
+// Global loading state
+const isPageLoading = ref(true);
+const loadingContext = ref('dashboard');
+const loadingProgress = ref(0);
 
 const currentSection = ref('dashboard');
 const userEmailVerified = ref(false);
@@ -1345,11 +1367,40 @@ watch(currentSection, (newVal) => {
   }
 });
 
-onMounted(() => {
-  loadNYLocationData();
-  loadProfile(); // This will also call loadTrainingStats after getting user ID
-  loadPendingCaregivers(); // Load pending requests on mount
-  checkTrainingApplicationStatus();
+onMounted(async () => {
+  // Show loading overlay
+  isPageLoading.value = true;
+  loadingContext.value = 'dashboard';
+  loadingProgress.value = 0;
+  
+  const loadingTasks = [
+    { fn: loadNYLocationData, weight: 10 },
+    { fn: loadProfile, weight: 30 },
+    { fn: loadPendingCaregivers, weight: 30 },
+    { fn: checkTrainingApplicationStatus, weight: 20 }
+  ];
+  
+  const totalWeight = loadingTasks.reduce((sum, task) => sum + task.weight, 0);
+  let completedWeight = 0;
+  
+  const promises = loadingTasks.map(async (task) => {
+    try {
+      await task.fn();
+    } catch (err) {
+      console.warn('Loading task failed:', err);
+    } finally {
+      completedWeight += task.weight;
+      loadingProgress.value = Math.round((completedWeight / totalWeight) * 100);
+    }
+  });
+  
+  await Promise.allSettled(promises);
+  loadingProgress.value = 100;
+  
+  setTimeout(() => {
+    isPageLoading.value = false;
+  }, 300);
+  
   if (currentSection.value === 'analytics') {
     setTimeout(initCharts, 500);
   }
@@ -1513,11 +1564,14 @@ onMounted(() => {
 .action-btn-edit,
 .action-btn-approve,
 .action-btn-reject {
-  width: 36px !important;
-  height: 36px !important;
-  min-width: 36px !important;
+  width: 44px !important;
+  height: 44px !important;
+  min-width: 44px !important;
+  min-height: 44px !important;
   padding: 0 !important;
-  border-radius: 8px !important;
+  border-radius: 10px !important;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .action-btn-view {

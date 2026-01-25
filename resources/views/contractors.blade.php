@@ -1306,5 +1306,6 @@
             observer.observe(el);
         });
     </script>
+    @include('partials.cookie-consent')
 </body>
 </html>

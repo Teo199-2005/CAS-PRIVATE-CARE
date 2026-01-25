@@ -1,5 +1,9 @@
 User-agent: *
+Allow: /
+
+# Disallow admin and API routes
 Disallow: /admin/
+Disallow: /admin-staff/
 Disallow: /api/
 Disallow: /client/dashboard
 Disallow: /caregiver/dashboard
@@ -13,12 +17,16 @@ Disallow: /stripe-connect-onboarding
 Disallow: /payment
 Disallow: /profile
 Disallow: /reset-password
+Disallow: /book-service
+Disallow: /login
+Disallow: /register
+Disallow: /account/
+Disallow: /debug/
 
 # Allow search engines to index public pages
 Allow: /
-Allow: /login
-Allow: /register
 Allow: /blog
+Allow: /blog/*
 Allow: /services
 Allow: /contact
 Allow: /about
@@ -28,6 +36,17 @@ Allow: /terms
 Allow: /hire-caregiver-new-york
 Allow: /housekeeping-new-york
 Allow: /personal-assistant-new-york
+Allow: /caregiver-new-york
+Allow: /caregiver-brooklyn
+Allow: /caregiver-manhattan
+Allow: /caregiver-queens
+Allow: /caregiver-bronx
+Allow: /caregiver-staten-island
+Allow: /housekeeper-new-york
+Allow: /contractor-partner
+Allow: /training-center
+Allow: /contractors
+Allow: /housekeeping-personal-assistant
 
 # Crawl delay for polite crawling
 Crawl-delay: 1

@@ -4213,6 +4213,7 @@ font-size: 1.1rem !important;
     </script>
 
     @include('partials.mobile-action-bar')
+    @include('partials.cookie-consent')
 </body>
 </html>
  

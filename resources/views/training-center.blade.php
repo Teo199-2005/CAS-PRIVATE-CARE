@@ -1029,5 +1029,6 @@
     </script>
 
     @include('partials.mobile-action-bar')
+    @include('partials.cookie-consent')
 </body>
 </html>

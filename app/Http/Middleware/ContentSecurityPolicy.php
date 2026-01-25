@@ -57,8 +57,8 @@ class ContentSecurityPolicy
             // Default fallback
             "default-src 'self'",
             
-            // Scripts: allow self, nonce, and specific CDNs
-            "script-src 'self' 'nonce-{$nonce}' https://js.stripe.com https://www.google.com https://www.gstatic.com https://connect.facebook.net https://cdn.jsdelivr.net 'unsafe-eval'",
+            // Scripts: allow self, nonce, and specific CDNs (unsafe-eval REMOVED - Vue uses pre-compiled templates)
+            "script-src 'self' 'nonce-{$nonce}' https://js.stripe.com https://www.google.com https://www.gstatic.com https://connect.facebook.net https://cdn.jsdelivr.net",
             
             // Styles: allow self, nonce, and style CDNs
             "style-src 'self' 'nonce-{$nonce}' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net",

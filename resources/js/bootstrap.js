@@ -11,7 +11,8 @@ const token = document.head.querySelector('meta[name="csrf-token"]');
 if (token) {
     window.axios.defaults.headers.common['X-CSRF-TOKEN'] = token.content;
 } else {
-    console.error('CSRF token not found');
+    // Use warn instead of error to avoid alarming users in console
+    console.warn('CSRF token not found - ensure meta tag is present for form submissions');
 }
 
 // Production-safe console wrapper - suppress console.log in production

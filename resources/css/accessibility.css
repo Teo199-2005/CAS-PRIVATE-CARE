@@ -7,89 +7,47 @@
  * - Reduced motion preferences
  * - Focus visibility improvements
  * - Screen reader utilities
+ * 
+ * Note: This file extends design-tokens.css with accessibility-specific overrides
  */
 
 /* ==========================================================================
    CSS Custom Properties for Theming
+   These extend/override design-tokens.css for accessibility scenarios
    ========================================================================== */
 
 :root {
-    /* Light mode colors (default) */
-    --color-primary: #0B4FA2;
-    --color-primary-light: #1565C0;
-    --color-primary-dark: #093d7a;
-    --color-secondary: #FFD700;
-    --color-secondary-light: #FFE44D;
+    /* Accessibility-specific tokens */
+    --a11y-focus-ring: 0 0 0 3px rgba(11, 79, 162, 0.4);
+    --a11y-focus-ring-offset: 2px;
+    --a11y-min-touch-target: 44px;
+    --a11y-min-touch-small: 24px;
     
-    --color-bg-primary: #ffffff;
-    --color-bg-secondary: #f8f9fa;
-    --color-bg-tertiary: #e9ecef;
-    
-    --color-text-primary: #0B4FA2;
-    --color-text-secondary: #4a5568;
-    --color-text-muted: #6c757d;
-    --color-text-inverse: #ffffff;
-    
-    --color-border: #dee2e6;
-    --color-border-light: #e9ecef;
-    
-    --color-success: #28a745;
-    --color-warning: #ffc107;
-    --color-error: #dc3545;
-    --color-info: #17a2b8;
-    
-    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
-    --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
-    --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
-    
-    --transition-fast: 150ms ease;
-    --transition-normal: 300ms ease;
-    --transition-slow: 500ms ease;
-    
-    --focus-ring: 0 0 0 3px rgba(11, 79, 162, 0.4);
-    --focus-ring-offset: 2px;
+    /* Timing tokens for accessibility - inherit from design-tokens when available */
+    --a11y-transition-fast: var(--transition-fast, 150ms ease);
+    --a11y-transition-normal: var(--transition-normal, 300ms ease);
 }
 
 /* ==========================================================================
    Dark Mode
+   Extends design-tokens.css dark mode with component-specific overrides
    ========================================================================== */
 
 .dark-mode,
 [data-theme="dark"] {
-    --color-primary: #4D9FFF;
-    --color-primary-light: #6DB3FF;
-    --color-primary-dark: #2D7FDF;
-    --color-secondary: #FFD700;
-    --color-secondary-light: #FFE44D;
+    /* Override focus ring for better visibility in dark mode */
+    --a11y-focus-ring: 0 0 0 3px rgba(77, 159, 255, 0.5);
     
-    --color-bg-primary: #1a1a2e;
-    --color-bg-secondary: #16213e;
-    --color-bg-tertiary: #0f3460;
-    
-    --color-text-primary: #e2e8f0;
-    --color-text-secondary: #a0aec0;
-    --color-text-muted: #718096;
-    --color-text-inverse: #1a1a2e;
-    
-    --color-border: #2d3748;
-    --color-border-light: #4a5568;
-    
-    --color-success: #48bb78;
-    --color-warning: #ecc94b;
-    --color-error: #fc8181;
-    --color-info: #63b3ed;
-    
+    /* Dark mode specific shadows */
     --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
     --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.4);
     --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.5);
-    
-    --focus-ring: 0 0 0 3px rgba(77, 159, 255, 0.5);
 }
 
 .dark-mode body,
 [data-theme="dark"] body {
-    background-color: var(--color-bg-primary);
-    color: var(--color-text-primary);
+    background-color: var(--dark-bg-primary, #1a1a2e);
+    color: var(--dark-text-primary, #e2e8f0);
 }
 
 .dark-mode .card,
@@ -98,8 +56,8 @@
 [data-theme="dark"] .card,
 [data-theme="dark"] .panel,
 [data-theme="dark"] .modal-content {
-    background-color: var(--color-bg-secondary);
-    border-color: var(--color-border);
+    background-color: var(--dark-bg-secondary, #16213e);
+    border-color: var(--dark-border, #2d3748);
 }
 
 .dark-mode input,
@@ -108,26 +66,26 @@
 [data-theme="dark"] input,
 [data-theme="dark"] textarea,
 [data-theme="dark"] select {
-    background-color: var(--color-bg-tertiary);
-    color: var(--color-text-primary);
-    border-color: var(--color-border);
+    background-color: var(--dark-bg-tertiary, #0f3460);
+    color: var(--dark-text-primary, #e2e8f0);
+    border-color: var(--dark-border, #2d3748);
 }
 
 .dark-mode input::placeholder,
 .dark-mode textarea::placeholder,
 [data-theme="dark"] input::placeholder,
 [data-theme="dark"] textarea::placeholder {
-    color: var(--color-text-muted);
+    color: var(--dark-text-muted, #718096);
 }
 
 .dark-mode a,
 [data-theme="dark"] a {
-    color: var(--color-primary);
+    color: var(--dark-primary, #4D9FFF);
 }
 
 .dark-mode a:hover,
 [data-theme="dark"] a:hover {
-    color: var(--color-primary-light);
+    color: var(--dark-primary-light, #6DB3FF);
 }
 
 /* ==========================================================================
@@ -319,6 +277,7 @@
 
 /* ==========================================================================
    Touch Target Size (Mobile Accessibility)
+   WCAG 2.1 Level AAA requires minimum 44x44px touch targets
    ========================================================================== */
 
 @media (pointer: coarse) {
@@ -328,14 +287,14 @@
     input[type="submit"],
     input[type="reset"],
     a {
-        min-height: 44px;
-        min-width: 44px;
+        min-height: var(--a11y-min-touch-target, 44px);
+        min-width: var(--a11y-min-touch-target, 44px);
     }
     
     input[type="checkbox"],
     input[type="radio"] {
-        min-height: 24px;
-        min-width: 24px;
+        min-height: var(--a11y-min-touch-small, 24px);
+        min-width: var(--a11y-min-touch-small, 24px);
     }
 }
 

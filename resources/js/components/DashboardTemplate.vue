@@ -1,19 +1,36 @@
 <template>
   <v-app :data-user-role="userRole">
+    <!-- ARIA Live Region for Screen Reader Announcements -->
+    <AriaAnnouncer ref="ariaAnnouncer" />
+
+    <!-- Skip to main content link (Accessibility) -->
+    <a href="#main-content" class="skip-link" @click.prevent="skipToMain">
+      Skip to main content
+    </a>
+
     <!-- Mobile App Bar (visible on small screens) -->
     <v-app-bar class="mobile-app-bar" dense elevation="2" v-if="isMobile">
-      <v-btn icon @click="drawer = !drawer" aria-label="Toggle navigation">
-        <v-icon>mdi-menu</v-icon>
+      <v-btn icon @click="toggleDrawer" aria-label="Toggle navigation menu" aria-expanded="drawer" aria-controls="navigation-drawer">
+        <v-icon>{{ drawer ? 'mdi-close' : 'mdi-menu' }}</v-icon>
       </v-btn>
       <div class="mobile-app-title">{{ headerTitle }}</div>
       <div style="flex:1"></div>
       <slot name="header-left"></slot>
     </v-app-bar>
 
-    <v-navigation-drawer v-model="drawer" :temporary="isMobile" width="300" class="sidebar">
+    <v-navigation-drawer 
+      v-model="drawer" 
+      :temporary="isMobile" 
+      :width="drawerWidth" 
+      class="sidebar"
+      id="navigation-drawer"
+      ref="drawerRef"
+      :aria-label="isMobile ? 'Navigation menu' : 'Main navigation'"
+      role="navigation"
+    >
       <div class="sidebar-header pa-6">
         <div class="d-flex align-center mb-4">
-          <v-img src="/logo flower.png" max-width="50" class="sidebar-logo" />
+          <v-img src="/logo%20flower.png" max-width="50" class="sidebar-logo" />
           <div class="ml-4">
             <div class="sidebar-brand">CAS Private Care</div>
             <div class="sidebar-tagline">Comfort & Support</div>
@@ -21,8 +38,8 @@
         </div>
         <v-divider class="my-4" />
         <div class="text-center">
-          <h3 class="welcome-title mb-2" :class="`${themeColor}--text`">{{ welcomeMessage }}</h3>
-          <p class="welcome-subtitle">{{ subtitle }}</p>
+          <h3 class="welcome-title mb-2" style="color: #0B4FA2 !important;">{{ welcomeMessage }}</h3>
+          <p class="welcome-subtitle" style="color: #475569 !important;">{{ subtitle }}</p>
         </div>
       </div>
 
@@ -106,7 +123,7 @@
 
     <v-main class="main-content">
       <div class="main-wrapper">
-        <v-container fluid class="pa-8 content-container">
+        <v-container fluid class="py-6 px-4 content-container">
           <!-- Desktop Header -->
           <v-card class="mb-8 dashboard-header desktop-header" :class="headerRoleClass" elevation="0">
             <v-card-text class="d-flex justify-space-between align-center pa-4">
@@ -163,18 +180,27 @@
 
           <slot></slot>
         </v-container>
-        <!-- Mobile Bottom Navigation -->
-        <v-bottom-navigation v-if="isMobile" class="mobile-bottom-nav" grow>
+        <!-- Mobile Bottom Navigation - Enhanced with labels -->
+        <v-bottom-navigation 
+          v-if="isMobile" 
+          class="mobile-bottom-nav" 
+          grow
+          role="navigation"
+          aria-label="Quick navigation"
+        >
           <v-btn
             v-for="(item, idx) in mobileNavItems"
             :key="item.value"
             variant="flat"
             class="mobile-nav-btn"
             :class="{ 'mobile-active': currentSection === item.value }"
-            @click="$emit('section-change', item.value)"
+            @click="handleMobileNavClick(item.value)"
             :title="item.title"
+            :aria-label="item.title"
+            :aria-current="currentSection === item.value ? 'page' : undefined"
           >
-            <v-icon size="20">{{ item.icon }}</v-icon>
+            <v-icon size="22">{{ item.icon }}</v-icon>
+            <span class="mobile-nav-label">{{ item.shortTitle || item.title.split(' ')[0] }}</span>
           </v-btn>
         </v-bottom-navigation>
 
@@ -185,10 +211,23 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
+import { ref, computed, onMounted, onBeforeUnmount, watch, nextTick } from 'vue';
 import Footer from './shared/Footer.vue';
 import NotificationPopup from './shared/NotificationPopup.vue';
+import AriaAnnouncer from './shared/AriaAnnouncer.vue';
+import { useMobileAccessibility } from '../composables/useMobileAccessibility';
 
+// Initialize mobile accessibility features
+const {
+  trapFocus,
+  releaseFocus,
+  useReducedMotion,
+  handleSwipeGestures
+} = useMobileAccessibility();
+
+// ==========================================
+// Props & Emits
+// ==========================================
 const props = defineProps({
   userRole: { type: String, required: true },
   userName: { type: String, required: true },
@@ -204,8 +243,194 @@ const props = defineProps({
 
 const emit = defineEmits(['section-change', 'logout', 'toggle-click', 'disabled-click']);
 
+// ==========================================
+// Refs
+// ==========================================
 const drawer = ref(true);
+const drawerRef = ref(null);
+const ariaAnnouncer = ref(null);
 const isMobile = ref(typeof window !== 'undefined' ? window.innerWidth <= 960 : false);
+const prefersReducedMotion = ref(false);
+
+// Touch gesture tracking
+const touchStartX = ref(0);
+const touchStartY = ref(0);
+const touchStartTime = ref(0);
+
+// Focus trap state
+const previousActiveElement = ref(null);
+const isDrawerFocusTrapped = ref(false);
+
+// ==========================================
+// Computed Properties
+// ==========================================
+
+// Responsive drawer width based on viewport - OPTIMIZED for 100/100 score
+const drawerWidth = computed(() => {
+  if (!isMobile.value) return 300;
+  const vw = typeof window !== 'undefined' ? window.innerWidth : 360;
+  
+  // Ultra-small screens (Galaxy Fold, etc.)
+  if (vw <= 320) return Math.min(260, Math.floor(vw * 0.92));
+  // Very small phones
+  if (vw <= 360) return Math.min(280, Math.floor(vw * 0.88));
+  // Standard small phones
+  if (vw <= 400) return Math.min(300, Math.floor(vw * 0.85));
+  // Standard phones
+  if (vw <= 480) return Math.min(320, Math.floor(vw * 0.82));
+  // Large phones / small tablets
+  return 320;
+});
+
+
+// ==========================================
+// Accessibility: Focus Trap for Mobile Drawer
+// ==========================================
+
+const getFocusableElements = (container) => {
+  if (!container) return [];
+  return Array.from(container.querySelectorAll(
+    'button:not([disabled]):not([tabindex="-1"]), ' +
+    '[href]:not([tabindex="-1"]), ' +
+    'input:not([disabled]):not([tabindex="-1"]), ' +
+    'select:not([disabled]):not([tabindex="-1"]), ' +
+    'textarea:not([disabled]):not([tabindex="-1"]), ' +
+    '[tabindex]:not([tabindex="-1"])'
+  )).filter(el => {
+    const style = window.getComputedStyle(el);
+    return style.display !== 'none' && 
+           style.visibility !== 'hidden' && 
+           el.offsetParent !== null;
+  });
+};
+
+const handleDrawerKeyDown = (e) => {
+  if (!isMobile.value || !drawer.value) return;
+  
+  const drawerEl = document.querySelector('#navigation-drawer');
+  if (!drawerEl) return;
+  
+  // Escape key closes drawer
+  if (e.key === 'Escape') {
+    e.preventDefault();
+    drawer.value = false;
+    return;
+  }
+  
+  // Tab key focus trap
+  if (e.key !== 'Tab') return;
+  
+  const focusables = getFocusableElements(drawerEl);
+  if (focusables.length === 0) return;
+  
+  const firstElement = focusables[0];
+  const lastElement = focusables[focusables.length - 1];
+  
+  if (e.shiftKey && document.activeElement === firstElement) {
+    e.preventDefault();
+    lastElement.focus();
+  } else if (!e.shiftKey && document.activeElement === lastElement) {
+    e.preventDefault();
+    firstElement.focus();
+  }
+};
+
+const activateFocusTrap = async () => {
+  await nextTick();
+  
+  if (!isMobile.value) return;
+  
+  previousActiveElement.value = document.activeElement;
+  isDrawerFocusTrapped.value = true;
+  
+  const drawerEl = document.querySelector('#navigation-drawer');
+  if (drawerEl) {
+    const focusables = getFocusableElements(drawerEl);
+    if (focusables.length > 0) {
+      focusables[0].focus();
+    }
+  }
+  
+  document.addEventListener('keydown', handleDrawerKeyDown);
+};
+
+const deactivateFocusTrap = () => {
+  isDrawerFocusTrapped.value = false;
+  document.removeEventListener('keydown', handleDrawerKeyDown);
+  
+  if (previousActiveElement.value && isMobile.value) {
+    previousActiveElement.value.focus();
+  }
+};
+
+// Watch drawer state for focus trap
+watch(drawer, async (isOpen) => {
+  if (isMobile.value) {
+    if (isOpen) {
+      await activateFocusTrap();
+      announceToScreenReader('Navigation menu opened');
+    } else {
+      deactivateFocusTrap();
+      announceToScreenReader('Navigation menu closed');
+    }
+  }
+});
+
+// ==========================================
+// Accessibility: ARIA Announcements
+// ==========================================
+
+const announceToScreenReader = (message, priority = 'polite') => {
+  if (ariaAnnouncer.value) {
+    ariaAnnouncer.value.announce(message, priority);
+  }
+};
+
+// ==========================================
+// Touch Gesture Handling
+// ==========================================
+
+const SWIPE_THRESHOLD = 80;
+const EDGE_THRESHOLD = 30;
+const MAX_SWIPE_TIME = 300;
+
+const handleTouchStart = (e) => {
+  touchStartX.value = e.touches[0].clientX;
+  touchStartY.value = e.touches[0].clientY;
+  touchStartTime.value = Date.now();
+};
+
+const handleTouchEnd = (e) => {
+  if (!isMobile.value) return;
+  
+  const touchEndX = e.changedTouches[0].clientX;
+  const touchEndY = e.changedTouches[0].clientY;
+  const deltaX = touchEndX - touchStartX.value;
+  const deltaY = Math.abs(touchEndY - touchStartY.value);
+  const swipeTime = Date.now() - touchStartTime.value;
+  
+  // Ignore if vertical movement is significant or swipe was too slow
+  if (deltaY > 50 || swipeTime > MAX_SWIPE_TIME) return;
+  
+  // Edge swipe to open drawer (from left edge)
+  if (!drawer.value && touchStartX.value <= EDGE_THRESHOLD && deltaX > SWIPE_THRESHOLD) {
+    drawer.value = true;
+    return;
+  }
+  
+  // Swipe left to close drawer (when drawer is open)
+  if (drawer.value && deltaX < -SWIPE_THRESHOLD) {
+    drawer.value = false;
+  }
+};
+
+// ==========================================
+// Navigation Handlers
+// ==========================================
+
+const toggleDrawer = () => {
+  drawer.value = !drawer.value;
+};
 
 const handleResize = () => {
   isMobile.value = window.innerWidth <= 960;
@@ -219,15 +444,29 @@ const handleResize = () => {
 // Handle section change and close drawer on mobile
 const handleSectionChange = (section) => {
   emit('section-change', section);
+  announceToScreenReader(`Navigated to ${section} section`);
   if (isMobile.value) {
     drawer.value = false;
   }
+};
+
+// Handle mobile bottom nav click
+const handleMobileNavClick = (section) => {
+  // "More" button opens the side drawer
+  if (section === 'more') {
+    drawer.value = true;
+    announceToScreenReader('Navigation menu opened');
+    return;
+  }
+  emit('section-change', section);
+  announceToScreenReader(`Navigated to ${section}`);
 };
 
 // Handle nav item click - check if disabled first
 const handleNavItemClick = (item) => {
   if (item.disabled) {
     emit('disabled-click', item.value);
+    announceToScreenReader(`${item.title} is currently locked`, 'assertive');
     return;
   }
   handleSectionChange(item.value);
@@ -241,13 +480,41 @@ const handleLogout = () => {
   }
 };
 
+// Skip to main content (accessibility)
+const skipToMain = () => {
+  const mainContent = document.getElementById('main-content');
+  if (mainContent) {
+    mainContent.focus();
+    mainContent.scrollIntoView({ behavior: 'smooth' });
+  }
+};
+
+// ==========================================
+// Lifecycle Hooks
+// ==========================================
+
 onMounted(() => {
   handleResize();
   window.addEventListener('resize', handleResize);
+  
+  // Add touch gesture listeners
+  if (typeof window !== 'undefined') {
+    document.addEventListener('touchstart', handleTouchStart, { passive: true });
+    document.addEventListener('touchend', handleTouchEnd, { passive: true });
+    
+    // Check reduced motion preference
+    prefersReducedMotion.value = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    window.matchMedia('(prefers-reduced-motion: reduce)').addEventListener('change', (e) => {
+      prefersReducedMotion.value = e.matches;
+    });
+  }
 });
 
 onBeforeUnmount(() => {
   window.removeEventListener('resize', handleResize);
+  document.removeEventListener('touchstart', handleTouchStart);
+  document.removeEventListener('touchend', handleTouchEnd);
+  document.removeEventListener('keydown', handleDrawerKeyDown);
 });
 const themeColor = computed(() => {
   if (props.userRole === 'client') return 'primary';
@@ -390,24 +657,147 @@ const getUserId = () => {
   return userIdMap[props.userRole] || 1;
 };
 
+// More menu state
+const showMoreMenu = ref(false);
+
 const mobileNavItems = computed(() => {
-  // Use first five nav items as bottom nav, fallback to common sections
   if (props.navItems && props.navItems.length > 0) {
-    return props.navItems.slice(0, 5).map(i => ({ value: i.value, icon: i.icon || 'mdi-view-dashboard', title: i.title }));
+    // Flatten nav items (include children from toggle items)
+    const flatItems = props.navItems.reduce((acc, item) => {
+      if (item.isToggle && item.children) {
+        // Skip the parent toggle, add children
+        acc.push(...item.children);
+      } else {
+        acc.push(item);
+      }
+      return acc;
+    }, []);
+    
+    // Role-specific priority configurations
+    const rolePriorities = {
+      'admin': ['dashboard', 'client-bookings', 'notifications', 'profile'],
+      'adminstaff': ['dashboard', 'client-bookings', 'notifications', 'profile'],
+      'client': ['dashboard', 'book-form', 'notifications', 'profile'],
+      'caregiver': ['dashboard', 'available-clients', 'notifications', 'profile'],
+      'housekeeper': ['dashboard', 'available-clients', 'notifications', 'profile'],
+      'marketing': ['dashboard', 'analytics', 'notifications', 'profile'],
+      'training': ['dashboard', 'notifications', 'profile']
+    };
+    
+    const priorityOrder = rolePriorities[props.userRole] || ['dashboard', 'notifications', 'profile'];
+    
+    // Find items using EXACT value match only
+    let result = priorityOrder
+      .map(p => flatItems.find(item => item.value === p))
+      .filter(Boolean)
+      .slice(0, 4);
+    
+    // If we don't have enough items, fill from remaining
+    if (result.length < 4) {
+      const remaining = flatItems.filter(item => 
+        !result.find(p => p.value === item.value)
+      );
+      result.push(...remaining.slice(0, 4 - result.length));
+    }
+    
+    // Add "More" button if there are more items than shown
+    if (flatItems.length > 4) {
+      result = result.slice(0, 4); // Ensure max 4 before More
+      result.push({
+        value: 'more',
+        icon: 'mdi-dots-horizontal',
+        title: 'More',
+        shortTitle: 'More'
+      });
+    }
+    
+    return result.map(i => ({
+      value: i.value,
+      icon: i.icon || 'mdi-view-dashboard',
+      title: i.title,
+      shortTitle: i.shortTitle || getShortTitle(i.title)
+    }));
   }
+  
+  // Default fallback navigation
   return [
-    { value: 'dashboard', icon: 'mdi-view-dashboard', title: 'Dashboard' },
-    { value: 'book', icon: 'mdi-calendar-check', title: 'Book' },
-    { value: 'notifications', icon: 'mdi-bell', title: 'Notifications' },
-    { value: 'profile', icon: 'mdi-account', title: 'Profile' },
-    { value: 'settings', icon: 'mdi-cog', title: 'Settings' },
+    { value: 'dashboard', icon: 'mdi-view-dashboard', title: 'Home', shortTitle: 'Home' },
+    { value: 'book', icon: 'mdi-calendar-plus', title: 'Book', shortTitle: 'Book' },
+    { value: 'bookings', icon: 'mdi-calendar-check', title: 'Bookings', shortTitle: 'My' },
+    { value: 'notifications', icon: 'mdi-bell', title: 'Alerts', shortTitle: 'Alerts' },
+    { value: 'profile', icon: 'mdi-account', title: 'Profile', shortTitle: 'Me' }
   ];
 });
+
+// Helper to get short title
+const getShortTitle = (title) => {
+  if (!title) return 'Menu';
+  const shortMap = {
+    'Dashboard': 'Dashboard',
+    'Notifications': 'Alerts',
+    'Client Bookings': 'Bookings',
+    'Profile': 'Profile',
+    'Profile (1099 Contractors)': 'Profile',
+    'More': 'More',
+    'Book Service': 'Book',
+    'Browse Caregivers': 'Browse',
+    'Payment Information': 'Payment',
+    'Transaction History': 'History',
+    'Job Listings': 'Jobs',
+    'Available Clients': 'Jobs',
+    'Earnings Report': 'Earnings',
+    'Analytics Reports': 'Analytics',
+    'Analytics': 'Analytics'
+  };
+  return shortMap[title] || title.split(' ')[0];
+};
 </script>
 
 <style scoped>
 /* Apple-inspired Typography */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+/* ========================================
+   CSS Variables for Consistent Transitions
+   Using design tokens from design-tokens.css
+   ======================================== */
+:root {
+  --transition-fast: var(--timing-fast, 150ms) var(--ease-out, cubic-bezier(0.4, 0, 0.2, 1));
+  --transition-normal: var(--timing-normal, 250ms) var(--ease-out, cubic-bezier(0.4, 0, 0.2, 1));
+  --transition-slow: var(--timing-slow, 350ms) var(--ease-out, cubic-bezier(0.4, 0, 0.2, 1));
+}
+
+/* ========================================
+   Skeleton Loading (uses global animations.css)
+   ======================================== */
+.skeleton {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e8e8e8 37%, #f0f0f0 63%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+  border-radius: 8px;
+}
+
+/* ========================================
+   Focus States (Accessibility)
+   ======================================== */
+*:focus-visible {
+  outline: 3px solid rgba(59, 130, 246, 0.5);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* ========================================
+   Reduced Motion Preferences
+   ======================================== */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
 
 * {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
@@ -419,24 +809,46 @@ const mobileNavItems = computed(() => {
   background: #ffffff !important;
   box-shadow: 0 0 40px rgba(0, 0, 0, 0.06) !important;
   border-right: 1px solid #f0f0f0 !important;
+  animation: slideInFromLeft 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  color: #1e293b !important;
+}
+
+/* Force dark text on all sidebar content */
+.sidebar * {
+  --v-theme-on-surface: 30, 41, 59 !important;
+}
+
+.sidebar h3,
+.sidebar p,
+.sidebar .welcome-title,
+.sidebar .welcome-subtitle {
+  color: inherit;
 }
 
 .sidebar-header {
   background: linear-gradient(180deg, #fafafa 0%, #ffffff 100%);
   border-bottom: 1px solid #f0f0f0;
+  animation: fadeInUp 0.4s ease-out;
+  color: #1e293b !important;
 }
 
 .sidebar-logo {
   background: white;
   padding: 8px;
-  border-radius: 16px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  border-radius: var(--card-radius-md, 16px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+  transition: box-shadow 200ms ease-out;
+}
+
+/* Removed scale+rotate transform on logo hover */
+.sidebar-logo:hover {
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
 }
 
 .sidebar-brand {
   font-size: 1.1rem;
   font-weight: 700;
-  color: #1a1a1a;
+  color: #1a1a1a !important;
   line-height: 1.2;
   letter-spacing: -0.03em;
 }
@@ -445,7 +857,7 @@ const mobileNavItems = computed(() => {
   font-size: 0.75rem;
   font-weight: 500;
   letter-spacing: 0.02em;
-  color: #666;
+  color: #666 !important;
   margin-top: 2px;
 }
 
@@ -454,13 +866,16 @@ const mobileNavItems = computed(() => {
   font-weight: 700;
   letter-spacing: -0.02em;
   line-height: 1.3;
+  color: #0B4FA2 !important;
+  opacity: 1 !important;
 }
 
 .welcome-subtitle {
   font-size: 0.875rem;
-  color: #666;
+  color: #475569 !important;
   font-weight: 500;
   line-height: 1.4;
+  opacity: 1 !important;
 }
 
 .category-label {
@@ -472,11 +887,11 @@ const mobileNavItems = computed(() => {
 }
 
 .nav-item {
-  border-radius: 12px !important;
+  border-radius: var(--card-radius-sm, 12px) !important;
   margin: 1px 0;
   font-size: 0.9rem;
   font-weight: 500;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: background 150ms ease-out;
 }
 
 .nav-item:not(.active-nav):hover {
@@ -554,16 +969,7 @@ const mobileNavItems = computed(() => {
   animation: pulse 2s ease-in-out infinite;
 }
 
-@keyframes pulse {
-  0%, 100% {
-    opacity: 1;
-    transform: scale(1);
-  }
-  50% {
-    opacity: 0.8;
-    transform: scale(1.1);
-  }
-}
+/* Note: pulse animation is defined in global animations.css */
 
 .logout-nav-item {
   border-radius: 12px !important;
@@ -585,6 +991,12 @@ const mobileNavItems = computed(() => {
   color: inherit !important;
 }
 
+/* ============================================
+   STICKY FOOTER LAYOUT
+   Global styles in app.css handle the layout
+   ============================================ */
+
+/* Main content area background */
 .main-content {
   background: #f9fafb !important;
 }
@@ -593,14 +1005,41 @@ const mobileNavItems = computed(() => {
   background: #f9fafb url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20"><circle cx="10" cy="10" r="1" fill="%23d1d5db"/></svg>') !important;
 }
 
+/* Main wrapper - flex container for sticky footer */
 .main-wrapper {
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
+  min-height: auto;
 }
 
+/* Content container styling */
 .content-container {
-  flex: 1;
+  flex: 1 0 auto;
+}
+
+/* Override global container padding for dashboard - reduce left/right padding */
+/* Use high specificity to override mobile-fixes.css rules */
+.v-application .main-content .main-wrapper .content-container.v-container,
+.main-content .content-container.v-container {
+  padding: 24px 12px !important;
+  max-width: none !important;
+  margin-inline: 0 !important;
+}
+
+@media (min-width: 960px) {
+  .v-application .main-content .main-wrapper .content-container.v-container,
+  .main-content .content-container.v-container {
+    padding: 24px 16px !important;
+    max-width: none !important;
+  }
+}
+
+@media (min-width: 1280px) {
+  .v-application .main-content .main-wrapper .content-container.v-container,
+  .main-content .content-container.v-container {
+    max-width: none !important;
+    margin-inline: 0 !important;
+  }
 }
 
 .dashboard-header {
@@ -711,19 +1150,24 @@ const mobileNavItems = computed(() => {
 @media (max-width: 960px) {
   .sidebar {
     position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
     height: 100vh !important;
+    height: 100dvh !important; /* Dynamic viewport height for mobile */
     max-height: 100vh !important;
+    max-height: 100dvh !important;
     z-index: 1200 !important;
     display: flex !important;
     flex-direction: column !important;
     overflow: hidden !important;
+    padding-bottom: 0 !important; /* No bottom padding needed, sidebar scrolls independently */
   }
 
   .sidebar :deep(.v-navigation-drawer__content) {
     display: flex !important;
     flex-direction: column !important;
-    height: 100vh !important;
-    max-height: 100vh !important;
+    height: 100% !important;
+    max-height: 100% !important;
     overflow: hidden !important;
     position: relative !important;
   }
@@ -739,8 +1183,8 @@ const mobileNavItems = computed(() => {
 
   /* Ensure the drawer wrapper also respects height */
   .sidebar :deep(.v-navigation-drawer__wrapper) {
-    height: 100vh !important;
-    max-height: 100vh !important;
+    height: 100% !important;
+    max-height: 100% !important;
     overflow: hidden !important;
   }
 
@@ -791,7 +1235,7 @@ const mobileNavItems = computed(() => {
     overflow-y: auto !important;
     overflow-x: hidden !important;
     -webkit-overflow-scrolling: touch !important;
-    padding: 8px 12px 12px 12px !important;
+    padding: 8px 12px 80px 12px !important; /* Extra bottom padding to ensure logout is visible */
   }
 
   .sidebar-nav .category-label {
@@ -1016,18 +1460,23 @@ const mobileNavItems = computed(() => {
     padding: 4px 8px !important;
   }
 
-  /* Action buttons wrap */
+  /* Action buttons wrap - Enhanced touch targets */
   .modern-activity-table .action-buttons {
     justify-content: flex-end !important;
     gap: 8px !important;
     flex-wrap: wrap !important;
   }
 
-  /* Action buttons wrap on small screens */
+  /* Action buttons - ensure 44px minimum touch target */
   :deep(.action-buttons) {
     flex-wrap: wrap !important;
     gap: 8px !important;
     justify-content: flex-end !important;
+  }
+  
+  :deep(.action-buttons .v-btn) {
+    min-width: 44px !important;
+    min-height: 44px !important;
   }
 
   /* Dialogs / Modals: make card inside dialog full width with small margins */
@@ -1044,7 +1493,7 @@ const mobileNavItems = computed(() => {
 
 /* Additional table mobile responsiveness */
 @media (max-width: 960px) {
-  /* Make all v-data-tables mobile-friendly */
+  /* Make all v-data-tables mobile-friendly with scroll indicators */
   :deep(.v-data-table) {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
@@ -1053,6 +1502,15 @@ const mobileNavItems = computed(() => {
   :deep(.v-data-table .v-table__wrapper) {
     overflow-x: auto !important;
     -webkit-overflow-scrolling: touch !important;
+    /* Scroll shadow indicators */
+    background: 
+        linear-gradient(to right, white 30%, transparent),
+        linear-gradient(to right, transparent, white 70%) 100% 0,
+        linear-gradient(to right, rgba(0,0,0,.08), transparent),
+        linear-gradient(to left, rgba(0,0,0,.08), transparent) 100% 0 !important;
+    background-repeat: no-repeat !important;
+    background-size: 40px 100%, 40px 100%, 14px 100%, 14px 100% !important;
+    background-attachment: local, local, scroll, scroll !important;
   }
 
   /* Table pagination mobile adjustments */
@@ -1073,6 +1531,12 @@ const mobileNavItems = computed(() => {
 
   :deep(.v-data-table-footer__pagination) {
     font-size: 0.75rem !important;
+  }
+  
+  /* Vuetify tabs - ensure touch targets */
+  :deep(.v-tab) {
+    min-height: 48px !important;
+    min-width: 72px !important;
   }
 
   /* Make table cards scrollable on mobile */
@@ -1241,27 +1705,99 @@ const mobileNavItems = computed(() => {
   }
 }
 
-/* Mobile bottom navigation */
+/* =============================================================
+   MOBILE BOTTOM NAVIGATION - Premium Touch Experience
+   ============================================================= */
 .mobile-bottom-nav {
   position: fixed;
-  bottom: 12px;
-  left: 12px;
-  right: 12px;
+  bottom: 0;
+  left: 0;
+  right: 0;
   z-index: 1400;
-  border-radius: 12px;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+  border-radius: 0;
+  box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.08);
   background: white;
-  padding: 6px;
+  border-top: 1px solid #e5e7eb;
+  padding: 4px 8px;
+  height: 64px;
+  /* Safe area support for iPhone X+ */
+  padding-bottom: max(4px, env(safe-area-inset-bottom, 0px));
 }
+
+@supports (padding: env(safe-area-inset-bottom)) {
+  .mobile-bottom-nav {
+    height: calc(64px + env(safe-area-inset-bottom));
+  }
+}
+
+/* Nav button - 56px minimum touch target (exceeds 44px WCAG) */
 .mobile-nav-btn {
-  min-width: 0 !important;
-  width: 56px !important;
+  min-width: 56px !important;
+  min-height: 56px !important;
+  width: auto !important;
   height: 56px !important;
-  border-radius: 10px !important;
+  border-radius: 12px !important;
+  transition: background 0.15s ease, transform 0.1s ease !important;
+  flex-direction: column !important;
+  gap: 2px !important;
 }
+
+.mobile-nav-btn .v-icon {
+  font-size: 22px !important;
+  margin-bottom: 2px !important;
+}
+
+.mobile-nav-label {
+  font-size: 0.65rem !important;
+  font-weight: 500 !important;
+  text-transform: capitalize !important;
+  letter-spacing: 0.01em !important;
+  color: inherit !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  max-width: 64px !important;
+}
+
+.mobile-nav-btn:active {
+  transform: scale(0.95) !important;
+}
+
 .mobile-active {
   background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%) !important;
   color: white !important;
+}
+
+.mobile-active .v-icon {
+  color: white !important;
+  transform: scale(1.1);
+}
+
+.mobile-active .mobile-nav-label {
+  color: white !important;
+  font-weight: 600 !important;
+}
+
+/* Content spacing to prevent bottom nav overlap */
+@media (max-width: 960px) {
+  .main-wrapper {
+    display: flex;
+    flex-direction: column;
+    min-height: calc(100vh - 56px);
+    padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px));
+  }
+}
+
+/* Safe Area Insets for notched devices */
+@supports (padding: env(safe-area-inset-top)) {
+  .mobile-app-bar {
+    padding-top: env(safe-area-inset-top) !important;
+    height: calc(56px + env(safe-area-inset-top)) !important;
+  }
+  
+  .sidebar {
+    padding-top: env(safe-area-inset-top) !important;
+  }
 }
 
 .user-name {
@@ -1875,6 +2411,60 @@ const mobileNavItems = computed(() => {
 </style>
 
 <style>
+/* ========================================
+   GLOBAL SIDEBAR TEXT COLOR FIXES
+   Force dark text on light sidebar background
+   ======================================== */
+
+/* Force sidebar to have dark text */
+.v-navigation-drawer.sidebar {
+  color: #1e293b !important;
+}
+
+.v-navigation-drawer.sidebar .sidebar-header {
+  color: #1e293b !important;
+}
+
+.v-navigation-drawer.sidebar .sidebar-brand {
+  color: #1a1a1a !important;
+}
+
+.v-navigation-drawer.sidebar .sidebar-tagline {
+  color: #666666 !important;
+}
+
+.v-navigation-drawer.sidebar .welcome-title {
+  color: #0B4FA2 !important;
+  opacity: 1 !important;
+  display: block !important;
+  visibility: visible !important;
+}
+
+.v-navigation-drawer.sidebar .welcome-subtitle {
+  color: #475569 !important;
+  opacity: 1 !important;
+  display: block !important;
+  visibility: visible !important;
+}
+
+/* Override Vuetify's default text colors in sidebar */
+.v-navigation-drawer.sidebar h1,
+.v-navigation-drawer.sidebar h2,
+.v-navigation-drawer.sidebar h3,
+.v-navigation-drawer.sidebar h4,
+.v-navigation-drawer.sidebar h5,
+.v-navigation-drawer.sidebar h6 {
+  color: #0B4FA2 !important;
+  opacity: 1 !important;
+}
+
+.v-navigation-drawer.sidebar p {
+  color: #475569 !important;
+  opacity: 1 !important;
+}
+
+/* End Sidebar Text Fixes */
+
 /* Global Dialog/Modal Styling - Unscoped for child components */
 .v-dialog .v-card {
   border-radius: 20px !important;
@@ -2040,5 +2630,163 @@ const mobileNavItems = computed(() => {
 .v-dialog .v-switch .v-label {
   font-weight: 500 !important;
   color: #374151 !important;
+}
+
+/* ============================================
+   P2-02: DASHBOARD HEADER FIX - iPad Overlap
+   Added: January 24, 2026
+   Fixes header content overlap at 960-1200px
+   ============================================ */
+
+@media (min-width: 961px) and (max-width: 1200px) {
+  .dashboard-header .v-card-text {
+    flex-wrap: wrap !important;
+    gap: 1rem !important;
+  }
+  
+  .header-content {
+    order: -1;
+    flex: 0 0 100%;
+    margin-bottom: 1rem;
+    text-align: center;
+  }
+  
+  .user-info-card {
+    margin-left: auto;
+    margin-right: auto;
+  }
+  
+  .header-title {
+    font-size: 2rem !important;
+  }
+  
+  .header-subtitle {
+    font-size: 1rem !important;
+  }
+}
+
+/* ============================================
+   MOBILE NAVIGATION DRAWER WIDTH FIX
+   Consistent 85% width across devices
+   ============================================ */
+
+@media (max-width: 320px) {
+  .sidebar,
+  .v-navigation-drawer {
+    max-width: 272px !important;
+    width: 85vw !important;
+  }
+}
+
+@media (min-width: 321px) and (max-width: 360px) {
+  .sidebar,
+  .v-navigation-drawer {
+    max-width: 288px !important;
+    width: 85vw !important;
+  }
+}
+
+@media (min-width: 361px) and (max-width: 480px) {
+  .sidebar,
+  .v-navigation-drawer {
+    max-width: 320px !important;
+    width: 85vw !important;
+  }
+}
+
+/* ============================================
+   TABLE SCROLL INDICATORS
+   Visual cues for horizontally scrollable tables
+   ============================================ */
+
+@media (max-width: 768px) {
+  :deep(.v-data-table .v-table__wrapper),
+  .table-scroll-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    position: relative;
+    
+    /* Gradient shadows indicate scrollable content */
+    background: 
+      linear-gradient(to right, white 20px, transparent 60px),
+      linear-gradient(to left, white 20px, transparent 60px) 100% 0,
+      linear-gradient(to right, rgba(0,0,0,0.08) 0, transparent 15px),
+      linear-gradient(to left, rgba(0,0,0,0.08) 0, transparent 15px) 100% 0;
+    background-repeat: no-repeat;
+    background-size: 60px 100%, 60px 100%, 15px 100%, 15px 100%;
+    background-attachment: local, local, scroll, scroll;
+  }
+}
+
+/* ============================================
+   TOUCH TARGET IMPROVEMENTS
+   WCAG 2.1 AA: 44px minimum
+   ============================================ */
+
+@media (max-width: 768px) {
+  /* Action buttons in tables/cards */
+  :deep(.action-buttons) {
+    gap: 8px !important;
+    flex-wrap: wrap;
+  }
+  
+  :deep(.action-buttons .v-btn) {
+    min-width: 44px !important;
+    min-height: 44px !important;
+  }
+  
+  /* Navigation items */
+  .nav-item {
+    min-height: 48px !important;
+  }
+  
+  /* Category labels spacing */
+  .category-label {
+    padding-top: 8px !important;
+    padding-bottom: 8px !important;
+  }
+}
+
+/* ============================================
+   ENHANCED FOCUS STATES (Accessibility)
+   ============================================ */
+
+.nav-item:focus-visible {
+  outline: 3px solid rgba(59, 130, 246, 0.6) !important;
+  outline-offset: 2px !important;
+  border-radius: 12px !important;
+}
+
+.mobile-nav-btn:focus-visible {
+  outline: 3px solid rgba(59, 130, 246, 0.6) !important;
+  outline-offset: 2px !important;
+}
+
+/* ============================================
+   BATTERY OPTIMIZATION
+   Pause animations when tab is hidden
+   ============================================ */
+
+.page-hidden .notification-indicator,
+.page-hidden .notification-dot {
+  animation-play-state: paused !important;
+}
+
+:root[data-page-hidden] .notification-indicator,
+:root[data-page-hidden] .notification-dot {
+  animation-play-state: paused !important;
+}
+
+@media (max-width: 768px) {
+  .notification-indicator {
+    animation-iteration-count: 6 !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .notification-indicator,
+  .notification-dot {
+    animation: none !important;
+  }
 }
 </style>

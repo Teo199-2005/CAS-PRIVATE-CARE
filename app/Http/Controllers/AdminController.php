@@ -765,9 +765,23 @@ class AdminController extends Controller
             $user->w9_verified_at = null;
         }
 
+        // Deactivate Stripe payment account - clear their connected account
+        if (array_key_exists('stripe_account_id', $attributes)) {
+            $user->stripe_account_id = null;
+        }
+        if (array_key_exists('stripe_onboarding_complete', $attributes)) {
+            $user->stripe_onboarding_complete = false;
+        }
+        if (array_key_exists('stripe_customer_id', $attributes)) {
+            $user->stripe_customer_id = null;
+        }
+        if (array_key_exists('stripe_connect_id', $attributes)) {
+            $user->stripe_connect_id = null;
+        }
+
         $user->save();
 
-    return response()->json(['success' => true, 'message' => 'Application unapproved successfully']);
+        return response()->json(['success' => true, 'message' => 'Application unapproved successfully. Payment account deactivated.']);
     }
 
     public function processPasswordReset($id)
@@ -2850,11 +2864,15 @@ class AdminController extends Controller
                     'type' => ucfirst($u->user_type),
                     'status' => $u->status ?? 'Active',
                     'joined' => $u->created_at ? $u->created_at->format('M Y') : null,
+                    'created_at' => $u->created_at ? $u->created_at->toISOString() : null,
+                    'email_verified_at' => $u->email_verified_at ? $u->email_verified_at->toISOString() : null,
                     'zip_code' => $u->zip_code,
+                    'address' => $u->address,
                     'city' => $u->city,
                     'state' => $u->state,
                     'county' => $u->county,
                     'borough' => $u->borough,
+                    'date_of_birth' => $u->date_of_birth,
                 ];
                 
                 if ($u->user_type === 'caregiver' && $u->caregiver) {

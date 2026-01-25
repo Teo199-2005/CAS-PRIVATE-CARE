@@ -20,6 +20,11 @@ use App\Services\ZipCodeService;
 Route::post('/webhooks/stripe', [StripeWebhookController::class, 'handleWebhook']);
 
 // ============================================
+// WEB VITALS (No Auth, for performance monitoring)
+// ============================================
+Route::post('/web-vitals', [\App\Http\Controllers\Api\WebVitalsController::class, 'store']);
+
+// ============================================
 // PUBLIC API ROUTES (Rate Limited - 60/min)
 // ============================================
 Route::middleware(['throttle:60,1'])->group(function () {
@@ -128,8 +133,26 @@ Route::get('/training/application-status', function (Request $request) {
 });
 
 // Update user profile
+// SECURITY: Requires authentication and authorization check
 Route::put('/user/{id}/profile', function ($id, Request $request) {
     try {
+        // SECURITY FIX: Verify user is authenticated
+        $authUser = auth('web')->user();
+        if (!$authUser) {
+            return response()->json(['error' => 'Unauthenticated'], 401);
+        }
+        
+        // SECURITY FIX: Verify user can only update their own profile
+        // Admins can update any profile, regular users can only update their own
+        if ($authUser->id != $id && $authUser->user_type !== 'admin') {
+            \Illuminate\Support\Facades\Log::warning('Unauthorized profile update attempt', [
+                'auth_user_id' => $authUser->id,
+                'target_user_id' => $id,
+                'ip' => $request->ip()
+            ]);
+            return response()->json(['error' => 'Unauthorized - You can only update your own profile'], 403);
+        }
+        
         $user = User::findOrFail($id);
         
         $validated = $request->validate([
@@ -145,6 +168,12 @@ Route::put('/user/{id}/profile', function ($id, Request $request) {
         ]);
         
         $user->update($validated);
+        
+        \Illuminate\Support\Facades\Log::info('Profile updated', [
+            'user_id' => $user->id,
+            'updated_by' => $authUser->id,
+            'fields' => array_keys($validated)
+        ]);
         
         return response()->json([
             'success' => true,
@@ -1354,6 +1383,19 @@ Route::middleware(['throttle:10,1'])->group(function () {
 // Admin: get all users
 Route::get('/admin/users', [\App\Http\Controllers\AdminController::class, 'getUsers']);
 
+// Admin: Marketing Staff Management
+Route::get('/admin/marketing-staff', [\App\Http\Controllers\AdminController::class, 'getMarketingStaff']);
+Route::post('/admin/marketing-staff', [\App\Http\Controllers\AdminController::class, 'storeMarketingStaff']);
+Route::put('/admin/marketing-staff/{id}', [\App\Http\Controllers\AdminController::class, 'updateMarketingStaff']);
+Route::delete('/admin/marketing-staff/{id}', [\App\Http\Controllers\AdminController::class, 'deleteMarketingStaff']);
+
+// Admin: Admin Staff Management
+Route::get('/admin/admin-staff', [\App\Http\Controllers\AdminController::class, 'getAdminStaff']);
+Route::post('/admin/admin-staff', [\App\Http\Controllers\AdminController::class, 'storeAdminStaff']);
+Route::put('/admin/admin-staff/{id}', [\App\Http\Controllers\AdminController::class, 'updateAdminStaff']);
+Route::delete('/admin/admin-staff/{id}', [\App\Http\Controllers\AdminController::class, 'deleteAdminStaff']);
+Route::get('/admin/admin-staff/permissions', [\App\Http\Controllers\AdminController::class, 'getAdminStaffPermissions']);
+
 // Admin: create/update/delete users (used by AdminDashboard modals)
 Route::post('/admin/users', [\App\Http\Controllers\AdminController::class, 'storeUser']);
 Route::put('/admin/users/{id}', [\App\Http\Controllers\AdminController::class, 'updateUser']);
@@ -1371,6 +1413,12 @@ Route::get('/housekeepers', [\App\Http\Controllers\DashboardController::class, '
 
 // Admin: single caregiver full profile for the details modal
 Route::get('/admin/caregivers/{userId}', [\App\Http\Controllers\AdminController::class, 'getCaregiverProfile']);
+
+// Admin: Training Centers Management
+Route::get('/admin/training-centers', [\App\Http\Controllers\AdminController::class, 'getTrainingCenters']);
+Route::post('/admin/training-centers', [\App\Http\Controllers\AdminController::class, 'storeTrainingCenter']);
+Route::put('/admin/training-centers/{id}', [\App\Http\Controllers\AdminController::class, 'updateTrainingCenter']);
+Route::delete('/admin/training-centers/{id}', [\App\Http\Controllers\AdminController::class, 'deleteTrainingCenter']);
 
 // Public list of training centers (used by caregiver & admin caregiver forms)
 Route::get('/training-centers', [\App\Http\Controllers\AdminController::class, 'getTrainingCenters']);

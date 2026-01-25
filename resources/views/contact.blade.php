@@ -513,7 +513,7 @@
                             <div class="form-row">
                                 <div class="form-group">
                                     <label for="phone">Phone Number <span>*</span></label>
-                                    <input type="tel" id="phone" name="phone" class="form-input" placeholder="(646) 282-8282" required>
+                                    <input type="tel" id="phone" name="phone" class="form-input" placeholder="(646) 282-8282" required inputmode="tel">
                                 </div>
                                 <div class="form-group">
                                     <label for="email">Email <span>*</span></label>
@@ -698,5 +698,6 @@
     </script>
 
     @include('partials.mobile-action-bar')
+    @include('partials.cookie-consent')
 </body>
 </html>

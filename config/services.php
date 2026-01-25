@@ -54,6 +54,14 @@ return [
     'stripe' => [
         'key' => env('STRIPE_KEY'),
         'secret' => env('STRIPE_SECRET'),
+        'webhook_secret' => env('STRIPE_WEBHOOK_SECRET'),
+    ],
+
+    'recaptcha' => [
+        'enabled' => env('RECAPTCHA_ENABLED', true),
+        'site_key' => env('RECAPTCHA_SITE_KEY'),
+        'secret_key' => env('RECAPTCHA_SECRET_KEY'),
+        'fail_open' => env('RECAPTCHA_FAIL_OPEN', false),
     ],
 
 ];

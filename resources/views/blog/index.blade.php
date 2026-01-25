@@ -1067,5 +1067,7 @@
             }
         });
     </script>
+    
+    @include('partials.cookie-consent')
 </body>
 </html>

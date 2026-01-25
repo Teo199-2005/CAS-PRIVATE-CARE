@@ -1,0 +1,193 @@
+<?php
+
+namespace App\Services;
+
+use App\Models\User;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
+
+/**
+ * Login Throttle Service
+ * 
+ * Provides account lockout functionality after multiple failed login attempts.
+ * Implements progressive delays and account locking for security.
+ * 
+ * @package App\Services
+ */
+class LoginThrottleService
+{
+    /**
+     * Maximum failed attempts before lockout
+     */
+    private const MAX_ATTEMPTS = 5;
+
+    /**
+     * Lockout duration in minutes
+     */
+    private const LOCKOUT_DURATION = 15;
+
+    /**
+     * Cache key prefix for tracking attempts
+     */
+    private const CACHE_PREFIX = 'login_attempts_';
+
+    /**
+     * Cache key prefix for lockout status
+     */
+    private const LOCKOUT_PREFIX = 'login_lockout_';
+
+    /**
+     * Record a failed login attempt
+     *
+     * @param string $email The email that failed to login
+     * @param string $ip The IP address of the request
+     * @return array{locked: bool, attempts: int, remaining: int, lockout_seconds: int|null}
+     */
+    public static function recordFailedAttempt(string $email, string $ip): array
+    {
+        $key = self::getKey($email, $ip);
+        $lockoutKey = self::getLockoutKey($email, $ip);
+
+        // Check if already locked out
+        if (Cache::has($lockoutKey)) {
+            $lockoutSeconds = Cache::get($lockoutKey);
+            return [
+                'locked' => true,
+                'attempts' => self::MAX_ATTEMPTS,
+                'remaining' => 0,
+                'lockout_seconds' => $lockoutSeconds,
+            ];
+        }
+
+        // Increment attempts
+        $attempts = Cache::get($key, 0) + 1;
+        Cache::put($key, $attempts, now()->addMinutes(self::LOCKOUT_DURATION));
+
+        // Check if should lock out
+        if ($attempts >= self::MAX_ATTEMPTS) {
+            $lockoutSeconds = self::LOCKOUT_DURATION * 60;
+            Cache::put($lockoutKey, $lockoutSeconds, now()->addMinutes(self::LOCKOUT_DURATION));
+
+            Log::warning('Account locked due to failed login attempts', [
+                'email' => $email,
+                'ip' => $ip,
+                'attempts' => $attempts,
+                'lockout_minutes' => self::LOCKOUT_DURATION,
+            ]);
+
+            return [
+                'locked' => true,
+                'attempts' => $attempts,
+                'remaining' => 0,
+                'lockout_seconds' => $lockoutSeconds,
+            ];
+        }
+
+        return [
+            'locked' => false,
+            'attempts' => $attempts,
+            'remaining' => self::MAX_ATTEMPTS - $attempts,
+            'lockout_seconds' => null,
+        ];
+    }
+
+    /**
+     * Check if an account is currently locked out
+     *
+     * @param string $email The email to check
+     * @param string $ip The IP address
+     * @return array{locked: bool, seconds_remaining: int|null, message: string|null}
+     */
+    public static function isLockedOut(string $email, string $ip): array
+    {
+        $lockoutKey = self::getLockoutKey($email, $ip);
+
+        if (Cache::has($lockoutKey)) {
+            // Calculate remaining time
+            $ttl = Cache::getStore()->get($lockoutKey);
+            
+            return [
+                'locked' => true,
+                'seconds_remaining' => self::LOCKOUT_DURATION * 60,
+                'message' => sprintf(
+                    'Account temporarily locked. Please try again in %d minutes.',
+                    self::LOCKOUT_DURATION
+                ),
+            ];
+        }
+
+        return [
+            'locked' => false,
+            'seconds_remaining' => null,
+            'message' => null,
+        ];
+    }
+
+    /**
+     * Clear failed attempts after successful login
+     *
+     * @param string $email The email that logged in successfully
+     * @param string $ip The IP address
+     * @return void
+     */
+    public static function clearAttempts(string $email, string $ip): void
+    {
+        $key = self::getKey($email, $ip);
+        $lockoutKey = self::getLockoutKey($email, $ip);
+
+        Cache::forget($key);
+        Cache::forget($lockoutKey);
+    }
+
+    /**
+     * Get the number of remaining attempts
+     *
+     * @param string $email The email to check
+     * @param string $ip The IP address
+     * @return int
+     */
+    public static function getRemainingAttempts(string $email, string $ip): int
+    {
+        $key = self::getKey($email, $ip);
+        $attempts = Cache::get($key, 0);
+        
+        return max(0, self::MAX_ATTEMPTS - $attempts);
+    }
+
+    /**
+     * Generate cache key for attempts tracking
+     *
+     * @param string $email
+     * @param string $ip
+     * @return string
+     */
+    private static function getKey(string $email, string $ip): string
+    {
+        return self::CACHE_PREFIX . md5(strtolower($email) . '|' . $ip);
+    }
+
+    /**
+     * Generate cache key for lockout status
+     *
+     * @param string $email
+     * @param string $ip
+     * @return string
+     */
+    private static function getLockoutKey(string $email, string $ip): string
+    {
+        return self::LOCKOUT_PREFIX . md5(strtolower($email) . '|' . $ip);
+    }
+
+    /**
+     * Get configuration values for display
+     *
+     * @return array{max_attempts: int, lockout_minutes: int}
+     */
+    public static function getConfig(): array
+    {
+        return [
+            'max_attempts' => self::MAX_ATTEMPTS,
+            'lockout_minutes' => self::LOCKOUT_DURATION,
+        ];
+    }
+}

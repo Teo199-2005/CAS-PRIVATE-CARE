@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Services\StripePaymentService;
+use App\Services\PaymentFeeService;
+use App\Services\AuditLogService;
 use App\Models\User;
 use App\Models\Caregiver;
 use App\Models\Housekeeper;
@@ -17,24 +19,21 @@ class StripeController extends Controller
     protected $stripeService;
 
     /**
-     * Stripe processing fee rates (business rules)
-     * Domestic (US): 2.9% + $0.30
-     * International: 4.9% + $0.30
+     * Stripe processing fees are now handled by PaymentFeeService
+     * @see \App\Services\PaymentFeeService
+     * @deprecated Use PaymentFeeService::calculateProcessingFee() instead
      */
-    private float $stripeFeeDomestic = 0.029;
-    private float $stripeFeeInternational = 0.049;
-    private float $stripeFixedFee = 0.30;
-
     private function calculateProcessingFee(float $targetAmount, string $cardCountry = 'US'): float
     {
-        $rate = strtoupper($cardCountry) === 'US' ? $this->stripeFeeDomestic : $this->stripeFeeInternational;
-        $gross = ($targetAmount + $this->stripeFixedFee) / (1 - $rate);
-        return round($gross - $targetAmount, 2);
+        return PaymentFeeService::calculateProcessingFee($targetAmount, $cardCountry);
     }
 
+    /**
+     * @deprecated Use PaymentFeeService::calculateAdjustedTotal() instead
+     */
     private function calculateAdjustedTotal(float $targetAmount, string $cardCountry = 'US'): float
     {
-        return round($targetAmount + $this->calculateProcessingFee($targetAmount, $cardCountry), 2);
+        return PaymentFeeService::calculateAdjustedTotal($targetAmount, $cardCountry);
     }
 
     public function __construct(StripePaymentService $stripeService)
@@ -224,7 +223,7 @@ class StripeController extends Controller
                 // SECURITY: Idempotency key prevents duplicate charges on network retry
                 $idempotencyKey = 'payment_' . $booking->id . '_' . $user->id . '_' . now()->format('Ymd');
 
-                // Create and confirm Payment Intent
+                // Create and confirm Payment Intent with SCA/3D Secure enforcement
                 $paymentIntent = $stripe->paymentIntents->create([
                     'amount' => $amountInCents,
                     'currency' => 'usd',
@@ -232,12 +231,20 @@ class StripeController extends Controller
                     'payment_method' => $request->payment_method_id,
                     'off_session' => true,
                     'confirm' => true,
+                    // SECURITY: Enforce 3D Secure for SCA compliance (EU PSD2)
+                    'payment_method_options' => [
+                        'card' => [
+                            'request_three_d_secure' => 'automatic',
+                        ],
+                    ],
                     'metadata' => [
                         'booking_id' => $request->booking_id,
                         'user_id' => $user->id,
                         'client_id' => $user->id // Same as user_id (booking.client_id = user.id)
                     ],
                     'description' => 'Booking #' . $request->booking_id . ' - ' . $booking->service_type,
+                    // Enable Stripe's hosted receipt emails
+                    'receipt_email' => $user->email,
                 ], [
                     'idempotency_key' => $idempotencyKey
                 ]);

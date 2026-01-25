@@ -344,5 +344,6 @@
 
     @include('partials.footer')
     @include('partials.mobile-footer')
+    @include('partials.cookie-consent')
 </body>
 </html>

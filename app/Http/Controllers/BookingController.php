@@ -7,6 +7,8 @@ use App\Models\ReferralCode;
 use App\Services\NotificationService;
 use App\Services\PaymentService;
 use App\Services\EmailService;
+use App\Services\PaymentFeeService;
+use App\Http\Responses\ApiResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -16,32 +18,21 @@ use Illuminate\Validation\ValidationException;
 class BookingController extends Controller
 {
     /**
-     * Stripe processing fee rates (as of current business rules)
-     * Domestic (US): 2.9% + $0.30
-     * International: 4.9% + $0.30
-     */
-    private float $stripeFeeDomestic = 0.029;
-    private float $stripeFeeInternational = 0.049;
-    private float $stripeFixedFee = 0.30;
-
-    /**
-     * Computes the Stripe pass-through "Processing Fee" so that:
-     *   (gross - (gross * rate + fixed)) = target
-     * i.e. business receives `targetAmount` after Stripe charges.
+     * Stripe processing fees are now handled by PaymentFeeService
+     * @see \App\Services\PaymentFeeService
+     * @deprecated Use PaymentFeeService::calculateProcessingFee() instead
      */
     private function calculateProcessingFee(float $targetAmount, string $cardCountry = 'US'): float
     {
-        $rate = strtoupper($cardCountry) === 'US' ? $this->stripeFeeDomestic : $this->stripeFeeInternational;
-        $gross = ($targetAmount + $this->stripeFixedFee) / (1 - $rate);
-        $fee = $gross - $targetAmount;
-
-        // Defensive rounding to cents
-        return round($fee, 2);
+        return PaymentFeeService::calculateProcessingFee($targetAmount, $cardCountry);
     }
 
+    /**
+     * @deprecated Use PaymentFeeService::calculateAdjustedTotal() instead
+     */
     private function calculateAdjustedTotal(float $targetAmount, string $cardCountry = 'US'): float
     {
-        return round($targetAmount + $this->calculateProcessingFee($targetAmount, $cardCountry), 2);
+        return PaymentFeeService::calculateAdjustedTotal($targetAmount, $cardCountry);
     }
 
     public function index()

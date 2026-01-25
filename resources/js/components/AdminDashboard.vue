@@ -1,4 +1,11 @@
 <template>
+  <!-- Global Loading Overlay -->
+  <LoadingOverlay 
+    :visible="isPageLoading" 
+    context="admin"
+    tagline="Admin Control Panel"
+  />
+
   <!-- Session Blocked Modal - Overlay that blocks all interaction -->
   <v-dialog v-model="sessionBlockedModal" persistent max-width="500" :scrim="true" scrim-class="session-blocked-scrim">
     <v-card class="session-blocked-card">
@@ -69,8 +76,17 @@
     <!-- Dashboard Section -->
     <div v-if="currentSection === 'dashboard'">
       <v-row class="mb-4">
-        <v-col v-for="stat in stats" :key="stat.title" cols="6" sm="6" md="3">
-          <stat-card :icon="stat.icon" :value="stat.value" :label="stat.title" :change="stat.change" :change-color="stat.changeColor" :change-icon="stat.changeIcon" icon-class="error" />
+        <v-col v-for="(stat, index) in stats" :key="stat.title" cols="6" sm="6" md="3">
+          <stat-card 
+            :icon="stat.icon" 
+            :value="stat.value" 
+            :label="stat.title" 
+            :change="stat.change" 
+            :change-color="stat.changeColor" 
+            :change-icon="stat.changeIcon" 
+            icon-class="error"
+            :stagger-index="index"
+          />
         </v-col>
       </v-row>
 
@@ -185,7 +201,7 @@
                 </v-card-title>
                 <v-card-text class="pa-4 flex-grow-1">
                   <div class="caregiver-contacts">
-                    <div v-for="caregiver in quickCaregivers" :key="caregiver.id" class="caregiver-contact-item">
+                    <div v-for="caregiver in quickCaregivers.slice(0, 3)" :key="caregiver.id" class="caregiver-contact-item">
                       <div class="d-flex align-center mb-2">
                         <v-avatar size="32" :color="caregiver.available ? 'success' : 'grey'" class="mr-3">
                           <span class="text-white font-weight-bold">{{ caregiver.initials }}</span>
@@ -1049,7 +1065,7 @@
     </v-dialog>
 
     <!-- View Client Details Dialog -->
-    <v-dialog v-model="viewClientDialog" :max-width="isMobile ? undefined : 800" :fullscreen="isMobile" scrollable>
+    <v-dialog v-model="viewClientDialog" :max-width="isMobile ? undefined : 900" :fullscreen="isMobile" scrollable>
       <v-card v-if="viewingClient">
         <v-card-title class="pa-6" style="background: #dc2626; color: white;">
           <div class="d-flex align-center justify-space-between w-100">
@@ -1058,6 +1074,7 @@
           </div>
         </v-card-title>
         <v-card-text class="pa-6">
+          <!-- Client Avatar & Name Header -->
           <v-row>
             <v-col cols="12" class="text-center mb-4">
               <v-avatar size="120" color="primary" class="mb-3">
@@ -1073,65 +1090,199 @@
           </v-row>
           
           <v-divider class="mb-4"></v-divider>
-          
-          <v-row>
-            <v-col cols="12" md="6">
-              <div class="detail-section">
-                <div class="detail-label">Email</div>
-                <div class="detail-value">{{ viewingClient.email }}</div>
-              </div>
-            </v-col>
-            <v-col cols="12" md="6">
-              <div class="detail-section">
-                <div class="detail-label">Zip Code</div>
-                <div class="detail-value">{{ viewingClient.zip_code || viewingClient.zip || 'Unknown ZIP' }}</div>
-              </div>
-            </v-col>
-            <v-col cols="12" md="6">
-              <div class="detail-section">
-                <div class="detail-label">Location</div>
-                <div class="detail-value">{{ viewingClient.place_indicator || viewingClient.location || 'Unknown ZIP' }}</div>
-              </div>
-            </v-col>
-            <v-col cols="12" md="6">
-              <div class="detail-section">
-                <div class="detail-label">Status</div>
-                <div class="detail-value">
-                  <v-chip :color="getUserStatusColor(viewingClient.status)" size="small">
-                    {{ viewingClient.status }}
-                  </v-chip>
+
+          <!-- Contact Information Section -->
+          <div class="mb-4">
+            <h3 class="text-subtitle-1 font-weight-bold mb-3 d-flex align-center">
+              <v-icon color="primary" class="mr-2">mdi-card-account-details</v-icon>
+              Contact Information
+            </h3>
+            <v-row>
+              <v-col cols="12" md="6">
+                <div class="detail-section">
+                  <div class="detail-label">
+                    <v-icon size="16" class="mr-1">mdi-email</v-icon>
+                    Email Address
+                  </div>
+                  <div class="detail-value">{{ viewingClient.email || 'Not provided' }}</div>
                 </div>
-              </div>
-            </v-col>
-            <v-col cols="12" md="6">
-              <div class="detail-section">
-                <div class="detail-label">Total Bookings</div>
-                <div class="detail-value">{{ viewingClient.bookings }}</div>
-              </div>
-            </v-col>
-            <v-col cols="12" md="6">
-              <div class="detail-section">
-                <div class="detail-label">Total Spent</div>
-                <div class="detail-value">{{ viewingClient.totalSpent }}</div>
-              </div>
-            </v-col>
-            <v-col cols="12" md="6">
-              <div class="detail-section">
-                <div class="detail-label">Member Since</div>
-                <div class="detail-value">{{ viewingClient.joined }}</div>
-              </div>
-            </v-col>
-            <v-col cols="12" md="6">
-              <div class="detail-section">
-                <div class="detail-label">Verification Status</div>
-                <div class="detail-value">
-                  <v-chip :color="viewingClient.verified ? 'success' : 'warning'" size="small">
-                    {{ viewingClient.verified ? 'Verified' : 'Pending Verification' }}
-                  </v-chip>
+              </v-col>
+              <v-col cols="12" md="6">
+                <div class="detail-section">
+                  <div class="detail-label">
+                    <v-icon size="16" class="mr-1">mdi-phone</v-icon>
+                    Phone Number
+                  </div>
+                  <div class="detail-value">{{ viewingClient.phone || 'Not provided' }}</div>
                 </div>
-              </div>
-            </v-col>
-          </v-row>
+              </v-col>
+            </v-row>
+          </div>
+
+          <v-divider class="mb-4"></v-divider>
+
+          <!-- Address Information Section -->
+          <div class="mb-4">
+            <h3 class="text-subtitle-1 font-weight-bold mb-3 d-flex align-center">
+              <v-icon color="primary" class="mr-2">mdi-map-marker</v-icon>
+              Address Information
+            </h3>
+            <v-row>
+              <v-col cols="12" v-if="viewingClient.address">
+                <div class="detail-section">
+                  <div class="detail-label">
+                    <v-icon size="16" class="mr-1">mdi-home</v-icon>
+                    Street Address
+                  </div>
+                  <div class="detail-value">{{ viewingClient.address }}</div>
+                </div>
+              </v-col>
+              <v-col cols="12" md="6">
+                <div class="detail-section">
+                  <div class="detail-label">
+                    <v-icon size="16" class="mr-1">mdi-city</v-icon>
+                    City
+                  </div>
+                  <div class="detail-value">{{ viewingClient.city || viewingClient.place_indicator?.split(',')[0] || 'Not provided' }}</div>
+                </div>
+              </v-col>
+              <v-col cols="12" md="6">
+                <div class="detail-section">
+                  <div class="detail-label">
+                    <v-icon size="16" class="mr-1">mdi-flag</v-icon>
+                    State
+                  </div>
+                  <div class="detail-value">{{ viewingClient.state || viewingClient.place_indicator?.split(',')[1]?.trim() || 'Not provided' }}</div>
+                </div>
+              </v-col>
+              <v-col cols="12" md="6">
+                <div class="detail-section">
+                  <div class="detail-label">
+                    <v-icon size="16" class="mr-1">mdi-map</v-icon>
+                    County
+                  </div>
+                  <div class="detail-value">{{ viewingClient.county || 'Not provided' }}</div>
+                </div>
+              </v-col>
+              <v-col cols="12" md="6" v-if="viewingClient.borough">
+                <div class="detail-section">
+                  <div class="detail-label">
+                    <v-icon size="16" class="mr-1">mdi-office-building</v-icon>
+                    Borough
+                  </div>
+                  <div class="detail-value">{{ viewingClient.borough }}</div>
+                </div>
+              </v-col>
+              <v-col cols="12" md="6">
+                <div class="detail-section">
+                  <div class="detail-label">
+                    <v-icon size="16" class="mr-1">mdi-mailbox</v-icon>
+                    ZIP Code
+                  </div>
+                  <div class="detail-value">{{ viewingClient.zip_code || viewingClient.zip || 'Not provided' }}</div>
+                </div>
+              </v-col>
+              <v-col cols="12" md="6">
+                <div class="detail-section">
+                  <div class="detail-label">
+                    <v-icon size="16" class="mr-1">mdi-map-marker-radius</v-icon>
+                    Location
+                  </div>
+                  <div class="detail-value">{{ viewingClient.place_indicator || 'Not available' }}</div>
+                </div>
+              </v-col>
+            </v-row>
+          </div>
+
+          <v-divider class="mb-4"></v-divider>
+
+          <!-- Account Information Section -->
+          <div class="mb-4">
+            <h3 class="text-subtitle-1 font-weight-bold mb-3 d-flex align-center">
+              <v-icon color="primary" class="mr-2">mdi-account-circle</v-icon>
+              Account Information
+            </h3>
+            <v-row>
+              <v-col cols="12" md="6">
+                <div class="detail-section">
+                  <div class="detail-label">
+                    <v-icon size="16" class="mr-1">mdi-identifier</v-icon>
+                    Client ID
+                  </div>
+                  <div class="detail-value">#{{ viewingClient.id }}</div>
+                </div>
+              </v-col>
+              <v-col cols="12" md="6">
+                <div class="detail-section">
+                  <div class="detail-label">
+                    <v-icon size="16" class="mr-1">mdi-check-circle</v-icon>
+                    Account Status
+                  </div>
+                  <div class="detail-value">
+                    <v-chip :color="getUserStatusColor(viewingClient.status)" size="small">
+                      {{ viewingClient.status || 'Active' }}
+                    </v-chip>
+                  </div>
+                </div>
+              </v-col>
+              <v-col cols="12" md="6">
+                <div class="detail-section">
+                  <div class="detail-label">
+                    <v-icon size="16" class="mr-1">mdi-calendar</v-icon>
+                    Member Since
+                  </div>
+                  <div class="detail-value">{{ viewingClient.joined || 'Unknown' }}</div>
+                </div>
+              </v-col>
+              <v-col cols="12" md="6">
+                <div class="detail-section">
+                  <div class="detail-label">
+                    <v-icon size="16" class="mr-1">mdi-shield-check</v-icon>
+                    Verification Status
+                  </div>
+                  <div class="detail-value">
+                    <v-chip :color="viewingClient.verified ? 'success' : 'warning'" size="small">
+                      <v-icon size="14" class="mr-1">{{ viewingClient.verified ? 'mdi-check' : 'mdi-clock' }}</v-icon>
+                      {{ viewingClient.verified ? 'Email Verified' : 'Pending Verification' }}
+                    </v-chip>
+                  </div>
+                </div>
+              </v-col>
+            </v-row>
+          </div>
+
+          <v-divider class="mb-4"></v-divider>
+
+          <!-- Booking Statistics Section -->
+          <div class="mb-2">
+            <h3 class="text-subtitle-1 font-weight-bold mb-3 d-flex align-center">
+              <v-icon color="primary" class="mr-2">mdi-chart-bar</v-icon>
+              Booking Statistics
+            </h3>
+            <v-row>
+              <v-col cols="12" md="4">
+                <v-card variant="tonal" color="primary" class="pa-4 text-center">
+                  <v-icon size="32" color="primary" class="mb-2">mdi-calendar-check</v-icon>
+                  <div class="text-h5 font-weight-bold">{{ viewingClient.bookings || 0 }}</div>
+                  <div class="text-caption">Total Bookings</div>
+                </v-card>
+              </v-col>
+              <v-col cols="12" md="4">
+                <v-card variant="tonal" color="success" class="pa-4 text-center">
+                  <v-icon size="32" color="success" class="mb-2">mdi-currency-usd</v-icon>
+                  <div class="text-h5 font-weight-bold">{{ viewingClient.totalSpent || '$0' }}</div>
+                  <div class="text-caption">Total Spent</div>
+                </v-card>
+              </v-col>
+              <v-col cols="12" md="4">
+                <v-card variant="tonal" color="info" class="pa-4 text-center">
+                  <v-icon size="32" color="info" class="mb-2">mdi-star</v-icon>
+                  <div class="text-h5 font-weight-bold">{{ viewingClient.avgRating || 'N/A' }}</div>
+                  <div class="text-caption">Avg. Rating Given</div>
+                </v-card>
+              </v-col>
+            </v-row>
+          </div>
         </v-card-text>
         <v-card-actions class="pa-6 pt-0">
           <v-spacer />
@@ -7844,9 +7995,18 @@ import NotificationToast from './shared/NotificationToast.vue';
 import NotificationCenter from './shared/NotificationCenter.vue';
 import EmailVerificationBanner from './EmailVerificationBanner.vue';
 import EmailMarketingPanel from './admin/EmailMarketingPanel.vue';
+import LoadingOverlay from './LoadingOverlay.vue';
 import { useNotification } from '../composables/useNotification';
 
 const { notification, success, error, warning, info } = useNotification();
+
+// ============================================
+// GLOBAL LOADING STATE
+// ============================================
+const isPageLoading = ref(true);
+const loadingContext = ref('dashboard');
+const loadingProgress = ref(0);
+const initialDataLoaded = ref(false);
 
 // ============================================
 // SESSION ENFORCEMENT (Single Session for Master Admin)
@@ -8450,7 +8610,7 @@ const navItems = ref([
     title: 'Users', 
     value: 'user-management',
     isToggle: true,
-    expanded: false,
+    expanded: true,
     children: [
       { icon: 'mdi-account-heart', title: 'Caregivers', value: 'caregivers' },
       { icon: 'mdi-broom', title: 'Housekeepers', value: 'housekeepers' },
@@ -8869,14 +9029,23 @@ const loadUsers = async () => {
           id: u.id,
           name: u.name,
           email: u.email,
+          phone: u.phone || '',
           status: u.status,
           bookings: 0,
           totalSpent: '$0',
           joined: u.joined,
           verified: true,
           zip_code: u.zip_code || u.zip || '',
+          city: u.city || '',
+          state: u.state || '',
+          county: u.county || '',
+          borough: u.borough || '',
+          address: u.address || '',
+          date_of_birth: u.date_of_birth || '',
           location: '',
-          place_indicator: (u.zip_code || u.zip) ? 'Loading...' : ''
+          place_indicator: (u.zip_code || u.zip) ? 'Loading...' : '',
+          created_at: u.created_at || '',
+          email_verified_at: u.email_verified_at || null
         };
         return item;
       });
@@ -10683,7 +10852,11 @@ const approveApplication = async (application) => {
 };
 
 const unapproveApplication = async (application) => {
-  const resolvedId = application?.id ?? application?.userId;
+  console.log('unapproveApplication called with:', application);
+  // For caregivers/housekeepers from tables, userId is the correct user ID
+  // For applications, id is the user ID. Prioritize userId for table items.
+  const resolvedId = application?.userId ?? application?.id;
+  console.log('Resolved ID:', resolvedId);
   if (!resolvedId) {
     error('Unable to unapprove: missing user id.', 'Unapprove Failed');
     return;
@@ -10693,6 +10866,7 @@ const unapproveApplication = async (application) => {
     `Unapprove ${application.name}? This will move them back to Pending and they may lose access to their dashboard.`,
     async () => {
       try {
+        console.log('Making unapprove request to:', `/api/admin/applications/${resolvedId}/unapprove`);
         const response = await fetch(`/api/admin/applications/${resolvedId}/unapprove`, {
           method: 'POST',
           headers: {
@@ -10700,6 +10874,7 @@ const unapproveApplication = async (application) => {
           }
         });
         const result = await response.json();
+        console.log('Unapprove response:', result);
         if (result.success) {
           warning(`${application.name} has been moved back to Pending.`, 'Application Unapproved');
         } else {
@@ -14818,7 +14993,12 @@ const addMobileTableLabels = () => {
   });
 };
 
-onMounted(() => {
+onMounted(async () => {
+  // Show loading overlay
+  isPageLoading.value = true;
+  loadingContext.value = 'dashboard';
+  loadingProgress.value = 0;
+  
   // Add resize listener for mobile detection
   if (typeof window !== 'undefined') {
     window.addEventListener('resize', handleResize);
@@ -14827,43 +15007,68 @@ onMounted(() => {
   // Start session enforcement heartbeat (for Master Admin single session)
   startSessionHeartbeat();
   
-  loadProfile();
-  loadAdminStats();
-  loadQuickCaregivers();
-  loadHousekeepers();
-  loadUsers();
-  loadClientBookings();
-  loadApplications();
-  loadPasswordResets();
-  loadMetrics();
-  loadAnalyticsStats();
-  loadAdminNotificationCount();
-  loadTimeTrackingData();
-  loadMarketingStaff();
-  loadAdminStaff();
-  loadTrainingCenters();
-  loadCaregiverTrainingCenters();
-  loadQuickCaregivers();
+  // Track loading progress with Promise.allSettled for parallel loading
+  const loadingTasks = [
+    { fn: loadProfile, weight: 5 },
+    { fn: loadAdminStats, weight: 10 },
+    { fn: loadQuickCaregivers, weight: 10 },
+    { fn: loadHousekeepers, weight: 10 },
+    { fn: loadUsers, weight: 10 },
+    { fn: loadClientBookings, weight: 10 },
+    { fn: loadApplications, weight: 5 },
+    { fn: loadPasswordResets, weight: 5 },
+    { fn: loadMetrics, weight: 5 },
+    { fn: loadAnalyticsStats, weight: 5 },
+    { fn: loadAdminNotificationCount, weight: 3 },
+    { fn: loadTimeTrackingData, weight: 5 },
+    { fn: loadMarketingStaff, weight: 3 },
+    { fn: loadAdminStaff, weight: 3 },
+    { fn: loadTrainingCenters, weight: 3 },
+    { fn: loadCaregiverTrainingCenters, weight: 3 },
+    { fn: loadPaymentStats, weight: 5 },
+    { fn: loadRecentTransactions, weight: 3 },
+    { fn: loadClientPayments, weight: 3 },
+    { fn: loadCaregiverPayments, weight: 3 },
+    { fn: loadHousekeeperPayments, weight: 3 },
+    { fn: loadMarketingCommissions, weight: 3 },
+    { fn: loadTrainingCommissions, weight: 3 },
+    { fn: loadAllTransactions, weight: 5 },
+    { fn: loadMoneyFlowData, weight: 3 },
+    { fn: loadTopPerformers, weight: 3 },
+    { fn: loadRecentAnalyticsActivity, weight: 3 },
+    { fn: loadTimeTrackingHistory, weight: 3 }
+  ];
   
-  // Load payment & financial data from database
-  loadPaymentStats();
-  loadRecentTransactions();
-  loadClientPayments();
-  loadCaregiverPayments();
-  loadHousekeeperPayments();
-  loadMarketingCommissions();
-  loadTrainingCommissions();
-  loadAllTransactions();
-  loadMoneyFlowData(); // NEW: Load money flow monitoring data
-  loadTopPerformers();
-  loadRecentAnalyticsActivity();
+  const totalWeight = loadingTasks.reduce((sum, task) => sum + task.weight, 0);
+  let completedWeight = 0;
+  
+  // Execute all loading tasks in parallel
+  const promises = loadingTasks.map(async (task) => {
+    try {
+      await task.fn();
+    } catch (err) {
+      console.warn('Loading task failed:', err);
+    } finally {
+      completedWeight += task.weight;
+      loadingProgress.value = Math.round((completedWeight / totalWeight) * 100);
+    }
+  });
+  
+  // Wait for all tasks to complete
+  await Promise.allSettled(promises);
+  
+  // Ensure progress shows 100%
+  loadingProgress.value = 100;
+  
+  // Small delay to show completion, then hide overlay
+  setTimeout(() => {
+    isPageLoading.value = false;
+    initialDataLoaded.value = true;
+  }, 300);
   
   if (currentSection.value === 'analytics') {
     setTimeout(initCharts, 500);
   }
-  
-  // Load time tracking history data
-  loadTimeTrackingHistory();
   
   // Add mobile table labels after data loads
   setTimeout(() => {
@@ -15606,7 +15811,8 @@ setInterval(() => {
   border-radius: 16px !important;
   border: 1px solid #c5c5c5ff !important;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08), 0 2px 4px rgba(0, 0, 0, 0.04) !important;
-  height: 280px !important;
+  min-height: 280px !important;
+  height: auto !important;
   transition: box-shadow 0.3s ease !important;
 }
 
@@ -17083,14 +17289,18 @@ setInterval(() => {
 .action-btn-reject,
 .action-btn-delete,
 .action-btn-clock-out,
-.action-btn-refresh {
-  width: 32px !important;
-  height: 32px !important;
-  min-width: 32px !important;
+.action-btn-refresh,
+.action-btn-unapprove {
+  width: 40px !important;
+  height: 40px !important;
+  min-width: 40px !important;
   padding: 0 !important;
-  border-radius: 8px !important;
-  transition: all 0.2s ease !important;
+  border-radius: 10px !important;
+  transition: all 0.15s ease !important;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+  /* Improve touch experience */
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .action-btn-approve {
@@ -17611,19 +17821,27 @@ setInterval(() => {
     min-width: 80px !important;
   }
 
-  /* Compact action buttons */
+  /* Mobile touch-friendly action buttons - 44px minimum for WCAG compliance */
   :deep(.action-btn-view),
   :deep(.action-btn-edit),
-  :deep(.action-btn-delete) {
-    width: 28px !important;
-    height: 28px !important;
-    min-width: 28px !important;
+  :deep(.action-btn-delete),
+  :deep(.action-btn-unapprove),
+  :deep(.action-btn-approve),
+  :deep(.action-btn-reject) {
+    width: 44px !important;
+    height: 44px !important;
+    min-width: 44px !important;
+    min-height: 44px !important;
+    margin: 2px !important;
   }
 
   :deep(.action-btn-view .v-icon),
   :deep(.action-btn-edit .v-icon),
-  :deep(.action-btn-delete .v-icon) {
-    font-size: 14px !important;
+  :deep(.action-btn-delete .v-icon),
+  :deep(.action-btn-unapprove .v-icon),
+  :deep(.action-btn-approve .v-icon),
+  :deep(.action-btn-reject .v-icon) {
+    font-size: 18px !important;
   }
 
   /* Compact pagination */
@@ -17732,6 +17950,7 @@ setInterval(() => {
   transform: translateY(0) scale(0.98) !important;
 }
 
+/* PDF Export Button Animation - Local variation of pulse */
 @keyframes pulse-glow {
   0%, 100% {
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
@@ -17797,35 +18016,42 @@ setInterval(() => {
 
 .mobile-card-actions .v-btn {
   min-width: auto !important;
+  min-height: 44px !important; /* WCAG touch target */
   flex: 1 1 auto;
   max-width: calc(50% - 4px);
-  font-size: 0.75rem !important;
-  padding: 0 12px !important;
+  font-size: 0.875rem !important;
+  padding: 0 16px !important;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .mobile-card-actions .v-chip {
-  font-size: 0.7rem !important;
+  font-size: 0.75rem !important;
+  min-height: 32px !important;
 }
 
 @media (max-width: 480px) {
   .mobile-card-actions {
     flex-direction: column;
-    gap: 6px;
+    gap: 8px;
   }
   
   .mobile-card-actions .v-btn {
     width: 100% !important;
     max-width: 100% !important;
     min-width: 100% !important;
+    min-height: 48px !important; /* Larger touch target on small screens */
+    font-size: 0.9375rem !important;
+    border-radius: 10px !important;
   }
   
   .mobile-card-label {
     min-width: 70px;
-    font-size: 0.75rem;
+    font-size: 0.8125rem;
   }
   
   .mobile-card-value {
-    font-size: 0.8125rem;
+    font-size: 0.875rem;
   }
 }
 
@@ -17964,6 +18190,205 @@ setInterval(() => {
 
 .housekeeper-chip.v-chip .v-icon {
   color: white !important;
+}
+
+/* ============================================
+   MOBILE UI/UX AUDIT - 100/100 COMPLIANCE
+   Added: January 24, 2026
+   ============================================ */
+
+/* Touch targets - WCAG 2.1 AA (44px minimum) */
+@media (max-width: 768px) {
+  .touch-friendly-btn,
+  .v-btn-toggle .v-btn,
+  .period-toggle .v-btn {
+    min-height: 44px !important;
+    min-width: 44px !important;
+  }
+  
+  /* Icon buttons in tables */
+  .v-data-table .v-btn--icon,
+  .action-btn-view,
+  .action-btn-edit,
+  .action-btn-delete,
+  .action-btn-unapprove {
+    width: 44px !important;
+    height: 44px !important;
+    min-width: 44px !important;
+    min-height: 44px !important;
+  }
+  
+  /* Filter controls */
+  .v-text-field .v-field,
+  .v-select .v-field {
+    min-height: 44px !important;
+  }
+}
+
+/* Battery optimization */
+.page-hidden .notification-dot,
+.page-hidden [class*="pulse"],
+:root[data-page-hidden] .notification-dot,
+:root[data-page-hidden] [class*="pulse"] {
+  animation-play-state: paused !important;
+}
+
+.is-scrolling .notification-dot,
+.is-scrolling [class*="pulse"] {
+  animation-play-state: paused !important;
+}
+
+@media (max-width: 768px) {
+  .notification-dot {
+    animation-iteration-count: 5 !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  
+  .notification-dot,
+  [class*="pulse"] {
+    animation: none !important;
+  }
+}
+
+/* Focus states */
+.v-btn:focus-visible,
+button:focus-visible {
+  outline: 3px solid rgba(239, 68, 68, 0.7) !important;
+  outline-offset: 3px !important;
+  box-shadow: 0 0 0 6px rgba(239, 68, 68, 0.15) !important;
+}
+
+.v-field:focus-within {
+  outline: 2px solid #EF4444 !important;
+  outline-offset: 2px !important;
+}
+
+/* Table scroll indicators */
+@media (max-width: 768px) {
+  :deep(.v-data-table) .v-table__wrapper {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    background: 
+      linear-gradient(to right, white 20px, transparent 60px),
+      linear-gradient(to left, white 20px, transparent 60px) 100% 0,
+      linear-gradient(to right, rgba(0,0,0,0.06) 0, transparent 15px),
+      linear-gradient(to left, rgba(0,0,0,0.06) 0, transparent 15px) 100% 0 !important;
+    background-repeat: no-repeat !important;
+    background-size: 60px 100%, 60px 100%, 15px 100%, 15px 100% !important;
+    background-attachment: local, local, scroll, scroll !important;
+  }
+}
+
+/* Typography readability */
+@media (max-width: 600px) {
+  .text-caption:not(.v-chip .text-caption):not(.v-tab .text-caption) {
+    font-size: 0.8125rem !important;
+    line-height: 1.5 !important;
+  }
+}
+
+/* Mobile Quick Actions - Proper 2x3 Grid */
+@media (max-width: 599px) {
+  .quick-action-btn {
+    min-height: 90px !important;
+    padding: 12px 8px !important;
+  }
+  
+  .quick-action-btn .v-icon {
+    font-size: 24px !important;
+  }
+  
+  .quick-action-btn .text-caption {
+    font-size: 0.7rem !important;
+    line-height: 1.2 !important;
+  }
+  
+  .quick-action-btn .text-h6 {
+    font-size: 1.1rem !important;
+  }
+}
+
+/* Mobile Caregiver Contacts - Fix cutoff issue */
+@media (max-width: 599px) {
+  .compact-card {
+    min-height: auto !important;
+    max-height: none !important;
+  }
+  
+  .caregiver-contacts {
+    max-height: none !important;
+    overflow: visible !important;
+  }
+  
+  .caregiver-contact-item {
+    padding: 10px 0 !important;
+  }
+  
+  .caregiver-contact-item:last-child {
+    padding-bottom: 4px !important;
+  }
+  
+  .caregiver-name {
+    font-size: 0.8rem !important;
+  }
+  
+  .caregiver-phone {
+    font-size: 0.7rem !important;
+  }
+}
+
+/* Mobile Quick Actions - Uniform 2x3 Grid */
+@media (max-width: 599px) {
+  .modern-activity-card .v-row {
+    margin: 0 -6px !important;
+  }
+  
+  .modern-activity-card .v-col {
+    padding: 6px !important;
+  }
+  
+  .quick-action-btn {
+    width: 100% !important;
+    min-height: 110px !important;
+    height: 110px !important;
+    padding: 12px 8px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+  
+  .quick-action-btn .v-btn__content {
+    width: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+  
+  .quick-action-btn .v-icon {
+    font-size: 26px !important;
+    margin-bottom: 6px !important;
+  }
+  
+  .quick-action-btn .text-caption {
+    font-size: 0.7rem !important;
+    line-height: 1.2 !important;
+    margin-bottom: 2px !important;
+  }
+  
+  .quick-action-btn .text-h6 {
+    font-size: 1.25rem !important;
+    line-height: 1 !important;
+  }
 }
 
 </style>

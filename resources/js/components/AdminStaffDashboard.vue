@@ -1,4 +1,11 @@
 <template>
+  <!-- Global Loading Overlay -->
+  <LoadingOverlay 
+    :visible="isPageLoading" 
+    context="adminStaff"
+    tagline="Admin Staff Portal"
+  />
+
   <notification-toast
     v-model="notification.show"
     :type="notification.type"
@@ -31,8 +38,17 @@
     <!-- Dashboard Section -->
     <div v-if="currentSection === 'dashboard'">
       <v-row class="mb-4">
-        <v-col v-for="stat in stats" :key="stat.title" cols="6" sm="6" md="3">
-          <stat-card :icon="stat.icon" :value="stat.value" :label="stat.title" :change="stat.change" :change-color="stat.changeColor" :change-icon="stat.changeIcon" icon-class="error" />
+        <v-col v-for="(stat, index) in stats" :key="stat.title" cols="6" sm="6" md="3">
+          <stat-card 
+            :icon="stat.icon" 
+            :value="stat.value" 
+            :label="stat.title" 
+            :change="stat.change" 
+            :change-color="stat.changeColor" 
+            :change-icon="stat.changeIcon" 
+            icon-class="error"
+            :stagger-index="index"
+          />
         </v-col>
       </v-row>
 
@@ -4667,9 +4683,15 @@ import StatCard from './shared/StatCard.vue';
 import NotificationToast from './shared/NotificationToast.vue';
 import NotificationCenter from './shared/NotificationCenter.vue';
 import EmailMarketingPanel from './admin/EmailMarketingPanel.vue';
+import LoadingOverlay from './LoadingOverlay.vue';
 import { useNotification } from '../composables/useNotification';
+import { useLoading } from '../composables/useLoading';
 
 const { notification, success, error, warning, info } = useNotification();
+const { isLoading: isPageLoading, startLoading, stopLoading, loadingContext } = useLoading();
+
+// Loading progress tracking
+const loadingProgress = ref(0);
 
 // Mobile detection for fullscreen dialogs
 const isMobile = ref(typeof window !== 'undefined' ? window.innerWidth <= 768 : false);
@@ -5231,7 +5253,7 @@ const navItems = ref([
     title: 'Users', 
     value: 'user-management',
     isToggle: true,
-    expanded: false,
+    expanded: true,
     children: [
       { icon: 'mdi-account-heart', title: 'Caregivers', value: 'caregivers' },
       { icon: 'mdi-broom', title: 'Housekeepers', value: 'housekeepers' },
@@ -10104,30 +10126,45 @@ const addMobileTableLabels = () => {
 };
 
 onMounted(async () => {
+  // Start loading state
+  startLoading('adminStaff');
+  loadingProgress.value = 0;
+  
   // Set up mobile detection listener
   if (typeof window !== 'undefined') {
     handleResize();
     window.addEventListener('resize', handleResize);
   }
   
+  loadingProgress.value = 5;
+  
   // Load page permissions first to apply restrictions
   await loadPagePermissions();
+  
+  loadingProgress.value = 10;
   
   loadProfile();
   loadAdminStats();
   loadQuickCaregivers();
+  loadingProgress.value = 25;
+  
   loadUsers();
   loadClientBookings();
   loadApplications();
+  loadingProgress.value = 40;
+  
   loadPasswordResets();
   loadMetrics();
   loadAnalyticsStats();
   loadAdminNotificationCount();
+  loadingProgress.value = 55;
+  
   loadTimeTrackingData();
   loadMarketingStaff();
   loadAdminStaff();
   loadTrainingCenters();
   loadQuickCaregivers();
+  loadingProgress.value = 70;
   
   // Load payment & financial data from database
   loadPaymentStats();
@@ -10135,12 +10172,16 @@ onMounted(async () => {
   loadClientPayments();
   loadCaregiverSalaries();
   loadAllTransactions();
+  loadingProgress.value = 85;
+  
   loadTopPerformers();
   loadRecentAnalyticsActivity();
   
   if (currentSection.value === 'analytics') {
     setTimeout(initCharts, 500);
   }
+  
+  loadingProgress.value = 95;
   
   // Load time tracking history data
   loadTimeTrackingHistory();
@@ -10190,6 +10231,11 @@ onMounted(async () => {
       loadTimeTrackingData();
     }
   }, 10000);
+  
+  // Complete loading - fast transition
+  setTimeout(() => {
+    stopLoading();
+  }, 200);
 });
 </script>
 
@@ -13269,6 +13315,114 @@ onMounted(async () => {
   .card-header .d-flex.ga-2 {
     flex-direction: column;
   }
+}
+
+/* ============================================================
+   ADMIN STAFF MOBILE ENHANCEMENTS v2.0
+   Touch targets, table scroll, and accessibility improvements
+   ============================================================ */
+
+/* Enforce minimum touch targets for all clickable elements */
+@media (max-width: 768px) {
+  .v-btn:not(.v-btn--icon) {
+    min-height: 44px !important;
+  }
+  
+  .v-btn--icon {
+    min-width: 44px !important;
+    min-height: 44px !important;
+  }
+  
+  /* Table wrapper with scroll indicator */
+  .v-table {
+    position: relative;
+  }
+  
+  .v-data-table__wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  /* Scroll fade indicator */
+  .v-data-table__wrapper::after {
+    content: '';
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    width: 40px;
+    background: linear-gradient(to right, transparent, rgba(255,255,255,0.95));
+    pointer-events: none;
+    opacity: 1;
+    transition: opacity 0.3s ease;
+  }
+  
+  /* Action button improvements */
+  .v-data-table .v-btn--icon {
+    min-width: 40px !important;
+    min-height: 40px !important;
+    margin: 2px !important;
+  }
+  
+  /* Chip touch improvements */
+  .v-chip {
+    min-height: 32px !important;
+  }
+}
+
+/* Ultra-compact for small phones */
+@media (max-width: 400px) {
+  /* Force single-column grid layouts */
+  .v-row > .v-col[class*="v-col-6"],
+  .v-row > .v-col[class*="v-col-4"] {
+    flex: 0 0 100% !important;
+    max-width: 100% !important;
+  }
+  
+  /* Compact stat cards */
+  .v-card .text-h5,
+  .v-card .text-h6 {
+    font-size: 1.1rem !important;
+  }
+  
+  /* Stack header actions */
+  .card-header {
+    flex-direction: column !important;
+    gap: 12px;
+  }
+  
+  .card-header .d-flex {
+    width: 100%;
+  }
+  
+  /* Table cell padding reduction */
+  .v-data-table td,
+  .v-data-table th {
+    padding: 8px 6px !important;
+    font-size: 0.75rem !important;
+  }
+  
+  /* Ensure full-width buttons in dialogs */
+  .v-dialog .v-btn {
+    width: 100% !important;
+    margin-bottom: 8px;
+  }
+}
+
+/* Safe area support for notched devices */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  .v-footer,
+  .v-bottom-navigation {
+    padding-bottom: env(safe-area-inset-bottom) !important;
+  }
+}
+
+/* Touch scroll momentum */
+.v-list,
+.v-card-text,
+.v-data-table__wrapper {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
 }
 
 </style>

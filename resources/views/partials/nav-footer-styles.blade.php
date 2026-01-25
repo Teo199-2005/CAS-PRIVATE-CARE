@@ -1121,6 +1121,42 @@
         }
     }
 
+    /* ============================================
+       SAFE AREA INSETS - Notched Device Support
+       ============================================ */
+    
+    @supports (padding: env(safe-area-inset-top)) {
+        /* Navigation bar - notch aware */
+        @media (max-width: 768px) {
+            nav {
+                padding-top: env(safe-area-inset-top) !important;
+            }
+            
+            /* Adjust nav height with safe area */
+            .nav-container {
+                min-height: 70px;
+            }
+        }
+        
+        /* Footer - home indicator aware */
+        footer {
+            padding-bottom: calc(2rem + env(safe-area-inset-bottom)) !important;
+        }
+        
+        /* Side edges for landscape mode */
+        @media (orientation: landscape) and (max-width: 900px) {
+            nav .nav-container {
+                padding-left: max(1rem, env(safe-area-inset-left));
+                padding-right: max(1rem, env(safe-area-inset-right));
+            }
+            
+            footer {
+                padding-left: max(1.5rem, env(safe-area-inset-left)) !important;
+                padding-right: max(1.5rem, env(safe-area-inset-right)) !important;
+            }
+        }
+    }
+
     /* Dark mode support for mobile */
     @media (prefers-color-scheme: dark) and (max-width: 768px) {
         nav {

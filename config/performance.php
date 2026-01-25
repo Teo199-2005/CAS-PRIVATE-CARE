@@ -19,7 +19,7 @@ return [
     */
 
     'cdn' => [
-        'enabled' => env('CDN_ENABLED', false),
+        'enabled' => env('CDN_ENABLED', true),
         'url' => env('ASSET_CDN_URL', null),
         'paths' => [
             'images' => env('CDN_IMAGES_PATH', '/images'),
@@ -38,7 +38,7 @@ return [
     */
 
     'response_cache' => [
-        'enabled' => env('RESPONSE_CACHE_ENABLED', false),
+        'enabled' => env('RESPONSE_CACHE_ENABLED', true),
         'lifetime' => env('RESPONSE_CACHE_LIFETIME', 3600), // seconds
         'exclude_urls' => [
             '/api/*',
@@ -47,6 +47,13 @@ return [
             '/register',
             '/profile/*',
             '/dashboard/*',
+            '/client/*',
+            '/caregiver/*',
+            '/housekeeper/*',
+            '/marketing/*',
+            '/training/*',
+            '/payment*',
+            '/book-service',
         ],
     ],
 

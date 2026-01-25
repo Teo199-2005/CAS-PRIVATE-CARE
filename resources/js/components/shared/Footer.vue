@@ -28,6 +28,11 @@
   border-top: 1px solid #f0f0f0;
   padding: 16px 32px;
   margin-top: auto;
+  width: 100%;
+  flex-shrink: 0;
+  position: static;
+  z-index: 1;
+  box-sizing: border-box;
 }
 
 .footer-content {
