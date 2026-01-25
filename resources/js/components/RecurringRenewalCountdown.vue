@@ -241,6 +241,35 @@ onMounted(() => {
   margin-bottom: 20px;
 }
 
+/* Force all text in the renewal banner to be white */
+.renewal-countdown-banner :deep(.v-alert) {
+  color: white !important;
+}
+
+.renewal-countdown-banner :deep(.v-alert-title) {
+  color: white !important;
+}
+
+.renewal-countdown-banner :deep(.v-alert-title span) {
+  color: white !important;
+}
+
+.renewal-countdown-banner :deep(.text-caption) {
+  color: white !important;
+}
+
+.renewal-countdown-banner :deep(.text-body-1) {
+  color: white !important;
+}
+
+.renewal-countdown-banner :deep(p) {
+  color: white !important;
+}
+
+.renewal-countdown-banner :deep(strong) {
+  color: white !important;
+}
+
 .renewal-details {
   margin-top: 8px;
 }
