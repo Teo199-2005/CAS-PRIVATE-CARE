@@ -258,6 +258,11 @@ onMounted(() => {
   background: rgba(255, 255, 255, 0.1);
   padding: 8px 12px;
   border-radius: 6px;
+  color: white !important;
+}
+
+.info-item span {
+  color: white !important;
 }
 
 .info-item.amount-highlight {
@@ -269,6 +274,21 @@ onMounted(() => {
   display: flex;
   align-items: center;
   flex: 1;
+  color: white !important;
+}
+
+.renewal-message span {
+  color: white !important;
+}
+
+.renewal-details {
+  margin-top: 8px;
+  color: white !important;
+}
+
+.renewal-details p,
+.renewal-details span {
+  color: white !important;
 }
 
 .renewal-actions {

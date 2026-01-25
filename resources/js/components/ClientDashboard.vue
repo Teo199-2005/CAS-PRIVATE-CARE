@@ -8384,6 +8384,14 @@ const initSpendingChart = () => {
 
 .restriction-header-content {
   animation: headerFadeIn 0.5s ease 0.2s both;
+  flex-wrap: nowrap;
+  min-width: 0;
+  width: 100%;
+}
+
+.restriction-header-content > div {
+  min-width: 0;
+  flex: 1;
 }
 
 @keyframes headerFadeIn {
@@ -8400,9 +8408,11 @@ const initSpendingChart = () => {
 .restriction-logo {
   width: 50px;
   height: 50px;
+  min-width: 50px;
   border-radius: 10px;
   background: white;
   padding: 5px;
+  flex-shrink: 0;
   animation: logoSpin 0.6s ease 0.3s both;
 }
 
@@ -8422,6 +8432,8 @@ const initSpendingChart = () => {
   font-weight: 700;
   margin: 0;
   line-height: 1.2;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 .restriction-subtitle {
@@ -8661,6 +8673,7 @@ const initSpendingChart = () => {
   .restriction-logo {
     width: 40px !important;
     height: 40px !important;
+    min-width: 40px !important;
   }
 
   .restriction-heading {
@@ -8709,6 +8722,7 @@ const initSpendingChart = () => {
   .restriction-logo {
     width: 35px !important;
     height: 35px !important;
+    min-width: 35px !important;
   }
 
   .restriction-title {
