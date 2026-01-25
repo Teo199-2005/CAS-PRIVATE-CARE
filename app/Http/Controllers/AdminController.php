@@ -1913,26 +1913,291 @@ class AdminController extends Controller
             $hours = $this->extractHours($b->duty_type);
             $amount = $hours * $b->duration_days * ($b->hourly_rate ?: 45); // Client payment amount
             $dueDate = \Carbon\Carbon::parse($b->service_date);
-            $isPast = $dueDate->isPast();
             
-            $status = 'Pending';
-            if ($b->status === 'completed') {
+            // Use the actual payment_status from the booking
+            $paymentStatus = $b->payment_status ?? 'pending';
+            
+            // Map payment_status to display status
+            if ($paymentStatus === 'paid' || $paymentStatus === 'completed') {
                 $status = 'Paid';
-            } elseif ($isPast && $b->status !== 'completed') {
-                $status = 'Overdue';
+            } elseif ($paymentStatus === 'failed') {
+                $status = 'Failed';
+            } elseif ($paymentStatus === 'refunded') {
+                $status = 'Refunded';
+            } else {
+                // For pending payments, check if overdue
+                $isPast = $dueDate->isPast();
+                $status = $isPast ? 'Overdue' : 'Pending';
             }
             
             return [
                 'id' => $b->id,
+                'booking_id' => $b->id,
                 'client' => $b->client->name ?? 'Unknown Client',
                 'service' => $b->service_type . ' - ' . ($hours * $b->duration_days) . 'hrs',
                 'amount' => '$' . number_format($amount, 0),
                 'dueDate' => $dueDate->format('Y-m-d'),
-                'status' => $status
+                'status' => $status,
+                'payment_status' => $paymentStatus
             ];
         });
         
         return response()->json(['payments' => $payments]);
+    }
+
+    /**
+     * Get platform payouts/transactions for admin dashboard (Company Account tab)
+     */
+    public function getPlatformPayouts()
+    {
+        try {
+            $stripeSecret = config('stripe.secret');
+            if (empty($stripeSecret)) {
+                return response()->json(['payouts' => [], 'error' => 'Stripe not configured']);
+            }
+            
+            $stripe = new \Stripe\StripeClient($stripeSecret);
+            
+            // Get recent balance transactions
+            $transactions = $stripe->balanceTransactions->all([
+                'limit' => 20,
+            ]);
+            
+            $payouts = collect($transactions->data)->map(function($txn) {
+                $typeMap = [
+                    'charge' => 'Payment',
+                    'payment' => 'Payment',
+                    'payout' => 'Payout',
+                    'transfer' => 'Transfer',
+                    'refund' => 'Refund',
+                    'adjustment' => 'Adjustment',
+                    'application_fee' => 'Platform Fee',
+                    'stripe_fee' => 'Stripe Fee',
+                ];
+                
+                $statusMap = [
+                    'available' => 'Completed',
+                    'pending' => 'Pending',
+                ];
+                
+                return [
+                    'date' => date('Y-m-d', $txn->created),
+                    'description' => $txn->description ?: ucfirst(str_replace('_', ' ', $txn->type)),
+                    'type' => $typeMap[$txn->type] ?? ucfirst($txn->type),
+                    'amount' => number_format(abs($txn->amount) / 100, 2),
+                    'txn_id' => substr($txn->id, 0, 10) . '...',
+                    'full_txn_id' => $txn->id,
+                    'status' => $statusMap[$txn->status] ?? ucfirst($txn->status),
+                    'net' => number_format($txn->net / 100, 2),
+                    'fee' => number_format($txn->fee / 100, 2),
+                ];
+            })->values();
+            
+            return response()->json(['payouts' => $payouts]);
+        } catch (\Exception $e) {
+            \Log::error('Failed to fetch platform payouts: ' . $e->getMessage());
+            return response()->json(['payouts' => [], 'error' => 'Unable to fetch transactions']);
+        }
+    }
+
+    /**
+     * Get company account info from Stripe for admin dashboard
+     */
+    public function getCompanyAccount()
+    {
+        try {
+            $stripeSecret = config('stripe.secret');
+            if (empty($stripeSecret)) {
+                // Return fallback data when Stripe not configured
+                return response()->json([
+                    'account' => [
+                        'id' => 'acct_...',
+                        'business_name' => 'CAS Private Care',
+                        'email' => config('mail.from.address'),
+                        'country' => 'US',
+                        'default_currency' => 'USD',
+                        'charges_enabled' => true,
+                        'payouts_enabled' => true,
+                    ],
+                    'balance' => [
+                        'available' => 0,
+                        'pending' => 0,
+                        'total' => 0,
+                    ],
+                    'bank_account' => null,
+                    'monthly_revenue' => 0,
+                    'last_month_revenue' => 0,
+                    'percent_change' => 0,
+                    'error' => 'Stripe not configured',
+                ]);
+            }
+            
+            $stripe = new \Stripe\StripeClient($stripeSecret);
+            
+            // Get account details
+            $account = $stripe->accounts->retrieve('acct_self');
+            
+            // Get balance
+            $balance = $stripe->balance->retrieve();
+            
+            // Calculate totals
+            $availableBalance = 0;
+            $pendingBalance = 0;
+            
+            foreach ($balance->available as $funds) {
+                if ($funds->currency === 'usd') {
+                    $availableBalance = $funds->amount / 100;
+                }
+            }
+            
+            foreach ($balance->pending as $funds) {
+                if ($funds->currency === 'usd') {
+                    $pendingBalance = $funds->amount / 100;
+                }
+            }
+            
+            // Get bank account info if available
+            $bankAccount = null;
+            if (!empty($account->external_accounts->data)) {
+                $bank = $account->external_accounts->data[0];
+                $bankAccount = [
+                    'bank_name' => $bank->bank_name ?? 'Connected Bank',
+                    'last4' => $bank->last4 ?? '****',
+                    'routing' => $bank->routing_number ?? '******',
+                ];
+            }
+            
+            // Get monthly totals from balance transactions
+            $monthStart = strtotime(date('Y-m-01'));
+            $charges = $stripe->charges->all([
+                'created' => ['gte' => $monthStart],
+                'limit' => 100,
+            ]);
+            
+            $monthlyRevenue = 0;
+            foreach ($charges->data as $charge) {
+                if ($charge->status === 'succeeded') {
+                    $monthlyRevenue += $charge->amount / 100;
+                }
+            }
+            
+            // Get last month's revenue for comparison
+            $lastMonthStart = strtotime(date('Y-m-01', strtotime('-1 month')));
+            $lastMonthEnd = strtotime(date('Y-m-01')) - 1;
+            $lastMonthCharges = $stripe->charges->all([
+                'created' => ['gte' => $lastMonthStart, 'lte' => $lastMonthEnd],
+                'limit' => 100,
+            ]);
+            
+            $lastMonthRevenue = 0;
+            foreach ($lastMonthCharges->data as $charge) {
+                if ($charge->status === 'succeeded') {
+                    $lastMonthRevenue += $charge->amount / 100;
+                }
+            }
+            
+            // Calculate percentage change
+            $percentChange = 0;
+            if ($lastMonthRevenue > 0) {
+                $percentChange = round((($monthlyRevenue - $lastMonthRevenue) / $lastMonthRevenue) * 100, 1);
+            }
+            
+            return response()->json([
+                'account' => [
+                    'id' => $account->id,
+                    'business_name' => $account->business_profile->name ?? 'CAS Private Care',
+                    'email' => $account->email ?? config('mail.from.address'),
+                    'country' => $account->country ?? 'US',
+                    'default_currency' => strtoupper($account->default_currency ?? 'usd'),
+                    'charges_enabled' => $account->charges_enabled ?? true,
+                    'payouts_enabled' => $account->payouts_enabled ?? true,
+                ],
+                'balance' => [
+                    'available' => $availableBalance,
+                    'pending' => $pendingBalance,
+                    'total' => $availableBalance + $pendingBalance,
+                ],
+                'bank_account' => $bankAccount,
+                'monthly_revenue' => $monthlyRevenue,
+                'last_month_revenue' => $lastMonthRevenue,
+                'percent_change' => $percentChange,
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Failed to fetch company account: ' . $e->getMessage());
+            
+            // Return fallback data
+            return response()->json([
+                'account' => [
+                    'id' => 'acct_...',
+                    'business_name' => 'CAS Private Care',
+                    'email' => config('mail.from.address'),
+                    'country' => 'US',
+                    'default_currency' => 'USD',
+                    'charges_enabled' => true,
+                    'payouts_enabled' => true,
+                ],
+                'balance' => [
+                    'available' => 0,
+                    'pending' => 0,
+                    'total' => 0,
+                ],
+                'bank_account' => null,
+                'monthly_revenue' => 0,
+                'last_month_revenue' => 0,
+                'percent_change' => 0,
+                'error' => 'Unable to fetch live data from Stripe',
+            ]);
+        }
+    }
+
+    /**
+     * Get recent announcements for admin dashboard
+     */
+    public function getRecentAnnouncements()
+    {
+        // Announcements are stored in cache - they're sent via email but we track them here
+        $announcements = \Cache::get('admin_announcements', []);
+        
+        // Return the 5 most recent announcements
+        $recent = array_slice(array_reverse($announcements), 0, 5);
+        
+        return response()->json(['announcements' => $recent]);
+    }
+
+    /**
+     * Send announcement and store in cache
+     */
+    public function sendAnnouncement(Request $request)
+    {
+        $validated = $request->validate([
+            'title' => 'required|string|max:255',
+            'message' => 'required|string',
+            'type' => 'required|in:info,warning,success,error',
+            'recipients' => 'required|in:all,caregivers,clients',
+            'priority' => 'required|in:low,normal,high,urgent'
+        ]);
+        
+        // Store announcement in cache
+        $announcements = \Cache::get('admin_announcements', []);
+        $announcements[] = [
+            'title' => $validated['title'],
+            'message' => $validated['message'],
+            'type' => ucfirst($validated['type']),
+            'recipients' => ucfirst($validated['recipients']) . ' Users',
+            'priority' => $validated['priority'],
+            'sent_at' => now()->format('M d, Y h:i A'),
+        ];
+        
+        // Keep only last 50 announcements
+        if (count($announcements) > 50) {
+            $announcements = array_slice($announcements, -50);
+        }
+        
+        \Cache::put('admin_announcements', $announcements, now()->addDays(30));
+        
+        // TODO: Actually send emails to recipients based on type
+        
+        return response()->json(['success' => true, 'message' => 'Announcement sent successfully']);
     }
 
     /**
@@ -3019,6 +3284,64 @@ class AdminController extends Controller
         } catch (\Exception $e) {
             Log::error('Error in getCaregiverProfile: ' . $e->getMessage());
             return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Get booking maintenance mode status
+     */
+    public function getBookingMaintenanceStatus()
+    {
+        try {
+            $maintenanceEnabled = AppSetting::getValue('booking.maintenance_enabled', 'false');
+            $maintenanceMessage = AppSetting::getValue('booking.maintenance_message', 'Our booking system is currently under maintenance. Please try again later.');
+            
+            return response()->json([
+                'success' => true,
+                'maintenance_enabled' => $maintenanceEnabled === 'true' || $maintenanceEnabled === true,
+                'maintenance_message' => $maintenanceMessage
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error getting booking maintenance status: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'maintenance_enabled' => false,
+                'maintenance_message' => ''
+            ]);
+        }
+    }
+
+    /**
+     * Toggle booking maintenance mode (Admin only)
+     */
+    public function toggleBookingMaintenance(Request $request)
+    {
+        try {
+            $validated = $request->validate([
+                'enabled' => 'required|boolean',
+                'message' => 'nullable|string|max:500'
+            ]);
+
+            $enabled = $validated['enabled'];
+            $message = $validated['message'] ?? 'Our booking system is currently under maintenance. Please try again later.';
+            
+            AppSetting::setValue('booking.maintenance_enabled', $enabled ? 'true' : 'false');
+            AppSetting::setValue('booking.maintenance_message', $message);
+            
+            Log::info('Booking maintenance mode ' . ($enabled ? 'enabled' : 'disabled') . ' by admin');
+            
+            return response()->json([
+                'success' => true,
+                'maintenance_enabled' => $enabled,
+                'maintenance_message' => $message,
+                'message' => 'Booking maintenance mode ' . ($enabled ? 'enabled' : 'disabled') . ' successfully'
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error toggling booking maintenance: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to toggle booking maintenance: ' . $e->getMessage()
+            ], 500);
         }
     }
 

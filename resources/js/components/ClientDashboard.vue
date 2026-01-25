@@ -21,16 +21,62 @@
     @logout="logout"
   >
     <template #header-left>
-      <v-btn 
-        color="success" 
-        size="x-large" 
-        prepend-icon="mdi-calendar-check" 
-        class="book-now-btn" 
-        @click="attemptBooking"
-      >
-        Book Now
-      </v-btn>
+      <div class="position-relative d-inline-block">
+        <v-btn 
+          color="success" 
+          size="x-large" 
+          prepend-icon="mdi-calendar-check" 
+          class="book-now-btn" 
+          @click="attemptBooking"
+        >
+          Book Now
+        </v-btn>
+        <!-- Red maintenance indicator dot -->
+        <span 
+          v-if="bookingMaintenanceEnabled" 
+          class="maintenance-indicator-dot"
+          title="Booking is currently disabled for maintenance"
+        ></span>
+      </div>
     </template>
+
+    <!-- Booking Maintenance Modal -->
+    <v-dialog v-model="showMaintenanceModal" max-width="500" persistent>
+      <v-card class="maintenance-modal-card" elevation="8">
+        <v-card-title class="maintenance-modal-header pa-6">
+          <div class="d-flex align-center">
+            <v-icon color="white" size="32" class="mr-3">mdi-wrench</v-icon>
+            <span class="text-h5 font-weight-bold text-white">System Maintenance</span>
+          </div>
+        </v-card-title>
+        <v-card-text class="pa-6 text-center">
+          <div class="mb-6">
+            <v-icon color="warning" size="80">mdi-calendar-remove</v-icon>
+          </div>
+          <p class="text-h6 mb-4" style="color: #1e293b;">Booking Currently Unavailable</p>
+          <p class="text-body-1 text-grey mb-4">{{ bookingMaintenanceMessage }}</p>
+          <v-alert type="info" variant="tonal" class="mb-4 text-left">
+            Your existing bookings are not affected by this maintenance.
+          </v-alert>
+          <p class="text-caption text-grey">
+            We apologize for any inconvenience. Please check back soon.
+          </p>
+        </v-card-text>
+        <v-card-actions class="pa-6 pt-0">
+          <v-spacer></v-spacer>
+          <v-btn 
+            color="primary" 
+            variant="flat" 
+            size="large"
+            prepend-icon="mdi-close"
+            @click="showMaintenanceModal = false"
+          >
+            Close
+          </v-btn>
+          <v-spacer></v-spacer>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
 
     <!-- Email Verification Banner -->
     <email-verification-banner :user-data="userData" />
@@ -1508,11 +1554,6 @@
                   <client-payment-methods />
                 </v-card-text>
               </v-card>
-            </v-col>
-
-            <!-- Recurring Bookings Manager - Full Width -->
-            <v-col cols="12">
-              <recurring-bookings-manager :show-internal-header="false" />
             </v-col>
 
             <!-- Payment History -->
@@ -3791,6 +3832,26 @@ const bookingSubmissionError = ref('');
 // Pending Booking Restriction Modal
 const showPendingRestrictionModal = ref(false);
 
+// Booking Maintenance Mode State
+const bookingMaintenanceEnabled = ref(false);
+const bookingMaintenanceMessage = ref('Our booking system is currently under maintenance. Please try again later.');
+const showMaintenanceModal = ref(false);
+
+// Load booking maintenance status
+const loadBookingMaintenanceStatus = async () => {
+  try {
+    const response = await fetch('/api/booking-maintenance-status');
+    if (response.ok) {
+      const data = await response.json();
+      bookingMaintenanceEnabled.value = data.maintenance_enabled || false;
+      bookingMaintenanceMessage.value = data.maintenance_message || 'Our booking system is currently under maintenance. Please try again later.';
+    }
+  } catch (error) {
+    console.error('Failed to load booking maintenance status:', error);
+    bookingMaintenanceEnabled.value = false;
+  }
+};
+
 // Computed property to determine booking restriction type
 const bookingRestrictionType = computed(() => {
   if (confirmedBookings.value.length > 0) {
@@ -4287,20 +4348,28 @@ const processingFeeTooltipText = computed(() => {
 
 // Check if client can book (only 1 pending OR 1 approved allowed)
 const attemptBooking = () => {
+  // Check maintenance mode first
+  if (bookingMaintenanceEnabled.value) {
+    showMaintenanceModal.value = true;
+    return;
+  }
+  
   const hasPending = pendingBookings.value.length > 0;
   const hasApproved = confirmedBookings.value.length > 0;
   
   if (hasPending) {
-  // Show professional branded modal instead of error notification
-  showPendingRestrictionModal.value = true;
-  return;
-}
+    // Show professional branded modal instead of error notification
+    showPendingRestrictionModal.value = true;
+    return;
+  }
 
-if (hasApproved) {
-  // Show professional branded modal for approved bookings too
-  showPendingRestrictionModal.value = true;
-  return;
-}  // All clear, proceed to booking form
+  if (hasApproved) {
+    // Show professional branded modal for approved bookings too
+    showPendingRestrictionModal.value = true;
+    return;
+  }
+  
+  // All clear, proceed to booking form
   currentSection.value = 'book-form';
 };
 
@@ -5459,7 +5528,8 @@ onMounted(async () => {
     { fn: loadCompletedBookings, weight: 10 },
     { fn: loadCaregivers, weight: 15 },
     { fn: loadNotificationCount, weight: 5 },
-    { fn: loadTopCaregivers, weight: 7 }
+    { fn: loadTopCaregivers, weight: 7 },
+    { fn: loadBookingMaintenanceStatus, weight: 3 }
   ];
   
   const totalWeight = loadingTasks.reduce((sum, task) => sum + task.weight, 0);
@@ -8987,6 +9057,45 @@ button:focus-visible {
 .v-field:focus-within {
   outline: 2px solid #0B4FA2 !important;
   outline-offset: 2px !important;
+}
+
+/* ============================================
+   BOOKING MAINTENANCE INDICATOR
+   ============================================ */
+
+.maintenance-indicator-dot {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  width: 14px;
+  height: 14px;
+  background-color: #ef4444;
+  border-radius: 50%;
+  border: 2px solid white;
+  box-shadow: 0 2px 4px rgba(239, 68, 68, 0.4);
+  animation: maintenance-pulse 2s ease-in-out infinite;
+  z-index: 10;
+}
+
+@keyframes maintenance-pulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 2px 4px rgba(239, 68, 68, 0.4);
+  }
+  50% {
+    transform: scale(1.15);
+    box-shadow: 0 2px 8px rgba(239, 68, 68, 0.6);
+  }
+}
+
+/* Maintenance Modal Styles */
+.maintenance-modal-card {
+  border-radius: 16px !important;
+  overflow: hidden;
+}
+
+.maintenance-modal-header {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
 }
 
 /* ============================================

@@ -326,6 +326,80 @@
               </v-row>
             </v-card-text>
           </v-card>
+
+          <!-- Booking Maintenance Mode Widget -->
+          <v-card elevation="0" class="modern-activity-card mt-4">
+            <v-card-title class="modern-card-header pa-6">
+              <div class="d-flex align-center justify-space-between flex-wrap ga-2">
+                <div class="d-flex align-center">
+                  <v-icon :color="bookingMaintenanceEnabled ? 'warning' : 'success'" size="20" class="mr-3">
+                    {{ bookingMaintenanceEnabled ? 'mdi-wrench' : 'mdi-check-circle' }}
+                  </v-icon>
+                  <span class="modern-title" :class="bookingMaintenanceEnabled ? 'warning--text' : 'success--text'">
+                    Booking System Status
+                  </span>
+                </div>
+                <v-chip 
+                  :color="bookingMaintenanceEnabled ? 'warning' : 'success'" 
+                  size="small"
+                  class="font-weight-bold"
+                >
+                  {{ bookingMaintenanceEnabled ? 'Maintenance Mode' : 'Active' }}
+                </v-chip>
+              </div>
+            </v-card-title>
+            <v-divider></v-divider>
+            <v-card-text class="pa-6">
+              <v-row align="center">
+                <v-col cols="12" md="8">
+                  <div class="d-flex align-center mb-3">
+                    <v-icon :color="bookingMaintenanceEnabled ? 'warning' : 'success'" size="24" class="mr-3">
+                      {{ bookingMaintenanceEnabled ? 'mdi-alert-circle' : 'mdi-calendar-check' }}
+                    </v-icon>
+                    <div>
+                      <div class="text-subtitle-1 font-weight-bold">
+                        {{ bookingMaintenanceEnabled ? 'Booking System Disabled' : 'Booking System Active' }}
+                      </div>
+                      <div class="text-body-2 text-grey">
+                        {{ bookingMaintenanceEnabled 
+                          ? 'New bookings are currently blocked. Existing bookings are not affected.' 
+                          : 'Clients can book services normally.' 
+                        }}
+                      </div>
+                    </div>
+                  </div>
+                  <v-text-field
+                    v-if="bookingMaintenanceEnabled || showMaintenanceMessageField"
+                    v-model="bookingMaintenanceMessage"
+                    label="Maintenance Message (shown to clients)"
+                    placeholder="Our booking system is currently under maintenance. Please try again later."
+                    variant="outlined"
+                    density="compact"
+                    class="mt-3"
+                    :disabled="togglingBookingMaintenance"
+                  ></v-text-field>
+                </v-col>
+                <v-col cols="12" md="4" class="text-right">
+                  <v-btn
+                    :color="bookingMaintenanceEnabled ? 'success' : 'warning'"
+                    size="large"
+                    :prepend-icon="bookingMaintenanceEnabled ? 'mdi-play-circle' : 'mdi-pause-circle'"
+                    @click="toggleBookingMaintenance"
+                    :loading="togglingBookingMaintenance"
+                    class="booking-maintenance-btn"
+                  >
+                    {{ bookingMaintenanceEnabled ? 'Enable Booking' : 'Disable Booking' }}
+                  </v-btn>
+                  <div class="text-caption text-grey mt-2">
+                    {{ bookingMaintenanceEnabled 
+                      ? 'Click to allow new bookings' 
+                      : 'Click to enable maintenance mode' 
+                    }}
+                  </div>
+                </v-col>
+              </v-row>
+            </v-card-text>
+          </v-card>
         </v-col>
       </v-row>
     </div>
@@ -454,14 +528,16 @@
             <v-card-title class="compact-header pa-4">
               <div class="d-flex justify-space-between align-center">
                 <span class="compact-title error--text">Revenue Trend</span>
-                <v-chip color="success" size="small" class="font-weight-bold">+15%</v-chip>
+                <v-chip :color="(companyAccount.percent_change || 0) >= 0 ? 'success' : 'error'" size="small" class="font-weight-bold">
+                  {{ (companyAccount.percent_change || 0) >= 0 ? '+' : '' }}{{ companyAccount.percent_change || 0 }}%
+                </v-chip>
               </div>
             </v-card-title>
             <v-card-text class="pa-4">
               <div class="mb-2">
                 <div class="d-flex justify-space-between align-center mb-1">
                   <span class="chart-subtitle">Monthly Growth</span>
-                  <span class="chart-value success--text">{{ analyticsStats[0].value }}</span>
+                  <span class="chart-value success--text">{{ analyticsStats[0]?.value || '$0' }}</span>
                 </div>
               </div>
               <div style="height: 180px; position: relative;">
@@ -3548,21 +3624,17 @@
               <span class="section-title error--text">Recent Announcements</span>
             </v-card-title>
             <v-card-text class="pa-8">
-              <div class="announcement-item mb-3">
-                <div class="d-flex justify-space-between align-center mb-1">
-                  <span class="announcement-title">System Maintenance</span>
-                  <v-chip color="warning" size="x-small">Warning</v-chip>
-                </div>
-                <div class="announcement-message">Scheduled maintenance on Dec 20</div>
-                <div class="text-caption text-grey">Sent 2 hours ago to All Users</div>
+              <div v-if="recentAnnouncements.length === 0" class="text-center py-4 text-grey">
+                <v-icon size="48" color="grey-lighten-1">mdi-bullhorn-outline</v-icon>
+                <div class="mt-2">No announcements yet</div>
               </div>
-              <div class="announcement-item mb-3">
+              <div v-for="(announcement, index) in recentAnnouncements" :key="index" class="announcement-item mb-3">
                 <div class="d-flex justify-space-between align-center mb-1">
-                  <span class="announcement-title">New Features</span>
-                  <v-chip color="success" size="x-small">Success</v-chip>
+                  <span class="announcement-title">{{ announcement.title }}</span>
+                  <v-chip :color="getAnnouncementTypeColor(announcement.type)" size="x-small">{{ announcement.type }}</v-chip>
                 </div>
-                <div class="announcement-message">New booking features available</div>
-                <div class="text-caption text-grey">Sent yesterday to All Users</div>
+                <div class="announcement-message">{{ announcement.message }}</div>
+                <div class="text-caption text-grey">{{ announcement.sent_at }} to {{ announcement.recipients }}</div>
               </div>
             </v-card-text>
           </v-card>
@@ -3579,6 +3651,7 @@
     <div v-if="currentSection === 'payments'">
       <v-tabs v-model="paymentsTab" color="error" class="mb-6">
         <v-tab value="overview">Overview</v-tab>
+        <v-tab value="company-account">Company Account</v-tab>
         <v-tab value="client-payments">Client Payments</v-tab>
         <v-tab value="caregiver-payments">Caregiver Payments</v-tab>
   <v-tab value="housekeeper-payments">Housekeeper Payments</v-tab>
@@ -3815,6 +3888,243 @@
           </v-row>
         </v-tabs-window-item>
 
+        <!-- Company Account Tab -->
+        <v-tabs-window-item value="company-account">
+          <v-row>
+            <!-- Stripe Account Status -->
+            <v-col cols="12" md="6">
+              <v-card elevation="0" class="mb-4">
+                <v-card-title class="card-header pa-4" style="background: linear-gradient(135deg, #635bff 0%, #4f46e5 100%); color: white;">
+                  <div class="d-flex align-center">
+                    <v-icon class="mr-3" color="white">mdi-credit-card-check</v-icon>
+                    <span class="section-title" style="color: white;">Stripe Account</span>
+                  </div>
+                </v-card-title>
+                <v-card-text class="pa-6">
+                  <div class="d-flex align-center mb-4">
+                    <v-avatar color="primary" size="56" class="mr-4">
+                      <v-icon color="white" size="28">mdi-bank</v-icon>
+                    </v-avatar>
+                    <div>
+                      <div class="text-h6 font-weight-bold">{{ companyAccount.account?.business_name || 'CAS Private Care' }}</div>
+                      <div class="text-caption text-grey">Stripe Connect Platform Account</div>
+                    </div>
+                    <v-spacer />
+                    <v-chip :color="companyAccount.account?.charges_enabled ? 'success' : 'warning'" variant="flat">
+                      <v-icon start size="16">mdi-check-circle</v-icon>
+                      {{ companyAccount.account?.charges_enabled ? 'Active' : 'Pending' }}
+                    </v-chip>
+                  </div>
+
+                  <v-divider class="mb-4" />
+
+                  <div class="account-details">
+                    <div class="d-flex justify-space-between py-2" style="border-bottom: 1px solid #f3f4f6;">
+                      <span class="text-grey-darken-1">Account ID:</span>
+                      <span class="font-weight-medium">{{ companyAccount.account?.id?.substring(0, 10) || 'acct_' }}••••</span>
+                    </div>
+                    <div class="d-flex justify-space-between py-2" style="border-bottom: 1px solid #f3f4f6;">
+                      <span class="text-grey-darken-1">Business Type:</span>
+                      <span class="font-weight-medium">Company (LLC)</span>
+                    </div>
+                    <div class="d-flex justify-space-between py-2" style="border-bottom: 1px solid #f3f4f6;">
+                      <span class="text-grey-darken-1">Country:</span>
+                      <span class="font-weight-medium">{{ companyAccount.account?.country || 'United States' }}</span>
+                    </div>
+                    <div class="d-flex justify-space-between py-2" style="border-bottom: 1px solid #f3f4f6;">
+                      <span class="text-grey-darken-1">Default Currency:</span>
+                      <span class="font-weight-medium">{{ companyAccount.account?.default_currency || 'USD' }} ($)</span>
+                    </div>
+                    <div class="d-flex justify-space-between py-2">
+                      <span class="text-grey-darken-1">Payout Schedule:</span>
+                      <span class="font-weight-medium">Weekly (Friday)</span>
+                    </div>
+                  </div>
+
+                  <v-btn 
+                    color="primary" 
+                    variant="outlined" 
+                    class="mt-4" 
+                    block
+                    href="https://dashboard.stripe.com" 
+                    target="_blank"
+                    prepend-icon="mdi-open-in-new"
+                  >
+                    Open Stripe Dashboard
+                  </v-btn>
+                </v-card-text>
+              </v-card>
+            </v-col>
+
+            <!-- Company Bank Account -->
+            <v-col cols="12" md="6">
+              <v-card elevation="0" class="mb-4">
+                <v-card-title class="card-header pa-4" style="background: linear-gradient(135deg, #16a34a 0%, #15803d 100%); color: white;">
+                  <div class="d-flex align-center">
+                    <v-icon class="mr-3" color="white">mdi-bank-transfer</v-icon>
+                    <span class="section-title" style="color: white;">Company Bank Account</span>
+                  </div>
+                </v-card-title>
+                <v-card-text class="pa-6">
+                  <div class="d-flex align-center mb-4">
+                    <v-avatar color="success" size="56" class="mr-4">
+                      <v-icon color="white" size="28">mdi-bank</v-icon>
+                    </v-avatar>
+                    <div>
+                      <div class="text-h6 font-weight-bold">{{ companyAccount.bank_account ? 'Business Checking ••••' + companyAccount.bank_account.last4 : 'No Bank Connected' }}</div>
+                      <div class="text-caption text-grey">Primary Payout Account</div>
+                    </div>
+                    <v-spacer />
+                    <v-chip :color="companyAccount.bank_account ? 'success' : 'warning'" variant="flat">
+                      <v-icon start size="16">{{ companyAccount.bank_account ? 'mdi-check-circle' : 'mdi-alert' }}</v-icon>
+                      {{ companyAccount.bank_account ? 'Verified' : 'Not Set Up' }}
+                    </v-chip>
+                  </div>
+
+                  <v-divider class="mb-4" />
+
+                  <div class="account-details">
+                    <div class="d-flex justify-space-between py-2" style="border-bottom: 1px solid #f3f4f6;">
+                      <span class="text-grey-darken-1">Bank Name:</span>
+                      <span class="font-weight-medium">{{ companyAccount.bank_account?.bank_name || 'Not Connected' }}</span>
+                    </div>
+                    <div class="d-flex justify-space-between py-2" style="border-bottom: 1px solid #f3f4f6;">
+                      <span class="text-grey-darken-1">Account Type:</span>
+                      <span class="font-weight-medium">Business Checking</span>
+                    </div>
+                    <div class="d-flex justify-space-between py-2" style="border-bottom: 1px solid #f3f4f6;">
+                      <span class="text-grey-darken-1">Routing Number:</span>
+                      <span class="font-weight-medium">{{ companyAccount.bank_account?.routing ? '••••••' + companyAccount.bank_account.routing.slice(-4) : '••••••••' }}</span>
+                    </div>
+                    <div class="d-flex justify-space-between py-2" style="border-bottom: 1px solid #f3f4f6;">
+                      <span class="text-grey-darken-1">Account Number:</span>
+                      <span class="font-weight-medium">{{ companyAccount.bank_account ? '••••••••' + companyAccount.bank_account.last4 : '••••••••' }}</span>
+                    </div>
+                    <div class="d-flex justify-space-between py-2">
+                      <span class="text-grey-darken-1">Status:</span>
+                      <v-chip color="success" size="small" variant="flat">Active</v-chip>
+                    </div>
+                  </div>
+
+                  <v-alert type="info" variant="tonal" density="compact" class="mt-4">
+                    <span class="text-caption">Bank account is managed through Stripe. To update, visit the Stripe Dashboard.</span>
+                  </v-alert>
+                </v-card-text>
+              </v-card>
+            </v-col>
+          </v-row>
+
+          <v-row>
+            <!-- Balance Summary -->
+            <v-col cols="12" md="4">
+              <v-card elevation="0" class="h-100">
+                <v-card-title class="card-header pa-4">
+                  <span class="section-title-compact success--text">Available Balance</span>
+                </v-card-title>
+                <v-card-text class="pa-6 text-center">
+                  <v-icon size="48" color="success" class="mb-3">mdi-cash-multiple</v-icon>
+                  <div class="text-h3 font-weight-bold success--text mb-2">
+                    ${{ moneyFlow.totals?.stripe_balance?.toFixed(2) || '0.00' }}
+                  </div>
+                  <div class="text-caption text-grey">Available for payouts</div>
+                  <v-btn color="success" variant="flat" class="mt-4" prepend-icon="mdi-bank-transfer-out" disabled>
+                    Manual Payout
+                  </v-btn>
+                  <div class="text-caption text-grey mt-2">Automatic payouts enabled</div>
+                </v-card-text>
+              </v-card>
+            </v-col>
+
+            <v-col cols="12" md="4">
+              <v-card elevation="0" class="h-100">
+                <v-card-title class="card-header pa-4">
+                  <span class="section-title-compact warning--text">Pending Balance</span>
+                </v-card-title>
+                <v-card-text class="pa-6 text-center">
+                  <v-icon size="48" color="warning" class="mb-3">mdi-clock-outline</v-icon>
+                  <div class="text-h3 font-weight-bold warning--text mb-2">
+                    ${{ moneyFlow.totals?.pending_payouts?.toFixed(2) || '0.00' }}
+                  </div>
+                  <div class="text-caption text-grey">Pending contractor payouts</div>
+                  <v-chip color="warning" variant="tonal" class="mt-4">
+                    <v-icon start size="16">mdi-information</v-icon>
+                    Processing
+                  </v-chip>
+                </v-card-text>
+              </v-card>
+            </v-col>
+
+            <v-col cols="12" md="4">
+              <v-card elevation="0" class="h-100">
+                <v-card-title class="card-header pa-4">
+                  <span class="section-title-compact primary--text">This Month Revenue</span>
+                </v-card-title>
+                <v-card-text class="pa-6 text-center">
+                  <v-icon size="48" color="primary" class="mb-3">mdi-trending-up</v-icon>
+                  <div class="text-h3 font-weight-bold primary--text mb-2">
+                    ${{ moneyFlow.totals?.total_received?.toFixed(2) || '0.00' }}
+                  </div>
+                  <div class="text-caption text-grey">Total payments received</div>
+                  <v-chip :color="(companyAccount.percent_change || 0) >= 0 ? 'success' : 'error'" variant="tonal" class="mt-4">
+                    <v-icon start size="16">{{ (companyAccount.percent_change || 0) >= 0 ? 'mdi-arrow-up' : 'mdi-arrow-down' }}</v-icon>
+                    {{ (companyAccount.percent_change || 0) >= 0 ? '+' : '' }}{{ companyAccount.percent_change || 0 }}% vs last month
+                  </v-chip>
+                </v-card-text>
+              </v-card>
+            </v-col>
+          </v-row>
+
+          <!-- Recent Payouts History -->
+          <v-row class="mt-4">
+            <v-col cols="12">
+              <v-card elevation="0">
+                <v-card-title class="card-header pa-4">
+                  <div class="d-flex align-center justify-space-between w-100">
+                    <span class="section-title-compact error--text">Recent Platform Payouts</span>
+                    <v-btn color="primary" variant="text" size="small" prepend-icon="mdi-download">
+                      Export
+                    </v-btn>
+                  </div>
+                </v-card-title>
+                <v-card-text class="pa-0">
+                  <v-data-table
+                    :headers="[
+                      { title: 'Date', key: 'date' },
+                      { title: 'Description', key: 'description' },
+                      { title: 'Type', key: 'type' },
+                      { title: 'Amount', key: 'amount' },
+                      { title: 'Transaction ID', key: 'txn_id' },
+                      { title: 'Status', key: 'status' }
+                    ]"
+                    :items="recentPlatformPayouts"
+                    :items-per-page="5"
+                    class="elevation-0"
+                  >
+                    <template v-slot:item.type="{ item }">
+                      <v-chip :color="item.type === 'Payout' ? 'warning' : 'success'" size="small" variant="flat">
+                        {{ item.type }}
+                      </v-chip>
+                    </template>
+                    <template v-slot:item.amount="{ item }">
+                      <span :class="item.type === 'Payout' ? 'warning--text' : 'success--text'" class="font-weight-bold">
+                        {{ item.type === 'Payout' ? '-' : '+' }}${{ item.amount }}
+                      </span>
+                    </template>
+                    <template v-slot:item.txn_id="{ item }">
+                      <code class="text-caption">{{ item.txn_id }}</code>
+                    </template>
+                    <template v-slot:item.status="{ item }">
+                      <v-chip :color="item.status === 'Completed' ? 'success' : 'warning'" size="small" variant="flat">
+                        {{ item.status }}
+                      </v-chip>
+                    </template>
+                  </v-data-table>
+                </v-card-text>
+              </v-card>
+            </v-col>
+          </v-row>
+        </v-tabs-window-item>
+
         <!-- Client Payments Tab -->
         <v-tabs-window-item value="client-payments">
           <div class="mb-4">
@@ -3844,9 +4154,13 @@
                 <v-chip :color="getPaymentStatusColor(item.status)" size="small" class="font-weight-bold">{{ item.status }}</v-chip>
               </template>
               <template v-slot:item.actions="{ item }">
-                <div class="action-buttons">
-                  <v-btn class="action-btn-view" icon="mdi-eye" @click="viewPayment(item)"></v-btn>
-                  <v-btn v-if="item.status === 'Pending'" class="action-btn-mark-paid" icon="mdi-check" @click="markPaid(item)"></v-btn>
+                <div class="action-buttons d-flex gap-2">
+                  <v-btn color="primary" variant="flat" icon size="small" @click="viewPayment(item)">
+                    <v-icon>mdi-eye</v-icon>
+                  </v-btn>
+                  <v-btn v-if="item.status === 'Pending' || item.status === 'Overdue'" color="success" variant="flat" icon size="small" @click="openMarkPaidDialog(item)">
+                    <v-icon>mdi-check</v-icon>
+                  </v-btn>
                 </div>
               </template>
             </v-data-table>
@@ -3864,7 +4178,7 @@
                   <div class="mobile-card-body pa-3">
                     <div class="mobile-card-row d-flex justify-space-between py-2" style="border-bottom: 1px solid #f3f4f6;">
                       <span class="mobile-card-label text-grey-darken-1">Amount:</span>
-                      <span class="mobile-card-value font-weight-bold text-success">${{ item.amount }}</span>
+                      <span class="mobile-card-value font-weight-bold text-success">{{ formatPaymentAmount(item.amount) }}</span>
                     </div>
                     <div class="mobile-card-row d-flex justify-space-between py-2" style="border-bottom: 1px solid #f3f4f6;">
                       <span class="mobile-card-label text-grey-darken-1">Date:</span>
@@ -3877,7 +4191,7 @@
                   </div>
                   <div class="mobile-card-actions d-flex justify-center ga-2 pa-3" style="background: #f9fafb; border-top: 1px solid #e5e7eb;">
                     <v-btn color="primary" variant="tonal" size="small" prepend-icon="mdi-eye" @click="viewPayment(item)">View</v-btn>
-                    <v-btn v-if="item.status === 'Pending'" color="success" variant="tonal" size="small" prepend-icon="mdi-check" @click="markPaid(item)">Mark Paid</v-btn>
+                    <v-btn v-if="item.status === 'Pending' || item.status === 'Overdue'" color="success" variant="tonal" size="small" prepend-icon="mdi-check" @click="openMarkPaidDialog(item)">Mark Paid</v-btn>
                   </div>
                 </v-card-text>
               </v-card>
@@ -5263,8 +5577,50 @@
           </v-btn>
           <v-spacer />
           <v-btn color="grey" variant="outlined" @click="paymentDetailsDialog = false">Close</v-btn>
-          <v-btn v-if="selectedPayment.status === 'Pending'" color="success" prepend-icon="mdi-check" @click="markPaid(selectedPayment)">
+          <v-btn v-if="selectedPayment.status === 'Pending' || selectedPayment.status === 'Overdue'" color="success" prepend-icon="mdi-check" @click="openMarkPaidDialog(selectedPayment)">
             Mark as Paid
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <!-- Mark Payment as Paid Confirmation Dialog -->
+    <v-dialog v-model="markPaidDialog" max-width="450" persistent>
+      <v-card rounded="lg">
+        <v-card-title class="pa-6" style="background: linear-gradient(135deg, #16a34a 0%, #15803d 100%); color: white;">
+          <div class="d-flex align-center">
+            <v-icon size="28" class="mr-3">mdi-check-circle</v-icon>
+            <span class="text-h6">Confirm Payment</span>
+          </div>
+        </v-card-title>
+        <v-card-text class="pa-6">
+          <div class="text-center mb-4">
+            <v-icon size="64" color="success" class="mb-4">mdi-cash-check</v-icon>
+            <p class="text-body-1 mb-2">Are you sure you want to mark this payment as <strong>Paid</strong>?</p>
+          </div>
+          <v-card v-if="paymentToMark" variant="outlined" class="pa-4 mb-4" style="background: #f8fafc;">
+            <div class="d-flex justify-space-between mb-2">
+              <span class="text-grey-darken-1">Client:</span>
+              <span class="font-weight-bold">{{ paymentToMark.client || paymentToMark.client_name }}</span>
+            </div>
+            <div class="d-flex justify-space-between mb-2">
+              <span class="text-grey-darken-1">Service:</span>
+              <span>{{ paymentToMark.service || paymentToMark.description }}</span>
+            </div>
+            <div class="d-flex justify-space-between">
+              <span class="text-grey-darken-1">Amount:</span>
+              <span class="font-weight-bold text-success">{{ formatPaymentAmount(paymentToMark.amount) }}</span>
+            </div>
+          </v-card>
+          <v-alert type="info" variant="tonal" density="compact" class="mb-0">
+            <span class="text-caption">This action will update the payment status and cannot be undone.</span>
+          </v-alert>
+        </v-card-text>
+        <v-card-actions class="pa-6 pt-0">
+          <v-spacer />
+          <v-btn color="grey" variant="outlined" @click="markPaidDialog = false">Cancel</v-btn>
+          <v-btn color="success" variant="flat" prepend-icon="mdi-check" @click="confirmMarkPaid">
+            Confirm Payment
           </v-btn>
         </v-card-actions>
       </v-card>
@@ -8021,6 +8377,7 @@ const checkSessionValidity = async () => {
   try {
     const response = await fetch('/api/session/validate', {
       method: 'GET',
+      credentials: 'include',
       headers: {
         'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
       }
@@ -8205,6 +8562,39 @@ const announcementData = ref({
   recipients: 'all',
   priority: 'normal'
 });
+
+// Recent announcements loaded dynamically
+const recentAnnouncements = ref([]);
+
+const getAnnouncementTypeColor = (type) => {
+  const colors = {
+    'info': 'info',
+    'warning': 'warning',
+    'success': 'success',
+    'error': 'error',
+    'Info': 'info',
+    'Warning': 'warning',
+    'Success': 'success',
+    'Error': 'error'
+  };
+  return colors[type] || 'grey';
+};
+
+const loadRecentAnnouncements = async () => {
+  try {
+    const response = await fetch('/api/admin/announcements/recent', {
+      credentials: 'include'
+    });
+    if (response.ok) {
+      const data = await response.json();
+      recentAnnouncements.value = data.announcements || [];
+    }
+  } catch (error) {
+    console.warn('Could not load recent announcements:', error);
+    recentAnnouncements.value = [];
+  }
+};
+
 const userSearch = ref('');
 const userType = ref('All');
 const userStatus = ref('All');
@@ -8267,7 +8657,9 @@ const viewingHousekeeper = ref(null);
 
 const loadApplications = async () => {
   try {
-    const response = await fetch('/api/admin/applications');
+    const response = await fetch('/api/admin/applications', {
+      credentials: 'include'
+    });
     const data = await response.json();
     pendingApplications.value = data.applications;
   } catch (error) {
@@ -8283,7 +8675,9 @@ const passwordResets = ref([]);
 
 const loadPasswordResets = async () => {
   try {
-    const response = await fetch('/api/admin/password-resets');
+    const response = await fetch('/api/admin/password-resets', {
+      credentials: 'include'
+    });
     const data = await response.json();
     passwordResets.value = data.resets;
   } catch (error) {
@@ -8576,7 +8970,9 @@ const uploadAvatar = async (event) => {
 
 const loadProfile = async () => {
   try {
-    const response = await fetch('/api/profile?user_type=admin');
+    const response = await fetch('/api/profile?user_type=admin', {
+      credentials: 'include'
+    });
     if (response.ok) {
       const result = await response.json();
       const data = result.user || result;
@@ -8634,10 +9030,99 @@ const navItems = ref([
 
 const loadAdminNotificationCount = async () => {
   try {
-    const response = await fetch('/api/notifications?user_id=3');
+    const response = await fetch('/api/notifications?user_id=3', {
+      credentials: 'include'
+    });
     const data = await response.json();
     adminNotifications.value = data.notifications || [];
   } catch (error) {
+  }
+};
+
+// Booking Maintenance Mode State
+const bookingMaintenanceEnabled = ref(false);
+const bookingMaintenanceMessage = ref('Our booking system is currently under maintenance. Please try again later.');
+const togglingBookingMaintenance = ref(false);
+const showMaintenanceMessageField = ref(false);
+
+// Load booking maintenance status
+const loadBookingMaintenanceStatus = async () => {
+  try {
+    const response = await fetch('/api/booking-maintenance-status', {
+      credentials: 'include'
+    });
+    if (response.ok) {
+      const data = await response.json();
+      bookingMaintenanceEnabled.value = data.maintenance_enabled || false;
+      bookingMaintenanceMessage.value = data.maintenance_message || 'Our booking system is currently under maintenance. Please try again later.';
+    }
+  } catch (error) {
+    console.error('Failed to load booking maintenance status:', error);
+  }
+};
+
+// Toggle booking maintenance mode
+const toggleBookingMaintenance = async () => {
+  togglingBookingMaintenance.value = true;
+  
+  // If we're about to enable maintenance, show message field first
+  if (!bookingMaintenanceEnabled.value) {
+    showMaintenanceMessageField.value = true;
+  }
+  
+  try {
+    const response = await fetch('/api/admin/booking-maintenance/toggle', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+      },
+      credentials: 'include',
+      body: JSON.stringify({
+        enabled: !bookingMaintenanceEnabled.value,
+        message: bookingMaintenanceMessage.value
+      })
+    });
+    
+    if (response.ok) {
+      const data = await response.json();
+      bookingMaintenanceEnabled.value = data.maintenance_enabled;
+      bookingMaintenanceMessage.value = data.maintenance_message;
+      
+      // Show notification
+      notification.value = {
+        show: true,
+        type: data.maintenance_enabled ? 'warning' : 'success',
+        title: data.maintenance_enabled ? 'Booking Disabled' : 'Booking Enabled',
+        message: data.message,
+        timeout: 5000
+      };
+      
+      // Hide message field if we disabled maintenance
+      if (!data.maintenance_enabled) {
+        showMaintenanceMessageField.value = false;
+      }
+    } else {
+      const errorData = await response.json();
+      notification.value = {
+        show: true,
+        type: 'error',
+        title: 'Error',
+        message: errorData.message || 'Failed to toggle booking maintenance mode',
+        timeout: 5000
+      };
+    }
+  } catch (error) {
+    console.error('Failed to toggle booking maintenance:', error);
+    notification.value = {
+      show: true,
+      type: 'error',
+      title: 'Error',
+      message: 'Failed to toggle booking maintenance mode',
+      timeout: 5000
+    };
+  } finally {
+    togglingBookingMaintenance.value = false;
   }
 };
 
@@ -8650,7 +9135,9 @@ const stats = ref([
 
 const loadAdminStats = async () => {
   try {
-    const response = await fetch('/api/admin/stats');
+    const response = await fetch('/api/admin/stats', {
+      credentials: 'include'
+    });
     if (!response.ok) throw new Error('API failed');
     const data = await response.json();
     const totalUsers = data.total_users || 0;
@@ -8670,7 +9157,9 @@ const loadAdminStats = async () => {
     
     // Load real platform metrics from new endpoint
     try {
-      const metricsResponse = await fetch('/api/admin/platform-metrics');
+      const metricsResponse = await fetch('/api/admin/platform-metrics', {
+        credentials: 'include'
+      });
       if (metricsResponse.ok) {
         const metricsData = await metricsResponse.json();
         const metrics = metricsData.metrics || {};
@@ -8745,7 +9234,9 @@ const moneyFlow = ref({
 const loadMoneyFlowData = async () => {
   try {
     console.log('🔄 Loading Money Flow Data...');
-    const response = await fetch('/api/admin/money-flow-dashboard');
+    const response = await fetch('/api/admin/money-flow-dashboard', {
+      credentials: 'include'
+    });
     console.log('📡 Money Flow API Response Status:', response.status);
     
     if (!response.ok) {
@@ -8806,7 +9297,9 @@ const loadMoneyFlowData = async () => {
 
 const loadAnalyticsStats = async () => {
   try {
-    const response = await fetch('/api/admin/stats');
+    const response = await fetch('/api/admin/stats', {
+      credentials: 'include'
+    });
     if (!response.ok) throw new Error('API failed');
     const data = await response.json();
     analyticsStats.value[0].value = '$' + (data.total_revenue || 0).toFixed(2);
@@ -8860,7 +9353,9 @@ const bookingStats = ref({
 
 const loadMetrics = async () => {
   try {
-    const response = await fetch('/api/admin/stats');
+    const response = await fetch('/api/admin/stats', {
+      credentials: 'include'
+    });
     if (!response.ok) throw new Error('API failed');
     const data = await response.json();
     const totalUsers = data.total_users || 0;
@@ -8890,7 +9385,9 @@ const loadMetrics = async () => {
     // Housekeeper metrics
     housekeeperMetrics.value[3].value = '$' + (data.avg_housekeeper_earnings || 0).toFixed(0); // Avg Earnings
     
-    const bookingsResp = await fetch('/api/bookings');
+    const bookingsResp = await fetch('/api/bookings', {
+      credentials: 'include'
+    });
     const bookingsData = await bookingsResp.json();
     const allBookings = bookingsData.data || [];
     bookingStats.value.pending = allBookings.filter(b => b.status === 'pending').length.toString();
@@ -8904,7 +9401,9 @@ const loadMetrics = async () => {
     
     // Load housekeeper analytics for active/assigned counts
     try {
-      const hkResp = await fetch('/api/admin/housekeeper-salaries');
+      const hkResp = await fetch('/api/admin/housekeeper-salaries', {
+        credentials: 'include'
+      });
       const hkData = await hkResp.json();
       const payments = hkData.payments || [];
       housekeeperMetrics.value[1].value = payments.filter(p => p.days_worked > 0).length.toString(); // Active Today
@@ -8923,7 +9422,9 @@ const topPerformers = ref([]);
 
 const loadTopPerformers = async () => {
   try {
-    const response = await fetch('/api/admin/top-performers');
+    const response = await fetch('/api/admin/top-performers', {
+      credentials: 'include'
+    });
     const data = await response.json();
     topPerformers.value = data.performers || [];
   } catch (error) {
@@ -8934,7 +9435,9 @@ const recentAnalyticsActivity = ref([]);
 
 const loadRecentAnalyticsActivity = async () => {
   try {
-    const response = await fetch('/api/admin/recent-activity');
+    const response = await fetch('/api/admin/recent-activity', {
+      credentials: 'include'
+    });
     const data = await response.json();
     recentAnalyticsActivity.value = data.activities || [];
   } catch (error) {
@@ -8971,7 +9474,9 @@ const users = ref([]);
 const loadUsers = async () => {
   try {
     // Use dedicated endpoint to avoid any HTML redirect responses and keep payload minimal
-    const caregiversResponse = await fetch('/api/admin/caregivers');
+    const caregiversResponse = await fetch('/api/admin/caregivers', {
+      credentials: 'include'
+    });
     const caregiversData = await caregiversResponse.json();
     const caregiverUsers = caregiversData.caregivers || [];
     
@@ -9011,7 +9516,9 @@ const loadUsers = async () => {
     // do NOT wipe already-loaded caregivers — just keep existing data.
     let allUsers = [];
     try {
-      const response = await fetch('/api/admin/users');
+      const response = await fetch('/api/admin/users', {
+        credentials: 'include'
+      });
       const text = await response.text();
       if (text && text.trim().startsWith('{')) {
         const data = JSON.parse(text);
@@ -9064,7 +9571,9 @@ const loadUsers = async () => {
 
 const loadHousekeepers = async () => {
   try {
-    const response = await fetch('/api/admin/housekeepers');
+    const response = await fetch('/api/admin/housekeepers', {
+      credentials: 'include'
+    });
     const data = await response.json();
   housekeepers.value = (data.housekeepers || []).map(h => ({
   id: h.housekeeper?.id,
@@ -9137,6 +9646,8 @@ const transactionTypeFilter = ref('All');
 const transactionPeriodFilter = ref('All Time');
 const addPaymentDialog = ref(false);
 const paymentDetailsDialog = ref(false);
+const markPaidDialog = ref(false);
+const paymentToMark = ref(null);
 const selectedPayment = ref(null);
 const processSalariesDialog = ref(false);
 const timeTrackingSearch = ref('');
@@ -9389,7 +9900,9 @@ const deleteReview = async (reviewId) => {
 const loadTimeTrackingData = async () => {
   try {
     // Use the admin time tracking API which returns all caregivers with active bookings
-    const response = await fetch('/api/admin/time-tracking');
+    const response = await fetch('/api/admin/time-tracking', {
+      credentials: 'include'
+    });
     if (response.ok) {
       const data = await response.json();
       
@@ -9453,6 +9966,15 @@ const formatHours = (hours) => {
   return `${totalHours}h ${minutes}m`;
 };
 
+const formatPaymentAmount = (amount) => {
+  if (!amount) return '$0';
+  // If amount is a string that starts with $, remove it first
+  const cleanAmount = String(amount).replace(/^\$/, '').replace(/,/g, '');
+  const numericAmount = parseFloat(cleanAmount);
+  if (isNaN(numericAmount)) return '$0';
+  return '$' + numericAmount.toLocaleString();
+};
+
 const viewClientCaregiversDialog = ref(false);
 const selectedClientEntry = ref(null);
 
@@ -9465,7 +9987,9 @@ const viewClientCaregivers = async (item) => {
   
   // Fetch time history for all caregivers assigned to this client
   try {
-    const response = await fetch('/api/time-tracking/history');
+    const response = await fetch('/api/time-tracking/history', {
+      credentials: 'include'
+    });
     if (response.ok) {
       const data = await response.json();
       
@@ -9511,7 +10035,9 @@ const viewTimeDetails = async (item) => {
   
   // Fetch real time history from database for this caregiver
   try {
-    const response = await fetch('/api/time-tracking/history');
+    const response = await fetch('/api/time-tracking/history', {
+      credentials: 'include'
+    });
     if (response.ok) {
       const data = await response.json();
       // Filter history for this caregiver and get recent entries
@@ -9599,7 +10125,9 @@ const historyHeaders = [
 const loadTimeTrackingHistory = async () => {
   try {
     // Load real data from database
-    const response = await fetch('/api/time-tracking/history');
+    const response = await fetch('/api/time-tracking/history', {
+      credentials: 'include'
+    });
     if (response.ok) {
       const data = await response.json();
       timeHistory.value = data.history || [];
@@ -9919,7 +10447,9 @@ const paymentStats = ref([
 
 const loadPaymentStats = async () => {
   try {
-    const response = await fetch('/api/admin/payment-stats');
+    const response = await fetch('/api/admin/payment-stats', {
+      credentials: 'include'
+    });
     const data = await response.json();
     if (data.stats) {
       paymentStats.value = data.stats;
@@ -9930,9 +10460,62 @@ const loadPaymentStats = async () => {
 
 const recentTransactions = ref([]);
 
+// Platform payouts loaded from API
+const recentPlatformPayouts = ref([]);
+
+const loadPlatformPayouts = async () => {
+  try {
+    const response = await fetch('/api/admin/platform-payouts', {
+      credentials: 'include'
+    });
+    if (response.ok) {
+      const data = await response.json();
+      recentPlatformPayouts.value = data.payouts || [];
+    }
+  } catch (error) {
+    console.error('Failed to load platform payouts:', error);
+    // Fallback to sample data if API fails
+    recentPlatformPayouts.value = [
+      { date: new Date().toISOString().split('T')[0], description: 'Loading...', type: 'Payment', amount: '0.00', txn_id: '...', status: 'Pending' }
+    ];
+  }
+};
+
+// Company account data from Stripe
+const companyAccount = ref({
+  account: {
+    id: 'acct_...',
+    business_name: 'CAS Private Care',
+    country: 'US',
+    default_currency: 'USD',
+    charges_enabled: true,
+    payouts_enabled: true
+  },
+  balance: { available: 0, pending: 0, total: 0 },
+  bank_account: null,
+  monthly_revenue: 0,
+  percent_change: 0
+});
+
+const loadCompanyAccount = async () => {
+  try {
+    const response = await fetch('/api/admin/company-account', {
+      credentials: 'include'
+    });
+    if (response.ok) {
+      const data = await response.json();
+      companyAccount.value = data;
+    }
+  } catch (error) {
+    console.error('Failed to load company account:', error);
+  }
+};
+
 const loadRecentTransactions = async () => {
   try {
-    const response = await fetch('/api/admin/transactions');
+    const response = await fetch('/api/admin/transactions', {
+      credentials: 'include'
+    });
     const data = await response.json();
     recentTransactions.value = data.transactions || [];
   } catch (error) {
@@ -9971,7 +10554,9 @@ const clientPayments = ref([]);
 
 const loadClientPayments = async () => {
   try {
-    const response = await fetch('/api/admin/client-payments');
+    const response = await fetch('/api/admin/client-payments', {
+      credentials: 'include'
+    });
     const data = await response.json();
     clientPayments.value = data.payments || [];
   } catch (error) {
@@ -10021,7 +10606,9 @@ const isFriday = computed(() => {
 
 const loadCaregiverPayments = async () => {
   try {
-    const response = await fetch('/api/admin/caregiver-salaries');
+    const response = await fetch('/api/admin/caregiver-salaries', {
+      credentials: 'include'
+    });
     const data = await response.json();
     caregiverPayments.value = data.payments || [];
   } catch (error) {
@@ -10030,7 +10617,9 @@ const loadCaregiverPayments = async () => {
 
 const loadHousekeeperPayments = async () => {
   try {
-    const response = await fetch('/api/admin/housekeeper-salaries');
+    const response = await fetch('/api/admin/housekeeper-salaries', {
+      credentials: 'include'
+    });
     const data = await response.json();
     housekeeperPayments.value = data.payments || [];
   } catch (error) {
@@ -10085,7 +10674,7 @@ const payHousekeeper = async (item) => {
         'Accept': 'application/json',
         'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
       },
-      credentials: 'same-origin',
+      credentials: 'include',
       body: JSON.stringify({
         housekeeper_id: item.id,
         amount: item.unpaid_amount
@@ -10181,7 +10770,9 @@ const filteredMarketingCommissions = computed(() => {
 const loadMarketingCommissions = async () => {
   loadingMarketingCommissions.value = true;
   try {
-    const response = await fetch('/api/admin/marketing-commissions');
+    const response = await fetch('/api/admin/marketing-commissions', {
+      credentials: 'include'
+    });
     const data = await response.json();
     
     if (data.success) {
@@ -10269,7 +10860,9 @@ const filteredTrainingCommissions = computed(() => {
 const loadTrainingCommissions = async () => {
   loadingTrainingCommissions.value = true;
   try {
-    const response = await fetch('/api/admin/training-commissions');
+    const response = await fetch('/api/admin/training-commissions', {
+      credentials: 'include'
+    });
     const data = await response.json();
     
     if (data.success) {
@@ -10353,7 +10946,7 @@ const loadClientBookings = async () => {
         'Accept': 'application/json',
         'X-Requested-With': 'XMLHttpRequest'
       },
-      credentials: 'same-origin'
+      credentials: 'include'
     });
 
 if (!response.ok) {
@@ -10578,7 +11171,9 @@ const allTransactions = ref([]);
 
 const loadAllTransactions = async () => {
   try {
-    const response = await fetch('/api/admin/transactions');
+    const response = await fetch('/api/admin/transactions', {
+      credentials: 'include'
+    });
     const data = await response.json();
     allTransactions.value = data.transactions || [];
   } catch (error) {
@@ -10996,7 +11591,7 @@ const sendAnnouncement = async () => {
     return;
   }
   try {
-    const response = await fetch('/api/admin/announcements', {
+    const response = await fetch('/api/admin/announcements/send', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -11011,6 +11606,8 @@ const sendAnnouncement = async () => {
     announceDialog.value = false;
     // Refresh notifications after sending announcement
     loadAdminNotificationCount();
+    // Reload recent announcements
+    loadRecentAnnouncements();
     // Also refresh the notification center if it's currently visible
     if (currentSection.value === 'notifications' && notificationCenter.value) {
       notificationCenter.value.loadNotifications();
@@ -11248,7 +11845,9 @@ const marketingStaffFormData = ref({
 
 const loadMarketingStaff = async () => {
   try {
-    const response = await fetch('/api/admin/marketing-staff');
+    const response = await fetch('/api/admin/marketing-staff', {
+      credentials: 'include'
+    });
     const data = await response.json();
     marketingStaff.value = (data.staff || []).map(s => {
       const item = {
@@ -11461,7 +12060,9 @@ const deleteMarketingStaff = (staff) => {
 // Admin Staff Functions
 const loadAdminStaff = async () => {
   try {
-    const response = await fetch('/api/admin/admin-staff');
+    const response = await fetch('/api/admin/admin-staff', {
+      credentials: 'include'
+    });
     const data = await response.json();
     adminStaff.value = (data.staff || []).map(s => {
       const item = {
@@ -11647,7 +12248,7 @@ const loadTrainingCenters = async () => {
         'Accept': 'application/json',
         'X-Requested-With': 'XMLHttpRequest'
       },
-      credentials: 'same-origin'
+      credentials: 'include'
     });
     
     if (!response.ok) {
@@ -11688,7 +12289,9 @@ const viewTrainingCenterDetails = async (center) => {
   
   // Load caregivers for this center
   try {
-    const response = await fetch(`/api/admin/training-centers/${center.id}/caregivers`);
+    const response = await fetch(`/api/admin/training-centers/${center.id}/caregivers`, {
+      credentials: 'include'
+    });
     const data = await response.json();
     viewingTrainingCenter.value.caregivers = data.caregivers || [];
   } catch (err) {
@@ -12654,7 +13257,9 @@ const viewCaregiverDetails = async (caregiver) => {
     const userId = caregiver.userId || caregiver.user_id || caregiver.id;
 
     // Fetch full caregiver profile from admin JSON endpoint (avoids /api/profile HTML/login redirects)
-    const resp = await fetch(`/api/admin/caregivers/${userId}`);
+    const resp = await fetch(`/api/admin/caregivers/${userId}`, {
+      credentials: 'include'
+    });
     const text = await resp.text();
     if (!text || !text.trim().startsWith('{')) {
       // fallback to the passed-in item
@@ -12752,7 +13357,9 @@ const resolveZipCityState = async (zipLike) => {
   if (zipCityStateCache.has(zip)) return zipCityStateCache.get(zip);
 
   try {
-    const resp = await fetch(`/api/zipcode-lookup/${zip}`);
+    const resp = await fetch(`/api/zipcode-lookup/${zip}`, {
+      credentials: 'include'
+    });
     if (resp.ok) {
       const data = await resp.json();
       if (data.success && data.location) {
@@ -13172,7 +13779,9 @@ const viewAssignedCaregivers = async (booking) => {
 if (booking && booking.assignments) {
     for (const assignment of booking.assignments) {
       try {
-        const response = await fetch(`/api/bookings/${booking.id}/caregiver/${assignment.caregiver_id}/schedule`);
+        const response = await fetch(`/api/bookings/${booking.id}/caregiver/${assignment.caregiver_id}/schedule`, {
+          credentials: 'include'
+        });
         if (response.ok) {
           const data = await response.json();
           
@@ -13210,7 +13819,9 @@ const viewAssignedHousekeepers = async (booking) => {
   const assigned = getAssignedHousekeepers(booking.id);
   for (const hk of assigned) {
     try {
-      const response = await fetch(`/api/bookings/${booking.id}/housekeeper/${hk.id}/schedule`);
+      const response = await fetch(`/api/bookings/${booking.id}/housekeeper/${hk.id}/schedule`, {
+        credentials: 'include'
+      });
       if (response.ok) {
         const data = await response.json();
         if (data && data.schedule) {
@@ -13273,7 +13884,7 @@ const saveHousekeeperSchedule = async (housekeeperId) => {
         'Content-Type': 'application/json',
         ...(el ? { 'X-CSRF-TOKEN': el.getAttribute('content') } : {}),
       },
-      credentials: 'same-origin',
+      credentials: 'include',
       body: JSON.stringify({
         days: schedule.days || [],
         schedules: schedule.schedules || {},
@@ -13753,7 +14364,7 @@ const unassignHousekeeper = async (housekeeperId, bookingId) => {
         'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
         'X-Requested-With': 'XMLHttpRequest',
       },
-      credentials: 'same-origin',
+      credentials: 'include',
       body: JSON.stringify({ housekeeper_id: housekeeperId }),
     });
 
@@ -13810,7 +14421,9 @@ const openScheduleDialog = async (caregiver, booking) => {
 
 // Load existing schedule for this caregiver-booking combination
   try {
-    const response = await fetch(`/api/bookings/${booking.id}/caregiver/${caregiver.id}/schedule`);
+    const response = await fetch(`/api/bookings/${booking.id}/caregiver/${caregiver.id}/schedule`, {
+      credentials: 'include'
+    });
     if (response.ok) {
       const data = await response.json();
       if (data.schedule) {
@@ -14152,7 +14765,7 @@ const confirmAssignHousekeepers = async () => {
         'Accept': 'application/json',
         'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
       },
-  credentials: 'same-origin',
+  credentials: 'include',
       body: JSON.stringify({
         housekeeper_ids: assignSelectedHousekeepers.value,
         assigned_rates: assignedHousekeeperRates.value,
@@ -14177,12 +14790,23 @@ const viewPayment = (payment) => {
   paymentDetailsDialog.value = true;
 };
 
-const markPaid = (payment) => {
-  if (confirm(`Mark payment from ${payment.client} as paid?`)) {
-    payment.status = 'Paid';
+const openMarkPaidDialog = (payment) => {
+  paymentToMark.value = payment;
+  markPaidDialog.value = true;
+};
+
+const confirmMarkPaid = () => {
+  if (paymentToMark.value) {
+    paymentToMark.value.status = 'Paid';
     success('Payment marked as paid!', 'Payment Updated');
+    markPaidDialog.value = false;
     paymentDetailsDialog.value = false;
+    paymentToMark.value = null;
   }
+};
+
+const markPaid = (payment) => {
+  openMarkPaidDialog(payment);
 };
 
 const downloadReceipt = async (payment) => {
@@ -14284,7 +14908,9 @@ const quickCaregivers = ref([]);
 
 const loadQuickCaregivers = async () => {
   try {
-    const response = await fetch('/api/admin/quick-caregivers');
+    const response = await fetch('/api/admin/quick-caregivers', {
+      credentials: 'include'
+    });
     if (response.ok) {
       quickCaregivers.value = await response.json();
     }
@@ -15036,11 +15662,23 @@ onMounted(async () => {
     { fn: loadMoneyFlowData, weight: 3 },
     { fn: loadTopPerformers, weight: 3 },
     { fn: loadRecentAnalyticsActivity, weight: 3 },
-    { fn: loadTimeTrackingHistory, weight: 3 }
+    { fn: loadTimeTrackingHistory, weight: 3 },
+    { fn: loadPlatformPayouts, weight: 3 },
+    { fn: loadCompanyAccount, weight: 3 },
+    { fn: loadRecentAnnouncements, weight: 2 },
+    { fn: loadBookingMaintenanceStatus, weight: 2 }
   ];
   
   const totalWeight = loadingTasks.reduce((sum, task) => sum + task.weight, 0);
   let completedWeight = 0;
+  
+  // Safety timeout - ensure loading completes even if something hangs
+  const loadingTimeout = setTimeout(() => {
+    console.warn('Loading timeout reached - forcing completion');
+    loadingProgress.value = 100;
+    isPageLoading.value = false;
+    initialDataLoaded.value = true;
+  }, 60000); // 60 second timeout
   
   // Execute all loading tasks in parallel
   const promises = loadingTasks.map(async (task) => {
@@ -15056,6 +15694,9 @@ onMounted(async () => {
   
   // Wait for all tasks to complete
   await Promise.allSettled(promises);
+  
+  // Clear the safety timeout
+  clearTimeout(loadingTimeout);
   
   // Ensure progress shows 100%
   loadingProgress.value = 100;
@@ -17303,6 +17944,28 @@ setInterval(() => {
   -webkit-tap-highlight-color: transparent;
 }
 
+.action-btn-pay,
+.action-btn-pay-now {
+  width: 40px !important;
+  height: 40px !important;
+  min-width: 40px !important;
+  padding: 0 !important;
+  border-radius: 10px !important;
+  transition: all 0.15s ease !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  background-color: #10b981 !important;
+  color: white !important;
+}
+
+.action-btn-pay:hover,
+.action-btn-pay-now:hover {
+  background-color: #059669 !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 8px rgba(16, 185, 129, 0.3) !important;
+}
+
 .action-btn-approve {
   background-color: #10b981 !important;
   color: white !important;
@@ -18388,6 +19051,29 @@ button:focus-visible {
   .quick-action-btn .text-h6 {
     font-size: 1.25rem !important;
     line-height: 1 !important;
+  }
+}
+
+/* ============================================
+   BOOKING MAINTENANCE WIDGET
+   ============================================ */
+
+.booking-maintenance-btn {
+  min-width: 180px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  transition: all 0.3s ease;
+}
+
+.booking-maintenance-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+@media (max-width: 960px) {
+  .booking-maintenance-btn {
+    width: 100%;
+    margin-top: 16px;
   }
 }
 

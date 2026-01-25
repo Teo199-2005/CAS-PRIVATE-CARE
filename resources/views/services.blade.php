@@ -814,9 +814,12 @@
                                 <span class="service-feature"><i class="bi bi-check-circle-fill"></i> Medication Reminders</span>
                                 <span class="service-feature"><i class="bi bi-check-circle-fill"></i> Companionship</span>
                             </div>
-                            <a href="{{ url('/register') }}" class="service-card-btn">
-                                Book Now <i class="bi bi-arrow-right"></i>
-                            </a>
+                            <div class="booking-btn-wrapper">
+                                <a href="{{ url('/register') }}" class="service-card-btn" onclick="return handleBookingClick(event, '{{ url('/register') }}')">
+                                    Book Now <i class="bi bi-arrow-right"></i>
+                                </a>
+                                <span class="maintenance-dot" title="Booking temporarily disabled"></span>
+                            </div>
                         </div>
                     </div>
 
@@ -843,9 +846,12 @@
                                 <span class="service-feature"><i class="bi bi-check-circle-fill"></i> Organization</span>
                                 <span class="service-feature"><i class="bi bi-check-circle-fill"></i> Errands</span>
                             </div>
-                            <a href="{{ url('/register') }}" class="service-card-btn">
-                                Book Now <i class="bi bi-arrow-right"></i>
-                            </a>
+                            <div class="booking-btn-wrapper">
+                                <a href="{{ url('/register') }}" class="service-card-btn" onclick="return handleBookingClick(event, '{{ url('/register') }}')">
+                                    Book Now <i class="bi bi-arrow-right"></i>
+                                </a>
+                                <span class="maintenance-dot" title="Booking temporarily disabled"></span>
+                            </div>
                         </div>
                     </div>
 
@@ -869,9 +875,12 @@
                                 <span class="service-feature"><i class="bi bi-check-circle-fill"></i> Floor Care</span>
                                 <span class="service-feature"><i class="bi bi-check-circle-fill"></i> Window Cleaning</span>
                             </div>
-                            <a href="{{ url('/register') }}" class="service-card-btn">
-                                Book Now <i class="bi bi-arrow-right"></i>
-                            </a>
+                            <div class="booking-btn-wrapper">
+                                <a href="{{ url('/register') }}" class="service-card-btn" onclick="return handleBookingClick(event, '{{ url('/register') }}')">
+                                    Book Now <i class="bi bi-arrow-right"></i>
+                                </a>
+                                <span class="maintenance-dot" title="Booking temporarily disabled"></span>
+                            </div>
                         </div>
                     </div>
 
@@ -895,9 +904,12 @@
                                 <span class="service-feature"><i class="bi bi-check-circle-fill"></i> Patience & Care</span>
                                 <span class="service-feature"><i class="bi bi-check-circle-fill"></i> Family Support</span>
                             </div>
-                            <a href="{{ url('/register') }}" class="service-card-btn">
-                                Book Now <i class="bi bi-arrow-right"></i>
-                            </a>
+                            <div class="booking-btn-wrapper">
+                                <a href="{{ url('/register') }}" class="service-card-btn" onclick="return handleBookingClick(event, '{{ url('/register') }}')">
+                                    Book Now <i class="bi bi-arrow-right"></i>
+                                </a>
+                                <span class="maintenance-dot" title="Booking temporarily disabled"></span>
+                            </div>
                         </div>
                     </div>
 
@@ -921,9 +933,12 @@
                                 <span class="service-feature"><i class="bi bi-check-circle-fill"></i> Meal Preparation</span>
                                 <span class="service-feature"><i class="bi bi-check-circle-fill"></i> Daily Assistance</span>
                             </div>
-                            <a href="{{ url('/register') }}" class="service-card-btn">
-                                Book Now <i class="bi bi-arrow-right"></i>
-                            </a>
+                            <div class="booking-btn-wrapper">
+                                <a href="{{ url('/register') }}" class="service-card-btn" onclick="return handleBookingClick(event, '{{ url('/register') }}')">
+                                    Book Now <i class="bi bi-arrow-right"></i>
+                                </a>
+                                <span class="maintenance-dot" title="Booking temporarily disabled"></span>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -1180,7 +1195,246 @@
     
     @include('partials.footer')
     
+    <!-- Booking Maintenance Modal -->
+    <div id="maintenanceModal" class="maintenance-modal-overlay" style="display: none;">
+        <div class="maintenance-modal">
+            <div class="maintenance-modal-header">
+                <i class="bi bi-wrench"></i>
+                <span>System Maintenance</span>
+            </div>
+            <div class="maintenance-modal-body">
+                <div class="maintenance-icon">
+                    <i class="bi bi-calendar-x"></i>
+                </div>
+                <h3>Booking Currently Unavailable</h3>
+                <p id="maintenanceMessage">Our booking system is currently under maintenance. Please try again later.</p>
+                <div class="maintenance-info">
+                    <i class="bi bi-info-circle"></i>
+                    <span>Existing bookings are not affected by this maintenance.</span>
+                </div>
+                <p class="maintenance-apology">We apologize for any inconvenience. Please check back soon.</p>
+            </div>
+            <div class="maintenance-modal-footer">
+                <button type="button" class="maintenance-close-btn" onclick="closeMaintenanceModal()">
+                    <i class="bi bi-x-lg"></i>
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <style>
+        /* Maintenance Modal Styles */
+        .maintenance-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .maintenance-modal {
+            background: white;
+            border-radius: 16px;
+            max-width: 500px;
+            width: 100%;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+            overflow: hidden;
+            animation: modalSlideIn 0.3s ease;
+        }
+        
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .maintenance-modal-header {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            color: white;
+            padding: 24px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 1.25rem;
+            font-weight: 700;
+        }
+        
+        .maintenance-modal-header i {
+            font-size: 1.5rem;
+        }
+        
+        .maintenance-modal-body {
+            padding: 32px;
+            text-align: center;
+        }
+        
+        .maintenance-icon {
+            margin-bottom: 20px;
+        }
+        
+        .maintenance-icon i {
+            font-size: 64px;
+            color: #f59e0b;
+        }
+        
+        .maintenance-modal-body h3 {
+            color: #1e293b;
+            font-size: 1.5rem;
+            margin-bottom: 12px;
+        }
+        
+        .maintenance-modal-body > p {
+            color: #64748b;
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+        
+        .maintenance-info {
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+            border-radius: 8px;
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #1d4ed8;
+            font-size: 0.9rem;
+            margin-bottom: 16px;
+            text-align: left;
+        }
+        
+        .maintenance-apology {
+            color: #94a3b8;
+            font-size: 0.85rem;
+        }
+        
+        .maintenance-modal-footer {
+            padding: 16px 32px 32px;
+            display: flex;
+            justify-content: center;
+        }
+        
+        .maintenance-close-btn {
+            background: #0B4FA2;
+            color: white;
+            border: none;
+            padding: 12px 32px;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .maintenance-close-btn:hover {
+            background: #083d7a;
+            transform: translateY(-2px);
+        }
+        
+        /* Red maintenance indicator dot */
+        .booking-btn-wrapper {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .maintenance-dot {
+            position: absolute;
+            top: -4px;
+            right: -4px;
+            width: 12px;
+            height: 12px;
+            background-color: #ef4444;
+            border-radius: 50%;
+            border: 2px solid white;
+            box-shadow: 0 2px 4px rgba(239, 68, 68, 0.4);
+            animation: pulse 2s ease-in-out infinite;
+            display: none;
+        }
+        
+        .maintenance-dot.active {
+            display: block;
+        }
+        
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+                box-shadow: 0 2px 4px rgba(239, 68, 68, 0.4);
+            }
+            50% {
+                transform: scale(1.15);
+                box-shadow: 0 2px 8px rgba(239, 68, 68, 0.6);
+            }
+        }
+    </style>
+    
     <script>
+        // Booking Maintenance Mode
+        let bookingMaintenanceEnabled = false;
+        let bookingMaintenanceMessage = 'Our booking system is currently under maintenance. Please try again later.';
+        
+        // Check maintenance status on page load
+        async function checkBookingMaintenanceStatus() {
+            try {
+                const response = await fetch('/api/booking-maintenance-status');
+                if (response.ok) {
+                    const data = await response.json();
+                    bookingMaintenanceEnabled = data.maintenance_enabled || false;
+                    bookingMaintenanceMessage = data.maintenance_message || bookingMaintenanceMessage;
+                    
+                    // Update indicator dots
+                    document.querySelectorAll('.maintenance-dot').forEach(dot => {
+                        if (bookingMaintenanceEnabled) {
+                            dot.classList.add('active');
+                        } else {
+                            dot.classList.remove('active');
+                        }
+                    });
+                }
+            } catch (error) {
+                console.error('Failed to check maintenance status:', error);
+            }
+        }
+        
+        // Handle booking button click
+        function handleBookingClick(event, targetUrl) {
+            if (bookingMaintenanceEnabled) {
+                event.preventDefault();
+                document.getElementById('maintenanceMessage').textContent = bookingMaintenanceMessage;
+                document.getElementById('maintenanceModal').style.display = 'flex';
+                return false;
+            }
+            return true;
+        }
+        
+        function closeMaintenanceModal() {
+            document.getElementById('maintenanceModal').style.display = 'none';
+        }
+        
+        // Close modal on overlay click
+        document.getElementById('maintenanceModal')?.addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeMaintenanceModal();
+            }
+        });
+        
+        // Check status on page load
+        document.addEventListener('DOMContentLoaded', checkBookingMaintenanceStatus);
+        
         // Intersection Observer for scroll animations
         const observerOptions = {
             threshold: 0.1,

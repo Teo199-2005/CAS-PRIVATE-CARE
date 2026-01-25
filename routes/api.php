@@ -404,6 +404,27 @@ Route::post('/admin/platform-metrics/clear-cache', [\App\Http\Controllers\Api\Pl
 // Admin: get all bookings (full details)
 Route::get('/admin/bookings', [\App\Http\Controllers\AdminController::class, 'getAllBookings']);
 
+// Admin: get client payments
+Route::get('/admin/client-payments', [\App\Http\Controllers\AdminController::class, 'getClientPayments']);
+
+// Admin: get platform payouts (Stripe transactions)
+Route::get('/admin/platform-payouts', [\App\Http\Controllers\AdminController::class, 'getPlatformPayouts']);
+
+// Admin: get company account info (Stripe Connect)
+Route::get('/admin/company-account', [\App\Http\Controllers\AdminController::class, 'getCompanyAccount']);
+
+// Admin: get recent announcements
+Route::get('/admin/announcements/recent', [\App\Http\Controllers\AdminController::class, 'getRecentAnnouncements']);
+
+// Admin: send announcement
+Route::post('/admin/announcements/send', [\App\Http\Controllers\AdminController::class, 'sendAnnouncement']);
+
+// Booking Maintenance Mode - Public endpoint to check status
+Route::get('/booking-maintenance-status', [\App\Http\Controllers\AdminController::class, 'getBookingMaintenanceStatus']);
+
+// Admin: Toggle booking maintenance mode
+Route::post('/admin/booking-maintenance/toggle', [\App\Http\Controllers\AdminController::class, 'toggleBookingMaintenance']);
+
 // Get single booking details
 Route::get('/bookings/{id}', [\App\Http\Controllers\BookingController::class, 'getBooking']);
 

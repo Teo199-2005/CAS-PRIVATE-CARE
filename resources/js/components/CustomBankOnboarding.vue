@@ -179,7 +179,6 @@
                     <v-text-field
                       v-model="cardDetails.cardholderName"
                       label="Cardholder Name"
-                      placeholder="John Doe"
                       variant="outlined"
                       prepend-inner-icon="mdi-account"
                       :error-messages="cardErrors.cardholderName"

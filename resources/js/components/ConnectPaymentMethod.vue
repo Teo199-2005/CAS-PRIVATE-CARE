@@ -179,6 +179,38 @@
               <v-form v-else @submit.prevent="savePaymentMethod">
                 <h3 class="text-h6 mb-4 text-grey-darken-3">Card Information</h3>
                 
+                <!-- Card Logos -->
+                <div class="accepted-cards mb-4">
+                  <p class="text-caption text-grey-darken-2 mb-2 font-weight-medium">We Accept:</p>
+                  <div class="d-flex align-center gap-2">
+                    <!-- Mastercard -->
+                    <svg width="38" height="24" viewBox="0 0 38 24" xmlns="http://www.w3.org/2000/svg">
+                      <rect width="38" height="24" rx="3" fill="#f5f5f5"/>
+                      <circle cx="15" cy="12" r="7" fill="#eb001b"/>
+                      <circle cx="23" cy="12" r="7" fill="#f79e1b"/>
+                      <path d="M19 6.5a7 7 0 0 0 0 11 7 7 0 0 0 0-11z" fill="#ff5f00"/>
+                    </svg>
+                    <!-- Visa -->
+                    <svg width="38" height="24" viewBox="0 0 38 24" xmlns="http://www.w3.org/2000/svg">
+                      <rect width="38" height="24" rx="3" fill="#f5f5f5"/>
+                      <text x="19" y="15" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" font-weight="bold" font-style="italic" fill="#1a1f71">VISA</text>
+                    </svg>
+                    <!-- Amex -->
+                    <svg width="38" height="24" viewBox="0 0 38 24" xmlns="http://www.w3.org/2000/svg">
+                      <rect width="38" height="24" rx="3" fill="#006fcf"/>
+                      <text x="19" y="15" text-anchor="middle" font-family="Arial, sans-serif" font-size="7" font-weight="bold" fill="white">AMEX</text>
+                    </svg>
+                    <!-- JCB -->
+                    <svg width="38" height="24" viewBox="0 0 38 24" xmlns="http://www.w3.org/2000/svg">
+                      <rect width="38" height="24" rx="3" fill="#f5f5f5"/>
+                      <rect x="4" y="4" width="10" height="16" rx="2" fill="#0f4c81"/>
+                      <rect x="14" y="4" width="10" height="16" rx="2" fill="#c41230"/>
+                      <rect x="24" y="4" width="10" height="16" rx="2" fill="#00a94f"/>
+                      <text x="19" y="14" text-anchor="middle" font-family="Arial, sans-serif" font-size="6" font-weight="bold" fill="white">JCB</text>
+                    </svg>
+                  </div>
+                </div>
+
                 <!-- Stripe Payment Element -->
                 <div class="stripe-payment-element mb-4">
                   <div id="payment-element"></div>
@@ -188,7 +220,6 @@
                 <v-text-field
                   v-model="cardholderName"
                   label="Cardholder Name"
-                  placeholder="John Doe"
                   variant="outlined"
                   prepend-inner-icon="mdi-account"
                   class="mb-6"
