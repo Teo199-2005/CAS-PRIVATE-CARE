@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    @include('partials.favicon')
     <title>Privacy Policy - CAS Private Care LLC</title>
     <meta name="description" content="Privacy Policy for CAS Private Care LLC - How we collect, use, and protect your personal information.">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">

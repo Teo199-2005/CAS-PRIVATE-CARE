@@ -5,14 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
     <meta name="theme-color" content="#1e40af">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <link rel="icon" type="image/png" href="{{ asset('logo flower.png') }}">
+    @include('partials.favicon')
     <title>Login - CAS Private Care LLC</title>
     <meta name="description" content="Login to your CAS Private Care LLC account to manage caregiving services, bookings, and more.">
     <meta name="robots" content="noindex, nofollow">
     <link rel="canonical" href="{{ url('/login') }}">
     
     <!-- Preload critical resources -->
-    <link rel="preload" href="{{ asset('logo flower.png') }}" as="image">
+    <link rel="preload" href="{{ asset('logo.png') }}" as="image">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     

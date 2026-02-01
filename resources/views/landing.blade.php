@@ -4,9 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#1e40af">
-    <link rel="icon" type="image/png" href="{{ asset('logo flower.png') }}">
+    @include('partials.favicon')
     <link rel="manifest" href="{{ asset('manifest.json') }}">
-    <link rel="apple-touch-icon" href="{{ asset('logo flower.png') }}">
 
     <!-- Primary Meta Tags -->
     <title>CAS Private Care LLC - Verified Caregivers & Home Care Services New York</title>
@@ -90,7 +89,7 @@
 
     <!-- Preload critical images for LCP -->
     <link rel="preload" as="image" href="{{ asset('cover.jpg') }}" fetchpriority="high">
-    <link rel="preload" as="image" href="{{ asset('logo flower.png') }}" fetchpriority="high">
+    <link rel="preload" as="image" href="{{ asset('logo.png') }}" fetchpriority="high">
     
     @include('partials.nav-footer-styles')
     

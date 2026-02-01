@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    @include('partials.favicon')
     <title>Terms of Service - CAS Private Care LLC</title>
     <meta name="description" content="Terms of Service for CAS Private Care LLC - Your trusted platform for professional caregiving services.">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
