@@ -2255,7 +2255,7 @@
 
             /* About Section - Ultra Compact */
             #about-section video {
-                height: 120px !important;
+                height: 180px !important;
             }
 
             #about-section h2 {
@@ -3608,8 +3608,7 @@
             }
 
             #about-section video {
-                height: 180px !important;
-                border-radius: 14px !important;
+                height: 260px !important;
             }
 
             #about-section > div > div:first-child > div {
@@ -4140,8 +4139,7 @@
             }
 
             #about-section video {
-                height: 140px !important;
-                border-radius: 12px !important;
+                height: 220px !important;
             }
 
             #about-section h2 {
@@ -4579,8 +4577,7 @@
             }
             
             #about-section video {
-                height: 160px !important;
-                border-radius: 12px !important;
+                height: 240px !important;
             }
             
             #about-section h2 {
@@ -4961,7 +4958,7 @@
 
             /* About Section */
             #about-section video {
-                height: 280px !important;
+                height: 380px !important;
             }
 
             .about-features-grid {
@@ -5884,7 +5881,7 @@
             }
 
             #about-section video {
-                height: auto;
+                height: 520px;
             }
 
             #about-section h2 {
@@ -6072,21 +6069,12 @@
     </div>
 
     <section class="section-light" style="padding: 6rem 2rem;" id="about-section" itemscope itemtype="https://schema.org/AboutPage">
-        <div style="max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: center; overflow: visible;">
+        <div style="max-width: 1400px; margin: 0 auto; display: grid; grid-template-columns: 1.15fr 1fr; gap: 4rem; align-items: center; overflow: visible;">
             <div class="fade-in" style="position: relative;">
-                <video autoplay loop muted playsinline preload="auto" style="width: 100%; height: 500px; object-fit: cover; border-radius: 20px; box-shadow: 0 20px 60px rgba(59, 130, 246, 0.2);">
+                <video id="about-section-video" autoplay loop muted playsinline preload="auto" style="width: 100%; height: 620px; object-fit: cover; box-shadow: 0 20px 60px rgba(59, 130, 246, 0.2);">
                     <source src="{{ asset('what.mp4') }}" type="video/mp4">
                     Your browser does not support the video tag.
                 </video>
-                <div style="position: absolute; bottom: -20px; right: -20px; background: white; padding: 2rem; border-radius: 15px; box-shadow: 0 10px 40px rgba(0,0,0,0.15);">
-                    <div style="display: flex; align-items: center; gap: 1rem;">
-                        <i class="bi bi-shield-check-fill" style="font-size: 3rem; color: #3b82f6;" aria-hidden="true"></i>
-                        <div>
-                            <h4 style="font-size: 1.5rem; color: #1e40af; margin: 0;">100%</h4>
-                            <p style="color: #64748b; margin: 0; font-size: 0.9rem;">Verified</p>
-                        </div>
-                    </div>
-                </div>
             </div>
             <div class="fade-in" itemprop="description">
                 <h2 style="font-size: 3rem; font-weight: 700; margin-bottom: 1rem;"><span style="color: #f97316;">What</span> <span style="background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">is CAS Private Care LLC?</span></h2>
@@ -6976,6 +6964,32 @@
             }, { threshold: 0.3 });
 
             progressBars.forEach(bar => progressObserver.observe(bar));
+
+            // About section video: unmute when in view, mute when scrolled past; ensure autoplay (works on hosting)
+            const aboutVideo = document.getElementById('about-section-video');
+            const aboutSection = document.getElementById('about-section');
+            if (aboutVideo && aboutSection) {
+                function tryPlayVideo() {
+                    aboutVideo.muted = true;
+                    aboutVideo.play().catch(() => {});
+                }
+                // On hosting the video often isn't ready at DOMContentLoaded — wait for it to load
+                aboutVideo.addEventListener('loadeddata', tryPlayVideo, { once: true });
+                aboutVideo.addEventListener('canplay', tryPlayVideo, { once: true });
+                if (aboutVideo.readyState >= 2) tryPlayVideo();
+                else tryPlayVideo();
+                const videoSectionObserver = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            aboutVideo.muted = false;
+                            aboutVideo.play().catch(() => {});
+                        } else {
+                            aboutVideo.muted = true;
+                        }
+                    });
+                }, { threshold: 0.25, rootMargin: '0px' });
+                videoSectionObserver.observe(aboutSection);
+            }
         });
         
         let currentService = 0;
@@ -8430,16 +8444,12 @@
             window.addEventListener('load', function() {
                 navigator.serviceWorker.register('/service-worker.js', { scope: '/' })
                     .then(function(registration) {
-                        console.log('ServiceWorker registration successful with scope:', registration.scope);
-                        
                         // Check for updates periodically
                         setInterval(() => {
                             registration.update();
                         }, 60 * 60 * 1000); // Check every hour
                     })
-                    .catch(function(err) {
-                        console.log('ServiceWorker registration failed:', err);
-                    });
+.catch(function() {});
             });
         }
     </script>
