@@ -5061,6 +5061,8 @@ const caregiverHeaders = [
 const clientHeaders = [
   { title: 'Name', key: 'name' },
   { title: 'Email', key: 'email' },
+  { title: 'Zip Code', key: 'zip_code' },
+  { title: 'Location', key: 'location' },
   { title: 'Status', key: 'status' },
   { title: 'Bookings', key: 'bookings' },
   { title: 'Total Spent', key: 'totalSpent' },

@@ -80,11 +80,25 @@ class StaffAdminController extends Controller
                 }
             }
             
+            $nameParts = array_filter(explode(' ', trim($user->name ?? ''), 2));
+            $firstName = $nameParts[0] ?? '';
+            $lastName = isset($nameParts[1]) ? $nameParts[1] : '';
+            $locationParts = array_filter([$user->city ?? '', $user->state ?? '']);
+            $location = implode(', ', $locationParts);
+
             return [
                 'id' => $user->id,
                 'name' => $user->name,
+                'displayName' => $user->name,
+                'first_name' => $firstName,
+                'last_name' => $lastName,
                 'email' => $user->email,
                 'phone' => $user->phone ?? '',
+                'zip_code' => $user->zip_code ?? '',
+                'location' => $location,
+                'city' => $user->city ?? '',
+                'state' => $user->state ?? '',
+                'county' => $user->county ?? '',
                 'status' => $user->status ?? 'Active',
                 'referralCode' => $referralCode ? $referralCode->code : 'N/A',
                 'clientsAcquired' => $clientsAcquired,
