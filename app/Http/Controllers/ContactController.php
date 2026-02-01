@@ -6,9 +6,11 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Log;
+use App\Http\Traits\ApiResponseTrait;
 
 class ContactController extends Controller
 {
+    use ApiResponseTrait;
     public function show()
     {
         return view('contact');
@@ -75,6 +77,8 @@ class ContactController extends Controller
         }
     }
 }
+
+
 
 
 

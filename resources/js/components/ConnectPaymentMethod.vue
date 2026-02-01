@@ -638,6 +638,82 @@ const contactSupport = () => {
   }
 }
 
+/* Mobile: custom styling for phones (≤600px) */
+@media (max-width: 600px) {
+  .custom-onboarding-container {
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+  }
+  .left-column {
+    min-height: 260px;
+    padding: 16px env(safe-area-inset-left) 16px env(safe-area-inset-right) !important;
+  }
+  .right-column {
+    padding: 20px 16px 24px !important;
+    padding-left: calc(16px + env(safe-area-inset-left));
+    padding-right: calc(16px + env(safe-area-inset-right));
+  }
+  .welcome-title {
+    font-size: 1.5rem;
+    line-height: 1.3;
+  }
+  .form-title {
+    font-size: 1.25rem;
+  }
+  .form-subtitle {
+    font-size: 0.9rem;
+  }
+  .stripe-payment-element {
+    padding: 12px;
+  }
+  #payment-element {
+    min-height: 100px;
+  }
+  .form-content :deep(.v-btn) {
+    min-height: 48px;
+    font-size: 1rem;
+  }
+  .payment-modal-overlay {
+    padding-top: max(20px, env(safe-area-inset-top));
+    padding-bottom: max(20px, env(safe-area-inset-bottom));
+    padding-left: max(20px, env(safe-area-inset-left));
+    padding-right: max(20px, env(safe-area-inset-right));
+  }
+  .modal-content {
+    padding: 36px 24px;
+  }
+  .modal-button {
+    min-height: 48px;
+  }
+}
+
+/* Small phones (e.g. 430px width) */
+@media (max-width: 430px) {
+  .left-column {
+    min-height: 220px;
+  }
+  .welcome-title {
+    font-size: 1.35rem;
+  }
+  .form-title {
+    font-size: 1.1rem;
+  }
+  .payment-modal-overlay {
+    align-items: flex-end;
+    padding: 12px;
+  }
+  .payment-modal {
+    border-radius: 16px 16px 0 0;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+  .modal-content {
+    padding: 28px 20px;
+  }
+}
+
 /* ============================================
    PAYMENT MODAL STYLES
    ============================================ */
@@ -656,6 +732,10 @@ const contactSupport = () => {
   justify-content: center;
   z-index: 9999;
   padding: 20px;
+  padding-top: max(20px, env(safe-area-inset-top));
+  padding-bottom: max(20px, env(safe-area-inset-bottom));
+  padding-left: max(20px, env(safe-area-inset-left));
+  padding-right: max(20px, env(safe-area-inset-right));
 }
 
 .payment-modal {

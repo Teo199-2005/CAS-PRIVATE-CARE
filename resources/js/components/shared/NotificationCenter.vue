@@ -47,7 +47,7 @@
                     <v-list-item-title class="notification-title">{{ notification.title }}</v-list-item-title>
                     <div class="d-flex align-center gap-2">
                       <v-chip v-if="notification.priority === 'high'" color="error" size="x-small" class="priority-chip">High Priority</v-chip>
-                      <v-chip :color="notification.typeColor" size="x-small" class="type-chip" dark>{{ notification.type }}</v-chip>
+                      <v-chip :color="notification.typeColor" size="x-small" class="type-chip">{{ notification.type }}</v-chip>
                       <span class="notification-time">{{ notification.time }}</span>
                     </div>
                   </div>
@@ -111,14 +111,18 @@ const primaryColor = computed(() => props.userType === 'caregiver' ? 'success--t
 
 const filteredNotifications = computed(() => {
   return notifications.value.filter(n => {
+    const timeStr = n.time || '';
+    const titleStr = n.title || '';
+    const messageStr = n.message || '';
+    
     const matchesFilter = notificationFilter.value === 'All' || 
       (notificationFilter.value === 'Unread' && !n.read) ||
-      (notificationFilter.value === 'Today' && (n.time.includes('hour') || n.time.includes('minute'))) ||
-      (notificationFilter.value === 'This Week' && !n.time.includes('week'));
+      (notificationFilter.value === 'Today' && (timeStr.includes('hour') || timeStr.includes('minute'))) ||
+      (notificationFilter.value === 'This Week' && !timeStr.includes('week'));
     const matchesType = notificationType.value === 'All' || n.type === notificationType.value;
     const matchesSearch = !notificationSearch.value || 
-      n.title.toLowerCase().includes(notificationSearch.value.toLowerCase()) ||
-      n.message.toLowerCase().includes(notificationSearch.value.toLowerCase());
+      titleStr.toLowerCase().includes(notificationSearch.value.toLowerCase()) ||
+      messageStr.toLowerCase().includes(notificationSearch.value.toLowerCase());
     return matchesFilter && matchesType && matchesSearch;
   });
 });
@@ -127,10 +131,21 @@ const loadNotifications = async () => {
   loading.value = true;
   try {
     const response = await fetch(`/api/notifications?user_id=${props.userId}`);
-    const data = await response.json();
-    notifications.value = data.notifications;
-    unreadCount.value = data.unread_count;
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    const result = await response.json();
+    
+    // Handle wrapped response format: { success: true, data: { notifications: [], unread_count: 0 } }
+    const data = result.data || result;
+    notifications.value = data.notifications || [];
+    unreadCount.value = data.unread_count || 0;
   } catch (error) {
+    console.error('Failed to load notifications:', error);
+    notifications.value = [];
+    unreadCount.value = 0;
   } finally {
     loading.value = false;
   }
@@ -150,6 +165,7 @@ const markAsRead = async (notification) => {
     notification.read = true;
     unreadCount.value = Math.max(0, unreadCount.value - 1);
   } catch (error) {
+    console.error('Failed to mark notification as read:', error);
   }
 };
 
@@ -163,6 +179,7 @@ const toggleRead = async (notification) => {
       unreadCount.value += 1;
     }
   } catch (error) {
+    console.error('Failed to toggle notification read status:', error);
   }
 };
 
@@ -180,6 +197,7 @@ const markAllRead = async () => {
     notifications.value.forEach(n => n.read = true);
     unreadCount.value = 0;
   } catch (error) {
+    console.error('Failed to mark all notifications as read:', error);
   } finally {
     loading.value = false;
   }
@@ -201,6 +219,7 @@ const clearAll = async () => {
     notifications.value = [];
     unreadCount.value = 0;
   } catch (error) {
+    console.error('Failed to clear all notifications:', error);
   } finally {
     loading.value = false;
   }
@@ -224,6 +243,7 @@ const deleteNotification = async (notification) => {
       notifications.value.splice(index, 1);
     }
   } catch (error) {
+    console.error('Failed to delete notification:', error);
   }
 };
 

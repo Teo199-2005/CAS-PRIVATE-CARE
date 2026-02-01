@@ -369,9 +369,10 @@ class TimeTrackingController extends Controller
             $date = Carbon::parse($session->work_date);
             $dayName = $date->format('D');
             $dateFormatted = $date->format('M j');
+            $dateKey = $date->toDateString();
             
-            if (!isset($weeklyData[$session->work_date])) {
-                $weeklyData[$session->work_date] = [
+            if (!isset($weeklyData[$dateKey])) {
+                $weeklyData[$dateKey] = [
                     'day' => $dayName,
                     'date' => $dateFormatted,
                     'sessions' => [],
@@ -380,12 +381,12 @@ class TimeTrackingController extends Controller
             }
 
             $hours = $session->hours_worked ?? $session->getCurrentDuration();
-            $weeklyData[$session->work_date]['sessions'][] = [
+            $weeklyData[$dateKey]['sessions'][] = [
                 'clock_in' => $session->clock_in_time ? $session->clock_in_time->format('g:i A') : null,
                 'clock_out' => $session->clock_out_time ? $session->clock_out_time->format('g:i A') : 'In Progress',
                 'hours' => $hours
             ];
-            $weeklyData[$session->work_date]['total_hours'] += $hours;
+            $weeklyData[$dateKey]['total_hours'] += $hours;
             $totalHours += $hours;
         }
 
@@ -577,6 +578,95 @@ class TimeTrackingController extends Controller
         return response()->json([
             'weekly_data' => array_values($weeklyData),
             'total_hours' => round($totalHours, 2)
+        ]);
+    }
+
+    /**
+     * Admin: Update a time tracking entry
+     */
+    public function update(Request $request, $id)
+    {
+        // Verify admin access
+        $user = auth()->user();
+        if (!$user || !in_array($user->role, ['admin', 'admin_staff'])) {
+            return response()->json(['error' => 'Unauthorized'], 403);
+        }
+
+        $timeTracking = TimeTracking::findOrFail($id);
+
+        $validated = $request->validate([
+            'clock_in_time' => 'nullable|date',
+            'clock_out_time' => 'nullable|date|after:clock_in_time',
+            'hours_worked' => 'nullable|numeric|min:0',
+            'status' => 'nullable|in:active,completed,cancelled',
+            'notes' => 'nullable|string|max:1000'
+        ]);
+
+        // Update the record
+        if (isset($validated['clock_in_time'])) {
+            $timeTracking->clock_in_time = Carbon::parse($validated['clock_in_time']);
+        }
+
+        if (isset($validated['clock_out_time'])) {
+            $timeTracking->clock_out_time = Carbon::parse($validated['clock_out_time']);
+            // Recalculate hours if clock_out changed
+            if ($timeTracking->clock_in_time) {
+                $timeTracking->hours_worked = $timeTracking->clock_in_time->diffInMinutes($timeTracking->clock_out_time) / 60;
+            }
+            $timeTracking->status = 'completed';
+        }
+
+        if (isset($validated['hours_worked'])) {
+            $timeTracking->hours_worked = $validated['hours_worked'];
+        }
+
+        if (isset($validated['status'])) {
+            $timeTracking->status = $validated['status'];
+        }
+
+        if (isset($validated['notes'])) {
+            $timeTracking->notes = $validated['notes'];
+        }
+
+        $timeTracking->save();
+
+        // Recalculate earnings if hours changed and provider exists
+        if ($timeTracking->hours_worked > 0 && ($timeTracking->caregiver_id || $timeTracking->housekeeper_id)) {
+            $this->calculateEarnings($timeTracking);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Time entry updated successfully',
+            'data' => $timeTracking->fresh()
+        ]);
+    }
+
+    /**
+     * Admin: Delete a time tracking entry
+     */
+    public function destroy($id)
+    {
+        // Verify admin access
+        $user = auth()->user();
+        if (!$user || !in_array($user->role, ['admin', 'admin_staff'])) {
+            return response()->json(['error' => 'Unauthorized'], 403);
+        }
+
+        $timeTracking = TimeTracking::findOrFail($id);
+
+        // Don't allow deleting paid entries
+        if ($timeTracking->paid_at) {
+            return response()->json([
+                'error' => 'Cannot delete paid time entries'
+            ], 400);
+        }
+
+        $timeTracking->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Time entry deleted successfully'
         ]);
     }
 }

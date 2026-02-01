@@ -78,8 +78,56 @@
       </v-card>
     </v-dialog>
 
-    <!-- Email Verification Banner -->
-    <email-verification-banner :user-data="userData" />
+    <!-- Error Modal -->
+    <v-dialog v-model="showErrorModal" max-width="500">
+      <v-card class="error-modal-card" elevation="8">
+        <v-card-title class="error-modal-header pa-6">
+          <div class="d-flex align-center">
+            <v-icon color="white" size="32" class="mr-3">mdi-alert-circle</v-icon>
+            <span class="text-h5 font-weight-bold text-white">Validation Error</span>
+          </div>
+        </v-card-title>
+        <v-card-text class="pa-6">
+          <div class="mb-4 text-center">
+            <v-icon color="error" size="64">mdi-alert-circle-outline</v-icon>
+          </div>
+          <p class="text-h6 mb-4 text-center" style="color: #1e293b;">Please fix the following errors:</p>
+          <v-alert type="error" variant="tonal" class="mb-0">
+            <div v-if="Array.isArray(errorMessages)" class="error-list">
+              <div v-for="(error, index) in errorMessages" :key="index" class="error-item mb-2">
+                <v-icon size="16" class="mr-2">mdi-alert</v-icon>
+                {{ error }}
+              </div>
+            </div>
+            <div v-else class="error-item">
+              <v-icon size="16" class="mr-2">mdi-alert</v-icon>
+              {{ errorMessages }}
+            </div>
+          </v-alert>
+        </v-card-text>
+        <v-card-actions class="pa-6 pt-0">
+          <v-spacer></v-spacer>
+          <v-btn
+            color="error"
+            variant="flat"
+            size="large"
+            prepend-icon="mdi-close"
+            @click="showErrorModal = false"
+          >
+            Close
+          </v-btn>
+          <v-spacer></v-spacer>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <!-- Email Verification Modal (blocks dashboard until verified via OTP) -->
+    <email-verification-modal
+      v-if="!isEmailVerified && userEmail"
+      :user-email="userEmail"
+      :is-verified="isEmailVerified"
+      @verified="handleEmailVerified"
+    />
 
     <!-- Recurring Renewal Countdown Banner -->
     <recurring-renewal-countdown @navigate-to-section="currentSection = $event" />
@@ -697,7 +745,11 @@
                             v-model="bookingData.zipcode" 
                             variant="outlined" 
                             density="comfortable" 
-                            :rules="[v => !!v || 'ZIP code is required', v => /^\d{5}$/.test(v) || 'Please enter a valid 5-digit ZIP code']"
+                            :rules="[
+                              v => !!v || 'ZIP code is required',
+                              v => /^\d{5}$/.test(v) || 'Enter a 5-digit ZIP code',
+                              v => /^(00501|00544|06390|1[0-4]\d{3})$/.test(v) || 'Must be a NY ZIP (10xxx-14xxx)'
+                            ]"
                             placeholder="Enter ZIP code"
                             class="professional-field"
                             maxlength="5"
@@ -1782,7 +1834,7 @@
         <div v-if="currentSection === 'payment' && selectedBooking">
           <v-card elevation="0" class="mb-6">
             <v-card-title class="card-header pa-8 d-flex align-center">
-              <v-btn icon="mdi-arrow-left" variant="text" @click="currentSection = 'dashboard'" class="mr-3"></v-btn>
+              <v-btn icon="mdi-arrow-left" variant="text" @click="currentSection = 'dashboard'" class="mr-3" aria-label="Go back to dashboard"></v-btn>
               <span class="section-title primary--text">Complete Payment</span>
             </v-card-title>
             <v-card-text class="pa-8">
@@ -1946,13 +1998,13 @@
                 <v-card-text class="pa-8">
                   <v-row>
                     <v-col cols="12" md="6">
-                      <v-text-field v-model="profileData.firstName" label="First Name" variant="outlined" @update:model-value="profileData.firstName = filterLettersOnly(profileData.firstName)" />
+                      <v-text-field v-model="profileData.firstName" label="First Name" variant="outlined" required @update:model-value="profileData.firstName = filterLettersOnly(profileData.firstName)" />
                     </v-col>
                     <v-col cols="12" md="6">
-                      <v-text-field v-model="profileData.lastName" label="Last Name" variant="outlined" @update:model-value="profileData.lastName = filterLettersOnly(profileData.lastName)" />
+                      <v-text-field v-model="profileData.lastName" label="Last Name" variant="outlined" required @update:model-value="profileData.lastName = filterLettersOnly(profileData.lastName)" />
                     </v-col>
                     <v-col cols="12" md="6">
-                      <v-text-field v-model="profileData.email" label="Email" variant="outlined" type="email" readonly>
+                      <v-text-field v-model="profileData.email" label="Email" variant="outlined" type="email" required readonly>
                         <template v-slot:append-inner>
                           <v-tooltip :text="userData?.email_verified_at ? 'Email Verified' : 'Email Not Verified'" location="top">
                             <template v-slot:activator="{ props }">
@@ -1969,33 +2021,38 @@
                       </v-text-field>
                     </v-col>
                     <v-col cols="12" md="6">
-                      <v-text-field v-model="profileData.phone" label="Phone" variant="outlined" type="tel" inputmode="tel" />
+                      <v-text-field v-model="profileData.phone" label="Phone" variant="outlined" type="tel" inputmode="tel" required />
                     </v-col>
                     <v-col cols="12" md="6">
-                      <v-text-field v-model="profileData.birthdate" label="Birthdate" variant="outlined" type="date" />
+                      <v-text-field v-model="profileData.birthdate" label="Birthdate" variant="outlined" type="date" required />
                     </v-col>
                     <v-col cols="12" md="6">
                       <v-text-field :model-value="age" label="Age" variant="outlined" readonly />
                     </v-col>
                     <v-col cols="12">
-                      <v-text-field v-model="profileData.address" label="Address" variant="outlined" />
+                      <v-text-field v-model="profileData.address" label="Address" variant="outlined" required />
                     </v-col>
                     <v-col cols="12" md="6">
-                      <v-select v-model="profileData.county" :items="counties" label="County/Borough" variant="outlined" @update:model-value="onProfileCountyChange" />
+                      <v-select v-model="profileData.county" :items="counties" label="County/Borough" variant="outlined" required @update:model-value="onProfileCountyChange" />
                     </v-col>
                     <v-col cols="12" md="6">
-                      <v-select v-model="profileData.city" :items="profileAvailableCities" label="City" variant="outlined" :disabled="!profileData.county" />
+                      <v-select v-model="profileData.city" :items="profileAvailableCities" label="City" variant="outlined" required :disabled="!profileData.county" />
                     </v-col>
                     <v-col cols="12" md="3">
                       <v-text-field :model-value="'New York'" label="State" variant="outlined" readonly />
                     </v-col>
                     <v-col cols="12" md="3">
-                      <v-text-field 
-                        v-model="profileData.zip" 
-                        label="ZIP Code" 
+                      <v-text-field
+                        v-model="profileData.zip"
+                        label="ZIP Code"
                         variant="outlined"
+                        required
                         maxlength="5"
-                        :rules="[v => !v || /^\d{5}$/.test(v) || 'Please enter a valid 5-digit ZIP code']"
+                        :rules="[
+                          v => !!v || 'ZIP Code is required',
+                          v => /^\d{5}$/.test(v) || 'Enter a 5-digit ZIP code',
+                          v => /^(00501|00544|06390|1[0-4]\d{3})$/.test(v) || 'Must be a NY ZIP (10xxx-14xxx)'
+                        ]"
                         @input="lookupProfileZipCode"
                         @blur="lookupProfileZipCode"
                       >
@@ -2003,7 +2060,7 @@
                           <v-icon>mdi-map-marker</v-icon>
                         </template>
                       </v-text-field>
-                      <div v-if="profileZipLocation" class="zip-location-display mt-1">
+                      <div v-if="profileZipLocation" :class="['zip-location-display', 'mt-1', profileZipLocation.includes('Not a NY') ? 'text-error' : '']">
                         {{ profileZipLocation }}
                       </div>
                     </v-col>
@@ -2018,7 +2075,7 @@
                 <v-card-text class="pa-8 text-center">
                   <div class="position-relative d-inline-block mb-4">
                     <v-avatar size="120" color="primary">
-                      <img v-if="userAvatar && userAvatar.length > 0" :src="userAvatar" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;" @error="userAvatar = ''" />
+                      <img v-if="userAvatar && userAvatar.length > 0" :src="userAvatar" :alt="`${profile.firstName} ${profile.lastName}'s profile photo`" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;" @error="userAvatar = ''" />
                       <span v-else class="text-h3 font-weight-bold text-white">{{ userInitials }}</span>
                     </v-avatar>
                     <v-btn 
@@ -2028,6 +2085,7 @@
                       class="avatar-upload-btn"
                       style="position: absolute; bottom: 0; right: 0;"
                       @click="triggerAvatarUpload"
+                      aria-label="Upload profile photo"
                       :loading="uploadingAvatar"
                     >
                       <v-icon size="small">mdi-camera</v-icon>
@@ -2037,6 +2095,7 @@
                       type="file" 
                       accept="image/jpeg,image/png,image/jpg,image/gif" 
                       style="display: none;" 
+                      aria-label="Select profile photo to upload"
                       @change="uploadAvatar"
                     />
                   </div>
@@ -2080,16 +2139,16 @@
         <v-card-text class="pa-6">
           <v-row>
             <v-col cols="12">
-              <v-text-field label="Card Number" variant="outlined" placeholder="1234 5678 9012 3456" />
+              <v-text-field label="Card Number" variant="outlined" />
             </v-col>
             <v-col cols="12">
-              <v-text-field label="Card Holder Name" variant="outlined" placeholder="John Doe" />
+              <v-text-field label="Card Holder Name" variant="outlined" />
             </v-col>
             <v-col cols="12" md="6">
-              <v-text-field label="Expiry Date" variant="outlined" placeholder="MM/YY" />
+              <v-text-field label="Expiry Date (MM/YY)" variant="outlined" />
             </v-col>
             <v-col cols="12" md="6">
-              <v-text-field label="CVV" variant="outlined" placeholder="123" type="password" />
+              <v-text-field label="CVV" variant="outlined" type="password" />
             </v-col>
             <v-col cols="12">
               <v-checkbox label="Set as default payment method" />
@@ -2475,7 +2534,7 @@
         <v-card-text class="pa-4 pa-sm-6">
           <v-row>
             <v-col cols="12" md="6">
-              <v-select v-model="editBookingData.serviceType" :items="['Caregiver', 'Housekeeping', 'Elderly Care', 'Personal Care', 'Childcare', 'Companion Care']" label="Service Type" variant="outlined" />
+              <v-select v-model="editBookingData.serviceType" :items="['Caregiver', 'Housekeeping']" label="Service Type" variant="outlined" />
             </v-col>
             <v-col cols="12" md="6">
               <v-select v-model="editBookingData.dutyType" :items="['8 Hours per Day', '12 Hours per Day', '24 Hours per Day']" label="Hours per Day" variant="outlined" />
@@ -2755,12 +2814,14 @@
     <!-- Pending Booking Restriction Modal -->
     <v-dialog v-model="showPendingRestrictionModal" max-width="600" persistent>
       <v-card class="restriction-modal-card" style="border-radius: 16px; overflow: hidden;">
-        <!-- Header with Branding -->
-        <v-card-title class="pending-restriction-header">
+        <!-- Header with Branding - Dynamic color based on booking type -->
+        <v-card-title :class="bookingRestrictionType === 'approved' ? 'approved-restriction-header' : 'pending-restriction-header'">
           <div class="d-flex align-center gap-3 restriction-header-content">
             <img src="/logo flower.png" alt="CAS Private Care" class="restriction-logo" />
             <div>
-              <h2 class="restriction-title">Booking Currently Unavailable</h2>
+              <h2 class="restriction-title">
+                {{ bookingRestrictionType === 'approved' ? 'Active Contract in Progress' : 'Booking Currently Unavailable' }}
+              </h2>
               <p class="restriction-subtitle">One booking at a time policy</p>
             </div>
           </div>
@@ -2878,6 +2939,44 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
+
+    <!-- Profile Picture Success Modal -->
+    <v-dialog 
+      v-model="showAvatarSuccessModal" 
+      max-width="400"
+      persistent
+    >
+      <v-card class="avatar-success-modal text-center pa-6">
+        <div class="success-animation-container">
+          <div class="success-checkmark">
+            <div class="check-icon">
+              <span class="icon-line line-tip"></span>
+              <span class="icon-line line-long"></span>
+              <div class="icon-circle"></div>
+              <div class="icon-fix"></div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="success-modal-title">Success!</div>
+        
+        <div class="success-modal-message">
+          Your profile picture has been updated successfully.
+        </div>
+        
+        <v-card-actions class="justify-center pt-6 pb-2">
+          <v-btn 
+            color="primary" 
+            variant="flat" 
+            size="large"
+            min-width="150"
+            @click="closeAvatarSuccessModal"
+          >
+            Done
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </dashboard-template>
 </template>
 
@@ -2888,7 +2987,8 @@ import StatCard from './shared/StatCard.vue';
 import BrowseCaregivers from './BrowseCaregivers.vue';
 import NotificationCenter from './shared/NotificationCenter.vue';
 import NotificationToast from './shared/NotificationToast.vue';
-import EmailVerificationBanner from './EmailVerificationBanner.vue';
+import EmailVerificationModal from './EmailVerificationModal.vue';
+import { useEmailVerification } from '../composables/useEmailVerification';
 import RatingModal from './shared/RatingModal.vue';
 import ClientPaymentMethods from './ClientPaymentMethods.vue';
 import RecurringBookingsManager from './RecurringBookingsManager.vue';
@@ -2912,6 +3012,13 @@ const props = defineProps({
 const { notification, success, error, info, warning } = useNotification();
 const { counties, getCitiesForCounty, loadNYLocationData } = useNYLocationData();
 
+// Email verification
+const { isVerified: isEmailVerified, userEmail, checkVerificationStatus } = useEmailVerification();
+const handleEmailVerified = () => {
+  checkVerificationStatus();
+  window.location.reload();
+};
+
 // Computed properties for user display
 const userName = computed(() => {
   return props.userData?.name || 'User';
@@ -2934,9 +3041,9 @@ const welcomeMessage = computed(() => {
 const memberSince = computed(() => {
   if (props.userData?.created_at) {
     const date = new Date(props.userData.created_at);
-    return date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
   }
-  return 'Jan 2024';
+  return 'N/A';
 });
 
 // API URL with client ID for authenticated requests
@@ -2962,9 +3069,15 @@ const availableCities = computed(() => {
   return getCitiesForCounty(bookingData.value.county);
 });
 
+// Include current profile city so saved/API values always display (permanent fix for city not showing after load).
 const profileAvailableCities = computed(() => {
   if (!profileData.value.county) return [];
-  return getCitiesForCounty(profileData.value.county);
+  const list = getCitiesForCounty(profileData.value.county) || [];
+  const current = profileData.value.city?.trim();
+  if (!current) return list;
+  const inList = list.some((c) => String(c).trim().toLowerCase() === current.toLowerCase());
+  if (!inList) return [current, ...list];
+  return list;
 });
 
 const zipCodeLocation = ref('');
@@ -3232,6 +3345,35 @@ const zipCodeMap = {
   '10710': 'Yonkers, NY',
 };
 
+/**
+ * NY ZIP Code Validation Helper
+ * Valid NY ZIPs: 10xxx-14xxx range OR special cases (00501, 00544, 06390)
+ */
+const isValidNYZip = (zip) => {
+  if (!zip) return false;
+  const nyZipRegex = /^(00501|00544|06390|1[0-4]\d{3})(-\d{4})?$/;
+  return nyZipRegex.test(zip);
+};
+
+/**
+ * Get NY region based on ZIP prefix for fallback
+ */
+const getNYRegionFromZip = (zip) => {
+  if (!zip || !isValidNYZip(zip)) return null;
+  const prefix = parseInt(zip.substring(0, 3), 10);
+  if (prefix >= 100 && prefix <= 102) return 'Manhattan, NY';
+  if (prefix === 103) return 'Staten Island, NY';
+  if (prefix === 104) return 'Bronx, NY';
+  if (prefix >= 105 && prefix <= 109) return 'Westchester, NY';
+  if (prefix >= 110 && prefix <= 111) return 'Long Island, NY';
+  if (prefix === 112) return 'Brooklyn, NY';
+  if (prefix >= 113 && prefix <= 119) return 'Long Island, NY';
+  if (prefix >= 120 && prefix <= 129) return 'Capital Region, NY';
+  if (prefix >= 130 && prefix <= 139) return 'Central NY';
+  if (prefix >= 140 && prefix <= 149) return 'Western NY';
+  return 'New York, NY';
+};
+
 const lookupZipCode = async () => {
   const zip = bookingData.value.zipcode;
   
@@ -3240,7 +3382,13 @@ const lookupZipCode = async () => {
     return;
   }
 
-  // Try API lookup first (supports all NY ZIP codes)
+  // Client-side NY ZIP validation FIRST
+  if (!isValidNYZip(zip)) {
+    zipCodeLocation.value = 'Not a NY ZIP (must be 10xxx-14xxx)';
+    return;
+  }
+
+  // Try API lookup (supports all NY ZIP codes)
   try {
     zipCodeLocation.value = 'Looking up location…';
     const response = await fetch(`/api/zipcode-lookup/${zip}`);
@@ -3253,12 +3401,12 @@ const lookupZipCode = async () => {
       }
     }
     
-    // API returned error or no location found
-    zipCodeLocation.value = 'ZIP not found';
+    // Fallback to region for valid NY ZIPs
+    zipCodeLocation.value = zipCodeMap[zip] || getNYRegionFromZip(zip) || 'New York, NY';
   } catch (error) {
     console.error('ZIP code lookup error:', error);
-    // Fallback to static map
-    zipCodeLocation.value = zipCodeMap[zip] || 'ZIP not found';
+    // Fallback to static map or region
+    zipCodeLocation.value = zipCodeMap[zip] || getNYRegionFromZip(zip) || 'New York, NY';
   }
 };
 
@@ -3270,7 +3418,13 @@ const lookupProfileZipCode = async () => {
     return;
   }
 
-  // Try API lookup first (supports all NY ZIP codes)
+  // Client-side NY ZIP validation FIRST
+  if (!isValidNYZip(zip)) {
+    profileZipLocation.value = 'Not a NY ZIP (must be 10xxx-14xxx)';
+    return;
+  }
+
+  // Try API lookup (supports all NY ZIP codes)
   try {
     profileZipLocation.value = 'Looking up location…';
     const response = await fetch(`/api/zipcode-lookup/${zip}`);
@@ -3283,17 +3437,25 @@ const lookupProfileZipCode = async () => {
       }
     }
     
-    // API returned error or no location found
-    profileZipLocation.value = 'ZIP not found';
+    // Fallback to region for valid NY ZIPs
+    profileZipLocation.value = zipCodeMap[zip] || getNYRegionFromZip(zip) || 'New York, NY';
   } catch (error) {
     console.error('Profile ZIP code lookup error:', error);
-    // Fallback to static map
-    profileZipLocation.value = zipCodeMap[zip] || 'ZIP not found';
+    // Fallback to static map or region
+    profileZipLocation.value = zipCodeMap[zip] || getNYRegionFromZip(zip) || 'New York, NY';
   }
-};;
+};
 
+// Permanent: only reset city when user changes county and current city is not valid for the new county (do not clear on profile load).
 const onProfileCountyChange = (county) => {
-  profileData.value.city = ''; // Reset city when county changes
+  if (!county) return;
+  const citiesForCounty = getCitiesForCounty(county) || [];
+  const currentCity = profileData.value.city?.trim();
+  if (!currentCity) return;
+  const cityValidForCounty = citiesForCounty.some((c) => String(c).trim().toLowerCase() === currentCity.toLowerCase());
+  if (!cityValidForCounty) {
+    profileData.value.city = '';
+  }
 };
 
 // Filter to allow only letters and spaces for name fields
@@ -3364,6 +3526,11 @@ const avatarInput = ref(null);
 const userAvatar = ref('');
 const uploadingAvatar = ref(false);
 const userId = ref(null);
+const showAvatarSuccessModal = ref(false);
+
+const closeAvatarSuccessModal = () => {
+  showAvatarSuccessModal.value = false;
+};
 
 const profileData = ref({
   firstName: '',
@@ -3837,6 +4004,10 @@ const bookingMaintenanceEnabled = ref(false);
 const bookingMaintenanceMessage = ref('Our booking system is currently under maintenance. Please try again later.');
 const showMaintenanceModal = ref(false);
 
+// Error Modal State
+const showErrorModal = ref(false);
+const errorMessages = ref([]);
+
 // Load booking maintenance status
 const loadBookingMaintenanceStatus = async () => {
   try {
@@ -4013,16 +4184,9 @@ const loadCompletedBookings = async () => {
         });
     }
   } catch (error) {
-    // Fallback data for demo
-    completedBookings.value = [
-      {
-        id: 3,
-        service: 'Personal Care',
-        caregiver: 'Sarah Williams',
-        date: 'Dec 15, 2024',
-        caregiverImage: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100&h=100&fit=crop'
-      }
-    ];
+    // Don't use fallback data - just show empty state
+    console.error('Failed to load completed bookings:', error);
+    completedBookings.value = [];
   }
 };
 
@@ -4169,11 +4333,14 @@ const submitBooking = async () => {
     
     const response = await fetch('/api/bookings', {
       method: 'POST',
+      credentials: 'include',
       headers: {
         'Content-Type': 'application/json',
-  'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-  // Client-side idempotency to prevent accidental double-click submissions
-  'X-Idempotency-Key': bookingSubmitIdempotencyKey.value
+        'Accept': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest',
+        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+        // Client-side idempotency to prevent accidental double-click submissions
+        'X-Idempotency-Key': bookingSubmitIdempotencyKey.value
       },
       body: JSON.stringify({
         service_type: bookingData.value.serviceType,
@@ -4498,8 +4665,7 @@ const processPayment = () => {
   selectedBooking.value = null;
   currentSection.value = 'dashboard';
   // Reload bookings to reflect any status changes
-  loadPendingBookings();
-  loadConfirmedBookings();
+  loadMyBookings();
   loadCompletedBookings();
 };
 
@@ -5168,11 +5334,12 @@ const loadProfile = async () => {
         birthdate: data.user.date_of_birth || ''
       };
     } else {
-      // Fallback data if no user found
+      // No user found - show empty profile
+      console.error('No user data returned from API');
       profileData.value = {
-        firstName: 'John',
-        lastName: 'Doe',
-        email: 'client@demo.com',
+        firstName: '',
+        lastName: '',
+        email: '',
         phone: '',
         address: '',
         city: '',
@@ -5183,11 +5350,12 @@ const loadProfile = async () => {
       };
     }
   } catch (error) {
-    // Fallback data on error
+    // Error fetching profile - show empty state
+    console.error('Failed to load profile:', error);
     profileData.value = {
-      firstName: 'John',
-      lastName: 'Doe', 
-      email: 'client@demo.com',
+      firstName: '',
+      lastName: '', 
+      email: '',
       phone: '',
       address: '',
       city: '',
@@ -5206,15 +5374,16 @@ const saveProfile = async () => {
       return;
     }
     
-    // Build payload, only including fields with values
+    // Permanent: explicitly send city/county/borough so they always persist.
     const payload = {
       name: `${profileData.value.firstName} ${profileData.value.lastName}`.trim(),
       email: profileData.value.email || null,
       address: profileData.value.address || null,
-      city: profileData.value.city || null,
-      borough: profileData.value.county || null,
+      city: profileData.value.city ?? null,
+      county: profileData.value.county ?? null,
+      borough: profileData.value.county ?? null,
       state: profileData.value.state || 'New York',
-      zip_code: profileData.value.zip || null,
+      zip_code: profileData.value.zip ?? null,
       date_of_birth: profileData.value.birthdate || null
     };
     
@@ -5239,9 +5408,22 @@ const saveProfile = async () => {
       let errorMessage = 'Failed to save profile';
       try {
         const data = await response.json();
-        // Handle Laravel validation errors (data.error can be an object)
-        if (data.error && typeof data.error === 'object') {
-          // Format validation errors
+        console.log('Validation error response:', data); // Debug log
+
+        // Handle Laravel validation errors (data.errors is an object with field names as keys)
+        if (data.errors && typeof data.errors === 'object') {
+          // Format validation errors as array
+          const errors = [];
+          for (const [field, messages] of Object.entries(data.errors)) {
+            if (Array.isArray(messages)) {
+              errors.push(...messages);
+            } else {
+              errors.push(messages);
+            }
+          }
+          errorMessages.value = errors.length > 0 ? errors : [errorMessage];
+        } else if (data.error && typeof data.error === 'object') {
+          // Fallback for old error format
           const errors = [];
           for (const [field, messages] of Object.entries(data.error)) {
             if (Array.isArray(messages)) {
@@ -5250,19 +5432,20 @@ const saveProfile = async () => {
               errors.push(messages);
             }
           }
-          errorMessage = errors.join(', ') || errorMessage;
+          errorMessages.value = errors.length > 0 ? errors : [errorMessage];
         } else {
-          errorMessage = data.error || data.message || errorMessage;
+          errorMessages.value = [data.message || data.error || errorMessage];
         }
       } catch (e) {
         // If response is not JSON, use status text
-        errorMessage = response.statusText || errorMessage;
+        errorMessages.value = [response.statusText || errorMessage];
       }
-      alert('Error: ' + errorMessage);
+      showErrorModal.value = true;
     }
   } catch (error) {
     const errorMessage = error?.message || error?.toString() || 'Unknown error occurred';
-    alert('Error saving profile: ' + errorMessage);
+    errorMessages.value = ['Error saving profile: ' + errorMessage];
+    showErrorModal.value = true;
   }
 };
 
@@ -5311,7 +5494,7 @@ const uploadAvatar = async (event) => {
     
     if (response.ok && data.success) {
       userAvatar.value = data.avatar;
-      success('Profile picture updated successfully!');
+      showAvatarSuccessModal.value = true;
     } else {
       alert('Error: ' + (data.error || 'Failed to upload avatar'));
     }
@@ -5399,54 +5582,73 @@ const handleNotificationAction = (action) => {
 const appliedReferralCodeId = ref(null);
 const referralCodeError = ref('');
 
+const getCsrfToken = () => {
+  const meta = document.querySelector('meta[name="csrf-token"]');
+  if (meta?.getAttribute('content')) return meta.getAttribute('content');
+  const match = document.cookie.match(/XSRF-TOKEN=([^;]+)/);
+  if (match) {
+    try {
+      return decodeURIComponent(match[1]);
+    } catch (_) {
+      return '';
+    }
+  }
+  return '';
+};
+
 const applyReferralCode = async () => {
   if (!bookingData.value.referralCode) {
     return;
   }
   
-  // Clear previous error
   referralCodeError.value = '';
-  
-  const code = bookingData.value.referralCode.toUpperCase().trim();
+  const rawCode = String(bookingData.value.referralCode).trim();
+  const code = rawCode.toUpperCase().replace(/\s+/g, '');
   
   try {
     const response = await fetch('/api/referral-codes/validate', {
       method: 'POST',
+      credentials: 'include',
       headers: {
         'Content-Type': 'application/json',
-        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+        'Accept': 'application/json',
+        'X-CSRF-TOKEN': getCsrfToken(),
+        'X-XSRF-TOKEN': getCsrfToken()
       },
       body: JSON.stringify({ code })
     });
     
-    const data = await response.json();
+    let data;
+    const contentType = response.headers.get('content-type');
+    try {
+      data = contentType?.includes('application/json') ? await response.json() : {};
+    } catch (_) {
+      data = {};
+    }
     
-    if (data.valid) {
-      // Pricing with referral: Caregiver $28 + Agency $10.50 + Marketing $1 + Training $0.50 = $40/hr
-      // Without referral: Caregiver $28 + Agency $16.50 + Training $0.50 = $45/hr
-      // Discount: $45 - $40 = $5/hr
-      referralDiscount.value = parseFloat(data.data.discount_per_hour) || 5.00;
-      appliedReferralCodeId.value = data.data.id;
+    if (response.ok && data.valid) {
+      referralDiscount.value = parseFloat(data.data?.discount_per_hour) || 5.00;
+      appliedReferralCodeId.value = data.data?.id ?? null;
       referralCodeError.value = '';
       success(`Referral code "${code}" applied successfully! You'll receive $${referralDiscount.value.toFixed(2)} off per hour.`);
-    } else {
-      referralDiscount.value = 0;
-      appliedReferralCodeId.value = null;
-      const errorMessage = data.message || 'Invalid referral code. Please check and try again.';
-      referralCodeError.value = errorMessage;
-      // Removed duplicate error toast - inline alert is shown instead
+      return;
     }
+    
+    referralDiscount.value = 0;
+    appliedReferralCodeId.value = null;
+    if (response.status === 419) {
+      referralCodeError.value = 'Session expired. Please refresh the page and try again.';
+      return;
+    }
+    if (response.status === 401 || response.status === 403) {
+      referralCodeError.value = 'Please log in again to apply a referral code.';
+      return;
+    }
+    referralCodeError.value = data.message || 'Invalid referral code. Please check and try again.';
   } catch (err) {
-    // Fallback to static validation for demo purposes
-    const validCodes = ['SAVE10', 'WELCOME20', 'FRIEND15', 'CARE25'];
-    if (validCodes.includes(code)) {
-      referralDiscount.value = 5.00;
-      referralCodeError.value = '';
-      success(`Referral code "${code}" applied successfully! You'll receive $5.00 off per hour.`);
-    } else {
-      referralCodeError.value = 'Invalid referral code. Please check and try again.';
-      // Removed duplicate error toast - inline alert is shown instead
-    }
+    referralDiscount.value = 0;
+    appliedReferralCodeId.value = null;
+    referralCodeError.value = 'Invalid referral code. Please check and try again.';
   }
 };
 
@@ -5552,11 +5754,9 @@ onMounted(async () => {
   
   // Ensure progress shows 100%
   loadingProgress.value = 100;
-  
-  // Small delay to show completion, then hide overlay
-  setTimeout(() => {
-    isPageLoading.value = false;
-  }, 300);
+
+  // Hide overlay immediately
+  isPageLoading.value = false;
   
   // Check if returning from successful payment
   const paymentCompleted = localStorage.getItem('payment_completed');
@@ -8376,10 +8576,20 @@ const initSpendingChart = () => {
   }
 }
 
+/* Orange header for pending bookings */
 .pending-restriction-header {
   background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
   color: white;
-  padding: 24px !important;
+  padding: 20px 24px !important;
+  overflow: visible;
+}
+
+/* Green header for approved/active contracts */
+.approved-restriction-header {
+  background: linear-gradient(135deg, #4caf50 0%, #2e7d32 100%);
+  color: white;
+  padding: 20px 24px !important;
+  overflow: visible;
 }
 
 .restriction-header-content {
@@ -8387,11 +8597,13 @@ const initSpendingChart = () => {
   flex-wrap: nowrap;
   min-width: 0;
   width: 100%;
+  align-items: flex-start !important;
 }
 
 .restriction-header-content > div {
   min-width: 0;
   flex: 1;
+  overflow: hidden;
 }
 
 @keyframes headerFadeIn {
@@ -8428,12 +8640,14 @@ const initSpendingChart = () => {
 }
 
 .restriction-title {
-  font-size: 1.5rem;
+  font-size: 1.35rem;
   font-weight: 700;
   margin: 0;
-  line-height: 1.2;
+  line-height: 1.3;
   word-wrap: break-word;
   overflow-wrap: break-word;
+  white-space: normal;
+  max-width: 100%;
 }
 
 .restriction-subtitle {
@@ -8658,7 +8872,8 @@ const initSpendingChart = () => {
 
 /* Responsive styles for Restriction Modal */
 @media (max-width: 600px) {
-  .pending-restriction-header {
+  .pending-restriction-header,
+  .approved-restriction-header {
     padding: 16px !important;
   }
 
@@ -8715,7 +8930,8 @@ const initSpendingChart = () => {
     margin: 8px !important;
   }
 
-  .pending-restriction-header {
+  .pending-restriction-header,
+  .approved-restriction-header {
     padding: 12px !important;
   }
 
@@ -9112,6 +9328,28 @@ button:focus-visible {
   background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
 }
 
+/* Error Modal Styles */
+.error-modal-card {
+  border-radius: 16px !important;
+  overflow: hidden;
+}
+
+.error-modal-header {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+}
+
+.error-list {
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.error-item {
+  display: flex;
+  align-items: flex-start;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
 /* ============================================
    TABLE SCROLL INDICATORS
    ============================================ */
@@ -9129,6 +9367,151 @@ button:focus-visible {
     background-size: 60px 100%, 60px 100%, 15px 100%, 15px 100% !important;
     background-attachment: local, local, scroll, scroll !important;
   }
+}
+
+/* Avatar Success Modal Styles */
+.avatar-success-modal {
+  border-radius: 16px !important;
+  overflow: hidden;
+  animation: modalSlideIn 0.3s ease-out;
+}
+
+.success-modal-title {
+  font-size: 1.5rem !important;
+  font-weight: 700 !important;
+  color: #2e7d32 !important;
+  text-align: center;
+  margin-top: 16px;
+}
+
+.success-modal-message {
+  font-size: 1rem !important;
+  color: #616161 !important;
+  text-align: center;
+  padding: 8px 24px 0 24px;
+}
+
+.success-animation-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding-top: 20px;
+}
+
+.success-checkmark {
+  width: 80px;
+  height: 80px;
+  position: relative;
+}
+
+.success-checkmark .check-icon {
+  width: 80px;
+  height: 80px;
+  position: relative;
+  border-radius: 50%;
+  box-sizing: content-box;
+  border: 4px solid #4CAF50;
+}
+
+.success-checkmark .check-icon::before {
+  top: 3px;
+  left: -2px;
+  width: 30px;
+  transform-origin: 100% 50%;
+  border-radius: 100px 0 0 100px;
+}
+
+.success-checkmark .check-icon::after {
+  top: 0;
+  left: 30px;
+  width: 60px;
+  transform-origin: 0 50%;
+  border-radius: 0 100px 100px 0;
+  animation: rotate-circle 4.25s ease-in;
+}
+
+.success-checkmark .check-icon::before,
+.success-checkmark .check-icon::after {
+  content: '';
+  height: 100px;
+  position: absolute;
+  background: #FFFFFF;
+  transform: rotate(-45deg);
+}
+
+.success-checkmark .check-icon .icon-line {
+  height: 5px;
+  background-color: #4CAF50;
+  display: block;
+  border-radius: 2px;
+  position: absolute;
+  z-index: 10;
+}
+
+.success-checkmark .check-icon .icon-line.line-tip {
+  top: 46px;
+  left: 14px;
+  width: 25px;
+  transform: rotate(45deg);
+  animation: icon-line-tip 0.75s;
+}
+
+.success-checkmark .check-icon .icon-line.line-long {
+  top: 38px;
+  right: 8px;
+  width: 47px;
+  transform: rotate(-45deg);
+  animation: icon-line-long 0.75s;
+}
+
+.success-checkmark .check-icon .icon-circle {
+  top: -4px;
+  left: -4px;
+  z-index: 10;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  position: absolute;
+  box-sizing: content-box;
+  border: 4px solid rgba(76, 175, 80, 0.5);
+}
+
+.success-checkmark .check-icon .icon-fix {
+  top: 8px;
+  width: 5px;
+  left: 26px;
+  z-index: 1;
+  height: 85px;
+  position: absolute;
+  transform: rotate(-45deg);
+  background-color: #FFFFFF;
+}
+
+@keyframes rotate-circle {
+  0% { transform: rotate(-45deg); }
+  5% { transform: rotate(-45deg); }
+  12% { transform: rotate(-405deg); }
+  100% { transform: rotate(-405deg); }
+}
+
+@keyframes icon-line-tip {
+  0% { width: 0; left: 1px; top: 19px; }
+  54% { width: 0; left: 1px; top: 19px; }
+  70% { width: 50px; left: -8px; top: 37px; }
+  84% { width: 17px; left: 21px; top: 48px; }
+  100% { width: 25px; left: 14px; top: 46px; }
+}
+
+@keyframes icon-line-long {
+  0% { width: 0; right: 46px; top: 54px; }
+  65% { width: 0; right: 46px; top: 54px; }
+  84% { width: 55px; right: 0px; top: 35px; }
+  100% { width: 47px; right: 8px; top: 38px; }
+}
+
+@keyframes modalSlideIn {
+  0% { opacity: 0; transform: scale(0.8) translateY(-20px); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
 }
 </style>
 

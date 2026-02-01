@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Booking;
 use App\Models\BookingAssignment;
 use App\Models\Caregiver;
+use App\Http\Traits\ApiResponseTrait;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -13,6 +14,7 @@ use Dompdf\Options;
 
 class CaregiverController extends Controller
 {
+    use ApiResponseTrait;
     public function availableClients()
     {
         // Fetch all pending bookings with client user data

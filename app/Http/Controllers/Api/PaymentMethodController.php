@@ -3,12 +3,15 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Traits\ApiResponseTrait;
 use App\Models\PaymentMethod;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class PaymentMethodController extends Controller
 {
+    use ApiResponseTrait;
+
     /**
      * Get all payment methods for the authenticated user
      */
@@ -17,10 +20,7 @@ class PaymentMethodController extends Controller
         $user = Auth::user();
         
         if (!$user) {
-            return response()->json([
-                'success' => false,
-                'message' => 'User not authenticated'
-            ], 401);
+            return $this->unauthorizedResponse('User not authenticated');
         }
 
         $paymentMethods = PaymentMethod::where('user_id', $user->id)
@@ -51,10 +51,7 @@ class PaymentMethodController extends Controller
                 }
             });
 
-        return response()->json([
-            'success' => true,
-            'payment_methods' => $paymentMethods
-        ]);
+        return $this->successResponse(['payment_methods' => $paymentMethods]);
     }
 
     /**
@@ -65,10 +62,7 @@ class PaymentMethodController extends Controller
         $user = Auth::user();
         
         if (!$user) {
-            return response()->json([
-                'success' => false,
-                'message' => 'User not authenticated'
-            ], 401);
+            return $this->unauthorizedResponse('User not authenticated');
         }
 
         $validated = $request->validate([
@@ -96,11 +90,10 @@ class PaymentMethodController extends Controller
             ['user_id' => $user->id]
         ));
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Payment method added successfully',
-            'payment_method' => $paymentMethod
-        ]);
+        return $this->createdResponse(
+            ['payment_method' => $paymentMethod],
+            'Payment method added successfully'
+        );
     }
 
     /**
@@ -111,10 +104,7 @@ class PaymentMethodController extends Controller
         $user = Auth::user();
         
         if (!$user) {
-            return response()->json([
-                'success' => false,
-                'message' => 'User not authenticated'
-            ], 401);
+            return $this->unauthorizedResponse('User not authenticated');
         }
 
         $paymentMethod = PaymentMethod::where('user_id', $user->id)
@@ -135,11 +125,10 @@ class PaymentMethodController extends Controller
             'is_default'
         ]));
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Payment method updated successfully',
-            'payment_method' => $paymentMethod
-        ]);
+        return $this->successResponse(
+            ['payment_method' => $paymentMethod],
+            'Payment method updated successfully'
+        );
     }
 
     /**
@@ -150,10 +139,7 @@ class PaymentMethodController extends Controller
         $user = Auth::user();
         
         if (!$user) {
-            return response()->json([
-                'success' => false,
-                'message' => 'User not authenticated'
-            ], 401);
+            return $this->unauthorizedResponse('User not authenticated');
         }
 
         $paymentMethod = PaymentMethod::where('user_id', $user->id)
@@ -162,10 +148,7 @@ class PaymentMethodController extends Controller
 
         $paymentMethod->delete();
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Payment method deleted successfully'
-        ]);
+        return $this->successResponse([], 'Payment method deleted successfully');
     }
 
     /**
@@ -176,10 +159,7 @@ class PaymentMethodController extends Controller
         $user = Auth::user();
         
         if (!$user) {
-            return response()->json([
-                'success' => false,
-                'message' => 'User not authenticated'
-            ], 401);
+            return $this->unauthorizedResponse('User not authenticated');
         }
 
         // Unset all defaults
@@ -193,9 +173,6 @@ class PaymentMethodController extends Controller
             
         $paymentMethod->update(['is_default' => true]);
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Default payment method updated'
-        ]);
+        return $this->successResponse([], 'Default payment method updated');
     }
 }

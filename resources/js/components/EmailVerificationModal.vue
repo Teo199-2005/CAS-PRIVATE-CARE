@@ -9,6 +9,18 @@
       <v-card-text class="pa-6">
         <v-alert v-if="error" type="error" variant="tonal" class="mb-4">
           {{ error }}
+          <template v-if="error.includes('refresh') || error.includes('Session')">
+            <v-btn 
+              color="error" 
+              variant="text" 
+              size="small" 
+              class="mt-2"
+              @click="refreshPage"
+            >
+              <v-icon start size="small">mdi-refresh</v-icon>
+              Refresh Page
+            </v-btn>
+          </template>
         </v-alert>
         
         <v-alert v-if="success" type="success" variant="tonal" class="mb-4">
@@ -115,11 +127,24 @@ export default {
       try {
         const response = await fetch('/api/auth/send-otp', {
           method: 'POST',
+          credentials: 'include',
           headers: {
             'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '',
+            'X-Requested-With': 'XMLHttpRequest',
+            'Accept': 'application/json'
           }
         });
+        
+        // Handle non-JSON responses
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+          if (response.status === 419) {
+            this.error = 'Session expired. Please refresh the page.';
+            return;
+          }
+          throw new Error('Server error');
+        }
         
         const data = await response.json();
         
@@ -128,10 +153,26 @@ export default {
           this.success = data.message;
           this.startCountdown();
         } else {
-          this.error = data.message || 'Failed to send OTP';
+          // If email is already verified, close modal and emit verified
+          if (data.message && data.message.includes('already verified')) {
+            this.success = 'Email verified!';
+            setTimeout(() => {
+              this.showModal = false;
+              this.$emit('verified');
+            }, 500);
+          } else if (data.message && (data.message.includes('CSRF') || data.message.includes('token mismatch'))) {
+            this.error = 'Session expired. Please refresh the page and try again.';
+          } else {
+            this.error = data.message || 'Failed to send OTP';
+          }
         }
       } catch (err) {
-        this.error = 'Network error. Please try again.';
+        console.error('Send OTP error:', err);
+        if (err.message && err.message.includes('CSRF')) {
+          this.error = 'Session expired. Please refresh the page and try again.';
+        } else {
+          this.error = 'Something went wrong. Please refresh and try again.';
+        }
       } finally {
         this.loading = false;
       }
@@ -147,12 +188,25 @@ export default {
       try {
         const response = await fetch('/api/auth/verify-otp', {
           method: 'POST',
+          credentials: 'include',
           headers: {
             'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '',
+            'X-Requested-With': 'XMLHttpRequest',
+            'Accept': 'application/json'
           },
           body: JSON.stringify({ otp: this.otp })
         });
+        
+        // Handle non-JSON responses
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+          if (response.status === 419) {
+            this.error = 'Session expired. Please refresh the page.';
+            return;
+          }
+          throw new Error('Server error');
+        }
         
         const data = await response.json();
         
@@ -168,7 +222,8 @@ export default {
           this.otp = '';
         }
       } catch (err) {
-        this.error = 'Network error. Please try again.';
+        console.error('Verify OTP error:', err);
+        this.error = 'Something went wrong. Please refresh and try again.';
       } finally {
         this.loading = false;
       }
@@ -187,6 +242,10 @@ export default {
           clearInterval(this.countdownInterval);
         }
       }, 1000);
+    },
+    
+    refreshPage() {
+      window.location.reload();
     }
   },
   beforeUnmount() {

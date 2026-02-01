@@ -13,15 +13,22 @@ use App\Models\Caregiver;
 use App\Models\PasswordReset;
 use App\Rules\ValidPhoneNumber;
 use App\Rules\ValidNYPhoneNumber;
+use App\Rules\ValidNYZipCode;
 use App\Services\NotificationService;
 use App\Services\EmailService;
 use App\Services\LoginThrottleService;
 use App\Services\AuditLogService;
+use App\Http\Traits\ApiResponseTrait;
 use Illuminate\Support\Str;
 use Carbon\Carbon;
 
 class AuthController extends Controller
 {
+    use ApiResponseTrait;
+    
+    /**
+     * Handle login - supports both AJAX (JSON) and traditional form submission
+     */
     public function login(Request $request)
     {
         $credentials = $request->validate([
@@ -31,6 +38,7 @@ class AuthController extends Controller
 
         $email = $credentials['email'];
         $ip = $request->ip();
+        $wantsJson = $request->expectsJson() || $request->ajax();
 
         // Check for account lockout before attempting login
         $lockoutStatus = LoginThrottleService::isLockedOut($email, $ip);
@@ -42,6 +50,14 @@ class AuthController extends Controller
                 null,
                 ['email' => $email, 'blocked' => true, 'reason' => 'account_locked']
             );
+            
+            if ($wantsJson) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $lockoutStatus['message']
+                ], 429);
+            }
+            
             return back()->withErrors([
                 'email' => $lockoutStatus['message']
             ])->withInput();
@@ -59,7 +75,17 @@ class AuthController extends Controller
                 Auth::logout();
                 $request->session()->invalidate();
                 $request->session()->regenerateToken();
-                return back()->withErrors(['email' => 'Your application has been rejected. Please contact support for more information.'])->withInput();
+                
+                $errorMsg = 'Your application has been rejected. Please contact support for more information.';
+                
+                if ($wantsJson) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => $errorMsg
+                    ], 403);
+                }
+                
+                return back()->withErrors(['email' => $errorMsg])->withInput();
             }
             
             // Normalize status - set null status to 'pending' for partner accounts
@@ -70,6 +96,9 @@ class AuthController extends Controller
             // Allow login for ALL statuses (pending, Active, approved) - restrictions are handled in dashboard
             // Log successful login
             AuditLogService::logLogin($user, true);
+
+            // Determine redirect URL based on user type
+            $redirectUrl = $this->getRedirectUrl($user, $request);
 
             if ($user->user_type === 'admin') {
                 // Generate session token for admin users (single session enforcement)
@@ -82,29 +111,25 @@ class AuthController extends Controller
                     ]);
                     session(['admin_session_token' => $sessionToken]);
                 }
-                
-                // Check if user has Admin Staff role
-                if ($user->role === 'Admin Staff') {
-                    return redirect('/admin-staff/dashboard-vue');
-                }
-                return redirect('/admin/dashboard-vue');
-            } elseif ($user->user_type === 'caregiver') {
-                return redirect('/caregiver/dashboard-vue');
-            } elseif ($user->user_type === 'housekeeper') {
-                return redirect('/housekeeper/dashboard-vue');
-            } elseif ($user->user_type === 'marketing') {
-                return redirect('/marketing/dashboard-vue');
-            } elseif (in_array($user->user_type, ['training', 'training_center'])) {
-                return redirect('/training/dashboard-vue');
-            } else {
-                // Client - check for redirect parameter
-                $redirectUrl = $request->input('redirect') ?? session('url.intended');
-                if ($redirectUrl && str_starts_with($redirectUrl, '/')) {
-                    session()->forget('url.intended');
-                    return redirect($redirectUrl);
-                }
-                return redirect('/client/dashboard-vue');
             }
+            
+            // Return JSON response for AJAX requests
+            if ($wantsJson) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Login successful',
+                    'user' => [
+                        'id' => $user->id,
+                        'name' => $user->name,
+                        'email' => $user->email,
+                        'role' => $user->role,
+                        'user_type' => $user->user_type
+                    ],
+                    'redirect' => $redirectUrl
+                ]);
+            }
+            
+            return redirect($redirectUrl);
         }
 
         // Record failed login attempt
@@ -124,7 +149,40 @@ class AuthController extends Controller
             $errorMessage = "Invalid credentials. {$throttleResult['remaining']} attempts remaining before account lockout.";
         }
 
+        if ($wantsJson) {
+            return response()->json([
+                'success' => false,
+                'message' => $errorMessage
+            ], 401);
+        }
+
         return back()->withErrors(['email' => $errorMessage])->withInput();
+    }
+    
+    /**
+     * Get redirect URL based on user type
+     */
+    private function getRedirectUrl($user, $request)
+    {
+        // Check for redirect parameter first
+        $redirectUrl = $request->input('redirect') ?? session('url.intended');
+        if ($redirectUrl && str_starts_with($redirectUrl, '/')) {
+            session()->forget('url.intended');
+            return $redirectUrl;
+        }
+        
+        // Default redirects based on user type
+        $redirects = [
+            'admin' => $user->role === 'Admin Staff' ? '/admin-staff/dashboard-vue' : '/admin/dashboard-vue',
+            'caregiver' => '/caregiver/dashboard-vue',
+            'housekeeper' => '/housekeeper/dashboard-vue',
+            'marketing' => '/marketing/dashboard-vue',
+            'training' => '/training/dashboard-vue',
+            'training_center' => '/training/dashboard-vue',
+            'client' => '/client/dashboard-vue'
+        ];
+        
+        return $redirects[$user->user_type] ?? '/client/dashboard-vue';
     }
 
     public function register(Request $request)
@@ -135,21 +193,21 @@ class AuthController extends Controller
             'last_name' => 'required|string|max:255|regex:/^[a-zA-Z\s\-\']+$/',
             'email' => ['required', 'email', 'max:255', 'unique:users', 'regex:/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/'],
             'phone' => ['required', new ValidNYPhoneNumber],
-            'zip_code' => ['required', 'string', 'regex:/^\d{5}$/', 'max:5'],
+            'zip_code' => ['required', 'string', 'max:10', new ValidNYZipCode],
             'password' => session('oauth_user') ? 'nullable' : [
                 'required',
-                'min:8',
+                'min:12',
                 'max:255',
                 'confirmed',
-                'regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/',
+                new \App\Rules\StrongPassword(12, true),
             ],
             'user_type' => 'required|in:client,caregiver,housekeeper,marketing,training_center',
             'partner_type' => 'nullable|in:caregiver,housekeeper,housekeeping,personal_assistant,marketing_partner,training_center',
             'terms' => 'required|accepted'
         ], [
-            'password.regex' => 'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character (@$!%*?&).',
-            'password.min' => 'Password must be at least 8 characters long.',
-            'zip_code.regex' => 'Please enter a valid 5-digit ZIP code.'
+            'password.min' => 'Password must be at least 12 characters long.',
+            'zip_code.regex' => 'Please enter a valid 5-digit ZIP code.',
+            'email.unique' => 'This email is already registered. Please log in or use Forgot password.',
         ]);
         
         // Map partner_type to user_type if provided (for partner registrations)
@@ -391,13 +449,12 @@ class AuthController extends Controller
             'email' => 'required|email',
             'password' => [
                 'required',
-                'min:8',
+                'min:12',
                 'confirmed',
-                'regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/',
+                new \App\Rules\StrongPassword(12, true),
             ],
         ], [
-            'password.regex' => 'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character (@$!%*?&).',
-            'password.min' => 'Password must be at least 8 characters long.',
+            'password.min' => 'Password must be at least 12 characters long.',
         ]);
         
         // Verify token

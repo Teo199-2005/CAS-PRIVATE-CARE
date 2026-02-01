@@ -229,21 +229,39 @@
 
             <div class="location-grid">
                 <div class="location-card">
-                    <img src="https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=600" alt="Manhattan" class="location-image">
+                    <x-responsive-image 
+                        src="https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=600" 
+                        alt="Manhattan Personal Assistants" 
+                        class="location-image"
+                        :widths="[400, 600, 800]"
+                        sizes="(max-width: 768px) 100vw, 33vw"
+                    />
                     <div class="location-content">
                         <h3>Manhattan Assistants</h3>
                         <p style="color: #64748b;">Professional personal assistants serving all Manhattan areas</p>
                     </div>
                 </div>
                 <div class="location-card">
-                    <img src="https://images.unsplash.com/photo-1527515637462-cff94eecc1ac?w=600" alt="Brooklyn" class="location-image">
+                    <x-responsive-image 
+                        src="https://images.unsplash.com/photo-1527515637462-cff94eecc1ac?w=600" 
+                        alt="Brooklyn Personal Assistants" 
+                        class="location-image"
+                        :widths="[400, 600, 800]"
+                        sizes="(max-width: 768px) 100vw, 33vw"
+                    />
                     <div class="location-content">
                         <h3>Brooklyn Assistants</h3>
                         <p style="color: #64748b;">Trusted personal support throughout Brooklyn</p>
                     </div>
                 </div>
                 <div class="location-card">
-                    <img src="https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=600" alt="Queens" class="location-image">
+                    <x-responsive-image 
+                        src="https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=600" 
+                        alt="Queens Personal Assistants" 
+                        class="location-image"
+                        :widths="[400, 600, 800]"
+                        sizes="(max-width: 768px) 100vw, 33vw"
+                    />
                     <div class="location-content">
                         <h3>Queens Assistants</h3>
                         <p style="color: #64748b;">Reliable personal assistants across Queens</p>

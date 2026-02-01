@@ -75,7 +75,8 @@
             line-height: 1.6;
             color: #1e293b;
             overflow-x: hidden;
-            background: #f8fafc;
+            background-color: #ffffff;
+            background-image: url("https://www.transparenttextures.com/patterns/batthern.png");
         }
 
         /* Animations */
@@ -268,7 +269,8 @@
         /* Services Section */
         .services-section {
             padding: 6rem 2rem;
-            background: white;
+            background-color: #ffffff;
+            background-image: url("https://www.transparenttextures.com/patterns/batthern.png");
         }
 
         .container {
@@ -434,7 +436,8 @@
         /* Why Choose Us Section */
         .why-section {
             padding: 6rem 2rem;
-            background: linear-gradient(135deg, #f8fafc 0%, #e0f2fe 100%);
+            background-color: #dbeafe;
+            background-image: url("https://www.transparenttextures.com/patterns/dotnoise-light-grey.png");
         }
 
         .why-grid {
@@ -657,7 +660,11 @@
             border-color: white;
         }
 
-        /* Responsive */
+        /* =============================================================
+           MOBILE RESPONSIVE DESIGN - Services Page
+           ============================================================= */
+        
+        /* Tablets (769px - 1024px) */
         @media (max-width: 1024px) {
             .services-grid {
                 grid-template-columns: 1fr;
@@ -677,83 +684,312 @@
             }
         }
 
+        /* Standard Mobile (768px) */
         @media (max-width: 768px) {
+            /* Hero Section */
             .services-hero {
-                padding: 5rem 1.5rem;
+                margin-top: 70px;
+                padding: 3rem 1.25rem;
             }
             
             .services-hero h1 {
-                font-size: 2.5rem;
+                font-size: 2rem;
+                line-height: 1.2;
+                margin-bottom: 1rem;
+            }
+            
+            .services-hero h1 span {
+                display: inline;
+            }
+            
+            .services-hero > .hero-content > p {
+                font-size: 0.95rem;
+                line-height: 1.6;
+            }
+            
+            .hero-badge {
+                padding: 0.5rem 1rem;
+                font-size: 0.85rem;
+                margin-bottom: 1rem;
             }
             
             /* Hero stats 2x2 grid on mobile */
             .hero-stats {
                 display: grid;
                 grid-template-columns: repeat(2, 1fr);
-                gap: 1.25rem;
+                gap: 0.75rem;
                 max-width: 320px;
-                margin: 0 auto;
+                margin: 1.5rem auto 0;
             }
             
             .hero-stat {
                 text-align: center;
                 padding: 0.75rem 0.5rem;
-                background: rgba(255, 255, 255, 0.1);
+                background: rgba(255, 255, 255, 0.12);
                 border-radius: 12px;
                 backdrop-filter: blur(10px);
             }
             
             .hero-stat-value {
-                font-size: 1.5rem;
+                font-size: 1.35rem;
+                font-weight: 700;
             }
             
             .hero-stat-label {
-                font-size: 0.75rem;
+                font-size: 0.7rem;
+            }
+            
+            /* Section Styles */
+            section {
+                padding: 3rem 1.25rem;
             }
             
             .section-header h2 {
-                font-size: 2rem;
+                font-size: 1.5rem;
+                line-height: 1.3;
             }
             
+            .section-header p {
+                font-size: 0.9rem;
+            }
+            
+            /* Service Cards - Stack on mobile */
+            .services-grid {
+                gap: 1.5rem;
+            }
+            
+            .service-card {
+                border-radius: 16px;
+            }
+            
+            .service-card-image {
+                height: 180px;
+            }
+            
+            .service-card-content {
+                padding: 1.5rem;
+            }
+            
+            .service-card-content h3 {
+                font-size: 1.25rem;
+            }
+            
+            .service-card-content p {
+                font-size: 0.9rem;
+            }
+            
+            .service-features {
+                gap: 0.5rem;
+            }
+            
+            .service-feature {
+                font-size: 0.8rem;
+                padding: 0.375rem 0.625rem;
+            }
+            
+            .service-card-btn {
+                padding: 0.75rem 1.25rem;
+                font-size: 0.9rem;
+            }
+            
+            /* Why Choose Grid - 2x2 */
             .why-grid {
-                grid-template-columns: 1fr;
+                grid-template-columns: repeat(2, 1fr);
+                gap: 0.75rem;
+            }
+            
+            .why-card {
+                padding: 1.25rem 1rem;
+                border-radius: 12px;
+            }
+            
+            .why-card h3 {
+                font-size: 0.9rem;
+                margin-bottom: 0.25rem;
+            }
+            
+            .why-card p {
+                font-size: 0.8rem;
+                line-height: 1.4;
+                display: -webkit-box;
+                -webkit-line-clamp: 3;
+                -webkit-box-orient: vertical;
+                overflow: hidden;
+            }
+            
+            .why-icon {
+                width: 44px;
+                height: 44px;
+                margin-bottom: 0.75rem;
+            }
+            
+            .why-icon i {
+                font-size: 1.1rem;
+            }
+            
+            /* Process Timeline */
+            .process-timeline {
+                gap: 1.5rem;
+            }
+            
+            .process-step {
+                padding: 1.25rem;
+            }
+            
+            .process-step h4 {
+                font-size: 1rem;
+            }
+            
+            .process-step p {
+                font-size: 0.85rem;
+            }
+            
+            /* CTA Section */
+            .cta-section {
+                padding: 3rem 1.25rem;
             }
             
             .cta-section h2 {
-                font-size: 2rem;
+                font-size: 1.75rem;
+            }
+            
+            .cta-section p {
+                font-size: 1rem;
             }
             
             .cta-buttons {
                 flex-direction: column;
+                gap: 0.75rem;
+            }
+            
+            .cta-buttons a {
+                width: 100%;
+                padding: 0.875rem 1.5rem;
+                font-size: 0.95rem;
+                text-align: center;
+                justify-content: center;
             }
         }
         
+        /* Small Phones (480px) */
         @media (max-width: 480px) {
+            .services-hero {
+                padding: 2.5rem 1rem;
+            }
+            
+            .services-hero h1 {
+                font-size: 1.75rem;
+            }
+            
             .hero-stats {
-                gap: 0.75rem;
+                gap: 0.5rem;
                 max-width: 280px;
             }
             
             .hero-stat {
-                padding: 0.5rem;
+                padding: 0.625rem 0.375rem;
             }
             
             .hero-stat-value {
-                font-size: 1.25rem;
+                font-size: 1.2rem;
             }
             
             .hero-stat-label {
-                font-size: 0.625rem;
+                font-size: 0.6rem;
             }
+            
+            section {
+                padding: 2.5rem 1rem;
+            }
+            
+            .section-header h2 {
+                font-size: 1.35rem;
+            }
+            
+            .service-card-content {
+                padding: 1.25rem;
+            }
+            
+            .service-card-content h3 {
+                font-size: 1.1rem;
+            }
+            
+            .why-grid {
+                gap: 0.5rem;
+            }
+            
+            .why-card {
+                padding: 1rem 0.75rem;
+            }
+            
+            .why-card h3 {
+                font-size: 0.85rem;
+            }
+            
+            .why-card p {
+                font-size: 0.75rem;
+                -webkit-line-clamp: 2;
+            }
+            
+            .why-icon {
+                width: 38px;
+                height: 38px;
+            }
+        }
+        
+        /* Very Small Phones (360px) */
+        @media (max-width: 360px) {
+            .services-hero h1 {
+                font-size: 1.5rem;
+            }
+            
+            .hero-stat-value {
+                font-size: 1.1rem;
+            }
+            
+            .hero-stat-label {
+                font-size: 0.55rem;
+            }
+            
+            .section-header h2 {
+                font-size: 1.2rem;
+            }
+            
+            .why-card h3 {
+                font-size: 0.8rem;
+            }
+        }
+
+        /* Skip Link for Accessibility */
+        .skip-link {
+            position: absolute;
+            top: -40px;
+            left: 0;
+            background: #1e40af;
+            color: white;
+            padding: 8px 16px;
+            z-index: 10000;
+            text-decoration: none;
+            font-weight: 600;
+            border-radius: 0 0 4px 0;
+            transition: top 0.3s ease;
+        }
+        .skip-link:focus {
+            top: 0;
+            outline: 2px solid #fbbf24;
+            outline-offset: 2px;
         }
     </style>
 </head>
 <body>
+    <!-- Skip Link for Accessibility -->
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+
     @include('partials.navigation')
     
     @include('partials.trust-strip')
 
-    <main>
+    <main id="main-content" role="main" tabindex="-1">
         <!-- Hero Section -->
         <section class="services-hero">
             <div class="hero-content">

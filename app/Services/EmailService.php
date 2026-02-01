@@ -12,6 +12,7 @@ use App\Mail\WelcomeEmail;
 use App\Mail\PayoutConfirmationEmail;
 use App\Mail\PayoutPendingEmail;
 use App\Mail\PayoutFailedEmail;
+use App\Mail\OTPVerificationEmail;
 use App\Models\User;
 use App\Models\Booking;
 use Illuminate\Support\Facades\Mail;
@@ -146,24 +147,7 @@ class EmailService
     public static function sendOTPEmail(User $user, string $otp): void
     {
         try {
-            $subject = 'Email Verification - Your OTP Code';
-            $message = "
-                <h2>Email Verification</h2>
-                <p>Hello {$user->name},</p>
-                <p>Your OTP code for email verification is:</p>
-                <h1 style='font-size: 32px; letter-spacing: 5px; color: #4F46E5;'>{$otp}</h1>
-                <p>This code will expire in 10 minutes.</p>
-                <p>If you didn't request this code, please ignore this email.</p>
-                <br>
-                <p>Best regards,<br>CAS Private Care Team</p>
-            ";
-            
-            Mail::send([], [], function ($mail) use ($user, $subject, $message) {
-                $mail->to($user->email)
-                    ->subject($subject)
-                    ->html($message);
-            });
-            
+            Mail::to($user->email)->send(new OTPVerificationEmail($user, $otp));
             Log::info("OTP email sent to {$user->email}");
         } catch (\Exception $e) {
             Log::error("Failed to send OTP email to {$user->email}: " . $e->getMessage());

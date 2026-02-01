@@ -1,0 +1,909 @@
+openapi: 3.0.3
+info:
+  title: CAS Private Care API
+  description: |
+    RESTful API for CAS Private Care LLC - a comprehensive home care management platform.
+    
+    ## Authentication
+    Most endpoints require authentication using Laravel Sanctum tokens.
+    Include the token in the Authorization header: `Bearer <token>`
+    
+    ## Rate Limiting
+    - Standard endpoints: 60 requests/minute
+    - Payment endpoints: 5 requests/minute (to prevent carding attacks)
+    - Read-only payment endpoints: 30 requests/minute
+    
+    ## Response Format
+    All API responses follow a consistent format:
+    ```json
+    {
+      "success": true,
+      "data": { ... },
+      "message": "Operation completed"
+    }
+    ```
+    
+    Error responses:
+    ```json
+    {
+      "success": false,
+      "error": "Error description",
+      "errors": { "field": ["validation message"] }
+    }
+    ```
+  version: 1.0.0
+  contact:
+    name: CAS Private Care Support
+    email: support@casprivatecare.com
+  license:
+    name: Proprietary
+    url: https://casprivatecare.com/terms
+
+servers:
+  - url: /api
+    description: Production API
+
+tags:
+  - name: Authentication
+    description: User authentication and registration
+  - name: Profile
+    description: User profile management
+  - name: Bookings
+    description: Booking management
+  - name: Caregivers
+    description: Caregiver-specific endpoints
+  - name: Housekeepers
+    description: Housekeeper-specific endpoints
+  - name: Payments
+    description: Payment and subscription management
+  - name: Admin
+    description: Administrative endpoints
+  - name: Location
+    description: NY location data
+  - name: Webhooks
+    description: External service webhooks
+
+paths:
+  # ==========================================
+  # PUBLIC ENDPOINTS
+  # ==========================================
+  /zipcode-lookup/{zip}:
+    get:
+      tags:
+        - Location
+      summary: Lookup ZIP code details
+      description: Returns city and county information for a NY ZIP code
+      parameters:
+        - name: zip
+          in: path
+          required: true
+          schema:
+            type: string
+            pattern: '^\d{5}$'
+            example: '10001'
+      responses:
+        '200':
+          description: ZIP code found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      zip:
+                        type: string
+                      city:
+                        type: string
+                      county:
+                        type: string
+                      state:
+                        type: string
+        '404':
+          description: ZIP code not found
+
+  /ny-counties:
+    get:
+      tags:
+        - Location
+      summary: Get NY counties
+      description: Returns a list of New York counties
+      responses:
+        '200':
+          description: Counties list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      type: string
+
+  /ny-cities/{county}:
+    get:
+      tags:
+        - Location
+      summary: Get cities in a county
+      description: Returns cities for a specific NY county
+      parameters:
+        - name: county
+          in: path
+          required: true
+          schema:
+            type: string
+            example: 'New York'
+      responses:
+        '200':
+          description: Cities list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      type: string
+
+  # ==========================================
+  # PROFILE ENDPOINTS
+  # ==========================================
+  /profile:
+    get:
+      tags:
+        - Profile
+      summary: Get current user profile
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: User profile
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfile'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /user/{id}/profile:
+    put:
+      tags:
+        - Profile
+      summary: Update user profile
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                first_name:
+                  type: string
+                last_name:
+                  type: string
+                phone:
+                  type: string
+                address:
+                  type: string
+      responses:
+        '200':
+          description: Profile updated
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /profile/change-password:
+    post:
+      tags:
+        - Profile
+      summary: Change user password
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - current_password
+                - new_password
+                - new_password_confirmation
+              properties:
+                current_password:
+                  type: string
+                  format: password
+                new_password:
+                  type: string
+                  format: password
+                  minLength: 8
+                new_password_confirmation:
+                  type: string
+                  format: password
+      responses:
+        '200':
+          description: Password changed
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          description: Validation error
+
+  # ==========================================
+  # BOOKING ENDPOINTS
+  # ==========================================
+  /bookings/{id}:
+    get:
+      tags:
+        - Bookings
+      summary: Get booking details
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Booking details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Booking'
+        '404':
+          description: Booking not found
+
+  /bookings/update-payment-status:
+    post:
+      tags:
+        - Bookings
+      summary: Update booking payment status
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - booking_id
+                - status
+              properties:
+                booking_id:
+                  type: integer
+                status:
+                  type: string
+                  enum: [pending, paid, failed, refunded]
+      responses:
+        '200':
+          description: Status updated
+
+  # ==========================================
+  # CAREGIVER ENDPOINTS
+  # ==========================================
+  /caregiver/{id}/stats:
+    get:
+      tags:
+        - Caregivers
+      summary: Get caregiver statistics
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Caregiver stats
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  totalBookings:
+                    type: integer
+                  activeBookings:
+                    type: integer
+                  completedBookings:
+                    type: integer
+                  averageRating:
+                    type: number
+                    format: float
+                  totalEarnings:
+                    type: number
+                    format: float
+
+  /caregiver/application-status:
+    get:
+      tags:
+        - Caregivers
+      summary: Check caregiver application status
+      description: Check the status of a caregiver application by email
+      parameters:
+        - name: email
+          in: query
+          required: true
+          schema:
+            type: string
+            format: email
+      responses:
+        '200':
+          description: Application status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      status:
+                        type: string
+                        enum: [pending, approved, rejected, not_found]
+                      message:
+                        type: string
+
+  # ==========================================
+  # HOUSEKEEPER ENDPOINTS
+  # ==========================================
+  /housekeeper/{id}/stats:
+    get:
+      tags:
+        - Housekeepers
+      summary: Get housekeeper statistics
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Housekeeper stats
+
+  /housekeeper/available-clients:
+    get:
+      tags:
+        - Housekeepers
+      summary: Get available clients for housekeeper
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of available clients
+
+  /housekeeper/apply-client/{id}:
+    post:
+      tags:
+        - Housekeepers
+      summary: Apply to work with a client
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Application submitted
+
+  /housekeeper/{id}/earnings:
+    get:
+      tags:
+        - Housekeepers
+      summary: Get housekeeper earnings report
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: start_date
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: end_date
+          in: query
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: Earnings report
+
+  # ==========================================
+  # PAYMENT ENDPOINTS
+  # ==========================================
+  /client/payments/setup-intent:
+    post:
+      tags:
+        - Payments
+      summary: Create Stripe SetupIntent
+      description: Creates a SetupIntent for adding a new payment method
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: SetupIntent created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      clientSecret:
+                        type: string
+
+  /client/payments/methods:
+    get:
+      tags:
+        - Payments
+      summary: List payment methods
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Payment methods list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/PaymentMethod'
+
+  /client/payments/attach:
+    post:
+      tags:
+        - Payments
+      summary: Attach payment method
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - payment_method_id
+              properties:
+                payment_method_id:
+                  type: string
+      responses:
+        '200':
+          description: Payment method attached
+
+  /client/payments/detach/{pmId}:
+    post:
+      tags:
+        - Payments
+      summary: Detach payment method
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: pmId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Payment method detached
+
+  /client/subscriptions:
+    post:
+      tags:
+        - Payments
+      summary: Create subscription
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - booking_id
+                - payment_method_id
+              properties:
+                booking_id:
+                  type: integer
+                payment_method_id:
+                  type: string
+      responses:
+        '200':
+          description: Subscription created
+
+  /client/subscriptions/{id}/cancel:
+    post:
+      tags:
+        - Payments
+      summary: Cancel subscription
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Subscription cancelled
+
+  # ==========================================
+  # ADMIN ENDPOINTS
+  # ==========================================
+  /admin/stats:
+    get:
+      tags:
+        - Admin
+      summary: Get platform statistics
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Platform statistics
+
+  /admin/bookings:
+    get:
+      tags:
+        - Admin
+      summary: Get all bookings
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+        - name: per_page
+          in: query
+          schema:
+            type: integer
+        - name: status
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Paginated bookings list
+
+  /admin/housekeepers:
+    get:
+      tags:
+        - Admin
+      summary: Get all housekeepers
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Housekeepers list
+
+  /admin/client-payments:
+    get:
+      tags:
+        - Admin
+      summary: Get client payment history
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Client payments list
+
+  /admin/platform-payouts:
+    get:
+      tags:
+        - Admin
+      summary: Get platform payout history
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Platform payouts list
+
+  /admin/announcements/send:
+    post:
+      tags:
+        - Admin
+      summary: Send announcement
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - title
+                - message
+                - recipients
+              properties:
+                title:
+                  type: string
+                message:
+                  type: string
+                recipients:
+                  type: string
+                  enum: [all, caregivers, housekeepers, clients]
+      responses:
+        '200':
+          description: Announcement sent
+
+  /admin/booking-maintenance/toggle:
+    post:
+      tags:
+        - Admin
+      summary: Toggle booking maintenance mode
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Maintenance mode toggled
+
+  # ==========================================
+  # WEBHOOK ENDPOINTS
+  # ==========================================
+  /webhooks/stripe:
+    post:
+      tags:
+        - Webhooks
+      summary: Stripe webhook handler
+      description: |
+        Receives and processes Stripe webhook events.
+        
+        Supported events:
+        - invoice.payment_succeeded
+        - invoice.payment_failed
+        - customer.subscription.deleted
+        - customer.subscription.updated
+        - payment_intent.succeeded
+        - payment_intent.payment_failed
+        - charge.dispute.created
+        - charge.dispute.closed
+        - charge.refunded
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: Webhook received
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  received:
+                    type: boolean
+
+  # ==========================================
+  # UTILITY ENDPOINTS
+  # ==========================================
+  /web-vitals:
+    post:
+      tags:
+        - Utility
+      summary: Report Web Vitals metrics
+      description: Receives Core Web Vitals data for performance monitoring
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  enum: [FCP, LCP, FID, CLS, TTFB, INP]
+                value:
+                  type: number
+                rating:
+                  type: string
+                  enum: [good, needs-improvement, poor]
+                page:
+                  type: string
+      responses:
+        '200':
+          description: Metrics recorded
+
+  /booking-maintenance-status:
+    get:
+      tags:
+        - Utility
+      summary: Check booking maintenance status
+      responses:
+        '200':
+          description: Maintenance status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  maintenance_mode:
+                    type: boolean
+                  message:
+                    type: string
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    UserProfile:
+      type: object
+      properties:
+        id:
+          type: integer
+        first_name:
+          type: string
+        last_name:
+          type: string
+        email:
+          type: string
+          format: email
+        phone:
+          type: string
+        role:
+          type: string
+          enum: [client, caregiver, housekeeper, admin, admin_staff]
+        created_at:
+          type: string
+          format: date-time
+
+    Booking:
+      type: object
+      properties:
+        id:
+          type: integer
+        client_id:
+          type: integer
+        service_type:
+          type: string
+          enum: [caregiving, housekeeping]
+        status:
+          type: string
+          enum: [pending, confirmed, in_progress, completed, cancelled]
+        payment_status:
+          type: string
+          enum: [pending, paid, failed, refunded]
+        start_date:
+          type: string
+          format: date
+        end_date:
+          type: string
+          format: date
+        total_amount:
+          type: number
+          format: float
+        created_at:
+          type: string
+          format: date-time
+
+    PaymentMethod:
+      type: object
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+        brand:
+          type: string
+        last4:
+          type: string
+        exp_month:
+          type: integer
+        exp_year:
+          type: integer
+        is_default:
+          type: boolean
+
+  responses:
+    Unauthorized:
+      description: Authentication required
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: false
+              error:
+                type: string
+                example: Unauthorized
+
+    Forbidden:
+      description: Access denied
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: false
+              error:
+                type: string
+                example: Access denied
+
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: false
+              error:
+                type: string
+                example: Resource not found
+
+    ValidationError:
+      description: Validation failed
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: false
+              errors:
+                type: object
+                additionalProperties:
+                  type: array
+                  items:
+                    type: string
+
+security:
+  - bearerAuth: []

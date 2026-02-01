@@ -47,7 +47,7 @@
                 <div class="client-card">
                     <div class="client-header">
                         @if($client['avatar'])
-                            <img src="{{ $client['avatar'] }}" alt="{{ $client['name'] }}" class="client-avatar" style="object-fit:cover; width:50px; height:50px; border-radius:50%;" />
+                            <img src="{{ $client['avatar'] }}" alt="{{ $client['name'] }}" class="client-avatar" style="object-fit:cover; width:50px; height:50px; border-radius:50%;" loading="lazy" decoding="async" />
                         @else
                             <div class="client-avatar">{{ $client['initials'] }}</div>
                         @endif

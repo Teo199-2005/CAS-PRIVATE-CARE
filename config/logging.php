@@ -172,6 +172,15 @@ return [
             'replace_placeholders' => true,
         ],
 
+        // Frontend error logging channel
+        'frontend' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/frontend.log'),
+            'level' => 'debug',
+            'days' => 30,
+            'replace_placeholders' => true,
+        ],
+
     ],
 
 ];

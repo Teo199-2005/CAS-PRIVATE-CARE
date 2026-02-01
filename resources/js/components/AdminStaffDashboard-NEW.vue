@@ -2393,7 +2393,7 @@
                 <v-checkbox v-model="caregiverForm.isCustomTrainingCenter" label="Custom Training Center" density="compact" hide-details />
               </v-col>
               <v-col cols="12" md="6">
-                <v-select v-if="!caregiverForm.isCustomTrainingCenter" v-model="caregiverForm.trainingCenter" :items="caregiverTrainingCenters" label="Training Center" variant="outlined" />
+                <v-select v-if="!caregiverForm.isCustomTrainingCenter" v-model="caregiverForm.trainingCenter" :items="caregiverTrainingCenterOptions" label="Training Center" variant="outlined" no-data-text="No CAS training centers. Use Custom Training Center to enter one." />
                 <v-text-field v-else v-model="caregiverForm.customTrainingCenter" label="Custom Training Center" variant="outlined" />
               </v-col>
               <v-col cols="12" md="6">
@@ -4023,17 +4023,31 @@ const caregiverForm = ref({
   status: 'Active' 
 });
 
-const caregiverTrainingCenters = [
-  'NYC Healthcare Training Institute',
-  'American Red Cross',
-  'National Association for Home Care & Hospice',
-  'Certified Nursing Assistant Training Center',
-  'Home Health Aide Training Academy',
-  'Metropolitan Healthcare Training',
-  'Brooklyn Healthcare Institute',
-  'Queens Medical Training Center',
-  'Bronx Community Health Training'
-];
+// CAS training center partners only (loaded from API)
+const caregiverTrainingCenters = ref([]);
+// Include current form value so selector always shows what training center it is
+const caregiverTrainingCenterOptions = computed(() => {
+  const list = [...(caregiverTrainingCenters.value || [])];
+  const current = (caregiverForm.value?.trainingCenter || '').trim();
+  if (current && !list.includes(current)) list.unshift(current);
+  return list;
+});
+const loadCaregiverTrainingCenters = async () => {
+  try {
+    const response = await fetch('/api/training-centers?active_only=1', {
+      headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
+      credentials: 'include'
+    });
+    const data = await response.json().catch(() => ({}));
+    const centers = Array.isArray(data) ? data : (data.centers || data.training_centers || data.trainingCenters || []);
+    caregiverTrainingCenters.value = (centers || [])
+      .map(c => (typeof c === 'string' ? c : (c?.name || c?.title || '')))
+      .map(s => String(s || '').trim())
+      .filter(Boolean);
+  } catch (e) {
+    caregiverTrainingCenters.value = [];
+  }
+};
 
 const announcementData = ref({
   title: '',
@@ -6673,6 +6687,7 @@ const deleteTrainingCenter = (center) => {
 };
 
 const openCaregiverDialog = (caregiver = null) => {
+  loadCaregiverTrainingCenters(); // Populate Training Center dropdown with CAS partners
   if (caregiver) {
     editingCaregiver.value = true;
     const nameParts = (caregiver.name || '').split(' ');
@@ -8331,27 +8346,44 @@ const countyCityMap = {
   "Yates": ["Penn Yan", "Dresden", "Dundee", "Rushville", "Himrod", "Branchport"]
 };
 
+// Include current form city so saved values display (permanent fix for city not showing after load).
 const clientCities = computed(() => {
   if (!clientForm.value.county) return [];
-  return countyCityMap[clientForm.value.county] || [];
+  const list = countyCityMap[clientForm.value.county] || [];
+  const current = clientForm.value.city?.trim();
+  if (!current) return list;
+  const inList = list.some((c) => String(c).trim().toLowerCase() === current.toLowerCase());
+  if (!inList) return [current, ...list];
+  return list;
 });
 
 const caregiverCities = computed(() => {
   if (!caregiverForm.value.county) return [];
-  return countyCityMap[caregiverForm.value.county] || [];
+  const list = countyCityMap[caregiverForm.value.county] || [];
+  const current = caregiverForm.value.city?.trim();
+  if (!current) return list;
+  const inList = list.some((c) => String(c).trim().toLowerCase() === current.toLowerCase());
+  if (!inList) return [current, ...list];
+  return list;
 });
 
-// Watch for county changes to reset city selection
+// Permanent: only reset city when admin changes county and current city is not valid for the new county.
 watch(() => clientForm.value.county, (newCounty) => {
-  if (newCounty) {
-    clientForm.value.city = ''; // Reset city when county changes
-  }
+  if (!newCounty) return;
+  const list = countyCityMap[newCounty] || [];
+  const current = clientForm.value.city?.trim();
+  if (!current) return;
+  const valid = list.some((c) => String(c).trim().toLowerCase() === current.toLowerCase());
+  if (!valid) clientForm.value.city = '';
 });
 
 watch(() => caregiverForm.value.county, (newCounty) => {
-  if (newCounty) {
-    caregiverForm.value.city = ''; // Reset city when county changes
-  }
+  if (!newCounty) return;
+  const list = countyCityMap[newCounty] || [];
+  const current = caregiverForm.value.city?.trim();
+  if (!current) return;
+  const valid = list.some((c) => String(c).trim().toLowerCase() === current.toLowerCase());
+  if (!valid) caregiverForm.value.city = '';
 });
 
 const callCaregiver = (caregiver) => {

@@ -13,9 +13,14 @@ return [
     | framework. This connection is utilized if another isn't explicitly
     | specified when running a cache operation inside the application.
     |
+    | PERFORMANCE: Redis is the recommended driver for production.
+    | Fallback to 'database' if Redis is not available.
+    |
+    | Set CACHE_STORE=redis in production .env
+    |
     */
 
-    'default' => env('CACHE_STORE', 'database'),
+    'default' => env('CACHE_STORE', 'redis'),
 
     /*
     |--------------------------------------------------------------------------

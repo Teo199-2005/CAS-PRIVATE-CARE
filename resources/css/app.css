@@ -7,6 +7,8 @@
 @import './design-tokens.css';
 @import './animations.css';
 @import './mobile-fixes.css';
+@import './wcag-contrast-fixes.css';
+@import './dark-mode.css';
 
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../storage/framework/views/*.php';
@@ -125,5 +127,86 @@ body {
 .dark-mode ::-webkit-scrollbar-thumb,
 [data-theme="dark"] ::-webkit-scrollbar-thumb {
     background: var(--gray-600);
+}
+
+/* ===========================================
+   Vuetify Input Field Fixes
+   Prevent placeholder/label overlap
+   =========================================== */
+
+/* Hide placeholder when field has value, is focused, or is dirty */
+.v-field--variant-outlined.v-field--active input::placeholder,
+.v-field--variant-outlined.v-field--focused input::placeholder,
+.v-field--variant-outlined.v-field--dirty input::placeholder {
+    opacity: 0 !important;
+    color: transparent !important;
+}
+
+/* Ensure proper spacing for input content */
+.v-field__input {
+    padding-top: 8px !important;
+}
+
+/* Ensure floating labels have background to not overlap border */
+.v-field--active .v-label.v-field-label,
+.v-field--dirty .v-label.v-field-label {
+    background: white;
+    padding: 0 4px;
+}
+
+/* ===========================================
+   Modal/Dialog header readability
+   Prevent white bg + white font (unreadable)
+   =========================================== */
+/* Fallback: any dialog card first title gets colored bg + white text (avoids white-on-white) */
+.v-dialog .v-card > .v-card-title:first-child:not(.terms-header),
+.v-dialog .v-card > .v-card-item:first-child {
+    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%) !important;
+    color: white !important;
+}
+.v-dialog .v-card > .v-card-title:first-child *,
+.v-dialog .v-card > .v-card-title:first-child .v-btn,
+.v-dialog .v-card .card-header *,
+.v-dialog .v-card .assign-dialog-header *,
+.v-dialog .v-card .session-blocked-header *,
+.v-dialog .v-card .error-modal-header *,
+.v-dialog .v-card .maintenance-modal-header * {
+    color: white !important;
+}
+.v-dialog .v-card .terms-header * {
+    color: white !important;
+}
+.v-dialog .v-card .modern-card-header {
+    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%) !important;
+    color: white !important;
+}
+.v-dialog .v-card .modern-card-header * {
+    color: white !important;
+}
+
+/* Mobile: ensure modal headers stay readable (override any mobile-fixes that set white bg) */
+@media (max-width: 768px) {
+    .v-dialog .v-card > .v-card-title:first-child:not(.terms-header),
+    .v-dialog .v-card > .v-card-item:first-child,
+    .v-overlay__content .v-card > .v-card-title:first-child:not(.terms-header),
+    .v-overlay__content .v-card > .v-card-item:first-child {
+        background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%) !important;
+        color: white !important;
+    }
+    .v-dialog .v-card > .v-card-title:first-child *,
+    .v-dialog .v-card > .v-card-title:first-child .v-btn,
+    .v-overlay__content .v-card > .v-card-title:first-child *,
+    .v-overlay__content .v-card > .v-card-title:first-child .v-btn {
+        color: white !important;
+    }
+    .v-dialog--fullscreen .v-card > .v-card-title:first-child:not(.terms-header),
+    .v-dialog--fullscreen .v-card > .v-card-item:first-child {
+        background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%) !important;
+        color: white !important;
+    }
+    .v-dialog--fullscreen .v-card > .v-card-title:first-child *,
+    .v-dialog--fullscreen .v-card > .v-card-title:first-child .v-btn {
+        color: white !important;
+    }
 }
 

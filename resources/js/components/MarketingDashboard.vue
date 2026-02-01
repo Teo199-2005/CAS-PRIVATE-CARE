@@ -28,8 +28,55 @@
     @section-change="currentSection = $event"
     @logout="logout"
   >
-    <!-- Email Verification Banner -->
-    <email-verification-banner />
+        <!-- Error Modal -->
+    <v-dialog v-model="showErrorModal" max-width="500">
+      <v-card class="error-modal-card" elevation="8">
+        <v-card-title class="error-modal-header pa-6">
+          <div class="d-flex align-center">
+            <v-icon color="white" size="32" class="mr-3">mdi-alert-circle</v-icon>
+            <span class="text-h5 font-weight-bold text-white">Validation Error</span>
+          </div>
+        </v-card-title>
+        <v-card-text class="pa-6">
+          <div class="mb-4 text-center">
+            <v-icon color="error" size="64">mdi-alert-circle-outline</v-icon>
+          </div>
+          <p class="text-h6 mb-4 text-center" style="color: #1e293b;">Please fix the following errors:</p>
+          <v-alert type="error" variant="tonal" class="mb-0">
+            <div v-if="Array.isArray(errorMessages)" class="error-list">
+              <div v-for="(error, index) in errorMessages" :key="index" class="error-item mb-2">
+                <v-icon size="16" class="mr-2">mdi-alert</v-icon>
+                {{ error }}
+              </div>
+            </div>
+            <div v-else class="error-item">
+              <v-icon size="16" class="mr-2">mdi-alert</v-icon>
+              {{ errorMessages }}
+            </div>
+          </v-alert>
+        </v-card-text>
+        <v-card-actions class="pa-6 pt-0">
+          <v-spacer></v-spacer>
+          <v-btn 
+            color="error" 
+            variant="flat" 
+            size="large"
+            prepend-icon="mdi-close"
+            @click="showErrorModal = false"
+          >
+            Close
+          </v-btn>
+          <v-spacer></v-spacer>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+<!-- Email Verification Modal (blocks dashboard until verified via OTP) -->
+    <email-verification-modal
+      v-if="!isEmailVerified && userEmail"
+      :user-email="userEmail"
+      :is-verified="isEmailVerified"
+      @verified="handleEmailVerified"
+    />
 
     <!-- Dashboard Section -->
     <div v-if="currentSection === 'dashboard'">
@@ -331,107 +378,210 @@
 
     <!-- Payment Information Section -->
     <div v-if="currentSection === 'payments'">
-      <v-card elevation="0">
-        <v-card-title class="card-header pa-8">
-          <div class="d-flex align-center">
-            <v-icon size="40" color="primary" class="mr-4">mdi-credit-card</v-icon>
-            <div>
-              <div class="section-title primary--text">Commission Payment Information</div>
-              <div class="text-caption text-grey">Connect your bank account to receive weekly commission payouts</div>
-            </div>
-          </div>
-        </v-card-title>
-        <v-card-text class="pa-8">
-          <v-alert
-            color="info"
-            variant="tonal"
-            prominent
-            class="mb-6"
-          >
-            <div class="font-weight-bold mb-2">
-              <v-icon start>mdi-bank</v-icon>
-              Connect Payout Method
-            </div>
-            <p class="mb-4">
-              Connect your bank account via Stripe to receive weekly commission payments ($1/hour per referral).<br>
-              Your payment information is securely encrypted and never shared.
-            </p>
-            <v-btn
-              color="primary"
-              size="large"
-              prepend-icon="mdi-bank"
-              href="/connect-bank-account-marketing"
-              elevation="3"
-              class="text-none font-weight-bold"
-            >
-              Connect Bank Account
-            </v-btn>
-            <div class="text-caption mt-2 text-grey-darken-2">
-              Once enabled, you'll receive automatic weekly payouts directly to your bank account.
-            </div>
-          </v-alert>
-
-          <!-- Commission Summary -->
-          <v-card elevation="2" class="mb-6">
-            <v-card-title class="pa-6 bg-success">
-              <span class="section-title white--text">Commission Summary</span>
+      <v-row>
+        <v-col cols="12" md="8">
+          <v-card elevation="0" class="mb-6">
+            <v-card-title class="card-header pa-8 d-flex justify-space-between align-center">
+              <span class="section-title primary--text">Payout Method</span>
+              <v-btn 
+                v-if="!stripeConnected" 
+                color="primary" 
+                prepend-icon="mdi-wallet-plus" 
+                href="/connect-bank-account-marketing"
+              >
+                Connect Payout Method
+              </v-btn>
+              <v-chip v-else color="success" prepend-icon="mdi-check-circle">
+                Connected
+              </v-chip>
             </v-card-title>
-            <v-card-text class="pa-6">
-              <v-row>
-                <v-col cols="12" md="4">
-                  <div class="text-center py-4">
-                    <span class="summary-label">Total Earned</span>
-                    <div class="summary-value success--text">${{ totalCommission }}</div>
+            <v-card-text class="pa-8">
+              <!-- Payout Method Not Connected -->
+              <div v-if="!stripeConnected" class="text-center py-8">
+                <v-icon size="80" color="grey-lighten-1" class="mb-4">mdi-wallet-outline</v-icon>
+                <h3 class="text-h6 mb-2">Connect Your Payout Method</h3>
+                <p class="text-body-2 text-grey mb-6">
+                  Connect your preferred payout method via Stripe to receive weekly commission payments.<br>
+                  Your payment information is securely encrypted and never shared.
+                </p>
+                
+                <!-- Available Payout Methods -->
+                <v-alert color="info" variant="tonal" class="mb-4 text-left">
+                  <div class="font-weight-bold mb-3">Available Payout Methods:</div>
+                  <div class="d-flex align-center mb-2">
+                    <v-icon color="info" class="mr-2">mdi-bank</v-icon>
+                    <span><strong>Bank Account</strong> - Direct deposit (ACH) to your bank</span>
                   </div>
-                </v-col>
-                <v-col cols="12" md="4">
-                  <div class="text-center py-4">
-                    <span class="summary-label">This Month</span>
-                    <div class="summary-value primary--text">${{ monthlyCommission }}</div>
+                  <div class="d-flex align-center mb-2">
+                    <v-icon color="info" class="mr-2">mdi-credit-card</v-icon>
+                    <span><strong>Debit Card</strong> - Instant transfer to your card</span>
                   </div>
-                </v-col>
-                <v-col cols="12" md="4">
-                  <div class="text-center py-4">
-                    <span class="summary-label">Last Payout</span>
-                    <div class="summary-value grey--text">$0.00</div>
+                </v-alert>
+                
+                <v-btn
+                  color="primary"
+                  size="large"
+                  prepend-icon="mdi-bank"
+                  href="/connect-bank-account-marketing"
+                  elevation="2"
+                  class="text-none font-weight-bold"
+                >
+                  Connect Bank Account
+                </v-btn>
+              </div>
+              
+              <!-- Payout Method Connected -->
+              <v-row v-else>
+                <v-col cols="12">
+                  <div class="bank-account-card-stripe">
+                    <div class="d-flex align-center mb-4">
+                      <v-icon size="48" color="primary" class="mr-4">mdi-wallet</v-icon>
+                      <div class="flex-grow-1">
+                        <div class="text-h6 font-weight-bold">Payout Method Connected</div>
+                        <div class="text-body-2 text-grey">Stripe Connect • Verified</div>
+                      </div>
+                      <v-chip color="success" prepend-icon="mdi-check-circle" size="small">
+                        Active
+                      </v-chip>
+                    </div>
+                    
+                    <v-divider class="my-4"></v-divider>
+                    
+                    <div class="d-flex justify-space-between align-center mb-3">
+                      <span class="text-body-2 text-grey">Payout Method:</span>
+                      <span class="font-weight-medium">{{ payoutMethodName || 'Bank Transfer (ACH)' }}</span>
+                    </div>
+                    
+                    <div class="d-flex justify-space-between align-center mb-3">
+                      <span class="text-body-2 text-grey">Commission Rate:</span>
+                      <span class="font-weight-medium">$1.00 per hour referred</span>
+                    </div>
+                    
+                    <div class="d-flex justify-space-between align-center mb-3">
+                      <span class="text-body-2 text-grey">Payout Schedule:</span>
+                      <span class="font-weight-medium">Weekly (Every Friday)</span>
+                    </div>
+                    
+                    <div class="d-flex justify-space-between align-center mb-3">
+                      <span class="text-body-2 text-grey">Next Payout:</span>
+                      <span class="font-weight-bold primary--text">{{ nextPayoutDate }}</span>
+                    </div>
+                    
+                    <v-divider class="my-4"></v-divider>
+                    
+                    <v-alert type="success" variant="tonal" density="compact">
+                      <div class="d-flex align-center">
+                        <v-icon class="mr-2">mdi-shield-check</v-icon>
+                        <span class="text-body-2">
+                          Your bank account is securely connected via Stripe. Commission payments are transferred automatically every Friday.
+                        </span>
+                      </div>
+                    </v-alert>
+                    
+                    <div class="mt-4 d-flex flex-wrap gap-2">
+                      <v-btn 
+                        color="primary" 
+                        variant="flat" 
+                        size="small"
+                        prepend-icon="mdi-swap-horizontal"
+                        href="/connect-bank-account-marketing"
+                      >
+                        Change Payout Method
+                      </v-btn>
+                      <v-btn 
+                        color="error" 
+                        variant="outlined" 
+                        size="small"
+                        prepend-icon="mdi-link-off"
+                        @click="showRemovePayoutDialog = true"
+                      >
+                        Remove Payout Method
+                      </v-btn>
+                    </div>
                   </div>
                 </v-col>
               </v-row>
             </v-card-text>
           </v-card>
+        </v-col>
 
-          <!-- Payment Settings -->
-          <v-card elevation="2">
-            <v-card-title class="pa-6 bg-grey-lighten-4">
-              <span class="section-title grey--text text--darken-2">Payment Settings</span>
+        <v-col cols="12" md="4">
+          <v-card elevation="0" class="mb-6">
+            <v-card-title class="card-header pa-8">
+              <span class="section-title primary--text">Commission Summary</span>
             </v-card-title>
-            <v-card-text class="pa-6">
-              <v-row>
-                <v-col cols="12" md="6">
-                  <div class="text-body-2 mb-2 font-weight-bold">Payout Frequency</div>
-                  <v-chip color="success" variant="flat">
-                    <v-icon start>mdi-calendar-check</v-icon>
-                    Weekly (Every Friday)
-                  </v-chip>
-                </v-col>
-                <v-col cols="12" md="6">
-                  <div class="text-body-2 mb-2 font-weight-bold">Commission Rate</div>
-                  <v-chip color="primary" variant="flat">
-                    <v-icon start>mdi-cash</v-icon>
-                    $1.00 per hour referred
-                  </v-chip>
-                </v-col>
-              </v-row>
+            <v-card-text class="pa-8">
+              <div class="summary-item" style="margin-bottom: 24px;">
+                <span class="summary-label text-h6">Pending Commission</span>
+                <span class="summary-value text-h4 warning--text">${{ pendingCommission || '0.00' }}</span>
+              </div>
               <v-divider class="my-4" />
-              <div class="text-body-2 text-grey">
-                <v-icon start size="small">mdi-information</v-icon>
-                <strong>How it works:</strong> You earn $1 for every hour of service from clients you refer. 
-                Payments are automatically transferred to your connected bank account every Friday.
+              <div class="summary-item">
+                <span class="summary-label">Total Earned</span>
+                <span class="summary-value success--text">${{ totalCommission }}</span>
+              </div>
+              <div class="summary-item">
+                <span class="summary-label">This Month</span>
+                <span class="summary-value primary--text">${{ monthlyCommission }}</span>
+              </div>
+              <div class="summary-item">
+                <span class="summary-label">Last Payout</span>
+                <span class="summary-value">${{ lastPayoutAmount || '0.00' }}</span>
+              </div>
+              <v-divider class="my-4" />
+              <div class="summary-item">
+                <span class="summary-label">Next Payout</span>
+                <span class="summary-value font-weight-bold">{{ nextPayoutDate }}</span>
+              </div>
+              <v-divider class="my-4" />
+              
+              <!-- Pending Commission Notice -->
+              <div v-if="parseFloat(pendingCommission || 0) > 0" class="mt-4">
+                <v-alert type="info" variant="tonal" density="compact" class="mb-0">
+                  <div class="text-body-2">
+                    <v-icon size="small" class="mr-1">mdi-information</v-icon>
+                    Your pending commission of <strong>${{ pendingCommission }}</strong> will be automatically transferred on {{ nextPayoutDate }}.
+                  </div>
+                </v-alert>
+              </div>
+              
+              <div v-else class="mt-4">
+                <v-alert type="success" variant="tonal" density="compact" class="mb-0">
+                  <div class="text-body-2">
+                    <v-icon size="small" class="mr-1">mdi-check-circle</v-icon>
+                    All Caught Up! You have no pending commission payments.
+                  </div>
+                </v-alert>
               </div>
             </v-card-text>
           </v-card>
-        </v-card-text>
-      </v-card>
+
+          <!-- Commission Info Card -->
+          <v-card elevation="0">
+            <v-card-title class="card-header pa-6">
+              <span class="text-subtitle-1 font-weight-bold text-grey-darken-2">How Commission Works</span>
+            </v-card-title>
+            <v-card-text class="pa-6">
+              <div class="d-flex align-center mb-3">
+                <v-icon color="primary" class="mr-3">mdi-account-plus</v-icon>
+                <span class="text-body-2">Refer clients to CAS Private Care</span>
+              </div>
+              <div class="d-flex align-center mb-3">
+                <v-icon color="primary" class="mr-3">mdi-clock-outline</v-icon>
+                <span class="text-body-2">Earn $1 for every hour of service</span>
+              </div>
+              <div class="d-flex align-center mb-3">
+                <v-icon color="primary" class="mr-3">mdi-calendar-check</v-icon>
+                <span class="text-body-2">Weekly payouts every Friday</span>
+              </div>
+              <div class="d-flex align-center">
+                <v-icon color="primary" class="mr-3">mdi-bank-transfer</v-icon>
+                <span class="text-body-2">Direct deposit to your bank</span>
+              </div>
+            </v-card-text>
+          </v-card>
+        </v-col>
+      </v-row>
     </div>
 
     <!-- Notifications Section -->
@@ -505,7 +655,10 @@
                     label="ZIP Code" 
                     variant="outlined" 
                     maxlength="5"
-                    :rules="[v => !v || /^\d{5}$/.test(v) || 'Please enter a valid 5-digit ZIP code']"
+                    :rules="[
+                      v => !v || /^\d{5}$/.test(v) || 'Enter a 5-digit ZIP code',
+                      v => !v || /^(00501|00544|06390|1[0-4]\d{3})$/.test(v) || 'Must be a NY ZIP (10xxx-14xxx)'
+                    ]"
                     @input="lookupProfileZipCode"
                     @blur="lookupProfileZipCode"
                   >
@@ -513,7 +666,7 @@
                       <v-icon>mdi-map-marker</v-icon>
                     </template>
                   </v-text-field>
-                  <div v-if="profileZipLocation" class="text-caption text-grey mt-1" style="font-weight: 600;">
+                  <div v-if="profileZipLocation" :class="['text-caption', 'mt-1', profileZipLocation.includes('Not a NY') ? 'text-error' : 'text-grey']" style="font-weight: 600;">
                     {{ profileZipLocation }}
                   </div>
                 </v-col>
@@ -534,7 +687,7 @@
             <v-card-text class="pa-8 text-center">
               <div class="position-relative d-inline-block mb-4">
                 <v-avatar size="120" color="grey-darken-2">
-                  <img v-if="userAvatar" :src="userAvatar" style="width: 100%; height: 100%; object-fit: cover;" />
+                  <img v-if="userAvatar" :src="userAvatar" :alt="`${profile.company_name || 'Marketing Agent'} profile photo`" style="width: 100%; height: 100%; object-fit: cover;" />
                   <span v-else class="text-h3 font-weight-bold">{{ userInitials }}</span>
                 </v-avatar>
                 <v-btn 
@@ -545,6 +698,7 @@
                   style="position: absolute; bottom: 0; right: 0;"
                   @click="triggerAvatarUpload"
                   :loading="uploadingAvatar"
+                  aria-label="Upload profile photo"
                 >
                   <v-icon size="small">mdi-camera</v-icon>
                 </v-btn>
@@ -554,6 +708,7 @@
                   accept="image/jpeg,image/png,image/jpg,image/gif" 
                   style="display: none;" 
                   @change="uploadAvatar"
+                  aria-label="Select profile photo"
                 />
               </div>
               <h2 class="mb-2">{{ userName }}</h2>
@@ -617,6 +772,70 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
+
+    <!-- Profile Picture Success Modal -->
+    <v-dialog 
+      v-model="showAvatarSuccessModal" 
+      max-width="400"
+      persistent
+    >
+      <v-card class="avatar-success-modal text-center pa-6">
+        <div class="success-animation-container">
+          <div class="success-checkmark">
+            <div class="check-icon">
+              <span class="icon-line line-tip"></span>
+              <span class="icon-line line-long"></span>
+              <div class="icon-circle"></div>
+              <div class="icon-fix"></div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="success-modal-title">Success!</div>
+        
+        <div class="success-modal-message">
+          Your profile picture has been updated successfully.
+        </div>
+        
+        <v-card-actions class="justify-center pt-6 pb-2">
+          <v-btn 
+            color="success" 
+            variant="flat" 
+            size="large"
+            min-width="150"
+            @click="closeAvatarSuccessModal"
+          >
+            Done
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <!-- Remove Payout Method Dialog (matches CaregiverDashboard style) -->
+    <v-dialog v-model="showRemovePayoutDialog" max-width="450" persistent>
+      <v-card>
+        <v-card-title class="pa-4 bg-error text-white">
+          <v-icon class="mr-2">mdi-delete-alert</v-icon>
+          Remove Payout Method
+        </v-card-title>
+        <v-card-text class="pa-4">
+          <p class="text-body-1 mb-4">Are you sure you want to remove your connected payout method?</p>
+          <v-alert type="warning" variant="tonal" density="compact" class="mb-4">
+            <div class="text-body-2">
+              <strong>Warning:</strong> You will not be able to receive commission payments until you connect a new payout method.
+            </div>
+          </v-alert>
+        </v-card-text>
+        <v-card-actions class="pa-4 pt-0">
+          <v-spacer />
+          <v-btn variant="text" @click="showRemovePayoutDialog = false">Cancel</v-btn>
+          <v-btn color="error" variant="flat" :loading="removingPayoutMethod" @click="removePayoutMethod">
+            <v-icon left>mdi-delete</v-icon>
+            Remove Method
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </dashboard-template>
 </template>
 
@@ -626,7 +845,8 @@ import DashboardTemplate from './DashboardTemplate.vue';
 import StatCard from './shared/StatCard.vue';
 import NotificationToast from './shared/NotificationToast.vue';
 import NotificationCenter from './shared/NotificationCenter.vue';
-import EmailVerificationBanner from './EmailVerificationBanner.vue';
+import EmailVerificationModal from './EmailVerificationModal.vue';
+import { useEmailVerification } from '../composables/useEmailVerification';
 import LoadingOverlay from './LoadingOverlay.vue';
 import { useNotification } from '../composables/useNotification';
 import { useNYLocationData } from '../composables/useNYLocationData.js';
@@ -634,10 +854,21 @@ import { useNYLocationData } from '../composables/useNYLocationData.js';
 const { notification, success, error, info } = useNotification();
 const { counties, getCitiesForCounty, loadNYLocationData } = useNYLocationData();
 
+// Email verification
+const { isVerified: isEmailVerified, userEmail, checkVerificationStatus } = useEmailVerification();
+const handleEmailVerified = () => {
+  checkVerificationStatus();
+  window.location.reload();
+};
+
 // Global loading state
 const isPageLoading = ref(true);
 const loadingContext = ref('dashboard');
 const loadingProgress = ref(0);
+
+// Error Modal State
+const showErrorModal = ref(false);
+const errorMessages = ref([]);
 
 const currentSection = ref(localStorage.getItem('marketingSection') || 'dashboard');
 const userEmailVerified = ref(false);
@@ -773,6 +1004,13 @@ const totalCommission = computed(() => {
 });
 
 const monthlyCommission = ref('420.00');
+const pendingCommission = ref('0.00');
+const lastPayoutAmount = ref('0.00');
+const stripeConnected = ref(false);
+const payoutMethodName = ref(''); // e.g. "Debit Card (**** 4242)" or "Test Bank (Routing: ...)"
+const showRemovePayoutDialog = ref(false);
+const removingPayoutMethod = ref(false);
+
 const activeClients = computed(() => {
   return myClients.value.filter(client => client.status === 'Active').length;
 });
@@ -915,12 +1153,17 @@ const loadProfile = async () => {
         zip: data.user.zip_code || '',
         birthdate: data.user.date_of_birth || '',
         department: data.user.department || 'Marketing & Client Acquisition',
-        role: data.user.role || 'Marketing Specialist'
+        role: data.user.role || 'Marketing Specialist',
+        created_at: data.user.created_at || ''
       };
       marketingUserId.value = data.user.id;
       if (data.user.avatar) {
         userAvatar.value = `/storage/${data.user.avatar}`;
       }
+      // Payout method: show connected when user has stripe_connect_id or bank_name (from connect page)
+      const hasPayout = !!(data.user.stripe_connect_id || (data.user.bank_name && data.user.bank_name.trim()));
+      stripeConnected.value = hasPayout;
+      payoutMethodName.value = (data.user.bank_name && data.user.bank_name.trim()) ? data.user.bank_name.trim() : 'Bank Transfer (ACH)';
       // Load marketing stats after we have the user ID
       loadMarketingStats();
     }
@@ -930,11 +1173,16 @@ const loadProfile = async () => {
 
 const saveProfile = async () => {
   try {
-    // Build payload, ensuring phone is a string if present
+    // Permanent: explicitly send city/county/borough/state/address/zip so they always persist.
     const payload = {
       ...profile.value,
       borough: profile.value.county,
-      city: profile.value.city
+      county: profile.value.county,
+      city: profile.value.city ?? '',
+      state: profile.value.state ?? '',
+      address: profile.value.address ?? '',
+      zip: profile.value.zip ?? '',
+      zip_code: profile.value.zip ?? profile.value.zip_code ?? ''
     };
     
     // Ensure phone is a string if present, or remove it if empty
@@ -1019,6 +1267,48 @@ const viewW9Form = () => {
 
 const handleRequestPayout = () => {
   success('Payout request sent', 'Your payout request has been submitted and will be processed shortly.');
+};
+
+const getCsrfToken = () => {
+  const meta = document.querySelector('meta[name="csrf-token"]');
+  if (meta?.getAttribute('content')) return meta.getAttribute('content');
+  const match = document.cookie?.match(/XSRF-TOKEN=([^;]+)/);
+  if (match?.[1]) {
+    try { return decodeURIComponent(match[1]); } catch { return ''; }
+  }
+  return '';
+};
+
+const removePayoutMethod = async () => {
+  removingPayoutMethod.value = true;
+  const csrfToken = getCsrfToken();
+  try {
+    const response = await fetch('/api/marketing/payout-method', {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'X-CSRF-TOKEN': csrfToken,
+        'X-XSRF-TOKEN': csrfToken,
+        'X-Requested-With': 'XMLHttpRequest'
+      },
+      body: JSON.stringify({ _token: csrfToken }),
+      credentials: 'include'
+    });
+    const data = await response.json();
+    if (response.ok && data.success) {
+      showRemovePayoutDialog.value = false;
+      success('Payout method removed successfully', 'Payout Method');
+      await loadProfile();
+    } else {
+      error(data.message || 'Failed to remove payout method');
+    }
+  } catch (err) {
+    error('Failed to remove payout method. Please try again.');
+  } finally {
+    removingPayoutMethod.value = false;
+    showRemovePayoutDialog.value = false;
+  }
 };
 
 const checkMarketingApplicationStatus = async () => {
@@ -1110,6 +1400,35 @@ const zipCodeMap = {
 
 const profileZipLocation = ref('');
 
+/**
+ * NY ZIP Code Validation Helper
+ * Valid NY ZIPs: 10xxx-14xxx range OR special cases (00501, 00544, 06390)
+ */
+const isValidNYZip = (zip) => {
+  if (!zip) return false;
+  const nyZipRegex = /^(00501|00544|06390|1[0-4]\d{3})(-\d{4})?$/;
+  return nyZipRegex.test(zip);
+};
+
+/**
+ * Get NY region based on ZIP prefix for fallback
+ */
+const getNYRegionFromZip = (zip) => {
+  if (!zip || !isValidNYZip(zip)) return null;
+  const prefix = parseInt(zip.substring(0, 3), 10);
+  if (prefix >= 100 && prefix <= 102) return 'Manhattan, NY';
+  if (prefix === 103) return 'Staten Island, NY';
+  if (prefix === 104) return 'Bronx, NY';
+  if (prefix >= 105 && prefix <= 109) return 'Westchester, NY';
+  if (prefix >= 110 && prefix <= 111) return 'Long Island, NY';
+  if (prefix === 112) return 'Brooklyn, NY';
+  if (prefix >= 113 && prefix <= 119) return 'Long Island, NY';
+  if (prefix >= 120 && prefix <= 129) return 'Capital Region, NY';
+  if (prefix >= 130 && prefix <= 139) return 'Central NY';
+  if (prefix >= 140 && prefix <= 149) return 'Western NY';
+  return 'New York, NY';
+};
+
 const lookupProfileZipCode = async () => {
   const zip = profile.value.zip;
   
@@ -1118,7 +1437,13 @@ const lookupProfileZipCode = async () => {
     return;
   }
 
-  // Try API lookup first (supports all NY ZIP codes)
+  // Client-side NY ZIP validation FIRST
+  if (!isValidNYZip(zip)) {
+    profileZipLocation.value = 'Not a NY ZIP (must be 10xxx-14xxx)';
+    return;
+  }
+
+  // Try API lookup (supports all NY ZIP codes)
   try {
     profileZipLocation.value = 'Looking up location…';
     const response = await fetch(`/api/zipcode-lookup/${zip}`);
@@ -1131,12 +1456,12 @@ const lookupProfileZipCode = async () => {
       }
     }
     
-    // API returned error or no location found
-    profileZipLocation.value = 'ZIP not found';
+    // Fallback to region for valid NY ZIPs
+    profileZipLocation.value = zipCodeMap[zip] || getNYRegionFromZip(zip) || 'New York, NY';
   } catch (error) {
     console.error('Profile ZIP code lookup error:', error);
-    // Fallback to static map
-    profileZipLocation.value = zipCodeMap[zip] || 'ZIP not found';
+    // Fallback to static map or region
+    profileZipLocation.value = zipCodeMap[zip] || getNYRegionFromZip(zip) || 'New York, NY';
   }
 };
 
@@ -1151,7 +1476,8 @@ const profile = ref({
   zip: '',
   birthdate: '',
   department: 'Marketing & Client Acquisition',
-  role: 'Marketing Specialist'
+  role: 'Marketing Specialist',
+  created_at: ''
 });
 
 const age = computed(() => {
@@ -1166,11 +1492,17 @@ const age = computed(() => {
   return age;
 });
 
+// Include current profile city so saved/API values always display (permanent fix for city not showing after load).
 const nyCities = computed(() => {
   if (!profile.value.county) {
     return ['Select County First'];
   }
-  return getCitiesForCounty(profile.value.county);
+  const list = getCitiesForCounty(profile.value.county) || [];
+  const current = profile.value.city?.trim();
+  if (!current) return list;
+  const inList = list.some((c) => String(c).trim().toLowerCase() === current.toLowerCase());
+  if (!inList) return [current, ...list];
+  return list;
 });
 
 const showCurrentPassword = ref(false);
@@ -1182,6 +1514,7 @@ const avatarInput = ref(null);
 const userAvatar = ref('');
 const uploadingAvatar = ref(false);
 const marketingUserId = ref(null);
+const showAvatarSuccessModal = ref(false);
 
 const userName = computed(() => {
   if (profile.value.firstName && profile.value.lastName) {
@@ -1198,11 +1531,23 @@ const userInitials = computed(() => {
 });
 
 const memberSince = computed(() => {
-  return 'Jan 2024';
+  if (profile.value.created_at) {
+    try {
+      const date = new Date(profile.value.created_at);
+      return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    } catch {
+      return 'N/A';
+    }
+  }
+  return 'N/A';
 });
 
 const triggerAvatarUpload = () => {
   avatarInput.value?.click();
+};
+
+const closeAvatarSuccessModal = () => {
+  showAvatarSuccessModal.value = false;
 };
 
 const uploadAvatar = async (event) => {
@@ -1243,7 +1588,7 @@ const uploadAvatar = async (event) => {
     
     if (response.ok && data.success) {
       userAvatar.value = data.avatar;
-      alert('Profile picture updated successfully!');
+      showAvatarSuccessModal.value = true;
     } else {
       alert('Error: ' + (data.error || 'Failed to upload avatar'));
     }
@@ -1341,10 +1686,14 @@ const initCharts = () => {
   }
 };
 
-// Watch for county changes to reset city selection
-watch(() => profile.value.county, (newCounty, oldCounty) => {
-  // Only reset city if county actually changed and it's not the initial load
-  if (newCounty && oldCounty && newCounty !== oldCounty) {
+// Permanent: only reset city when user changes county and current city is not valid for the new county (do not clear on profile load).
+watch(() => profile.value.county, (newCounty) => {
+  if (!newCounty) return;
+  const citiesForCounty = getCitiesForCounty(newCounty) || [];
+  const currentCity = profile.value.city?.trim();
+  if (!currentCity) return;
+  const cityValidForCounty = citiesForCounty.some((c) => String(c).trim().toLowerCase() === currentCity.toLowerCase());
+  if (!cityValidForCounty) {
     profile.value.city = '';
   }
 });
@@ -1386,10 +1735,9 @@ onMounted(async () => {
   
   await Promise.allSettled(promises);
   loadingProgress.value = 100;
-  
-  setTimeout(() => {
-    isPageLoading.value = false;
-  }, 300);
+
+  // Hide overlay immediately
+  isPageLoading.value = false;
   
   setTimeout(initCharts, 500);
 });
@@ -1929,4 +2277,235 @@ onMounted(async () => {
     font-size: 0.75rem !important;
   }
 }
+
+/* Bank Account Card Stripe Style */
+.bank-account-card-stripe {
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  border-radius: 16px;
+  padding: 24px;
+  border: 1px solid #e2e8f0;
+}
+
+/* Avatar Success Modal Styles */
+.avatar-success-modal {
+  border-radius: 16px !important;
+  overflow: hidden;
+}
+
+.success-modal-title {
+  font-size: 1.5rem !important;
+  font-weight: 700 !important;
+  color: #2e7d32 !important;
+  text-align: center;
+  margin-top: 16px;
+}
+
+.success-modal-message {
+  font-size: 1rem !important;
+  color: #616161 !important;
+  text-align: center;
+  padding: 8px 24px 0 24px;
+}
+
+.success-animation-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding-top: 20px;
+}
+
+/* Success Checkmark Animation */
+.success-checkmark {
+  width: 80px;
+  height: 80px;
+  position: relative;
+}
+
+.success-checkmark .check-icon {
+  width: 80px;
+  height: 80px;
+  position: relative;
+  border-radius: 50%;
+  box-sizing: content-box;
+  border: 4px solid #4CAF50;
+}
+
+.success-checkmark .check-icon::before {
+  top: 3px;
+  left: -2px;
+  width: 30px;
+  transform-origin: 100% 50%;
+  border-radius: 100px 0 0 100px;
+}
+
+.success-checkmark .check-icon::after {
+  top: 0;
+  left: 30px;
+  width: 60px;
+  transform-origin: 0 50%;
+  border-radius: 0 100px 100px 0;
+  animation: rotate-circle 4.25s ease-in;
+}
+
+.success-checkmark .check-icon::before,
+.success-checkmark .check-icon::after {
+  content: '';
+  height: 100px;
+  position: absolute;
+  background: #FFFFFF;
+  transform: rotate(-45deg);
+}
+
+.success-checkmark .check-icon .icon-line {
+  height: 5px;
+  background-color: #4CAF50;
+  display: block;
+  border-radius: 2px;
+  position: absolute;
+  z-index: 10;
+}
+
+.success-checkmark .check-icon .icon-line.line-tip {
+  top: 46px;
+  left: 14px;
+  width: 25px;
+  transform: rotate(45deg);
+  animation: icon-line-tip 0.75s;
+}
+
+.success-checkmark .check-icon .icon-line.line-long {
+  top: 38px;
+  right: 8px;
+  width: 47px;
+  transform: rotate(-45deg);
+  animation: icon-line-long 0.75s;
+}
+
+.success-checkmark .check-icon .icon-circle {
+  top: -4px;
+  left: -4px;
+  z-index: 10;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  position: absolute;
+  box-sizing: content-box;
+  border: 4px solid rgba(76, 175, 80, 0.5);
+}
+
+.success-checkmark .check-icon .icon-fix {
+  top: 8px;
+  width: 5px;
+  left: 26px;
+  z-index: 1;
+  height: 85px;
+  position: absolute;
+  transform: rotate(-45deg);
+  background-color: #FFFFFF;
+}
+
+@keyframes rotate-circle {
+  0% {
+    transform: rotate(-45deg);
+  }
+  5% {
+    transform: rotate(-45deg);
+  }
+  12% {
+    transform: rotate(-405deg);
+  }
+  100% {
+    transform: rotate(-405deg);
+  }
+}
+
+@keyframes icon-line-tip {
+  0% {
+    width: 0;
+    left: 1px;
+    top: 19px;
+  }
+  54% {
+    width: 0;
+    left: 1px;
+    top: 19px;
+  }
+  70% {
+    width: 50px;
+    left: -8px;
+    top: 37px;
+  }
+  84% {
+    width: 17px;
+    left: 21px;
+    top: 48px;
+  }
+  100% {
+    width: 25px;
+    left: 14px;
+    top: 46px;
+  }
+}
+
+@keyframes icon-line-long {
+  0% {
+    width: 0;
+    right: 46px;
+    top: 54px;
+  }
+  65% {
+    width: 0;
+    right: 46px;
+    top: 54px;
+  }
+  84% {
+    width: 55px;
+    right: 0px;
+    top: 35px;
+  }
+  100% {
+    width: 47px;
+    right: 8px;
+    top: 38px;
+  }
+}
+
+/* Modal entrance animation */
+.avatar-success-modal {
+  animation: modalSlideIn 0.3s ease-out;
+}
+
+@keyframes modalSlideIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.8) translateY(-20px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* Error Modal Styles */
+.error-modal-card {
+  border-radius: 16px !important;
+  overflow: hidden;
+}
+
+.error-modal-header {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+}
+
+.error-list {
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.error-item {
+  display: flex;
+  align-items: flex-start;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
 </style>
+

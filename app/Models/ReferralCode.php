@@ -87,12 +87,26 @@ class ReferralCode extends Model
     }
 
     /**
-     * Validate and find a referral code
+     * Validate and find a referral code (matches marketing partner codes).
+     * Normalizes input: trim + uppercase so "  HARRYPOGIG0553  " and "harrypogig0553" both match.
      */
     public static function findValidCode($code)
     {
-        return self::where('code', strtoupper($code))
-            ->where('is_active', true)
+        if (empty($code) || !is_string($code)) {
+            return null;
+        }
+        $normalized = strtoupper(trim($code));
+        if ($normalized === '') {
+            return null;
+        }
+        // Try exact match first (code is stored uppercase when set by admin)
+        $referralCode = self::where('is_active', true)->where('code', $normalized)->first();
+        if ($referralCode) {
+            return $referralCode;
+        }
+        // Fallback: match with DB trim/uppercase (handles any stored spacing/case)
+        return self::where('is_active', true)
+            ->whereRaw('UPPER(TRIM(code)) = ?', [$normalized])
             ->first();
     }
 

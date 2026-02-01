@@ -502,6 +502,11 @@ class DashboardController extends Controller
         
         // Top rated caregivers (4+ star rating)
         $topRatedCaregivers = Caregiver::where('rating', '>=', 4)->count();
+
+        // Pending contractor applications (caregiver, housekeeper, marketing, training_center with status pending)
+        $pendingApplicationsCount = \App\Models\User::where('status', 'pending')
+            ->whereIn('user_type', ['caregiver', 'housekeeper', 'marketing', 'training_center'])
+            ->count();
         
         return response()->json([
             'total_users' => $totalUsers,
@@ -516,6 +521,7 @@ class DashboardController extends Controller
             'user_growth' => $userGrowth,
             'booking_growth' => $bookingGrowth,
             'recent_bookings' => $recentBookings,
+            'pending_applications_count' => $pendingApplicationsCount,
             'pending_applications' => \App\Models\User::where('user_type', 'caregiver')->whereDoesntHave('caregiver')->get(),
             // Real analytics data
             'avg_client_spending' => round($avgClientSpending, 2),
@@ -602,24 +608,35 @@ class DashboardController extends Controller
             return $priority . '_' . $serviceDate;
         })->values();
         
-        // Calculate earnings (sample calculation)
-        $totalEarnings = 3200.00;
-        $monthlyEarnings = 1200.00;
-        $weeklyEarnings = 800.00;
-        $pendingBalance = 450.00;
+        // Calculate actual earnings from TimeTracking records
+        $timeTrackings = \App\Models\TimeTracking::where('caregiver_id', $caregiver->id)
+            ->whereNotNull('clock_out_time')
+            ->where('status', 'completed')
+            ->get();
         
-        // Get transactions (sample data for now)
-        $transactions = [
-            [
-                'id' => 1,
-                'type' => 'payment',
-                'description' => 'Payment from client',
-                'amount' => 120.00,
-                'status' => 'completed',
-                'method' => 'Bank Transfer',
-                'created_at' => now()->subDays(1)->toDateTimeString()
-            ]
-        ];
+        $totalEarnings = $timeTrackings->sum('caregiver_earnings') ?? 0;
+        $monthlyEarnings = $timeTrackings->where('work_date', '>=', now()->startOfMonth())->sum('caregiver_earnings') ?? 0;
+        $weeklyEarnings = $timeTrackings->where('work_date', '>=', now()->startOfWeek())->sum('caregiver_earnings') ?? 0;
+        $pendingBalance = $timeTrackings->whereNull('paid_at')->sum('caregiver_earnings') ?? 0;
+        
+        // Get recent transactions from TimeTracking
+        $recentTransactions = \App\Models\TimeTracking::where('caregiver_id', $caregiver->id)
+            ->whereNotNull('clock_out_time')
+            ->orderBy('work_date', 'desc')
+            ->take(10)
+            ->get();
+        
+        $transactions = $recentTransactions->map(function($tt) {
+            return [
+                'id' => $tt->id,
+                'type' => $tt->paid_at ? 'payment' : 'pending',
+                'description' => 'Earnings for ' . ($tt->work_date ? $tt->work_date->format('M d, Y') : 'Unknown date'),
+                'amount' => $tt->caregiver_earnings ?? 0,
+                'status' => $tt->paid_at ? 'completed' : 'pending',
+                'method' => 'Direct Deposit',
+                'created_at' => $tt->created_at ? $tt->created_at->toDateTimeString() : now()->toDateTimeString()
+            ];
+        })->toArray();
         
         return response()->json([
             'total_clients' => 24,
@@ -673,6 +690,11 @@ class DashboardController extends Controller
     {
         return response()->json([
             'users' => \App\Models\User::with(['client', 'caregiver'])->get()->map(function($user) {
+                $zipCode = $user->zip_code;
+                if (($zipCode === null || $zipCode === '') && $user->user_type === 'client' && $user->client) {
+                    $zipCode = $user->client->getAttribute('zip_code');
+                }
+                $zipCode = $zipCode !== null && $zipCode !== '' ? (string) $zipCode : $zipCode;
                 return [
                     'id' => $user->id,
                     'name' => $user->name,
@@ -681,6 +703,16 @@ class DashboardController extends Controller
                     'type' => ucfirst($user->user_type),
                     'status' => $user->status ?? 'Active',
                     'joined' => $user->created_at->format('M Y'),
+                    'zip_code' => $zipCode,
+                    'zip' => $zipCode,
+                    'city' => $user->city,
+                    'county' => $user->county,
+                    'borough' => $user->borough,
+                    'state' => $user->state,
+                    'address' => $user->address,
+                    'created_at' => $user->created_at?->toISOString(),
+                    'email_verified_at' => $user->email_verified_at?->toISOString(),
+                    'date_of_birth' => $user->date_of_birth,
                     'caregiver' => $user->caregiver ? [
                         'id' => $user->caregiver->id,
                         'rating' => $user->caregiver->rating,

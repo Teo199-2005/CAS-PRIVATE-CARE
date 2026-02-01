@@ -28,8 +28,55 @@
     @section-change="currentSection = $event"
     @logout="logout"
   >
-    <!-- Email Verification Banner -->
-    <email-verification-banner />
+        <!-- Error Modal -->
+    <v-dialog v-model="showErrorModal" max-width="500">
+      <v-card class="error-modal-card" elevation="8">
+        <v-card-title class="error-modal-header pa-6">
+          <div class="d-flex align-center">
+            <v-icon color="white" size="32" class="mr-3">mdi-alert-circle</v-icon>
+            <span class="text-h5 font-weight-bold text-white">Validation Error</span>
+          </div>
+        </v-card-title>
+        <v-card-text class="pa-6">
+          <div class="mb-4 text-center">
+            <v-icon color="error" size="64">mdi-alert-circle-outline</v-icon>
+          </div>
+          <p class="text-h6 mb-4 text-center" style="color: #1e293b;">Please fix the following errors:</p>
+          <v-alert type="error" variant="tonal" class="mb-0">
+            <div v-if="Array.isArray(errorMessages)" class="error-list">
+              <div v-for="(error, index) in errorMessages" :key="index" class="error-item mb-2">
+                <v-icon size="16" class="mr-2">mdi-alert</v-icon>
+                {{ error }}
+              </div>
+            </div>
+            <div v-else class="error-item">
+              <v-icon size="16" class="mr-2">mdi-alert</v-icon>
+              {{ errorMessages }}
+            </div>
+          </v-alert>
+        </v-card-text>
+        <v-card-actions class="pa-6 pt-0">
+          <v-spacer></v-spacer>
+          <v-btn 
+            color="error" 
+            variant="flat" 
+            size="large"
+            prepend-icon="mdi-close"
+            @click="showErrorModal = false"
+          >
+            Close
+          </v-btn>
+          <v-spacer></v-spacer>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+<!-- Email Verification Modal (blocks dashboard until verified via OTP) -->
+    <email-verification-modal
+      v-if="!isEmailVerified && userEmail"
+      :user-email="userEmail"
+      :is-verified="isEmailVerified"
+      @verified="handleEmailVerified"
+    />
 
     <!-- Dashboard Section -->
     <div v-if="currentSection === 'dashboard'">
@@ -42,7 +89,7 @@
             <v-card-text class="pa-4 flex-grow-1 d-flex flex-column justify-space-between">
               <div>
                 <div class="text-center mb-3">
-                  <div class="balance-amount grey--text text--darken-2">${{ accountBalance.toFixed(2) }}</div>
+                  <div class="balance-amount grey--text text--darken-2">${{ (Number(accountBalance) || 0).toFixed(2) }}</div>
                   <div class="text-caption text-grey">Available Balance</div>
                 </div>
                 <div class="d-flex justify-space-between text-caption mb-1">
@@ -104,7 +151,7 @@
                 <v-divider class="my-2" />
                 <div class="summary-item-compact">
                   <span class="summary-label-compact">Previous Payout</span>
-                  <span class="summary-value-compact font-weight-bold">${{ weeklySummary.previous_payout?.toFixed(2) || '0.00' }} - {{ weeklySummary.previous_payout_date || 'N/A' }}</span>
+                  <span class="summary-value-compact font-weight-bold">${{ (Number(weeklySummary.previous_payout) || 0).toFixed(2) }} - {{ weeklySummary.previous_payout_date || 'N/A' }}</span>
                 </div>
               </div>
             </v-card-text>
@@ -121,19 +168,19 @@
                 <div class="earning-item mb-3">
                   <div class="d-flex justify-space-between">
                     <span class="earning-label">Total Revenue</span>
-                    <span class="earning-value grey--text text--darken-2">$1,050.00</span>
+                    <span class="earning-value grey--text text--darken-2">${{ totalRevenue }}</span>
                   </div>
                 </div>
                 <div class="earning-item mb-3">
                   <div class="d-flex justify-space-between">
                     <span class="earning-label">This Month</span>
-                    <span class="earning-value">$850.00</span>
+                    <span class="earning-value">${{ monthlyRevenue }}</span>
                   </div>
                 </div>
                 <div class="earning-item">
                   <div class="d-flex justify-space-between">
                     <span class="earning-label">Active Trainees</span>
-                    <span class="earning-value">3</span>
+                    <span class="earning-value">{{ stats[0]?.value ?? '0' }}</span>
                   </div>
                 </div>
               </div>
@@ -162,8 +209,8 @@
           </template>
           <template v-slot:item.actions="{ item }">
             <div class="action-buttons">
-              <v-btn class="action-btn-view" icon="mdi-eye" @click="viewTrainee(item)"></v-btn>
-              <v-btn class="action-btn-edit" icon="mdi-school" @click="manageCertification(item)"></v-btn>
+              <v-btn class="action-btn-view" icon="mdi-eye" @click="viewTrainee(item)" :aria-label="`View ${item.name || 'trainee'} details`"></v-btn>
+              <v-btn class="action-btn-edit" icon="mdi-school" @click="manageCertification(item)" :aria-label="`Manage certification for ${item.name || 'trainee'}`"></v-btn>
             </div>
           </template>
         </v-data-table>
@@ -178,7 +225,7 @@
           <v-chip color="warning" size="small">{{ pendingCaregivers.length }} Pending</v-chip>
         </v-card-title>
         <v-card-text class="pa-0">
-          <v-data-table :headers="pendingHeaders" :items="pendingCaregivers" :items-per-page="10" class="elevation-0">
+          <v-data-table :headers="pendingHeaders" :items="pendingCaregivers" :items-per-page="10" class="elevation-0 pending-requests-table">
             <template v-slot:item.years_experience="{ item }">
               <span>{{ item.years_experience }} years</span>
             </template>
@@ -187,9 +234,15 @@
               <span v-if="(item.specializations || []).length > 2" class="text-caption">+{{ (item.specializations || []).length - 2 }} more</span>
             </template>
             <template v-slot:item.actions="{ item }">
-              <div class="action-buttons">
-                <v-btn color="success" size="small" prepend-icon="mdi-check" @click="approveCaregiverRequest(item)">Approve</v-btn>
-                <v-btn color="error" size="small" prepend-icon="mdi-close" @click="rejectCaregiverRequest(item)">Reject</v-btn>
+              <div class="action-buttons action-buttons--pending">
+                <v-btn color="success" size="small" variant="flat" class="action-btn-pending" @click="approveCaregiverRequest(item)">
+                  <v-icon size="18" class="mr-1">mdi-check</v-icon>
+                  Approve
+                </v-btn>
+                <v-btn color="error" size="small" variant="flat" class="action-btn-pending" @click="rejectCaregiverRequest(item)">
+                  <v-icon size="18" class="mr-1">mdi-close</v-icon>
+                  Reject
+                </v-btn>
               </div>
             </template>
             <template v-slot:no-data>
@@ -236,12 +289,12 @@
           <template v-slot:item.actions="{ item }">
             <div class="action-buttons">
               <template v-if="item.certification === 'Certified'">
-                <v-btn class="action-btn-view" icon="mdi-eye" @click="viewTrainee(item)"></v-btn>
-                <v-btn class="action-btn-edit" icon="mdi-pencil" @click="manageCertification(item)"></v-btn>
+                <v-btn class="action-btn-view" icon="mdi-eye" @click="viewTrainee(item)" :aria-label="`View ${item.name || 'trainee'} details`"></v-btn>
+                <v-btn class="action-btn-edit" icon="mdi-pencil" @click="manageCertification(item)" :aria-label="`Edit certification for ${item.name || 'trainee'}`"></v-btn>
               </template>
               <template v-else>
-                <v-btn class="action-btn-approve" icon="mdi-check" @click="approveCaregiver(item)"></v-btn>
-                <v-btn class="action-btn-reject" icon="mdi-close" @click="rejectCaregiver(item)"></v-btn>
+                <v-btn class="action-btn-approve" icon="mdi-check" @click="approveCaregiver(item)" :aria-label="`Approve ${item.name || 'caregiver'}`"></v-btn>
+                <v-btn class="action-btn-reject" icon="mdi-close" @click="rejectCaregiver(item)" :aria-label="`Reject ${item.name || 'caregiver'}`"></v-btn>
               </template>
             </div>
           </template>
@@ -403,7 +456,10 @@
                     label="ZIP Code" 
                     variant="outlined" 
                     maxlength="5"
-                    :rules="[v => !v || /^\d{5}$/.test(v) || 'Please enter a valid 5-digit ZIP code']"
+                    :rules="[
+                      v => !v || /^\d{5}$/.test(v) || 'Enter a 5-digit ZIP code',
+                      v => !v || /^(00501|00544|06390|1[0-4]\d{3})$/.test(v) || 'Must be a NY ZIP (10xxx-14xxx)'
+                    ]"
                     @input="lookupProfileZipCode"
                     @blur="lookupProfileZipCode"
                   >
@@ -411,7 +467,7 @@
                       <v-icon>mdi-map-marker</v-icon>
                     </template>
                   </v-text-field>
-                  <div v-if="profileZipLocation" class="text-caption text-grey mt-1" style="font-weight: 600;">
+                  <div v-if="profileZipLocation" :class="['text-caption', 'mt-1', profileZipLocation.includes('Not a NY') ? 'text-error' : 'text-grey']" style="font-weight: 600;">
                     {{ profileZipLocation }}
                   </div>
                 </v-col>
@@ -432,7 +488,7 @@
             <v-card-text class="pa-8 text-center">
               <div class="position-relative d-inline-block mb-4">
                 <v-avatar size="120" color="grey-darken-2">
-                  <img v-if="userAvatar" :src="userAvatar" style="width: 100%; height: 100%; object-fit: cover;" />
+                  <img v-if="userAvatar" :src="userAvatar" :alt="`${profile.center_name || 'Training Center'} profile photo`" style="width: 100%; height: 100%; object-fit: cover;" />
                   <span v-else class="text-h3 font-weight-bold">{{ userInitials }}</span>
                 </v-avatar>
                 <v-btn 
@@ -443,6 +499,7 @@
                   style="position: absolute; bottom: 0; right: 0;"
                   @click="triggerAvatarUpload"
                   :loading="uploadingAvatar"
+                  aria-label="Upload profile photo"
                 >
                   <v-icon size="small">mdi-camera</v-icon>
                 </v-btn>
@@ -452,6 +509,7 @@
                   accept="image/jpeg,image/png,image/jpg,image/gif" 
                   style="display: none;" 
                   @change="uploadAvatar"
+                  aria-label="Select profile photo"
                 />
               </div>
               <h2 class="mb-2">{{ userName }}</h2>
@@ -483,96 +541,173 @@
       </v-row>
     </div>
 
-    <!-- Payments Section -->
+    <!-- Payments Section (layout aligned with Marketing Partner) -->
     <div v-if="currentSection === 'payments'">
-      <v-card elevation="0">
-        <v-card-title class="card-header pa-8">
-          <div class="d-flex align-center">
-            <v-icon size="40" color="primary" class="mr-4">mdi-credit-card</v-icon>
-            <div>
-              <div class="section-title primary--text">Commission Payment Information</div>
-              <div class="text-caption text-grey">Connect your bank account to receive weekly commission payouts</div>
-            </div>
-          </div>
-        </v-card-title>
-        <v-card-text class="pa-8">
-          <!-- Bank Connection Alert -->
-          <v-alert color="info" variant="tonal" prominent class="mb-6">
-            <div class="font-weight-bold mb-2">
-              <v-icon start>mdi-bank</v-icon>
-              Connect Payout Method
-            </div>
-            <p class="mb-4">
-              Connect your bank account via Stripe to receive weekly commission payments ($2/hour per trained caregiver).
-              Your payment information is securely encrypted and never shared.
-            </p>
-            <v-btn 
-              color="primary" 
-              size="large" 
-              prepend-icon="mdi-bank" 
-              href="/connect-bank-account-training"
-              elevation="3"
-            >
-              Connect Bank Account
-            </v-btn>
-          </v-alert>
-          
-          <!-- Commission Summary Card -->
-          <v-card elevation="2" class="mb-6">
-            <v-card-title class="pa-6 bg-success">
-              <span class="section-title white--text">Commission Summary</span>
+      <v-row>
+        <v-col cols="12" md="8">
+          <v-card elevation="0" class="mb-6">
+            <v-card-title class="card-header pa-8 d-flex justify-space-between align-center">
+              <span class="section-title primary--text">Payout Method</span>
+              <v-btn
+                v-if="!bankConnected"
+                color="primary"
+                prepend-icon="mdi-wallet-plus"
+                href="/connect-bank-account-training"
+              >
+                Connect Payout Method
+              </v-btn>
+              <v-chip v-else color="success" prepend-icon="mdi-check-circle">
+                Connected
+              </v-chip>
             </v-card-title>
-            <v-card-text class="pa-6">
-              <v-row>
-                <v-col cols="12" md="4">
-                  <div class="text-center py-4">
-                    <span class="summary-label">Total Earned</span>
-                    <div class="summary-value success--text">${{ totalRevenue }}</div>
-                    <span class="text-caption text-grey">All time earnings</span>
-                  </div>
-                </v-col>
-                <v-col cols="12" md="4">
-                  <div class="text-center py-4">
-                    <span class="summary-label">This Month</span>
-                    <div class="summary-value primary--text">${{ monthlyRevenue }}</div>
-                    <span class="text-caption text-grey">Current period</span>
-                  </div>
-                </v-col>
-                <v-col cols="12" md="4">
-                  <div class="text-center py-4">
-                    <span class="summary-label">Last Payout</span>
-                    <div class="summary-value grey--text">$0.00</div>
-                    <span class="text-caption text-grey">Previous payment</span>
+            <v-card-text class="pa-8">
+              <!-- Payout Method Not Connected -->
+              <div v-if="!bankConnected" class="text-center py-8">
+                <v-icon size="80" color="grey-lighten-1" class="mb-4">mdi-wallet-outline</v-icon>
+                <h3 class="text-h6 mb-2">Connect Your Payout Method</h3>
+                <p class="text-body-2 text-grey mb-6">
+                  Connect your bank account via Stripe to receive weekly commission payments ($2/hour per trained caregiver).<br>
+                  Your payment information is securely encrypted and never shared.
+                </p>
+                <v-btn
+                  color="primary"
+                  size="large"
+                  prepend-icon="mdi-bank"
+                  href="/connect-bank-account-training"
+                  elevation="2"
+                  class="text-none font-weight-bold"
+                >
+                  Connect Bank Account
+                </v-btn>
+              </div>
+
+              <!-- Payout Method Connected -->
+              <v-row v-else>
+                <v-col cols="12">
+                  <div class="bank-account-card-stripe">
+                    <div class="d-flex align-center mb-4">
+                      <v-icon size="48" color="primary" class="mr-4">mdi-wallet</v-icon>
+                      <div class="flex-grow-1">
+                        <div class="text-h6 font-weight-bold">Payout Method Connected</div>
+                        <div class="text-body-2 text-grey">Stripe Connect • Verified</div>
+                      </div>
+                      <v-chip color="success" prepend-icon="mdi-check-circle" size="small">
+                        Active
+                      </v-chip>
+                    </div>
+
+                    <v-divider class="my-4"></v-divider>
+
+                    <div class="d-flex justify-space-between align-center mb-3">
+                      <span class="text-body-2 text-grey">Payout Method:</span>
+                      <span class="font-weight-medium">{{ payoutMethodName || 'Bank Transfer (ACH)' }}</span>
+                    </div>
+
+                    <div class="d-flex justify-space-between align-center mb-3">
+                      <span class="text-body-2 text-grey">Commission Rate:</span>
+                      <span class="font-weight-medium">$2.00 per hour trained</span>
+                    </div>
+
+                    <div class="d-flex justify-space-between align-center mb-3">
+                      <span class="text-body-2 text-grey">Payout Schedule:</span>
+                      <span class="font-weight-medium">Weekly (Every Friday)</span>
+                    </div>
+
+                    <div class="d-flex justify-space-between align-center mb-3">
+                      <span class="text-body-2 text-grey">Next Payout:</span>
+                      <span class="font-weight-bold primary--text">{{ nextPayoutDate }}</span>
+                    </div>
+
+                    <v-divider class="my-4"></v-divider>
+
+                    <v-alert type="success" variant="tonal" density="compact">
+                      <div class="d-flex align-center">
+                        <v-icon class="mr-2">mdi-shield-check</v-icon>
+                        <span class="text-body-2">
+                          Your bank account is securely connected via Stripe. Commission payments are transferred automatically every Friday.
+                        </span>
+                      </div>
+                    </v-alert>
+
+                    <div class="mt-4 d-flex flex-wrap gap-2">
+                      <v-btn
+                        color="primary"
+                        variant="flat"
+                        size="small"
+                        prepend-icon="mdi-swap-horizontal"
+                        href="/connect-bank-account-training"
+                      >
+                        Change Payout Method
+                      </v-btn>
+                      <v-btn
+                        color="error"
+                        variant="outlined"
+                        size="small"
+                        prepend-icon="mdi-link-off"
+                        @click="showRemovePayoutDialog = true"
+                      >
+                        Remove Payout Method
+                      </v-btn>
+                    </div>
                   </div>
                 </v-col>
               </v-row>
             </v-card-text>
           </v-card>
-          
-          <!-- Payment Settings Card -->
-          <v-card elevation="2">
-            <v-card-title class="pa-6 bg-grey-lighten-4">
-              <span class="section-title grey--text text--darken-2">Payment Settings</span>
+        </v-col>
+
+        <v-col cols="12" md="4">
+          <v-card elevation="0" class="mb-6">
+            <v-card-title class="card-header pa-8">
+              <span class="section-title primary--text">Commission Summary</span>
             </v-card-title>
-            <v-card-text class="pa-6">
-              <div class="d-flex flex-wrap ga-3 mb-4">
-                <v-chip color="success" size="large">
-                  <v-icon start>mdi-clock-outline</v-icon>
-                  Weekly (Every Friday)
-                </v-chip>
-                <v-chip color="primary" size="large">
-                  <v-icon start>mdi-cash</v-icon>
-                  $2.00 per hour trained
-                </v-chip>
+            <v-card-text class="pa-8">
+              <div class="summary-item" style="margin-bottom: 24px;">
+                <span class="summary-label">Total Earned</span>
+                <span class="summary-value success--text">${{ totalRevenue }}</span>
               </div>
-              <p class="text-body-2 text-grey mb-0">
-                Commissions are calculated based on the hours worked by caregivers you have trained. 
-                Payouts are processed automatically every Friday for the previous week's earnings.
-              </p>
+              <div class="summary-item">
+                <span class="summary-label">This Month</span>
+                <span class="summary-value primary--text">${{ monthlyRevenue }}</span>
+              </div>
+              <div class="summary-item">
+                <span class="summary-label">Last Payout</span>
+                <span class="summary-value">${{ lastPayoutAmount }}</span>
+              </div>
+              <v-divider class="my-4" />
+              <div class="summary-item">
+                <span class="summary-label">Next Payout</span>
+                <span class="summary-value font-weight-bold">{{ nextPayoutDate }}</span>
+              </div>
             </v-card-text>
           </v-card>
-        </v-card-text>
-      </v-card>
+
+          <!-- How Commission Works Card -->
+          <v-card elevation="0">
+            <v-card-title class="card-header pa-6">
+              <span class="text-subtitle-1 font-weight-bold text-grey-darken-2">How Commission Works</span>
+            </v-card-title>
+            <v-card-text class="pa-6">
+              <div class="d-flex align-center mb-3">
+                <v-icon color="primary" class="mr-3">mdi-school</v-icon>
+                <span class="text-body-2">Train caregivers who work with CAS Private Care</span>
+              </div>
+              <div class="d-flex align-center mb-3">
+                <v-icon color="primary" class="mr-3">mdi-clock-outline</v-icon>
+                <span class="text-body-2">Earn $2 for every hour worked by trained caregivers</span>
+              </div>
+              <div class="d-flex align-center mb-3">
+                <v-icon color="primary" class="mr-3">mdi-calendar-check</v-icon>
+                <span class="text-body-2">Weekly payouts every Friday</span>
+              </div>
+              <div class="d-flex align-center">
+                <v-icon color="primary" class="mr-3">mdi-bank-transfer</v-icon>
+                <span class="text-body-2">Direct deposit to your bank</span>
+              </div>
+            </v-card-text>
+          </v-card>
+        </v-col>
+      </v-row>
     </div>
 
     <!-- Add Trainee Dialog -->
@@ -604,6 +739,70 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
+
+    <!-- Profile Picture Success Modal -->
+    <v-dialog 
+      v-model="showAvatarSuccessModal" 
+      max-width="400"
+      persistent
+    >
+      <v-card class="avatar-success-modal text-center pa-6">
+        <div class="success-animation-container">
+          <div class="success-checkmark">
+            <div class="check-icon">
+              <span class="icon-line line-tip"></span>
+              <span class="icon-line line-long"></span>
+              <div class="icon-circle"></div>
+              <div class="icon-fix"></div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="success-modal-title">Success!</div>
+        
+        <div class="success-modal-message">
+          Your profile picture has been updated successfully.
+        </div>
+        
+        <v-card-actions class="justify-center pt-6 pb-2">
+          <v-btn 
+            color="grey-darken-2" 
+            variant="flat" 
+            size="large"
+            min-width="150"
+            @click="closeAvatarSuccessModal"
+          >
+            Done
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <!-- Remove Payout Method Dialog (same as MarketingDashboard) -->
+    <v-dialog v-model="showRemovePayoutDialog" max-width="450" persistent>
+      <v-card>
+        <v-card-title class="pa-4 bg-error text-white">
+          <v-icon class="mr-2">mdi-delete-alert</v-icon>
+          Remove Payout Method
+        </v-card-title>
+        <v-card-text class="pa-4">
+          <p class="text-body-1 mb-4">Are you sure you want to remove your connected payout method?</p>
+          <v-alert type="warning" variant="tonal" density="compact" class="mb-4">
+            <div class="text-body-2">
+              <strong>Warning:</strong> You will not be able to receive commission payments until you connect a new payout method.
+            </div>
+          </v-alert>
+        </v-card-text>
+        <v-card-actions class="pa-4 pt-0">
+          <v-spacer />
+          <v-btn variant="text" @click="showRemovePayoutDialog = false">Cancel</v-btn>
+          <v-btn color="error" variant="flat" :loading="removingPayoutMethod" @click="removePayoutMethod">
+            <v-icon left>mdi-delete</v-icon>
+            Remove Method
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </dashboard-template>
 </template>
 
@@ -613,7 +812,8 @@ import DashboardTemplate from './DashboardTemplate.vue';
 import StatCard from './shared/StatCard.vue';
 import NotificationToast from './shared/NotificationToast.vue';
 import NotificationCenter from './shared/NotificationCenter.vue';
-import EmailVerificationBanner from './EmailVerificationBanner.vue';
+import EmailVerificationModal from './EmailVerificationModal.vue';
+import { useEmailVerification } from '../composables/useEmailVerification';
 import LoadingOverlay from './LoadingOverlay.vue';
 import { useNotification } from '../composables/useNotification';
 import { useNYLocationData } from '../composables/useNYLocationData.js';
@@ -621,10 +821,21 @@ import { useNYLocationData } from '../composables/useNYLocationData.js';
 const { notification, success, error, warning, info } = useNotification();
 const { counties, getCitiesForCounty, loadNYLocationData } = useNYLocationData();
 
+// Email verification
+const { isVerified: isEmailVerified, userEmail, checkVerificationStatus } = useEmailVerification();
+const handleEmailVerified = () => {
+  checkVerificationStatus();
+  window.location.reload();
+};
+
 // Global loading state
 const isPageLoading = ref(true);
 const loadingContext = ref('dashboard');
 const loadingProgress = ref(0);
+
+// Error Modal State
+const showErrorModal = ref(false);
+const errorMessages = ref([]);
 
 const currentSection = ref('dashboard');
 const userEmailVerified = ref(false);
@@ -698,6 +909,35 @@ const zipCodeMap = {
 
 const profileZipLocation = ref('');
 
+/**
+ * NY ZIP Code Validation Helper
+ * Valid NY ZIPs: 10xxx-14xxx range OR special cases (00501, 00544, 06390)
+ */
+const isValidNYZip = (zip) => {
+  if (!zip) return false;
+  const nyZipRegex = /^(00501|00544|06390|1[0-4]\d{3})(-\d{4})?$/;
+  return nyZipRegex.test(zip);
+};
+
+/**
+ * Get NY region based on ZIP prefix for fallback
+ */
+const getNYRegionFromZip = (zip) => {
+  if (!zip || !isValidNYZip(zip)) return null;
+  const prefix = parseInt(zip.substring(0, 3), 10);
+  if (prefix >= 100 && prefix <= 102) return 'Manhattan, NY';
+  if (prefix === 103) return 'Staten Island, NY';
+  if (prefix === 104) return 'Bronx, NY';
+  if (prefix >= 105 && prefix <= 109) return 'Westchester, NY';
+  if (prefix >= 110 && prefix <= 111) return 'Long Island, NY';
+  if (prefix === 112) return 'Brooklyn, NY';
+  if (prefix >= 113 && prefix <= 119) return 'Long Island, NY';
+  if (prefix >= 120 && prefix <= 129) return 'Capital Region, NY';
+  if (prefix >= 130 && prefix <= 139) return 'Central NY';
+  if (prefix >= 140 && prefix <= 149) return 'Western NY';
+  return 'New York, NY';
+};
+
 const lookupProfileZipCode = async () => {
   const zip = profile.value.zip;
   
@@ -706,7 +946,13 @@ const lookupProfileZipCode = async () => {
     return;
   }
 
-  // Try API lookup first (supports all NY ZIP codes)
+  // Client-side NY ZIP validation FIRST
+  if (!isValidNYZip(zip)) {
+    profileZipLocation.value = 'Not a NY ZIP (must be 10xxx-14xxx)';
+    return;
+  }
+
+  // Try API lookup (supports all NY ZIP codes)
   try {
     profileZipLocation.value = 'Looking up location…';
     const response = await fetch(`/api/zipcode-lookup/${zip}`);
@@ -719,12 +965,12 @@ const lookupProfileZipCode = async () => {
       }
     }
     
-    // API returned error or no location found
-    profileZipLocation.value = 'ZIP not found';
+    // Fallback to region for valid NY ZIPs
+    profileZipLocation.value = zipCodeMap[zip] || getNYRegionFromZip(zip) || 'New York, NY';
   } catch (error) {
     console.error('Profile ZIP code lookup error:', error);
-    // Fallback to static map
-    profileZipLocation.value = zipCodeMap[zip] || 'ZIP not found';
+    // Fallback to static map or region
+    profileZipLocation.value = zipCodeMap[zip] || getNYRegionFromZip(zip) || 'New York, NY';
   }
 };
 
@@ -739,7 +985,8 @@ const profile = ref({
   zip: '',
   birthdate: '',
   department: 'Training & Certification',
-  role: 'Training Director'
+  role: 'Training Director',
+  created_at: ''
 });
 
 const age = computed(() => {
@@ -754,11 +1001,17 @@ const age = computed(() => {
   return age;
 });
 
+// Include current profile city so saved/API values always display (permanent fix for city not showing after load).
 const nyCities = computed(() => {
   if (!profile.value.county) {
     return ['Select County First'];
   }
-  return getCitiesForCounty(profile.value.county);
+  const list = getCitiesForCounty(profile.value.county) || [];
+  const current = profile.value.city?.trim();
+  if (!current) return list;
+  const inList = list.some((c) => String(c).trim().toLowerCase() === current.toLowerCase());
+  if (!inList) return [current, ...list];
+  return list;
 });
 
 const showCurrentPassword = ref(false);
@@ -770,6 +1023,11 @@ const avatarInput = ref(null);
 const userAvatar = ref('');
 const uploadingAvatar = ref(false);
 const trainingUserId = ref(null);
+const showAvatarSuccessModal = ref(false);
+
+const closeAvatarSuccessModal = () => {
+  showAvatarSuccessModal.value = false;
+};
 
 const userName = computed(() => {
   if (profile.value.firstName && profile.value.lastName) {
@@ -786,7 +1044,15 @@ const userInitials = computed(() => {
 });
 
 const memberSince = computed(() => {
-  return 'Jan 2024';
+  if (profile.value.created_at) {
+    try {
+      const date = new Date(profile.value.created_at);
+      return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    } catch {
+      return 'N/A';
+    }
+  }
+  return 'N/A';
 });
 
 const triggerAvatarUpload = () => {
@@ -831,7 +1097,7 @@ const uploadAvatar = async (event) => {
     
     if (response.ok && data.success) {
       userAvatar.value = data.avatar;
-      alert('Profile picture updated successfully!');
+      showAvatarSuccessModal.value = true;
     } else {
       alert('Error: ' + (data.error || 'Failed to upload avatar'));
     }
@@ -861,6 +1127,10 @@ const stats = ref([
 ]);
 
 const accountBalance = ref(0);
+const bankConnected = ref(false);
+const payoutMethodName = ref(''); // e.g. "Bank Transfer (ACH)" or bank name from profile
+const showRemovePayoutDialog = ref(false);
+const removingPayoutMethod = ref(false);
 const weeklySummary = ref({
   deployed_caregivers: 0,
   target: 10,
@@ -901,29 +1171,57 @@ const loadPendingCaregivers = async () => {
   }
 };
 
-const approveCaregiverRequest = async (caregiver) => {
+/** Fetch fresh CSRF token and optionally update meta tag (avoids mismatch after session refresh). */
+const getCsrfToken = async () => {
+  const meta = document.querySelector('meta[name="csrf-token"]');
+  const fromMeta = meta?.getAttribute('content') || '';
   try {
-    const response = await fetch(`/api/training/caregivers/${caregiver.id}/approve`, {
+    const r = await fetch('/csrf-token', { credentials: 'same-origin' });
+    if (!r.ok) return fromMeta;
+    const data = await r.json();
+    const token = data?.token || '';
+    if (token && meta) meta.setAttribute('content', token);
+    return token || fromMeta;
+  } catch (_) {
+    return fromMeta;
+  }
+};
+
+const approveCaregiverRequest = async (caregiver) => {
+  const id = caregiver?.id;
+  if (id == null || id === '') {
+    error('Invalid request. Please refresh and try again.', 'Error');
+    return;
+  }
+  try {
+    const csrfToken = await getCsrfToken();
+    const response = await fetch(`/api/training/caregivers/${id}/approve`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+        'X-CSRF-TOKEN': csrfToken,
         'Accept': 'application/json'
       },
       credentials: 'same-origin'
     });
-    
-    if (response.ok) {
-      const data = await response.json();
-      success('Caregiver approved successfully!', 'Approved');
-      await loadPendingCaregivers();
-      await loadTrainingStats(); // Refresh the approved caregivers list
-    } else {
-      const errorData = await response.json();
-      error('Failed to approve caregiver', 'Error');
+
+    let errorMessage = 'Failed to approve caregiver';
+    if (!response.ok) {
+      try {
+        const errorData = await response.json();
+        errorMessage = errorData.message || errorData.error || errorMessage;
+      } catch (_) {
+        errorMessage = response.status === 419 ? 'Session expired. Please refresh and log in again.' : errorMessage;
+      }
+      error(errorMessage, 'Error');
+      return;
     }
+    const data = await response.json();
+    success('Caregiver approved successfully!', 'Approved');
+    await loadPendingCaregivers();
+    await loadTrainingStats();
   } catch (err) {
-    error('Failed to approve caregiver', 'Error');
+    error(err?.message || 'Failed to approve caregiver', 'Error');
   }
 };
 
@@ -931,13 +1229,14 @@ const rejectCaregiverRequest = async (caregiver) => {
   if (!confirm(`Are you sure you want to reject ${caregiver.name}'s request?`)) {
     return;
   }
-  
+
   try {
+    const csrfToken = await getCsrfToken();
     const response = await fetch(`/api/training/caregivers/${caregiver.id}/reject`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+        'X-CSRF-TOKEN': csrfToken,
         'Accept': 'application/json'
       },
       credentials: 'same-origin'
@@ -960,26 +1259,29 @@ const loadTrainingStats = async () => {
   try {
     const response = await fetch(`/api/training/stats?user_id=${trainingUserId.value}`);
     const data = await response.json();
-    
+    const totalRev = typeof data.total_revenue === 'string' ? data.total_revenue : (data.total_revenue ?? 0).toFixed(2);
+    const monthlyRev = typeof data.monthly_revenue === 'string' ? data.monthly_revenue : (data.monthly_revenue ?? 0).toFixed(2);
+
     // Update stats
     stats.value = [
       { title: 'Total Caregivers', value: data.total_caregivers?.toString() || '0', icon: 'mdi-school', color: 'grey-darken-2', change: `+${data.weekly_summary?.deployed_caregivers || 0} this week`, changeColor: 'text-success', changeIcon: 'mdi-arrow-up' },
-      { title: 'Total Revenue', value: '$' + (data.total_revenue?.toFixed(2) || '0.00'), icon: 'mdi-currency-usd', color: 'grey-darken-2', change: '+$' + ((data.total_revenue * 0.2)?.toFixed(2) || '0.00') + ' this month', changeColor: 'text-success', changeIcon: 'mdi-arrow-up' },
+      { title: 'Total Revenue', value: '$' + totalRev, icon: 'mdi-currency-usd', color: 'grey-darken-2', change: '+$' + monthlyRev + ' this month', changeColor: 'text-success', changeIcon: 'mdi-arrow-up' },
     ];
-    
+
+    // Commission summary: use real API data so new accounts show $0.00, not placeholder amounts
+    monthlyRevenue.value = monthlyRev;
+    lastPayoutAmount.value = (data.weekly_summary?.previous_payout_date && data.weekly_summary?.previous_payout) ? data.weekly_summary.previous_payout : '0.00';
+
     // Update caregivers list
     trainedCaregivers.value = data.caregivers || [];
-    
-    // Update account balance
-    accountBalance.value = data.account_balance || 0;
-    
-    // Update weekly summary
-    weeklySummary.value = data.weekly_summary || {
-      deployed_caregivers: 0,
-      target: 10,
-      previous_payout: 0,
-      previous_payout_date: null
-    };
+
+    // Update account balance (ensure number for .toFixed in template)
+    accountBalance.value = Number(data.account_balance) || 0;
+
+    // Update weekly summary (ensure previous_payout is number when present)
+    const ws = data.weekly_summary || { deployed_caregivers: 0, target: 10, previous_payout: 0, previous_payout_date: null };
+    if (typeof ws.previous_payout === 'string') ws.previous_payout = Number(ws.previous_payout) || 0;
+    weeklySummary.value = ws;
     
     // Update courses with enrolled counts
     if (trainedCaregivers.value.length > 0) {
@@ -1028,7 +1330,7 @@ const pendingHeaders = [
   { title: 'Experience', key: 'years_experience' },
   { title: 'Specializations', key: 'specializations' },
   { title: 'Requested', key: 'requested_at' },
-  { title: 'Actions', key: 'actions', sortable: false },
+  { title: 'Actions', key: 'actions', sortable: false, width: '220px', minWidth: '220px' },
 ];
 
 const analyticsMetrics = ref([
@@ -1058,7 +1360,8 @@ const totalRevenue = computed(() => {
   return trainedCaregivers.value.reduce((sum, caregiver) => sum + parseFloat(caregiver.earnings), 0).toFixed(2);
 });
 
-const monthlyRevenue = ref('850.00');
+const monthlyRevenue = ref('0.00');
+const lastPayoutAmount = ref('0.00');
 const activeTrainees = computed(() => trainedCaregivers.value.filter(c => c.status === 'Active').length);
 
 const filteredCaregivers = computed(() => {
@@ -1124,8 +1427,12 @@ const loadProfile = async () => {
         zip: data.user.zip_code || '',
         birthdate: data.user.date_of_birth || '',
         department: data.user.department || 'Training & Certification',
-        role: data.user.role || 'Training Director'
+        role: data.user.role || 'Training Director',
+        created_at: data.user.created_at || '',
+        stripe_connect_id: data.user.stripe_connect_id || null
       };
+      bankConnected.value = !!(data.user.stripe_connect_id);
+      payoutMethodName.value = (data.user.bank_name && data.user.bank_name.trim()) ? data.user.bank_name.trim() : 'Bank Transfer (ACH)';
       trainingUserId.value = data.user.id;
       if (data.user.avatar) {
         userAvatar.value = `/storage/${data.user.avatar}`;
@@ -1139,11 +1446,16 @@ const loadProfile = async () => {
 
 const saveProfile = async () => {
   try {
-    // Build payload, ensuring phone is a string if present
+    // Permanent: explicitly send city/county/borough/state/address/zip so they always persist.
     const payload = {
       ...profile.value,
       borough: profile.value.county,
-      city: profile.value.city
+      county: profile.value.county,
+      city: profile.value.city ?? '',
+      state: profile.value.state ?? '',
+      address: profile.value.address ?? '',
+      zip: profile.value.zip ?? '',
+      zip_code: profile.value.zip ?? profile.value.zip_code ?? ''
     };
     
     // Ensure phone is a string if present, or remove it if empty
@@ -1199,6 +1511,38 @@ const saveProfile = async () => {
 
 const logout = () => {
   window.location.href = '/login';
+};
+
+const removePayoutMethod = async () => {
+  removingPayoutMethod.value = true;
+  const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+  try {
+    const response = await fetch('/api/training/payout-method', {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'X-CSRF-TOKEN': csrfToken,
+        'X-XSRF-TOKEN': csrfToken,
+        'X-Requested-With': 'XMLHttpRequest'
+      },
+      body: JSON.stringify({ _token: csrfToken }),
+      credentials: 'include'
+    });
+    const data = await response.json();
+    if (response.ok && data.success) {
+      showRemovePayoutDialog.value = false;
+      success('Payout method removed successfully', 'Payout Method');
+      await loadProfile();
+    } else {
+      error(data.message || 'Failed to remove payout method');
+    }
+  } catch (err) {
+    error('Failed to remove payout method. Please try again.');
+  } finally {
+    removingPayoutMethod.value = false;
+    showRemovePayoutDialog.value = false;
+  }
 };
 
 const loadPaymentMethods = async () => {
@@ -1345,11 +1689,15 @@ const initCharts = () => {
   }
 };
 
-// Watch for county changes to reset city selection
-watch(() => profile.value.county, (newCounty, oldCounty) => {
-  // Only reset city if county actually changed and it's not the initial load
-  if (newCounty && oldCounty && newCounty !== oldCounty) {
-    profile.value.city = ''; // Reset city when county changes
+// Permanent: only reset city when user changes county and current city is not valid for the new county (do not clear on profile load).
+watch(() => profile.value.county, (newCounty) => {
+  if (!newCounty) return;
+  const citiesForCounty = getCitiesForCounty(newCounty) || [];
+  const currentCity = profile.value.city?.trim();
+  if (!currentCity) return;
+  const cityValidForCounty = citiesForCounty.some((c) => String(c).trim().toLowerCase() === currentCity.toLowerCase());
+  if (!cityValidForCounty) {
+    profile.value.city = '';
   }
 });
 
@@ -1361,13 +1709,23 @@ watch(currentSection, (newVal) => {
   if (newVal === 'pending-requests') {
     loadPendingCaregivers();
   }
-  if (newVal === 'payment') {
+  if (newVal === 'payments') {
+    loadProfile(); // Refresh so bank connection status is up to date after connect redirect
     loadPaymentMethods();
-    checkTrainingApplicationStatus(); // Check approval status when opening payment section
+    checkTrainingApplicationStatus();
   }
 });
 
 onMounted(async () => {
+  // Open section from URL (e.g. after bank connect redirect: ?section=payments&success=true)
+  const params = typeof window !== 'undefined' && window.location?.search ? new URLSearchParams(window.location.search) : null;
+  if (params?.get('section')) {
+    const section = params.get('section');
+    if (['dashboard', 'trainees', 'pending-requests', 'contractors', 'analytics', 'courses', 'notifications', 'profile', 'payments'].includes(section)) {
+      currentSection.value = section;
+    }
+  }
+
   // Show loading overlay
   isPageLoading.value = true;
   loadingContext.value = 'dashboard';
@@ -1396,10 +1754,9 @@ onMounted(async () => {
   
   await Promise.allSettled(promises);
   loadingProgress.value = 100;
-  
-  setTimeout(() => {
-    isPageLoading.value = false;
-  }, 300);
+
+  // Hide overlay immediately
+  isPageLoading.value = false;
   
   if (currentSection.value === 'analytics') {
     setTimeout(initCharts, 500);
@@ -1560,6 +1917,24 @@ onMounted(async () => {
   justify-content: center;
 }
 
+/* Pending requests: prevent Actions buttons from overlapping */
+.pending-requests-table :deep(th:last-child),
+.pending-requests-table :deep(td:last-child) {
+  min-width: 220px;
+  width: 220px;
+  box-sizing: border-box;
+}
+.action-buttons--pending {
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: flex-start;
+  min-width: 0;
+}
+.action-btn-pending {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
 .action-btn-view,
 .action-btn-edit,
 .action-btn-approve,
@@ -1713,6 +2088,14 @@ onMounted(async () => {
   color: #4b5563;
   margin-top: 8px;
   font-weight: 500;
+}
+
+/* Payout Method card when connected (matches Marketing dashboard) */
+.bank-account-card-stripe {
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  border-radius: 16px;
+  padding: 24px;
+  border: 1px solid #e2e8f0;
 }
 
 .summary-item {
@@ -1877,4 +2260,172 @@ onMounted(async () => {
     font-size: 0.75rem !important;
   }
 }
+
+/* Avatar Success Modal Styles */
+.avatar-success-modal {
+  border-radius: 16px !important;
+  overflow: hidden;
+  animation: modalSlideIn 0.3s ease-out;
+}
+
+.success-modal-title {
+  font-size: 1.5rem !important;
+  font-weight: 700 !important;
+  color: #2e7d32 !important;
+  text-align: center;
+  margin-top: 16px;
+}
+
+.success-modal-message {
+  font-size: 1rem !important;
+  color: #616161 !important;
+  text-align: center;
+  padding: 8px 24px 0 24px;
+}
+
+.success-animation-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding-top: 20px;
+}
+
+.success-checkmark {
+  width: 80px;
+  height: 80px;
+  position: relative;
+}
+
+.success-checkmark .check-icon {
+  width: 80px;
+  height: 80px;
+  position: relative;
+  border-radius: 50%;
+  box-sizing: content-box;
+  border: 4px solid #4CAF50;
+}
+
+.success-checkmark .check-icon::before {
+  top: 3px;
+  left: -2px;
+  width: 30px;
+  transform-origin: 100% 50%;
+  border-radius: 100px 0 0 100px;
+}
+
+.success-checkmark .check-icon::after {
+  top: 0;
+  left: 30px;
+  width: 60px;
+  transform-origin: 0 50%;
+  border-radius: 0 100px 100px 0;
+  animation: rotate-circle 4.25s ease-in;
+}
+
+.success-checkmark .check-icon::before,
+.success-checkmark .check-icon::after {
+  content: '';
+  height: 100px;
+  position: absolute;
+  background: #FFFFFF;
+  transform: rotate(-45deg);
+}
+
+.success-checkmark .check-icon .icon-line {
+  height: 5px;
+  background-color: #4CAF50;
+  display: block;
+  border-radius: 2px;
+  position: absolute;
+  z-index: 10;
+}
+
+.success-checkmark .check-icon .icon-line.line-tip {
+  top: 46px;
+  left: 14px;
+  width: 25px;
+  transform: rotate(45deg);
+  animation: icon-line-tip 0.75s;
+}
+
+.success-checkmark .check-icon .icon-line.line-long {
+  top: 38px;
+  right: 8px;
+  width: 47px;
+  transform: rotate(-45deg);
+  animation: icon-line-long 0.75s;
+}
+
+.success-checkmark .check-icon .icon-circle {
+  top: -4px;
+  left: -4px;
+  z-index: 10;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  position: absolute;
+  box-sizing: content-box;
+  border: 4px solid rgba(76, 175, 80, 0.5);
+}
+
+.success-checkmark .check-icon .icon-fix {
+  top: 8px;
+  width: 5px;
+  left: 26px;
+  z-index: 1;
+  height: 85px;
+  position: absolute;
+  transform: rotate(-45deg);
+  background-color: #FFFFFF;
+}
+
+@keyframes rotate-circle {
+  0% { transform: rotate(-45deg); }
+  5% { transform: rotate(-45deg); }
+  12% { transform: rotate(-405deg); }
+  100% { transform: rotate(-405deg); }
+}
+
+@keyframes icon-line-tip {
+  0% { width: 0; left: 1px; top: 19px; }
+  54% { width: 0; left: 1px; top: 19px; }
+  70% { width: 50px; left: -8px; top: 37px; }
+  84% { width: 17px; left: 21px; top: 48px; }
+  100% { width: 25px; left: 14px; top: 46px; }
+}
+
+@keyframes icon-line-long {
+  0% { width: 0; right: 46px; top: 54px; }
+  65% { width: 0; right: 46px; top: 54px; }
+  84% { width: 55px; right: 0px; top: 35px; }
+  100% { width: 47px; right: 8px; top: 38px; }
+}
+
+@keyframes modalSlideIn {
+  0% { opacity: 0; transform: scale(0.8) translateY(-20px); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+/* Error Modal Styles */
+.error-modal-card {
+  border-radius: 16px !important;
+  overflow: hidden;
+}
+
+.error-modal-header {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+}
+
+.error-list {
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.error-item {
+  display: flex;
+  align-items: flex-start;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
 </style>
+

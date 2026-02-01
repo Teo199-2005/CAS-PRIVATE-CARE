@@ -21,7 +21,44 @@ export { useBookings } from './useBookings';
 // Accessibility composables
 export { useFocusTrap, vFocusTrap } from './useFocusTrap';
 
+// Utility composables
+export { useMobileDetection } from './useMobileDetection';
+export { useDataTable } from './useDataTable';
+export { useApi, useResourceApi } from './useApi';
+export { useForm, validators } from './useForm';
+export { useNotifications } from './useNotifications';
+
+// NY ZIP Code validation composable
+export { 
+    useNYZipCode,
+    isValidNYZip,
+    isValidZipFormat,
+    getBaseZip,
+    getNYRegion,
+    validateNYZip
+} from './useNYZipCode';
+
+// Performance composables
+export { 
+    useDebouncedValue,
+    useThrottle,
+    useLazyLoad,
+    useWebVitals,
+    useRenderTime,
+    useScrollPosition,
+    useWindowSize
+} from './usePerformance';
+
+// CSRF and Authentication composables
+export { getCsrfToken, getAuthHeaders, authFetch, refreshToken } from './useCsrfToken';
+
+// Debounce composable
+export { debounce } from './useDebounce';
+
+// Keyboard navigation composables
+export { useRovingTabindex } from './useRovingTabindex';
+
 // Add more composables here as they are created
-// export { useNotifications } from './useNotifications';
 // export { useReports } from './useReports';
 // export { useAnnouncements } from './useAnnouncements';
+

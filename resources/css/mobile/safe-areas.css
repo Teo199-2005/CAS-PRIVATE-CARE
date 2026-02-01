@@ -1,0 +1,196 @@
+/**
+ * CAS Private Care - Safe Areas CSS Module
+ * Part of the mobile-fixes modular system
+ * 
+ * Handles device safe areas for:
+ * - iPhone notch
+ * - Android navigation bar
+ * - Tablet edge areas
+ */
+
+/* ==========================================================================
+   Safe Area Insets
+   ========================================================================== */
+
+/* Base safe area support */
+:root {
+    --safe-area-inset-top: env(safe-area-inset-top, 0px);
+    --safe-area-inset-right: env(safe-area-inset-right, 0px);
+    --safe-area-inset-bottom: env(safe-area-inset-bottom, 0px);
+    --safe-area-inset-left: env(safe-area-inset-left, 0px);
+}
+
+/* ==========================================================================
+   Header Safe Areas
+   ========================================================================== */
+
+/* Mobile header with safe area support */
+.mobile-header,
+.app-header,
+.v-app-bar {
+    padding-top: var(--safe-area-inset-top);
+}
+
+/* Fixed header with notch support */
+.mobile-header--fixed,
+.header--fixed {
+    top: 0;
+    padding-top: max(16px, var(--safe-area-inset-top));
+}
+
+/* ==========================================================================
+   Navigation Safe Areas
+   ========================================================================== */
+
+/* Bottom navigation with safe area */
+.mobile-bottom-nav,
+.bottom-navigation,
+.v-bottom-navigation {
+    padding-bottom: var(--safe-area-inset-bottom);
+    height: calc(56px + var(--safe-area-inset-bottom));
+}
+
+/* Fixed bottom elements */
+.fixed-bottom,
+.sticky-bottom {
+    padding-bottom: var(--safe-area-inset-bottom);
+    bottom: 0;
+}
+
+/* Floating action button with safe area */
+.fab,
+.v-btn--fab,
+.floating-action-button {
+    bottom: calc(16px + var(--safe-area-inset-bottom));
+    right: calc(16px + var(--safe-area-inset-right));
+}
+
+/* ==========================================================================
+   Content Safe Areas
+   ========================================================================== */
+
+/* Main content area */
+.main-content,
+.page-content,
+.v-main {
+    padding-left: var(--safe-area-inset-left);
+    padding-right: var(--safe-area-inset-right);
+}
+
+/* Full-width sections need edge padding */
+.full-width-section {
+    padding-left: max(16px, var(--safe-area-inset-left));
+    padding-right: max(16px, var(--safe-area-inset-right));
+}
+
+/* ==========================================================================
+   Modal & Dialog Safe Areas
+   ========================================================================== */
+
+/* Modal content with safe areas */
+.v-dialog > .v-card,
+.modal-content {
+    max-height: calc(100vh - var(--safe-area-inset-top) - var(--safe-area-inset-bottom) - 48px);
+}
+
+/* Bottom sheet with safe area */
+.v-bottom-sheet,
+.bottom-sheet {
+    padding-bottom: var(--safe-area-inset-bottom);
+}
+
+/* ==========================================================================
+   Keyboard Handling
+   ========================================================================== */
+
+/* When keyboard is visible, adjust bottom padding */
+.keyboard-visible .mobile-bottom-nav,
+.keyboard-visible .bottom-navigation {
+    display: none;
+}
+
+.keyboard-visible .main-content {
+    padding-bottom: 0;
+}
+
+/* Input focus scroll adjustment */
+@supports (padding: max(0px)) {
+    input:focus,
+    textarea:focus,
+    select:focus {
+        scroll-margin-bottom: calc(48px + var(--safe-area-inset-bottom));
+    }
+}
+
+/* ==========================================================================
+   Landscape Orientation
+   ========================================================================== */
+
+@media (orientation: landscape) and (max-height: 500px) {
+    /* Reduce header height in landscape */
+    .mobile-header,
+    .app-header {
+        padding-top: max(8px, var(--safe-area-inset-top));
+    }
+    
+    /* Side safe areas more important in landscape */
+    .main-content {
+        padding-left: max(16px, var(--safe-area-inset-left));
+        padding-right: max(16px, var(--safe-area-inset-right));
+    }
+    
+    /* Compact navigation in landscape */
+    .mobile-bottom-nav {
+        height: calc(48px + var(--safe-area-inset-bottom));
+    }
+}
+
+/* ==========================================================================
+   PWA Standalone Mode
+   ========================================================================== */
+
+@media (display-mode: standalone) {
+    /* Extra padding for standalone PWA mode */
+    .mobile-header {
+        padding-top: max(20px, var(--safe-area-inset-top));
+    }
+    
+    /* Ensure back gesture area is respected */
+    .main-content {
+        padding-left: max(8px, var(--safe-area-inset-left));
+    }
+}
+
+/* ==========================================================================
+   Utility Classes
+   ========================================================================== */
+
+.pt-safe {
+    padding-top: var(--safe-area-inset-top);
+}
+
+.pb-safe {
+    padding-bottom: var(--safe-area-inset-bottom);
+}
+
+.pl-safe {
+    padding-left: var(--safe-area-inset-left);
+}
+
+.pr-safe {
+    padding-right: var(--safe-area-inset-right);
+}
+
+.px-safe {
+    padding-left: var(--safe-area-inset-left);
+    padding-right: var(--safe-area-inset-right);
+}
+
+.py-safe {
+    padding-top: var(--safe-area-inset-top);
+    padding-bottom: var(--safe-area-inset-bottom);
+}
+
+.p-safe {
+    padding: var(--safe-area-inset-top) var(--safe-area-inset-right) var(--safe-area-inset-bottom) var(--safe-area-inset-left);
+}

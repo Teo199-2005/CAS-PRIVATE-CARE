@@ -2928,7 +2928,7 @@ font-size: 1.1rem !important;
             </div>
             <div class="hero-right">
                 <div class="hero-image-container">
-                    <img src="https://images.unsplash.com/photo-1581579438747-1dc8d17bbce4?w=800&q=75" alt="Professional caregiver providing care services" class="hero-cover-image" style="object-fit: cover;">
+                    <img src="https://images.unsplash.com/photo-1581579438747-1dc8d17bbce4?w=800&q=75" alt="Professional caregiver providing care services" class="hero-cover-image" style="object-fit: cover;" loading="lazy" decoding="async">
                 </div>
             </div>
         </div>

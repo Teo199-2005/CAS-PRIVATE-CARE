@@ -72,4 +72,12 @@ class NYLocationService
         $cities = self::getCitiesForCounty($county);
         return in_array($city, $cities);
     }
+
+    /**
+     * Get all counties with their cities (for API endpoint)
+     */
+    public static function getCountiesWithCities(): array
+    {
+        return self::getLocationData();
+    }
 }

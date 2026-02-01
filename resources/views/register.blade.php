@@ -2446,7 +2446,7 @@
 
             <div class="form-group">
                 <label for="email">Email Address</label>
-                <input type="email" id="email" name="email" class="form-input" placeholder="your@email.com" value="{{ session('oauth_user.email') ?? old('email') }}" {{ session('oauth_user.email') ? 'readonly' : '' }} required autocomplete="email" aria-required="true">
+                <input type="email" id="email" name="email" class="form-input" placeholder="your@email.com" value="{{ session('oauth_user.email') ?? old('email') }}" {{ session('oauth_user.email') ? 'readonly' : '' }} required autocomplete="email" aria-required="true" inputmode="email">
                 <div id="email-exists-warning" class="email-warning-message" style="display: none;">
                     <i class="bi bi-exclamation-triangle"></i>
                     This email address is already registered. Please use a different email or try logging in.
@@ -3042,43 +3042,84 @@
             const zipCodeInput = document.getElementById('zip_code');
             const zipLocationDisplay = document.getElementById('zip-location-display');
             
+            /**
+             * New York State ZIP Code Validation
+             * Valid NY ZIPs: 10xxx-14xxx range OR special cases (00501, 00544, 06390)
+             * Regex: ^(00501|00544|06390|1[0-4]\d{3})(-\d{4})?$
+             */
+            function isValidNYZipCode(zip) {
+                if (!zip) return false;
+                const nyZipRegex = /^(00501|00544|06390|1[0-4]\d{3})(-\d{4})?$/;
+                return nyZipRegex.test(zip);
+            }
+
+            /**
+             * Get NY region based on ZIP prefix for helpful error messages
+             */
+            function getNYRegionHint(zip) {
+                const prefix = parseInt(zip.substring(0, 2), 10);
+                if (prefix >= 10 && prefix <= 14) {
+                    if (prefix === 10) return 'NYC/Westchester area';
+                    if (prefix === 11) return 'Long Island/Queens/Brooklyn area';
+                    if (prefix === 12) return 'Capital Region area';
+                    if (prefix === 13) return 'Central NY area';
+                    if (prefix === 14) return 'Western NY area';
+                }
+                return null;
+            }
+            
             // ZIP code lookup function
             async function lookupZipCodeLocation(zip) {
                 if (!zipLocationDisplay) return;
                 
                 if (zip && zip.length === 5 && /^\d{5}$/.test(zip)) {
+                    // Client-side NY ZIP validation FIRST
+                    if (!isValidNYZipCode(zip)) {
+                        zipLocationDisplay.classList.remove('is-loading');
+                        zipLocationDisplay.classList.add('is-error');
+                        zipLocationDisplay.textContent = 'Not a NY ZIP code. Must start with 10-14.';
+                        zipLocationDisplay.style.display = 'block';
+                        return;
+                    }
+
                     try {
-            zipLocationDisplay.classList.remove('is-error');
-            zipLocationDisplay.classList.add('is-loading');
-            zipLocationDisplay.textContent = 'Looking up location…';
-            zipLocationDisplay.style.display = 'block';
+                        zipLocationDisplay.classList.remove('is-error');
+                        zipLocationDisplay.classList.add('is-loading');
+                        zipLocationDisplay.textContent = 'Looking up location…';
+                        zipLocationDisplay.style.display = 'block';
 
                         const response = await fetch(`/api/zipcode-lookup/${zip}`);
+                        console.log('ZIP lookup response status:', response.status);
                         if (response.ok) {
-                            const data = await response.json();
-                            if (data.success && data.location) {
-                zipLocationDisplay.classList.remove('is-loading');
-                zipLocationDisplay.classList.remove('is-error');
-                                zipLocationDisplay.textContent = data.location;
+                            const json = await response.json();
+                            console.log('ZIP lookup data:', json);
+                            // Handle both wrapped (ApiResponseTrait) and unwrapped responses
+                            const data = json.data || json;
+                            if ((json.success || data.success) && (data.location || json.location)) {
+                                const location = data.location || json.location;
+                                zipLocationDisplay.classList.remove('is-loading');
+                                zipLocationDisplay.classList.remove('is-error');
+                                zipLocationDisplay.textContent = location;
                                 zipLocationDisplay.style.display = 'block';
                                 return;
                             }
                         }
                     } catch (error) {
-                        // ZIP code lookup failed silently
+                        console.error('ZIP lookup error:', error);
                     }
                     
-            // Show a helpful message if lookup fails / not found
-            zipLocationDisplay.classList.remove('is-loading');
-            zipLocationDisplay.classList.add('is-error');
-            zipLocationDisplay.textContent = 'ZIP not found. Double-check the 5 digits.';
-            zipLocationDisplay.style.display = 'block';
+                    // Show region hint for valid NY ZIPs when API lookup fails
+                    const regionHint = getNYRegionHint(zip);
+                    zipLocationDisplay.classList.remove('is-loading');
+                    zipLocationDisplay.classList.remove('is-error');
+                    zipLocationDisplay.textContent = regionHint ? `${regionHint}, NY` : 'New York, NY';
+                    zipLocationDisplay.style.display = 'block';
                 } else {
-            // Show helper text while typing
-            zipLocationDisplay.classList.remove('is-loading');
-            zipLocationDisplay.classList.remove('is-error');
-            zipLocationDisplay.textContent = 'Enter a 5-digit ZIP to auto-fill the city/state.';
-            zipLocationDisplay.style.display = (zip && zip.length > 0) ? 'block' : 'none';
+                    // Show helper text while typing
+                    zipLocationDisplay.classList.remove('is-loading');
+                    zipLocationDisplay.classList.remove('is-error');
+                    zipLocationDisplay.textContent = 'Enter a 5-digit NY ZIP code (10xxx-14xxx).';
+                    zipLocationDisplay.style.display = (zip && zip.length > 0) ? 'block' : 'none';
                 }
             }
             

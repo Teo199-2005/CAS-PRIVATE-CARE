@@ -9,6 +9,114 @@ use Illuminate\Support\Facades\Log;
 class ZipCodeService
 {
     /**
+     * Special NY ZIP codes that don't follow the standard 10-14 prefix rule
+     */
+    private const SPECIAL_NY_ZIPS = ['00501', '00544', '06390'];
+
+    /**
+     * NY ZIP code validation regex
+     * Matches: 00501, 00544, 06390 (special cases) OR 10xxx-14xxx (standard NY range)
+     * Optional: -XXXX suffix for ZIP+4 format
+     */
+    private const NY_ZIP_REGEX = '/^(00501|00544|06390|1[0-4]\d{3})(-\d{4})?$/';
+
+    /**
+     * Validate if a ZIP code is a valid New York State ZIP code
+     * 
+     * Rules:
+     * - Must be 5 digits (optionally with -XXXX for ZIP+4)
+     * - First two digits must be 10-14 (standard NY range)
+     * - OR must be one of the special NY ZIPs: 00501, 00544, 06390
+     * 
+     * @param string $zipCode The ZIP code to validate
+     * @return bool True if valid NY ZIP, false otherwise
+     */
+    public static function isValidNYZipCode(string $zipCode): bool
+    {
+        // Remove any whitespace
+        $zipCode = trim($zipCode);
+        
+        // Check against the NY ZIP regex
+        return (bool) preg_match(self::NY_ZIP_REGEX, $zipCode);
+    }
+
+    /**
+     * Get the 5-digit base ZIP code from a ZIP+4 format
+     * 
+     * @param string $zipCode Full ZIP code (5 or 9 digit format)
+     * @return string 5-digit base ZIP code
+     */
+    public static function getBaseZipCode(string $zipCode): string
+    {
+        $zipCode = trim($zipCode);
+        
+        // Extract first 5 digits if it's a ZIP+4 format
+        if (preg_match('/^(\d{5})(-\d{4})?$/', $zipCode, $matches)) {
+            return $matches[1];
+        }
+        
+        return $zipCode;
+    }
+
+    /**
+     * Validate ZIP code format (5 digits or ZIP+4)
+     * 
+     * @param string $zipCode
+     * @return bool
+     */
+    public static function isValidZipFormat(string $zipCode): bool
+    {
+        return (bool) preg_match('/^\d{5}(-\d{4})?$/', trim($zipCode));
+    }
+
+    /**
+     * Get validation details for a ZIP code
+     * Returns array with format_valid, ny_valid, and message
+     * 
+     * @param string $zipCode
+     * @return array{format_valid: bool, ny_valid: bool, message: string}
+     */
+    public static function validateZipCode(string $zipCode): array
+    {
+        $zipCode = trim($zipCode);
+        
+        // Check format first
+        if (!self::isValidZipFormat($zipCode)) {
+            return [
+                'format_valid' => false,
+                'ny_valid' => false,
+                'message' => 'ZIP code must be 5 digits (or 5+4 format)'
+            ];
+        }
+        
+        // Check if it's a valid NY ZIP
+        if (!self::isValidNYZipCode($zipCode)) {
+            return [
+                'format_valid' => true,
+                'ny_valid' => false,
+                'message' => 'ZIP code is not a valid New York State ZIP code'
+            ];
+        }
+        
+        return [
+            'format_valid' => true,
+            'ny_valid' => true,
+            'message' => 'Valid NY ZIP code'
+        ];
+    }
+
+    /**
+     * Check if ZIP is a special NY ZIP (00501, 00544, 06390)
+     * 
+     * @param string $zipCode
+     * @return bool
+     */
+    public static function isSpecialNYZip(string $zipCode): bool
+    {
+        return in_array(self::getBaseZipCode($zipCode), self::SPECIAL_NY_ZIPS, true);
+    }
+
+    /**
      * Lookup ZIP code location using external API or fallback
      * 
      * @param string $zipCode
@@ -16,8 +124,11 @@ class ZipCodeService
      */
     public static function lookupZipCode(string $zipCode): ?string
     {
-        // Validate ZIP code format
-        if (!preg_match('/^\d{5}$/', $zipCode)) {
+        // Get the 5-digit base ZIP
+        $zipCode = self::getBaseZipCode($zipCode);
+        
+        // Validate ZIP code format and NY validity
+        if (!preg_match('/^\d{5}$/', $zipCode) || !self::isValidNYZipCode($zipCode)) {
             return null;
         }
 
@@ -38,7 +149,12 @@ class ZipCodeService
 
         // If not in static map, try external API as fallback
         try {
-            $response = Http::timeout(2)->get("https://api.zippopotam.us/us/{$zipCode}");
+            // In local development, SSL verification may fail - disable it for local environments
+            $httpClient = Http::timeout(2);
+            if (app()->environment('local', 'development')) {
+                $httpClient = $httpClient->withOptions(['verify' => false]);
+            }
+            $response = $httpClient->get("https://api.zippopotam.us/us/{$zipCode}");
             
             if ($response->successful()) {
                 $data = $response->json();
@@ -60,9 +176,57 @@ class ZipCodeService
             Log::debug("ZIP code API lookup failed for {$zipCode}: " . $e->getMessage());
         }
 
-    // Don't guess a generic city/state. Returning a wrong location is worse than no location.
-    // Let the caller/UI handle the "not found" state.
-    return null;
+        // For valid NY ZIPs not in static map and API failed, return region-based location
+        // This ensures valid NY ZIPs always get a location indicator
+        $regionLocation = self::getRegionByZipPrefix($zipCode);
+        if ($regionLocation) {
+            Cache::put($cacheKey, $regionLocation, now()->addDays(30));
+            return $regionLocation;
+        }
+
+        return null;
+    }
+
+    /**
+     * Get NY region based on ZIP code prefix
+     * Returns a generic location for valid NY ZIP codes based on their prefix range
+     * 
+     * @param string $zipCode 5-digit ZIP code
+     * @return string|null Region name with ", NY" suffix
+     */
+    private static function getRegionByZipPrefix(string $zipCode): ?string
+    {
+        if (!self::isValidNYZipCode($zipCode)) {
+            return null;
+        }
+
+        // Handle special ZIP codes
+        if ($zipCode === '00501' || $zipCode === '00544') {
+            return 'Holtsville, NY'; // IRS/USPS special
+        }
+        if ($zipCode === '06390') {
+            return 'Fishers Island, NY';
+        }
+
+        // Get first 3 digits for region mapping
+        $prefix = (int) substr($zipCode, 0, 3);
+
+        // NYC regions
+        if ($prefix >= 100 && $prefix <= 102) return 'Manhattan, NY';
+        if ($prefix === 103) return 'Staten Island, NY';
+        if ($prefix === 104) return 'Bronx, NY';
+        if ($prefix >= 105 && $prefix <= 109) return 'Westchester, NY';
+        if ($prefix >= 110 && $prefix <= 111) return 'Long Island, NY'; // Queens/Nassau
+        if ($prefix === 112) return 'Brooklyn, NY';
+        if ($prefix >= 113 && $prefix <= 114) return 'Long Island, NY'; // Queens
+        if ($prefix >= 115 && $prefix <= 119) return 'Long Island, NY'; // Nassau/Suffolk
+
+        // Upstate regions
+        if ($prefix >= 120 && $prefix <= 129) return 'Capital Region, NY'; // Albany, Hudson Valley
+        if ($prefix >= 130 && $prefix <= 139) return 'Central NY'; // Syracuse area
+        if ($prefix >= 140 && $prefix <= 149) return 'Western NY'; // Buffalo, Rochester area
+
+        return 'New York, NY';
     }
 
     /**

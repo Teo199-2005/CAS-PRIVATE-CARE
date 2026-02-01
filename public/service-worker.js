@@ -3,14 +3,14 @@
  * 
  * Provides offline functionality, caching, and performance improvements.
  * 
- * @version 2.0.0
+ * @version 2.1.1
  * @since 2026-01-24
  */
 
-const CACHE_NAME = 'cas-private-care-v2.0.0';
-const STATIC_CACHE = 'cas-static-v2.0.0';
-const DYNAMIC_CACHE = 'cas-dynamic-v2.0.0';
-const API_CACHE = 'cas-api-v2.0.0';
+const CACHE_NAME = 'cas-private-care-v2.1.1';
+const STATIC_CACHE = 'cas-static-v2.1.1';
+const DYNAMIC_CACHE = 'cas-dynamic-v2.1.1';
+const API_CACHE = 'cas-api-v2.1.1';
 
 // Files to cache immediately on install
 const PRECACHE_ASSETS = [
@@ -256,18 +256,28 @@ async function staleWhileRevalidate(request, cacheName) {
  * Fetch and cache a request
  */
 async function fetchAndCache(request, cacheName) {
-    const cache = await caches.open(cacheName);
-    
     try {
+        const cache = await caches.open(cacheName);
         const networkResponse = await fetch(request);
         
-        if (networkResponse.ok) {
+        if (networkResponse && networkResponse.ok) {
             cache.put(request, networkResponse.clone());
         }
         
         return networkResponse;
     } catch (error) {
-        throw error;
+        // Silently handle network failures - return cached response if available
+        const cachedResponse = await caches.match(request);
+        if (cachedResponse) {
+            return cachedResponse;
+        }
+        // If no cache, return a basic offline response for navigation requests
+        if (request.mode === 'navigate') {
+            return caches.match('/offline');
+        }
+        // For other requests, just fail silently
+        console.warn('Service Worker: Failed to fetch', request.url);
+        return new Response('Network unavailable', { status: 503, statusText: 'Service Unavailable' });
     }
 }
 

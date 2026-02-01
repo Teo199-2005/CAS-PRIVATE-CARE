@@ -12,6 +12,9 @@ use App\Models\BookingAssignment;
 use App\Models\Booking;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\StripeWebhookController;
+use App\Http\Controllers\Api\UtilityApiController;
+use App\Http\Controllers\Api\UserProfileController;
+use App\Http\Controllers\Api\LocationController;
 use App\Services\ZipCodeService;
 
 // ============================================
@@ -25,6 +28,34 @@ Route::post('/webhooks/stripe', [StripeWebhookController::class, 'handleWebhook'
 Route::post('/web-vitals', [\App\Http\Controllers\Api\WebVitalsController::class, 'store']);
 
 // ============================================
+// CSP REPORT (No Auth, for security monitoring)
+// ============================================
+Route::post('/csp-report', [\App\Http\Controllers\Api\CspReportController::class, 'store'])
+    ->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class]);
+
+// ============================================
+// HEALTH CHECK ENDPOINTS (No Auth, for monitoring)
+// ============================================
+Route::prefix('health')->group(function () {
+    Route::get('/ping', [\App\Http\Controllers\Api\HealthController::class, 'ping']);
+    Route::get('/live', [\App\Http\Controllers\Api\HealthController::class, 'live']);
+    Route::get('/ready', [\App\Http\Controllers\Api\HealthController::class, 'ready']);
+    Route::get('/check', [\App\Http\Controllers\Api\HealthController::class, 'check']);
+    Route::get('/version', [\App\Http\Controllers\Api\HealthController::class, 'version']);
+});
+
+// ============================================
+// CLIENT ERROR LOGGING (No Auth, for error tracking)
+// ============================================
+Route::post('/client-errors', [\App\Http\Controllers\Api\ClientErrorController::class, 'store'])
+    ->middleware(['throttle:30,1']);
+
+// Frontend Error Logging (enhanced version)
+Route::post('/errors/log', [\App\Http\Controllers\ErrorLoggingController::class, 'log'])
+    ->middleware(['throttle:30,1']);
+Route::get('/errors/health', [\App\Http\Controllers\ErrorLoggingController::class, 'health']);
+
+// ============================================
 // PUBLIC API ROUTES (Rate Limited - 60/min)
 // ============================================
 Route::middleware(['throttle:60,1'])->group(function () {
@@ -33,355 +64,31 @@ Route::middleware(['throttle:60,1'])->group(function () {
 // Public ZIP lookup (NY-only, no guessing)
 // Source of truth for all ZIP place indicators.
 // ============================================
-Route::get('/zipcode-lookup/{zip}', function (string $zip) {
-    $zip = preg_replace('/\D+/', '', $zip);
-    if (!preg_match('/^\d{5}$/', $zip)) {
-        return response()->json(['message' => 'Invalid ZIP'], 422);
-    }
-
-    $location = ZipCodeService::lookupZipCode($zip);
-    if (!$location) {
-        // No guessing allowed
-        return response()->json(['message' => 'Unknown ZIP'], 404);
-    }
-
-    // Location is in "City, NY" format
-    [$city, $state] = array_pad(explode(',', $location, 2), 2, '');
-    $city = trim((string) $city);
-    $state = strtoupper(trim((string) $state)) ?: 'NY';
-
-    // Backward compatible response:
-    // - some parts of the app expect { city, state } or { place }
-    // - older code expects { success, location }
-    return response()->json([
-        'success' => true,
-        'zip' => $zip,
-        'city' => $city,
-        'state' => $state,
-        'place' => "{$city}, {$state}",
-        'location' => "{$city}, {$state}",
-    ]);
-});
-
-
+Route::get('/zipcode-lookup/{zip}', [UtilityApiController::class, 'lookupZipCode']);
 
 // Application Status Endpoints (for checking approval status)
-Route::get('/caregiver/application-status', function (Request $request) {
-    try {
-        $user = auth('web')->user();
-        if (!$user) {
-            return response()->json(['error' => 'Unauthorized'], 401);
-        }
-        
-        // Return user's approval status
-        $status = $user->status ?? 'pending';
-        // Normalize: 'Active' or 'approved' = approved, otherwise pending
-        $approvalStatus = (strtolower($status) === 'active' || strtolower($status) === 'approved') ? 'approved' : 'pending';
-        
-        return response()->json([
-            'success' => true,
-            'status' => $approvalStatus,
-            'application' => [
-                'status' => $approvalStatus
-            ]
-        ]);
-    } catch (\Exception $e) {
-        return response()->json(['error' => 'Failed to check application status: ' . $e->getMessage()], 500);
-    }
-});
+Route::get('/caregiver/application-status', [UtilityApiController::class, 'caregiverApplicationStatus']);
+Route::get('/marketing/application-status', [UtilityApiController::class, 'marketingApplicationStatus']);
+Route::get('/housekeeper/application-status', [UtilityApiController::class, 'housekeeperApplicationStatus']);
+Route::get('/training/application-status', [UtilityApiController::class, 'applicationStatus']);
 
-Route::get('/marketing/application-status', function (Request $request) {
-    try {
-        $user = auth('web')->user();
-        if (!$user) {
-            return response()->json(['error' => 'Unauthorized'], 401);
-        }
-        
-        // Return user's approval status
-        $status = $user->status ?? 'pending';
-        // Normalize: 'Active' or 'approved' = approved, otherwise pending
-        $approvalStatus = (strtolower($status) === 'active' || strtolower($status) === 'approved') ? 'approved' : 'pending';
-        
-        return response()->json([
-            'success' => true,
-            'status' => $approvalStatus
-        ]);
-    } catch (\Exception $e) {
-        return response()->json(['error' => 'Failed to check application status: ' . $e->getMessage()], 500);
-    }
-});
+// Payout Method Management Routes
+Route::delete('/caregiver/payout-method', [\App\Http\Controllers\StripeController::class, 'removePayoutMethod']);
+Route::delete('/housekeeper/payout-method', [\App\Http\Controllers\StripeController::class, 'removeHousekeeperPayoutMethod']);
+Route::delete('/marketing/payout-method', [\App\Http\Controllers\StripeController::class, 'removeMarketingPayoutMethod']);
+Route::delete('/training/payout-method', [\App\Http\Controllers\StripeController::class, 'removeTrainingPayoutMethod']);
+Route::get('/caregiver/payout-methods', [\App\Http\Controllers\StripeController::class, 'getPayoutMethods']);
+Route::get('/housekeeper/payout-methods', [\App\Http\Controllers\StripeController::class, 'getHousekeeperPayoutMethods']);
 
-Route::get('/training/application-status', function (Request $request) {
-    try {
-        $user = auth('web')->user();
-        if (!$user) {
-            return response()->json(['error' => 'Unauthorized'], 401);
-        }
-        
-        // Return user's approval status
-        $status = $user->status ?? 'pending';
-        // Normalize: 'Active' or 'approved' = approved, otherwise pending
-        $approvalStatus = (strtolower($status) === 'active' || strtolower($status) === 'approved') ? 'approved' : 'pending';
-        
-        return response()->json([
-            'success' => true,
-            'status' => $approvalStatus
-        ]);
-    } catch (\Exception $e) {
-        return response()->json(['error' => 'Failed to check application status: ' . $e->getMessage()], 500);
-    }
-});
+// User Profile Routes - GET /profile and POST /profile/update are in web.php (session auth)
+// so dashboards (Caregiver, Housekeeper, etc.) use session and don't get Unauthenticated.
+Route::put('/user/{id}/profile', [UserProfileController::class, 'updateProfile']);
+Route::post('/profile/change-password', [UserProfileController::class, 'changePassword']);
 
-// Update user profile
-// SECURITY: Requires authentication and authorization check
-Route::put('/user/{id}/profile', function ($id, Request $request) {
-    try {
-        // SECURITY FIX: Verify user is authenticated
-        $authUser = auth('web')->user();
-        if (!$authUser) {
-            return response()->json(['error' => 'Unauthenticated'], 401);
-        }
-        
-        // SECURITY FIX: Verify user can only update their own profile
-        // Admins can update any profile, regular users can only update their own
-        if ($authUser->id != $id && $authUser->user_type !== 'admin') {
-            \Illuminate\Support\Facades\Log::warning('Unauthorized profile update attempt', [
-                'auth_user_id' => $authUser->id,
-                'target_user_id' => $id,
-                'ip' => $request->ip()
-            ]);
-            return response()->json(['error' => 'Unauthorized - You can only update your own profile'], 403);
-        }
-        
-        $user = User::findOrFail($id);
-        
-        $validated = $request->validate([
-            'name' => 'sometimes|string|max:255',
-            'email' => 'sometimes|email|unique:users,email,' . $id,
-            'phone' => 'sometimes|string|max:20',
-            'address' => 'sometimes|string|max:255',
-            'city' => 'sometimes|string|max:100',
-            'borough' => 'sometimes|string|max:100',
-            'state' => 'sometimes|string|max:50',
-            'zip_code' => 'sometimes|string|max:20',
-            'date_of_birth' => 'sometimes|date',
-        ]);
-        
-        $user->update($validated);
-        
-        \Illuminate\Support\Facades\Log::info('Profile updated', [
-            'user_id' => $user->id,
-            'updated_by' => $authUser->id,
-            'fields' => array_keys($validated)
-        ]);
-        
-        return response()->json([
-            'success' => true,
-            'user' => $user->fresh(),
-            'message' => 'Profile updated successfully'
-        ]);
-    } catch (\Illuminate\Validation\ValidationException $e) {
-        return response()->json(['error' => $e->errors()], 422);
-    } catch (\Exception $e) {
-        return response()->json(['error' => 'Failed to update profile: ' . $e->getMessage()], 500);
-    }
-});
-
-// Get user profile
-Route::get('/profile', function (Request $request) {
-    // Check if user_id query parameter is provided (for demo purposes)
-    $userId = $request->query('user_id');
-    $userType = $request->query('user_type'); // 'client', 'caregiver', 'admin', 'marketing', 'training'
-    
-    if ($userId) {
-        $user = User::find($userId);
-    } else {
-        // Try to get authenticated user
-        $user = auth('web')->user();
-        
-        // Fallback based on user_type for demo purposes
-        if (!$user) {
-            if ($userType === 'caregiver') {
-                $user = User::where('name', 'Demo Caregiver')->first();
-            } elseif ($userType === 'admin') {
-                $user = User::where('user_type', 'admin')->first();
-            } elseif ($userType === 'marketing') {
-                $user = User::where('user_type', 'marketing')->first();
-            } elseif ($userType === 'training') {
-                $user = User::where('user_type', 'training')->first();
-            } else {
-                $user = User::where('name', 'Demo Client')->first();
-            }
-        }
-    }
-    
-    if (!$user) {
-        return response()->json(['error' => 'User not found'], 404);
-    }
-    
-    // Get caregiver data if user is a caregiver
-    $caregiver = null;
-    if ($user->user_type === 'caregiver') {
-        $caregiver = \App\Models\Caregiver::where('user_id', $user->id)->first();
-    }
-    
-    return response()->json([
-        'user' => [
-            'id' => $user->id,
-            'name' => $user->name,
-            'email' => $user->email,
-            'email_verified_at' => $user->email_verified_at,
-            'phone' => $user->phone,
-            'address' => $user->address,
-            'city' => $user->city,
-            'borough' => $user->borough,
-            'state' => $user->state,
-            'zip_code' => $user->zip_code,
-            'date_of_birth' => $user->date_of_birth,
-            'avatar' => $user->avatar,
-            'user_type' => $user->user_type,
-            'role' => $user->role,
-            'department' => $user->department,
-            'created_at' => $user->created_at
-        ],
-        'caregiver' => $caregiver ? [
-            'id' => $caregiver->id,
-            'years_experience' => $caregiver->years_experience,
-            'specializations' => $caregiver->specializations,
-            'bio' => $caregiver->bio,
-            'training_certificate' => $caregiver->training_certificate,
-            'training_center_id' => $caregiver->training_center_id,
-            'training_center_name' => $caregiver->trainingCenter ? $caregiver->trainingCenter->name : null,
-            'training_center_approval_status' => $caregiver->training_center_approval_status,
-            'has_hha' => $caregiver->has_hha,
-            'hha_number' => $caregiver->hha_number,
-            'has_cna' => $caregiver->has_cna,
-            'cna_number' => $caregiver->cna_number,
-            'has_rn' => $caregiver->has_rn,
-            'rn_number' => $caregiver->rn_number,
-            'preferred_hourly_rate_min' => $caregiver->preferred_hourly_rate_min,
-            'preferred_hourly_rate_max' => $caregiver->preferred_hourly_rate_max
-        ] : null
-    ]);
-});
-
-// Update admin profile
-Route::post('/profile/update', function (Request $request) {
-    try {
-        // For demo, get admin user (in production, use auth()->user())
-        $user = User::where('user_type', 'admin')->first();
-        
-        if (!$user) {
-            return response()->json(['error' => 'User not found'], 404);
-        }
-        
-        $validated = $request->validate([
-            'firstName' => 'required|string|max:255',
-            'lastName' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email,' . $user->id,
-            'phone' => 'nullable|string|max:20',
-            'department' => 'nullable|string|max:100',
-            'role' => 'nullable|string|max:100'
-        ]);
-        
-        // Use DB update to avoid any model events or relationships
-        DB::table('users')
-            ->where('id', $user->id)
-            ->update([
-                'name' => $validated['firstName'] . ' ' . $validated['lastName'],
-                'email' => $validated['email'],
-                'phone' => $validated['phone'] ?? $user->phone,
-                'department' => $validated['department'] ?? $user->department,
-                'role' => $validated['role'] ?? $user->role,
-                'updated_at' => now()
-            ]);
-        
-        // Refresh user to get updated data
-        $user = $user->fresh();
-        
-        return response()->json([
-            'success' => true,
-            'message' => 'Profile updated successfully',
-            'user' => $user
-        ]);
-    } catch (\Illuminate\Validation\ValidationException $e) {
-        return response()->json(['errors' => $e->errors()], 422);
-    } catch (\Exception $e) {
-        return response()->json(['error' => 'Failed to update profile: ' . $e->getMessage()], 500);
-    }
-});
-
-// Change password
-Route::post('/profile/change-password', function (Request $request) {
-    try {
-        // For demo, get admin user (in production, use auth()->user())
-        $user = User::where('user_type', 'admin')->first();
-        
-        if (!$user) {
-            return response()->json(['error' => 'User not found'], 404);
-        }
-        
-        $validated = $request->validate([
-            'currentPassword' => 'required|string',
-            'newPassword' => 'required|string|min:8',
-            'confirmPassword' => 'required|string|same:newPassword'
-        ]);
-        
-        // Verify current password
-        if (!Hash::check($validated['currentPassword'], $user->password)) {
-            return response()->json(['error' => 'Current password is incorrect'], 422);
-        }
-        
-        // Use DB update to avoid any model events or relationships
-        DB::table('users')
-            ->where('id', $user->id)
-            ->update([
-                'password' => Hash::make($validated['newPassword']),
-                'updated_at' => now()
-            ]);
-        
-        return response()->json([
-            'success' => true,
-            'message' => 'Password changed successfully'
-        ]);
-    } catch (\Illuminate\Validation\ValidationException $e) {
-        return response()->json(['errors' => $e->errors()], 422);
-    } catch (\Exception $e) {
-        return response()->json(['error' => 'Failed to change password: ' . $e->getMessage()], 500);
-    }
-});
-
-Route::get('/ny-counties', function () {
-    try {
-        $counties = NYLocationService::getCounties();
-        return response()->json($counties);
-    } catch (\Exception $e) {
-        // Fallback: read JSON directly
-        try {
-            $jsonData = Storage::get('data/ny_accurate_counties.json');
-            $data = json_decode($jsonData, true);
-            return response()->json(array_keys($data));
-        } catch (\Exception $e2) {
-            return response()->json(['error' => 'Failed to load counties'], 500);
-        }
-    }
-});
-
-Route::get('/ny-cities/{county}', function (string $county) {
-    try {
-        $cities = NYLocationService::getCitiesForCounty($county);
-        return response()->json($cities);
-    } catch (\Exception $e) {
-        // Fallback: read JSON directly
-        try {
-            $jsonData = Storage::get('data/ny_accurate_counties.json');
-            $data = json_decode($jsonData, true);
-            return response()->json($data[$county] ?? []);
-        } catch (\Exception $e2) {
-            return response()->json(['error' => 'Failed to load cities'], 500);
-        }
-    }
-});
+// NY Location Routes - Moved to LocationController
+Route::get('/ny-locations', [LocationController::class, 'getAllLocations']);
+Route::get('/ny-counties', [LocationController::class, 'getCounties']);
+Route::get('/ny-cities/{county}', [LocationController::class, 'getCitiesForCounty']);
 
 // Apply caching to stats endpoints (5 minute cache)
 Route::middleware('cache.api:5')->group(function () {
@@ -398,32 +105,33 @@ Route::post('/housekeeper/apply-client/{id}', [\App\Http\Controllers\Housekeeper
 Route::get('/housekeeper/{id}/earnings', [\App\Http\Controllers\HousekeeperController::class, 'getEarningsReport']);
 
 // Admin: Get all housekeepers
-Route::get('/admin/housekeepers', [\App\Http\Controllers\AdminController::class, 'getHousekeepers']);
+Route::get('/admin/housekeepers', [\App\Http\Controllers\Admin\UserAdminController::class, 'getHousekeepers']);
+Route::get('/admin/housekeepers/{userId}', [\App\Http\Controllers\Admin\UserAdminController::class, 'getHousekeeperProfile']);
 
 Route::post('/admin/platform-metrics/clear-cache', [\App\Http\Controllers\Api\PlatformMetricsController::class, 'clearCache']);
 // Admin: get all bookings (full details)
-Route::get('/admin/bookings', [\App\Http\Controllers\AdminController::class, 'getAllBookings']);
+Route::get('/admin/bookings', [\App\Http\Controllers\Admin\BookingAdminController::class, 'getAllBookings']);
 
 // Admin: get client payments
-Route::get('/admin/client-payments', [\App\Http\Controllers\AdminController::class, 'getClientPayments']);
+Route::get('/admin/client-payments', [\App\Http\Controllers\Admin\ReportAdminController::class, 'getClientPayments']);
 
 // Admin: get platform payouts (Stripe transactions)
-Route::get('/admin/platform-payouts', [\App\Http\Controllers\AdminController::class, 'getPlatformPayouts']);
+Route::get('/admin/platform-payouts', [\App\Http\Controllers\Admin\ReportAdminController::class, 'getPlatformPayouts']);
 
 // Admin: get company account info (Stripe Connect)
-Route::get('/admin/company-account', [\App\Http\Controllers\AdminController::class, 'getCompanyAccount']);
+Route::get('/admin/company-account', [\App\Http\Controllers\Admin\ReportAdminController::class, 'getCompanyAccount']);
 
 // Admin: get recent announcements
-Route::get('/admin/announcements/recent', [\App\Http\Controllers\AdminController::class, 'getRecentAnnouncements']);
+Route::get('/admin/announcements/recent', [\App\Http\Controllers\Admin\ReportAdminController::class, 'getRecentAnnouncements']);
 
 // Admin: send announcement
-Route::post('/admin/announcements/send', [\App\Http\Controllers\AdminController::class, 'sendAnnouncement']);
+Route::post('/admin/announcements/send', [\App\Http\Controllers\Admin\ReportAdminController::class, 'sendAnnouncement']);
 
 // Booking Maintenance Mode - Public endpoint to check status
-Route::get('/booking-maintenance-status', [\App\Http\Controllers\AdminController::class, 'getBookingMaintenanceStatus']);
+Route::get('/booking-maintenance-status', [\App\Http\Controllers\Admin\BookingAdminController::class, 'getBookingMaintenanceStatus']);
 
 // Admin: Toggle booking maintenance mode
-Route::post('/admin/booking-maintenance/toggle', [\App\Http\Controllers\AdminController::class, 'toggleBookingMaintenance']);
+Route::post('/admin/booking-maintenance/toggle', [\App\Http\Controllers\Admin\BookingAdminController::class, 'toggleBookingMaintenance']);
 
 // Get single booking details
 Route::get('/bookings/{id}', [\App\Http\Controllers\BookingController::class, 'getBooking']);
@@ -452,381 +160,26 @@ Route::middleware(['auth', 'throttle:5,1'])->prefix('client/subscriptions')->gro
     Route::post('/{id}/cancel', [\App\Http\Controllers\ClientPaymentController::class, 'cancelSubscription']);
 });
 
-Route::post('/bookings/{id}/unassign', function ($id, Request $request) {
-    try {
-        $caregiverId = $request->input('caregiver_id');
-        
-        $deleted = DB::table('booking_assignments')
-            ->where('booking_id', $id)
-            ->where('caregiver_id', $caregiverId)
-            ->delete();
-            
-        if ($deleted) {
-            return response()->json(['success' => true, 'message' => 'Caregiver unassigned successfully']);
-        } else {
-            return response()->json(['error' => 'Assignment not found'], 404);
-        }
-    } catch (\Exception $e) {
-        return response()->json(['error' => 'Failed to unassign caregiver: ' . $e->getMessage()], 500);
-    }
-});
+// Caregiver assignment/unassignment
+Route::post('/bookings/{id}/assign', [\App\Http\Controllers\AdminController::class, 'assignCaregivers']);
+Route::post('/bookings/{id}/unassign', [\App\Http\Controllers\AdminController::class, 'unassignCaregiver']);
+Route::post('/bookings/{id}/assign-housekeepers', [\App\Http\Controllers\AdminController::class, 'assignHousekeepers']);
+Route::post('/bookings/{id}/unassign-housekeeper', [\App\Http\Controllers\AdminController::class, 'unassignHousekeeper']);
 
-// Caregiver Schedule Management
-Route::get('/bookings/{bookingId}/caregiver/{caregiverId}/schedule', function ($bookingId, $caregiverId) {
-    try {
-        // Check if schedule exists
-        $schedule = DB::table('caregiver_schedules')
-            ->where('booking_id', $bookingId)
-            ->where('caregiver_id', $caregiverId)
-            ->first();
-        
-        if ($schedule) {
-            return response()->json([
-                'success' => true,
-                'schedule' => [
-                    'days' => json_decode($schedule->days, true),
-                    'schedules' => json_decode($schedule->schedules, true)
-                ]
-            ]);
-        } else {
-            return response()->json([
-                'success' => true,
-                'schedule' => null
-            ]);
-        }
-    } catch (\Exception $e) {
-        return response()->json(['error' => 'Failed to load schedule: ' . $e->getMessage()], 500);
-    }
-});
+// Caregiver Schedule Management - refactored to CaregiverScheduleController
+Route::get('/bookings/{bookingId}/caregiver/{caregiverId}/schedule', [\App\Http\Controllers\Api\CaregiverScheduleController::class, 'getSchedule']);
+Route::post('/bookings/{bookingId}/caregiver/{caregiverId}/schedule', [\App\Http\Controllers\Api\CaregiverScheduleController::class, 'updateSchedule']);
+Route::delete('/bookings/{bookingId}/caregiver/{caregiverId}/schedule', [\App\Http\Controllers\Api\CaregiverScheduleController::class, 'deleteSchedule']);
 
-Route::post('/bookings/{bookingId}/caregiver/{caregiverId}/schedule', function ($bookingId, $caregiverId, Request $request) {
-    try {
-        $days = $request->input('days', []);
-        $schedules = $request->input('schedules', []);
-        
-        // Check if schedule already exists
-        $existing = DB::table('caregiver_schedules')
-            ->where('booking_id', $bookingId)
-            ->where('caregiver_id', $caregiverId)
-            ->first();
-        
-        // If days is empty, delete the record instead of updating
-        if (empty($days)) {
-            if ($existing) {
-                $deleted = DB::table('caregiver_schedules')
-                    ->where('id', $existing->id)
-                    ->delete();
-                
-                \Log::info("Schedule deleted for booking {$bookingId}, caregiver {$caregiverId}, rows deleted: {$deleted}");
-                
-                return response()->json([
-                    'success' => true,
-                    'message' => 'Schedule cleared successfully',
-                    'schedule' => ['days' => [], 'schedules' => (object)[]]
-                ]);
-            }
-            
-            return response()->json([
-                'success' => true,
-                'message' => 'No schedule to clear',
-                'schedule' => ['days' => [], 'schedules' => (object)[]]
-            ]);
-        }
-        
-        $data = [
-            'booking_id' => $bookingId,
-            'caregiver_id' => $caregiverId,
-            'days' => json_encode($days),
-            'schedules' => json_encode($schedules),
-            'updated_at' => now()
-        ];
-        
-        if ($existing) {
-            // Update existing schedule
-            DB::table('caregiver_schedules')
-                ->where('id', $existing->id)
-                ->update($data);
-        } else {
-            // Create new schedule
-            $data['created_at'] = now();
-            DB::table('caregiver_schedules')->insert($data);
-        }
-        
-        return response()->json([
-            'success' => true,
-            'message' => 'Schedule saved successfully',
-            'schedule' => ['days' => $days, 'schedules' => $schedules]
-        ]);
-    } catch (\Exception $e) {
-        return response()->json(['error' => 'Failed to save schedule: ' . $e->getMessage()], 500);
-    }
-});
+// My Weekly Schedule - for caregivers/housekeepers to see their own schedule
+Route::get('/caregiver/{caregiverId}/weekly-schedule', [\App\Http\Controllers\Api\CaregiverScheduleController::class, 'getMyWeeklySchedule']);
+Route::get('/housekeeper/{housekeeperId}/weekly-schedule', [\App\Http\Controllers\Api\CaregiverScheduleController::class, 'getHousekeeperWeeklySchedule']);
 
-// DELETE endpoint for schedule
-Route::delete('/bookings/{bookingId}/caregiver/{caregiverId}/schedule', function ($bookingId, $caregiverId) {
-    try {
-        $deleted = DB::table('caregiver_schedules')
-            ->where('booking_id', $bookingId)
-            ->where('caregiver_id', $caregiverId)
-            ->delete();
-        
-        \Log::info("Schedule deleted via DELETE endpoint for booking {$bookingId}, caregiver {$caregiverId}, rows deleted: {$deleted}");
-        
-        return response()->json([
-            'success' => true,
-            'message' => 'Schedule deleted successfully',
-            'deleted' => $deleted
-        ]);
-    } catch (\Exception $e) {
-        return response()->json(['error' => 'Failed to delete schedule: ' . $e->getMessage()], 500);
-    }
-});
-
-Route::post('/reports/time-tracking-pdf', function (Request $request) {
-    try {
-        $data = $request->all();
-        
-        // Extract data with defaults
-        $dateFilter = $data['dateFilter'] ?? 'This Week';
-        $statusFilter = $data['statusFilter'] ?? 'All';
-        $totalSessions = $data['totalSessions'] ?? '0';
-        $totalHours = $data['totalHours'] ?? '0';
-        $activeCaregivers = $data['activeCaregivers'] ?? '0';
-        $avgHoursPerDay = $data['avgHoursPerDay'] ?? '0';
-        $timeHistory = $data['timeHistory'] ?? [];
-        
-        // Build HTML directly instead of using include
-        $html = '<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <title>CAS Private Care - Time Tracking Report</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: Arial, sans-serif; font-size: 10pt; line-height: 1.4; color: #000; background: #fff; padding: 30px 40px; }
-        .header { border-bottom: 2px solid #000; padding-bottom: 15px; margin-bottom: 20px; }
-        .header-table { width: 100%; }
-        .header-table td { vertical-align: top; }
-        .logo-cell { width: 100px; }
-        .logo-cell img { width: 90px; height: auto; }
-        .company-name { font-size: 16pt; font-weight: bold; letter-spacing: 1px; }
-        .company-tagline { font-size: 9pt; font-style: italic; color: #333; }
-        .company-address { font-size: 8pt; color: #555; margin-top: 3px; }
-        .date-cell { text-align: right; font-size: 9pt; }
-        .doc-id { font-size: 7pt; color: #666; margin-top: 5px; }
-        .report-title { text-align: center; margin: 20px 0; padding: 12px 0; border-top: 1px solid #000; border-bottom: 1px solid #000; }
-        .report-title h1 { font-size: 14pt; font-weight: bold; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 3px; }
-        .report-title .subtitle { font-size: 9pt; color: #333; }
-        .report-info { margin-bottom: 15px; font-size: 9pt; }
-        .report-info table { width: 100%; }
-        .report-info td { padding: 2px 0; }
-        .report-info .label { font-weight: bold; width: 100px; }
-        .summary-section { margin-bottom: 20px; padding: 12px; border: 1px solid #000; }
-        .summary-title { font-size: 10pt; font-weight: bold; text-transform: uppercase; margin-bottom: 8px; padding-bottom: 4px; border-bottom: 1px solid #ccc; }
-        .summary-table { width: 100%; }
-        .summary-table td { text-align: center; padding: 8px; width: 25%; }
-        .stat-value { font-size: 16pt; font-weight: bold; }
-        .stat-label { font-size: 7pt; text-transform: uppercase; color: #555; }
-        .data-section { margin-bottom: 20px; }
-        .section-title { font-size: 10pt; font-weight: bold; text-transform: uppercase; margin-bottom: 8px; padding-bottom: 4px; border-bottom: 2px solid #000; }
-        .data-table { width: 100%; border-collapse: collapse; font-size: 8pt; }
-        .data-table th { background-color: #e0e0e0; border: 1px solid #000; padding: 6px 4px; text-align: left; font-weight: bold; text-transform: uppercase; font-size: 7pt; }
-        .data-table td { border: 1px solid #000; padding: 5px 4px; }
-        .data-table tr:nth-child(even) { background-color: #f5f5f5; }
-        .text-center { text-align: center; }
-        .font-bold { font-weight: bold; }
-        .signature-section { margin-top: 25px; }
-        .signature-table { width: 100%; }
-        .signature-table td { width: 45%; padding-top: 35px; }
-        .signature-line { border-top: 1px solid #000; padding-top: 4px; font-size: 8pt; }
-        .footer { margin-top: 25px; padding-top: 12px; border-top: 2px solid #000; font-size: 7pt; }
-        .footer-table { width: 100%; }
-        .footer-table td { vertical-align: top; }
-        .footer-left { text-align: left; width: 33%; }
-        .footer-center { text-align: center; width: 34%; }
-        .footer-right { text-align: right; width: 33%; }
-        .confidential { text-align: center; font-size: 7pt; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; margin-top: 12px; padding: 4px; border: 1px solid #000; }
-    </style>
-</head>
-<body>';
-
-        // Logo
-        $logoPath = public_path('logo.png');
-        $logoHtml = '';
-        if (file_exists($logoPath)) {
-            $logoData = base64_encode(file_get_contents($logoPath));
-            $logoHtml = '<img src="data:image/png;base64,' . $logoData . '" alt="CAS Logo">';
-        }
-
-        $html .= '
-    <div class="header">
-        <table class="header-table">
-            <tr>
-                <td class="logo-cell">' . $logoHtml . '</td>
-                <td>
-                    <div class="company-name">CAS PRIVATE CARE LLC</div>
-                    <div class="company-tagline">Comfort & Support Healthcare Services</div>
-                    <div class="company-address">Licensed Healthcare Provider | New York</div>
-                </td>
-                <td class="date-cell">
-                    <strong>Report Date:</strong><br>
-                    ' . date('F j, Y') . '<br>
-                    ' . date('g:i A') . '
-                    <div class="doc-id">Doc ID: TTR-' . date('Ymd-His') . '</div>
-                </td>
-            </tr>
-        </table>
-    </div>
-
-    <div class="report-title">
-        <h1>Time Tracking Report</h1>
-        <div class="subtitle">Official Employee Work Hours Documentation</div>
-    </div>
-
-    <div class="report-info">
-        <table>
-            <tr>
-                <td class="label">Report Period:</td>
-                <td>' . htmlspecialchars($dateFilter) . '</td>
-                <td class="label" style="padding-left: 20px;">Status Filter:</td>
-                <td>' . htmlspecialchars($statusFilter) . '</td>
-            </tr>
-            <tr>
-                <td class="label">Generated By:</td>
-                <td>System Administrator</td>
-                <td class="label" style="padding-left: 20px;">Report Type:</td>
-                <td>Time Tracking Summary</td>
-            </tr>
-        </table>
-    </div>
-
-    <div class="summary-section">
-        <div class="summary-title">Executive Summary</div>
-        <table class="summary-table">
-            <tr>
-                <td>
-                    <div class="stat-value">' . htmlspecialchars($totalSessions) . '</div>
-                    <div class="stat-label">Total Sessions</div>
-                </td>
-                <td>
-                    <div class="stat-value">' . htmlspecialchars($totalHours) . '</div>
-                    <div class="stat-label">Total Hours</div>
-                </td>
-                <td>
-                    <div class="stat-value">' . htmlspecialchars($activeCaregivers) . '</div>
-                    <div class="stat-label">Active Caregivers</div>
-                </td>
-                <td>
-                    <div class="stat-value">' . htmlspecialchars($avgHoursPerDay) . '</div>
-                    <div class="stat-label">Avg Hours/Day</div>
-                </td>
-            </tr>
-        </table>
-    </div>
-
-    <div class="data-section">
-        <div class="section-title">Detailed Time Records</div>
-        <table class="data-table">
-            <thead>
-                <tr>
-                    <th style="width: 12%;">Date</th>
-                    <th style="width: 20%;">Employee</th>
-                    <th style="width: 20%;">Client</th>
-                    <th style="width: 12%;" class="text-center">Clock In</th>
-                    <th style="width: 12%;" class="text-center">Clock Out</th>
-                    <th style="width: 10%;" class="text-center">Hours</th>
-                    <th style="width: 14%;" class="text-center">Status</th>
-                </tr>
-            </thead>
-            <tbody>';
-
-        if (empty($timeHistory)) {
-            $html .= '<tr><td colspan="7" class="text-center" style="padding: 15px;">No time tracking records found for the selected period.</td></tr>';
-        } else {
-            foreach ($timeHistory as $row) {
-                $date = is_array($row) ? ($row['date'] ?? '') : ($row->date ?? '');
-                $caregiver = is_array($row) ? ($row['caregiver'] ?? '') : ($row->caregiver ?? '');
-                $client = is_array($row) ? ($row['client'] ?? '') : ($row->client ?? '');
-                $clockIn = is_array($row) ? ($row['clockIn'] ?? '') : ($row->clockIn ?? '');
-                $clockOut = is_array($row) ? ($row['clockOut'] ?? 'N/A') : ($row->clockOut ?? 'N/A');
-                $hoursWorked = is_array($row) ? ($row['hoursWorked'] ?? 0) : ($row->hoursWorked ?? 0);
-                $status = is_array($row) ? ($row['status'] ?? '') : ($row->status ?? '');
-                
-                // Format hours
-                $totalHrs = floor($hoursWorked);
-                $minutes = round(($hoursWorked - $totalHrs) * 60);
-                $formattedHours = $totalHrs . 'h ' . $minutes . 'm';
-                
-                $html .= '<tr>
-                    <td>' . htmlspecialchars($date) . '</td>
-                    <td>' . htmlspecialchars($caregiver) . '</td>
-                    <td>' . htmlspecialchars($client) . '</td>
-                    <td class="text-center">' . htmlspecialchars($clockIn) . '</td>
-                    <td class="text-center">' . htmlspecialchars($clockOut) . '</td>
-                    <td class="text-center font-bold">' . $formattedHours . '</td>
-                    <td class="text-center">' . htmlspecialchars(strtoupper($status)) . '</td>
-                </tr>';
-            }
-        }
-
-        $html .= '</tbody>
-        </table>
-    </div>
-
-    <div class="signature-section">
-        <table class="signature-table">
-            <tr>
-                <td><div class="signature-line">Prepared By</div></td>
-                <td style="width: 10%;"></td>
-                <td><div class="signature-line">Approved By</div></td>
-            </tr>
-        </table>
-    </div>
-
-    <div class="footer">
-        <table class="footer-table">
-            <tr>
-                <td class="footer-left">
-                    <strong>CAS Private Care LLC</strong><br>
-                    &copy; ' . date('Y') . ' All Rights Reserved
-                </td>
-                <td class="footer-center">
-                    This is an official document<br>
-                    Generated: ' . date('M j, Y g:i A') . '
-                </td>
-                <td class="footer-right">
-                    Page 1 of 1<br>
-                    Ref: TTR-' . date('Ymd') . '
-                </td>
-            </tr>
-        </table>
-        <div class="confidential">Confidential - For Internal Use Only</div>
-    </div>
-</body>
-</html>';
-
-        // Generate PDF with DomPDF
-        if (class_exists('Dompdf\Dompdf')) {
-            $dompdf = new \Dompdf\Dompdf();
-            $dompdf->loadHtml($html);
-            $dompdf->setPaper('A4', 'portrait');
-            $dompdf->render();
-            
-            return response($dompdf->output(), 200, [
-                'Content-Type' => 'application/pdf',
-                'Content-Disposition' => 'attachment; filename="CAS-TimeTracking-Report-' . date('Y-m-d') . '.pdf"'
-            ]);
-        } else {
-            return response($html, 200, [
-                'Content-Type' => 'text/html'
-            ]);
-        }
-    } catch (\Exception $e) {
-        return response()->json(['error' => 'Failed to generate PDF: ' . $e->getMessage()], 500);
-    }
-});
+// Time Tracking PDF Report - refactored to ReportPdfController
+Route::post('/reports/time-tracking-pdf', [\App\Http\Controllers\Api\ReportPdfController::class, 'timeTrackingPdf']);
 
 // Payment Reports PDF Export (Caregiver, Marketing, Training)
+// TODO: Migrate to ReportPdfController::paymentPdf when time permits
 Route::post('/reports/payment-pdf', function (Request $request) {
     try {
         $data = $request->all();
@@ -1316,49 +669,8 @@ Route::post('/reports/client-analytics-pdf', function (Request $request) {
     }
 });
 
-Route::get('/time-tracking/history', function () {
-    try {
-        // Join through caregivers table to get caregiver user name
-        // Join through clients table to get client user name
-        $timeTrackings = DB::table('time_trackings')
-            ->leftJoin('caregivers', 'time_trackings.caregiver_id', '=', 'caregivers.id')
-            ->leftJoin('users as caregiver_users', 'caregivers.user_id', '=', 'caregiver_users.id')
-            ->leftJoin('clients', 'time_trackings.client_id', '=', 'clients.id')
-            ->leftJoin('users as client_users', 'clients.user_id', '=', 'client_users.id')
-            ->select(
-                'time_trackings.*',
-                'caregiver_users.name as caregiver_name',
-                'client_users.name as client_name'
-            )
-            ->orderBy('time_trackings.work_date', 'desc')
-            ->orderBy('time_trackings.clock_in_time', 'desc')
-            ->get();
-        
-        $history = $timeTrackings->map(function ($record) {
-            $clockIn = $record->clock_in_time ? date('g:i A', strtotime($record->clock_in_time)) : 'N/A';
-            $clockOut = $record->clock_out_time ? date('g:i A', strtotime($record->clock_out_time)) : 'N/A';
-            $workDate = $record->work_date ? date('m/d/Y', strtotime($record->work_date)) : 'N/A';
-            
-            return [
-                'id' => $record->id,
-                'date' => $workDate,
-                'caregiver' => $record->caregiver_name ?? 'Unknown Caregiver',
-                'client' => $record->client_name ?? 'Unknown Client',
-                'clockIn' => $clockIn,
-                'clockOut' => $clockOut,
-                'hoursWorked' => (float) $record->hours_worked,
-                'status' => $record->status === 'active' ? 'Active' : 'Completed'
-            ];
-        });
-        
-        return response()->json([
-            'success' => true,
-            'history' => $history
-        ]);
-    } catch (\Exception $e) {
-        return response()->json(['error' => 'Failed to load time tracking history: ' . $e->getMessage()], 500);
-    }
-});
+// Time Tracking History - refactored to TimeTrackingApiController
+Route::get('/time-tracking/history', [\App\Http\Controllers\Api\TimeTrackingApiController::class, 'history']);
 
 // Payment Methods API Routes
 Route::prefix('payment-methods')->group(function () {
@@ -1394,52 +706,63 @@ Route::middleware(['auth', 'throttle:3,1'])->group(function () {
     Route::post('/stripe/setup-intent', [App\Http\Controllers\StripeController::class, 'createSetupIntent']);
 });
 
+// Payment method management (moderate rate limit)
+Route::middleware(['auth', 'throttle:10,1'])->group(function () {
+    Route::get('/stripe/payment-methods', [App\Http\Controllers\StripeController::class, 'getPaymentMethods']);
+    Route::delete('/stripe/payment-methods/{paymentMethodId}', [App\Http\Controllers\StripeController::class, 'deletePaymentMethod']);
+    Route::post('/stripe/attach-payment-method', [App\Http\Controllers\StripeController::class, 'savePaymentMethod']);
+});
+
+// Admin booking approval - using BookingController::approve
 Route::middleware(['throttle:10,1'])->group(function () {
-    Route::post('/admin/bookings/{id}/approve', function($id) {
-        // Admin booking approval logic
-    });
+    Route::post('/admin/bookings/{id}/approve', [\App\Http\Controllers\BookingController::class, 'approve']);
 });
 
 
 // Admin: get all users
-Route::get('/admin/users', [\App\Http\Controllers\AdminController::class, 'getUsers']);
+Route::get('/admin/users', [\App\Http\Controllers\Admin\UserAdminController::class, 'getUsers']);
 
 // Admin: Marketing Staff Management
-Route::get('/admin/marketing-staff', [\App\Http\Controllers\AdminController::class, 'getMarketingStaff']);
-Route::post('/admin/marketing-staff', [\App\Http\Controllers\AdminController::class, 'storeMarketingStaff']);
-Route::put('/admin/marketing-staff/{id}', [\App\Http\Controllers\AdminController::class, 'updateMarketingStaff']);
-Route::delete('/admin/marketing-staff/{id}', [\App\Http\Controllers\AdminController::class, 'deleteMarketingStaff']);
+Route::get('/admin/marketing-staff', [\App\Http\Controllers\Admin\StaffAdminController::class, 'getMarketingStaff']);
+Route::post('/admin/marketing-staff', [\App\Http\Controllers\Admin\StaffAdminController::class, 'storeMarketingStaff']);
+Route::put('/admin/marketing-staff/{id}', [\App\Http\Controllers\Admin\StaffAdminController::class, 'updateMarketingStaff']);
+Route::delete('/admin/marketing-staff/{id}', [\App\Http\Controllers\Admin\StaffAdminController::class, 'deleteMarketingStaff']);
 
 // Admin: Admin Staff Management
-Route::get('/admin/admin-staff', [\App\Http\Controllers\AdminController::class, 'getAdminStaff']);
-Route::post('/admin/admin-staff', [\App\Http\Controllers\AdminController::class, 'storeAdminStaff']);
-Route::put('/admin/admin-staff/{id}', [\App\Http\Controllers\AdminController::class, 'updateAdminStaff']);
-Route::delete('/admin/admin-staff/{id}', [\App\Http\Controllers\AdminController::class, 'deleteAdminStaff']);
-Route::get('/admin/admin-staff/permissions', [\App\Http\Controllers\AdminController::class, 'getAdminStaffPermissions']);
+Route::get('/admin/admin-staff', [\App\Http\Controllers\Admin\StaffAdminController::class, 'getAdminStaff']);
+Route::post('/admin/admin-staff', [\App\Http\Controllers\Admin\StaffAdminController::class, 'storeAdminStaff']);
+Route::put('/admin/admin-staff/{id}', [\App\Http\Controllers\Admin\StaffAdminController::class, 'updateAdminStaff']);
+Route::delete('/admin/admin-staff/{id}', [\App\Http\Controllers\Admin\StaffAdminController::class, 'deleteAdminStaff']);
+Route::get('/admin/admin-staff/permissions', [\App\Http\Controllers\Admin\StaffAdminController::class, 'getAdminStaffPermissions']);
 
 // Admin: create/update/delete users (used by AdminDashboard modals)
-Route::post('/admin/users', [\App\Http\Controllers\AdminController::class, 'storeUser']);
-Route::put('/admin/users/{id}', [\App\Http\Controllers\AdminController::class, 'updateUser']);
-Route::patch('/admin/users/{id}', [\App\Http\Controllers\AdminController::class, 'updateUser']);
-Route::delete('/admin/users/{id}', [\App\Http\Controllers\AdminController::class, 'deleteUser']);
+Route::post('/admin/users', [\App\Http\Controllers\Admin\UserAdminController::class, 'storeUser']);
+Route::put('/admin/users/{id}', [\App\Http\Controllers\Admin\UserAdminController::class, 'updateUser']);
+Route::patch('/admin/users/{id}', [\App\Http\Controllers\Admin\UserAdminController::class, 'updateUser']);
+Route::delete('/admin/users/{id}', [\App\Http\Controllers\Admin\UserAdminController::class, 'deleteUser']);
+
+// Note: Applications routes are defined in web.php with proper auth middleware
+// They are accessible at /api/admin/applications/* through the 'api' prefixed group in web.php
+
+// Note: Password Resets routes are defined in web.php with proper auth middleware
 
 // Admin: get training commissions
-Route::get('/admin/training-commissions', [\App\Http\Controllers\AdminController::class, 'getTrainingCommissions']);
+Route::get('/admin/training-commissions', [\App\Http\Controllers\Admin\ReportAdminController::class, 'getTrainingCommissions']);
 
 // Admin: caregivers list (minimal payload) used by AdminDashboard caregivers table
-Route::get('/admin/caregivers', [\App\Http\Controllers\AdminController::class, 'getCaregivers']);
+Route::get('/admin/caregivers', [\App\Http\Controllers\Admin\UserAdminController::class, 'getCaregivers']);
 
 // Admin: housekeepers list (minimal payload) used by AdminDashboard housekeepers table
 Route::get('/housekeepers', [\App\Http\Controllers\DashboardController::class, 'housekeepers']);
 
 // Admin: single caregiver full profile for the details modal
-Route::get('/admin/caregivers/{userId}', [\App\Http\Controllers\AdminController::class, 'getCaregiverProfile']);
+Route::get('/admin/caregivers/{userId}', [\App\Http\Controllers\Admin\UserAdminController::class, 'getCaregiverProfile']);
 
 // Admin: Training Centers Management
-Route::get('/admin/training-centers', [\App\Http\Controllers\AdminController::class, 'getTrainingCenters']);
-Route::post('/admin/training-centers', [\App\Http\Controllers\AdminController::class, 'storeTrainingCenter']);
-Route::put('/admin/training-centers/{id}', [\App\Http\Controllers\AdminController::class, 'updateTrainingCenter']);
-Route::delete('/admin/training-centers/{id}', [\App\Http\Controllers\AdminController::class, 'deleteTrainingCenter']);
+Route::get('/admin/training-centers', [\App\Http\Controllers\Admin\StaffAdminController::class, 'getTrainingCenters']);
+Route::post('/admin/training-centers', [\App\Http\Controllers\Admin\StaffAdminController::class, 'storeTrainingCenter']);
+Route::put('/admin/training-centers/{id}', [\App\Http\Controllers\Admin\StaffAdminController::class, 'updateTrainingCenter']);
+Route::delete('/admin/training-centers/{id}', [\App\Http\Controllers\Admin\StaffAdminController::class, 'deleteTrainingCenter']);
 
 // Public list of training centers (used by caregiver & admin caregiver forms)
-Route::get('/training-centers', [\App\Http\Controllers\AdminController::class, 'getTrainingCenters']);
+Route::get('/training-centers', [\App\Http\Controllers\Admin\StaffAdminController::class, 'getTrainingCenters']);

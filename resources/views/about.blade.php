@@ -410,7 +410,16 @@
             border-radius: 1px;
         }
 
+        /* =============================================================
+           MOBILE RESPONSIVE DESIGN - About Page
+           ============================================================= */
+        
+        /* Tablets (769px - 1024px) */
         @media (max-width: 1024px) {
+            .about-hero {
+                padding: 5rem 2rem;
+            }
+            
             .mission-hero {
                 background-attachment: scroll;
                 padding: 6rem 2rem;
@@ -449,39 +458,52 @@
             }
         }
 
+        /* Standard Mobile (768px) */
         @media (max-width: 768px) {
+            /* About Hero */
+            .about-hero {
+                margin-top: 70px;
+                padding: 3rem 1.25rem;
+            }
+            
             .about-hero h1 {
-                font-size: 2.5rem;
+                font-size: 2rem;
+                line-height: 1.2;
+                margin-bottom: 1rem;
             }
 
             .about-hero p {
-                font-size: 1.2rem;
+                font-size: 1rem;
+                line-height: 1.6;
             }
 
+            /* Mission Hero */
             .mission-hero {
-                padding: 4rem 1.5rem;
+                padding: 3rem 1.25rem;
             }
 
             .mission-hero h2 {
-                font-size: 2.5rem;
+                font-size: 2rem;
+                margin-bottom: 0.75rem;
             }
 
             .mission-hero .subtitle {
-                font-size: 1.2rem;
-                margin-bottom: 3rem;
+                font-size: 1rem;
+                margin-bottom: 2rem;
             }
 
             .mission-content {
-                padding: 2.5rem 1.5rem;
+                padding: 1.75rem 1.25rem;
+                border-radius: 16px;
             }
 
             .mission-content .mission-text {
                 flex-direction: column;
-                gap: 1rem;
+                gap: 0.75rem;
             }
 
             .mission-content .mission-text .first-letter {
-                font-size: 5rem;
+                font-size: 4rem;
                 margin-top: 0;
                 align-self: flex-start;
             }
@@ -491,29 +513,78 @@
             }
 
             .mission-content .mission-text .text-content .mission-title {
-                font-size: 1.5rem;
+                font-size: 1.25rem;
+                margin-bottom: 0.75rem;
             }
 
             .mission-content .mission-text .text-content p {
-                font-size: 1rem;
+                font-size: 0.9rem;
+                line-height: 1.6;
+            }
+
+            /* Section Styles */
+            .section-light,
+            .section-dark {
+                padding: 3rem 1.25rem;
+            }
+            
+            .section-header {
+                margin-bottom: 2.5rem;
             }
 
             .section-header h2 {
-                font-size: 2rem;
+                font-size: 1.5rem;
+                line-height: 1.3;
+            }
+            
+            .section-header p {
+                font-size: 0.9rem;
             }
 
+            /* Values Grid - 2x2 on mobile */
             .values-grid {
-                grid-template-columns: 1fr;
+                grid-template-columns: repeat(2, 1fr);
+                gap: 0.75rem;
+            }
+            
+            .value-card {
+                padding: 1.25rem 1rem;
+                border-radius: 12px;
+            }
+            
+            .value-card h3 {
+                font-size: 0.9rem;
+                margin-bottom: 0.25rem;
+            }
+            
+            .value-card p {
+                font-size: 0.8rem;
+                line-height: 1.4;
+                display: -webkit-box;
+                -webkit-line-clamp: 3;
+                -webkit-box-orient: vertical;
+                overflow: hidden;
+            }
+            
+            .value-icon {
+                width: 44px;
+                height: 44px;
+                margin-bottom: 0.75rem;
+            }
+            
+            .value-icon i {
+                font-size: 1.1rem;
             }
 
             /* Stats section 2x2 grid on mobile */
             .stats-section {
                 grid-template-columns: repeat(2, 1fr);
-                gap: 1rem;
+                gap: 0.75rem;
             }
             
             .stat-card {
                 padding: 1.25rem 1rem;
+                border-radius: 12px;
             }
             
             .stat-number {
@@ -521,17 +592,120 @@
             }
             
             .stat-label {
-                font-size: 0.8rem;
+                font-size: 0.75rem;
             }
 
+            /* Founder Section */
             .founder-section {
-                padding: 2rem;
+                padding: 1.5rem;
+                border-radius: 16px;
+            }
+            
+            .founder-content {
+                gap: 1.5rem;
+            }
+            
+            .founder-image {
+                height: 250px;
+                border-radius: 12px;
+            }
+            
+            .founder-info h3 {
+                font-size: 1.25rem;
+            }
+            
+            .founder-info p {
+                font-size: 0.9rem;
+            }
+            
+            /* Team Grid */
+            .team-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 0.75rem;
+            }
+            
+            .team-card {
+                padding: 1rem;
+                border-radius: 12px;
+            }
+            
+            .team-card img {
+                width: 60px;
+                height: 60px;
+            }
+            
+            .team-card h4 {
+                font-size: 0.9rem;
+            }
+            
+            .team-card p {
+                font-size: 0.75rem;
             }
         }
         
+        /* Small Phones (480px) */
         @media (max-width: 480px) {
+            .about-hero {
+                padding: 2.5rem 1rem;
+            }
+            
+            .about-hero h1 {
+                font-size: 1.75rem;
+            }
+            
+            .mission-hero {
+                padding: 2.5rem 1rem;
+            }
+            
+            .mission-hero h2 {
+                font-size: 1.75rem;
+            }
+            
+            .mission-content {
+                padding: 1.25rem 1rem;
+            }
+            
+            .mission-content .mission-text .first-letter {
+                font-size: 3rem;
+            }
+            
+            .mission-content .mission-text .text-content .mission-title {
+                font-size: 1.1rem;
+            }
+            
+            .section-light,
+            .section-dark {
+                padding: 2.5rem 1rem;
+            }
+            
+            .section-header h2 {
+                font-size: 1.35rem;
+            }
+            
+            .values-grid {
+                gap: 0.5rem;
+            }
+            
+            .value-card {
+                padding: 1rem 0.75rem;
+            }
+            
+            .value-card h3 {
+                font-size: 0.85rem;
+            }
+            
+            .value-card p {
+                font-size: 0.75rem;
+                -webkit-line-clamp: 2;
+            }
+            
+            .value-icon {
+                width: 38px;
+                height: 38px;
+            }
+            
             .stats-section {
-                gap: 0.75rem;
+                gap: 0.5rem;
             }
             
             .stat-card {
@@ -543,7 +717,30 @@
             }
             
             .stat-label {
-                font-size: 0.7rem;
+                font-size: 0.65rem;
+            }
+        }
+        
+        /* Very Small Phones (360px) */
+        @media (max-width: 360px) {
+            .about-hero h1 {
+                font-size: 1.5rem;
+            }
+            
+            .mission-hero h2 {
+                font-size: 1.5rem;
+            }
+            
+            .section-header h2 {
+                font-size: 1.2rem;
+            }
+            
+            .value-card h3 {
+                font-size: 0.8rem;
+            }
+            
+            .stat-number {
+                font-size: 1.35rem;
             }
         }
 
@@ -587,14 +784,37 @@
         [data-animate="scale"].visible {
             animation: scaleIn 0.6s ease forwards;
         }
+
+        /* Skip Link for Accessibility */
+        .skip-link {
+            position: absolute;
+            top: -40px;
+            left: 0;
+            background: #1e40af;
+            color: white;
+            padding: 8px 16px;
+            z-index: 10000;
+            text-decoration: none;
+            font-weight: 600;
+            border-radius: 0 0 4px 0;
+            transition: top 0.3s ease;
+        }
+        .skip-link:focus {
+            top: 0;
+            outline: 2px solid #fbbf24;
+            outline-offset: 2px;
+        }
     </style>
 </head>
 <body>
+    <!-- Skip Link for Accessibility -->
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+
     @include('partials.navigation')
 
     @include('partials.trust-strip')
 
-    <main>
+    <main id="main-content" role="main" tabindex="-1">
         <!-- Hero Section -->
         <section class="about-hero">
             <div class="container">

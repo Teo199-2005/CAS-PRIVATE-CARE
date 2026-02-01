@@ -2,52 +2,34 @@
     <Teleport to="body">
         <Transition name="loading-fade">
             <div v-if="visible" class="loading-overlay">
-                <div class="loading-content">
-                    <!-- Logo/Branding -->
-                    <div class="loading-brand">
-                        <img 
-                            src="/logo%20flower.png" 
-                            alt="CAS Private Care" 
-                            class="loading-logo"
-                            @error="handleImageError"
-                        />
-                        <div class="loading-brand-text">
-                            <span class="loading-brand-name">CAS Private Care</span>
-                            <span class="loading-brand-tagline">{{ tagline }}</span>
+                <div class="loading-container">
+                    <div class="loading-logo-wrapper">
+                        <div class="loading-ring-glow"></div>
+                        <div class="loading-ring"></div>
+                        <div class="loading-ring-animated"></div>
+                        <div class="loading-logo">
+                            <!-- Primary logo with fallback chain -->
+                            <img
+                                v-if="!imageError"
+                                :src="logoSrc"
+                                alt="CAS Private Care"
+                                @error="handleImageError"
+                                @load="imageLoaded = true"
+                                class="logo-image"
+                            />
+                            <!-- Fallback text logo when image fails -->
+                            <div v-else class="fallback-logo">
+                                <div class="fallback-logo-text">CAS</div>
+                                <div class="fallback-logo-tagline">Private Care</div>
+                            </div>
                         </div>
                     </div>
-
-                    <!-- Modern Circular Spinner with Gradient -->
-                    <div class="loading-spinner-container">
-                        <svg class="loading-spinner" viewBox="0 0 50 50">
-                            <defs>
-                                <linearGradient id="spinner-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                                    <stop offset="0%" stop-color="#f97316" />
-                                    <stop offset="100%" stop-color="#3b82f6" />
-                                </linearGradient>
-                            </defs>
-                            <circle
-                                class="loading-spinner-track"
-                                cx="25"
-                                cy="25"
-                                r="20"
-                                fill="none"
-                                stroke-width="4"
-                            />
-                            <circle
-                                class="loading-spinner-progress"
-                                cx="25"
-                                cy="25"
-                                r="20"
-                                fill="none"
-                                stroke-width="4"
-                                stroke-linecap="round"
-                            />
-                        </svg>
+                    <div class="loading-text">{{ currentMessage }}</div>
+                    <div class="loading-dots">
+                        <div class="loading-dot"></div>
+                        <div class="loading-dot"></div>
+                        <div class="loading-dot"></div>
                     </div>
-
-                    <!-- Loading Message -->
-                    <p class="loading-text">{{ currentMessage }}</p>
                 </div>
             </div>
         </Transition>
@@ -79,6 +61,17 @@ export default {
         return {
             messageIndex: 0,
             messageInterval: null,
+            imageError: false,
+            imageLoaded: false,
+            logoAttempt: 0,
+            logoSrc: '/logo.png',
+            // Fallback logo sources to try
+            logoSources: [
+                '/logo.png',
+                '/images/logo.png',
+                '/assets/logo.png',
+                '/build/logo.png'
+            ],
             contextMessages: {
                 default: [
                     'Loading...',
@@ -139,6 +132,8 @@ export default {
         visible(newVal) {
             if (newVal) {
                 this.startMessageRotation();
+                // Reset image state when overlay becomes visible
+                this.resetImageState();
             } else {
                 this.stopMessageRotation();
             }
@@ -148,16 +143,28 @@ export default {
         if (this.visible) {
             this.startMessageRotation();
         }
+        // Preload the logo image
+        this.preloadLogo();
     },
     beforeUnmount() {
         this.stopMessageRotation();
     },
     methods: {
+        resetImageState() {
+            this.imageError = false;
+            this.imageLoaded = false;
+            this.logoAttempt = 0;
+            this.logoSrc = this.logoSources[0];
+        },
+        preloadLogo() {
+            const img = new Image();
+            img.src = '/logo.png';
+        },
         startMessageRotation() {
             this.messageIndex = 0;
             this.messageInterval = setInterval(() => {
                 this.messageIndex++;
-            }, 1500); // Faster rotation for better UX
+            }, 1500);
         },
         stopMessageRotation() {
             if (this.messageInterval) {
@@ -165,13 +172,15 @@ export default {
                 this.messageInterval = null;
             }
         },
-        handleImageError(event) {
-            // Fallback: try alternative path if URL-encoded path fails
-            if (event.target.src.includes('%20')) {
-                event.target.src = '/logo flower.png';
+        handleImageError() {
+            this.logoAttempt++;
+            
+            // Try next logo source
+            if (this.logoAttempt < this.logoSources.length) {
+                this.logoSrc = this.logoSources[this.logoAttempt];
             } else {
-                // If both fail, hide the broken image
-                event.target.style.display = 'none';
+                // All sources failed, show fallback text logo
+                this.imageError = true;
             }
         }
     }
@@ -185,122 +194,186 @@ export default {
     left: 0;
     right: 0;
     bottom: 0;
-    background: #ffffff;
+    width: 100%;
+    height: 100%;
+    background-color: #ffffff;
+    background-image: url("https://www.transparenttextures.com/patterns/batthern.png");
+    background-repeat: repeat;
+    background-size: auto;
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
     z-index: 9999;
 }
 
-.loading-content {
+.loading-container {
+    position: relative;
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 2rem;
-    padding: 2rem;
-    text-align: center;
 }
 
-/* Branding */
-.loading-brand {
+.loading-logo-wrapper {
+    position: relative;
+    width: 280px;
+    height: 280px;
     display: flex;
-    flex-direction: column;
     align-items: center;
-    gap: 1rem;
+    justify-content: center;
+}
+
+.loading-ring {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    border: 3px solid rgba(11, 79, 162, 0.1);
+}
+
+.loading-ring-animated {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    border: 3px solid transparent;
+    border-top-color: #0B4FA2;
+    border-right-color: #f97316;
+    animation: spin-ring 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+}
+
+.loading-ring-glow {
+    position: absolute;
+    width: 110%;
+    height: 110%;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(11, 79, 162, 0.08) 0%, transparent 70%);
+    animation: pulse-glow 2s ease-in-out infinite;
 }
 
 .loading-logo {
-    width: 80px;
-    height: 80px;
-    object-fit: contain;
-    filter: drop-shadow(0 4px 12px rgba(59, 130, 246, 0.15));
+    position: relative;
+    z-index: 2;
+    animation: logo-float 2.5s ease-in-out infinite;
 }
 
-.loading-brand-text {
+.loading-logo img {
+    height: 200px;
+    width: auto;
+    box-shadow: none;
+    filter: drop-shadow(0 10px 30px rgba(11, 79, 162, 0.15));
+    transition: transform 0.3s ease;
+}
+
+/* Fallback text logo when image fails to load */
+.fallback-logo {
     display: flex;
     flex-direction: column;
-    gap: 0.35rem;
+    align-items: center;
+    justify-content: center;
+    padding: 20px 30px;
+    animation: logo-float 2.5s ease-in-out infinite;
 }
 
-.loading-brand-name {
-    font-family: 'Sora', sans-serif;
-    font-size: 1.75rem;
+.fallback-logo-text {
+    font-family: 'Sora', 'Segoe UI', sans-serif;
+    font-size: 64px;
     font-weight: 700;
-    background: linear-gradient(135deg, #f97316 0%, #3b82f6 100%);
+    background: linear-gradient(135deg, #0B4FA2, #f97316);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
-    letter-spacing: -0.02em;
+    letter-spacing: 4px;
+    line-height: 1;
 }
 
-.loading-brand-tagline {
-    font-size: 0.9rem;
-    color: #64748b;
+.fallback-logo-tagline {
+    font-family: 'Sora', 'Segoe UI', sans-serif;
+    font-size: 18px;
     font-weight: 500;
+    color: #0B4FA2;
+    letter-spacing: 2px;
+    margin-top: 8px;
+    opacity: 0.8;
 }
 
-/* Modern Spinner */
-.loading-spinner-container {
-    width: 56px;
-    height: 56px;
-    position: relative;
-}
-
-.loading-spinner {
-    width: 100%;
-    height: 100%;
-    animation: spinner-rotate 1s linear infinite;
-}
-
-@keyframes spinner-rotate {
-    100% {
-        transform: rotate(360deg);
-    }
-}
-
-.loading-spinner-track {
-    stroke: #e2e8f0;
-}
-
-.loading-spinner-progress {
-    stroke: url(#spinner-gradient);
-    stroke-dasharray: 80, 150;
-    stroke-dashoffset: 0;
-    animation: spinner-dash 1.4s ease-in-out infinite;
-}
-
-@keyframes spinner-dash {
-    0% {
-        stroke-dasharray: 1, 150;
-        stroke-dashoffset: 0;
-    }
-    50% {
-        stroke-dasharray: 80, 150;
-        stroke-dashoffset: -30;
-    }
-    100% {
-        stroke-dasharray: 80, 150;
-        stroke-dashoffset: -120;
-    }
-}
-
-/* Loading Message */
 .loading-text {
-    font-size: 0.95rem;
-    color: #475569;
+    font-family: 'Sora', sans-serif;
+    font-size: 1.1rem;
     font-weight: 500;
-    margin: 0;
-    letter-spacing: 0.01em;
+    color: #0B4FA2;
+    letter-spacing: 0.5px;
+    opacity: 0.9;
+}
+
+.loading-dots {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+}
+
+.loading-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #0B4FA2, #f97316);
+    animation: dot-bounce 1.4s ease-in-out infinite;
+}
+
+.loading-dot:nth-child(1) { animation-delay: 0s; }
+.loading-dot:nth-child(2) { animation-delay: 0.2s; }
+.loading-dot:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes spin-ring {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+@keyframes pulse-glow {
+    0%, 100% { opacity: 0.5; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.05); }
+}
+
+@keyframes logo-float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-8px); }
+}
+
+@keyframes dot-bounce {
+    0%, 80%, 100% { 
+        transform: scale(0.6);
+        opacity: 0.5;
+    }
+    40% { 
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+/* Mobile responsive loading screen */
+@media (max-width: 768px) {
+    .loading-logo-wrapper {
+        width: 220px;
+        height: 220px;
+    }
+    .loading-logo img {
+        height: 150px;
+    }
+    .loading-text {
+        font-size: 1rem;
+    }
 }
 
 /* Transition */
 .loading-fade-enter-active,
 .loading-fade-leave-active {
-    transition: opacity 0.3s ease;
+    transition: opacity 0.6s ease-out, transform 0.6s ease-out;
 }
 
 .loading-fade-enter-from,
 .loading-fade-leave-to {
     opacity: 0;
+    transform: scale(1.05);
 }
 </style>

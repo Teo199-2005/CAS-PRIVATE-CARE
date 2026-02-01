@@ -9,6 +9,7 @@ use App\Services\PaymentService;
 use App\Services\EmailService;
 use App\Services\PaymentFeeService;
 use App\Http\Responses\ApiResponse;
+use App\Http\Traits\ApiResponseTrait;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -17,23 +18,7 @@ use Illuminate\Validation\ValidationException;
 
 class BookingController extends Controller
 {
-    /**
-     * Stripe processing fees are now handled by PaymentFeeService
-     * @see \App\Services\PaymentFeeService
-     * @deprecated Use PaymentFeeService::calculateProcessingFee() instead
-     */
-    private function calculateProcessingFee(float $targetAmount, string $cardCountry = 'US'): float
-    {
-        return PaymentFeeService::calculateProcessingFee($targetAmount, $cardCountry);
-    }
-
-    /**
-     * @deprecated Use PaymentFeeService::calculateAdjustedTotal() instead
-     */
-    private function calculateAdjustedTotal(float $targetAmount, string $cardCountry = 'US'): float
-    {
-        return PaymentFeeService::calculateAdjustedTotal($targetAmount, $cardCountry);
-    }
+    use ApiResponseTrait;
 
     public function index()
     {

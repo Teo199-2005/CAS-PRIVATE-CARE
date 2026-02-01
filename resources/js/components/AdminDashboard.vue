@@ -411,16 +411,19 @@
           <v-col cols="12" md="3">
             <v-text-field v-model="userSearch" placeholder="Search users..." prepend-inner-icon="mdi-magnify" variant="outlined" density="compact" hide-details />
           </v-col>
-          <v-col cols="12" md="2">
+          <v-col cols="12" sm="6" md="2">
             <v-select v-model="userType" :items="['All', 'Clients', 'Caregivers', 'Admins']" variant="outlined" density="compact" hide-details />
           </v-col>
-          <v-col cols="12" md="2">
-            <v-select v-model="userStatus" :items="['All', 'Active', 'Inactive', 'Suspended']" variant="outlined" density="compact" hide-details />
+          <v-col cols="12" sm="6" md="2">
+            <v-select v-model="locationFilter" :items="userLocationOptions" label="Location" variant="outlined" density="compact" hide-details />
           </v-col>
-          <v-col cols="12" md="2">
-            <v-select v-model="locationFilter" :items="locationFilterOptions" label="All Locations" variant="outlined" density="compact" hide-details />
+          <v-col cols="12" sm="6" md="2">
+            <v-select v-model="userCountyFilter" :items="userCountyOptions" label="County/Borough" variant="outlined" density="compact" hide-details />
           </v-col>
-          <v-col cols="12" md="3">
+          <v-col cols="12" sm="6" md="2">
+            <v-select v-model="userCityFilter" :items="userCityOptions" label="City" variant="outlined" density="compact" hide-details :disabled="userCountyFilter === 'All'" />
+          </v-col>
+          <v-col cols="12" sm="6" md="2">
             <v-btn color="error" prepend-icon="mdi-plus" @click="addUserDialog = true">Add User</v-btn>
           </v-col>
         </v-row>
@@ -446,8 +449,8 @@
           </template>
           <template v-slot:item.actions="{ item }">
             <div class="action-buttons">
-              <v-btn class="action-btn-edit" icon="mdi-pencil" size="small" @click="editUser(item)"></v-btn>
-              <v-btn class="action-btn-delete" icon="mdi-account-cancel" size="small" @click="suspendUser(item)"></v-btn>
+              <v-btn class="action-btn-edit" icon="mdi-pencil" size="small" @click="editUser(item)" :aria-label="`Edit ${item.name || 'user'}`"></v-btn>
+              <v-btn class="action-btn-delete" icon="mdi-account-cancel" size="small" @click="suspendUser(item)" :aria-label="`Suspend ${item.name || 'user'}`"></v-btn>
             </div>
           </template>
         </v-data-table>
@@ -567,8 +570,20 @@
                     <span class="stat-text">Caregivers: {{ caregiverMetrics[0].value }}</span>
                   </div>
                   <div class="user-stat-item">
+                    <div class="stat-dot" style="background-color: #8b5cf6;"></div>
+                    <span class="stat-text">Housekeepers: {{ housekeeperMetrics[0].value }}</span>
+                  </div>
+                  <div class="user-stat-item">
                     <div class="stat-dot" style="background-color: #dc2626;"></div>
                     <span class="stat-text">Admins: {{ adminCount }}</span>
+                  </div>
+                  <div class="user-stat-item">
+                    <div class="stat-dot" style="background-color: #f59e0b;"></div>
+                    <span class="stat-text">Marketing: {{ marketingCount }}</span>
+                  </div>
+                  <div class="user-stat-item">
+                    <div class="stat-dot" style="background-color: #06b6d4;"></div>
+                    <span class="stat-text">Training: {{ trainingCenterCount }}</span>
                   </div>
                 </div>
               </div>
@@ -683,6 +698,60 @@
             </v-card-text>
           </v-card>
         </v-col>
+
+        <v-col cols="12" md="4">
+          <v-card elevation="0" class="mb-3" style="border: 1px solid #c5c5c5ff;">
+            <v-card-title class="compact-header pa-4">
+              <span class="compact-title error--text">Admin Staff Analytics</span>
+            </v-card-title>
+            <v-card-text class="pa-4">
+              <v-row>
+                <v-col cols="6" v-for="metric in adminStaffMetrics" :key="metric.label">
+                  <div class="metric-box">
+                    <div class="metric-number" :class="metric.color + '--text'">{{ metric.value }}</div>
+                    <div class="metric-text">{{ metric.label }}</div>
+                  </div>
+                </v-col>
+              </v-row>
+            </v-card-text>
+          </v-card>
+        </v-col>
+
+        <v-col cols="12" md="4">
+          <v-card elevation="0" class="mb-3" style="border: 1px solid #c5c5c5ff;">
+            <v-card-title class="compact-header pa-4">
+              <span class="compact-title warning--text">Marketing Partner Analytics</span>
+            </v-card-title>
+            <v-card-text class="pa-4">
+              <v-row>
+                <v-col cols="6" v-for="metric in marketingMetrics" :key="metric.label">
+                  <div class="metric-box">
+                    <div class="metric-number" :class="metric.color + '--text'">{{ metric.value }}</div>
+                    <div class="metric-text">{{ metric.label }}</div>
+                  </div>
+                </v-col>
+              </v-row>
+            </v-card-text>
+          </v-card>
+        </v-col>
+
+        <v-col cols="12" md="4">
+          <v-card elevation="0" class="mb-3" style="border: 1px solid #c5c5c5ff;">
+            <v-card-title class="compact-header pa-4">
+              <span class="compact-title info--text">Training Center Analytics</span>
+            </v-card-title>
+            <v-card-text class="pa-4">
+              <v-row>
+                <v-col cols="6" v-for="metric in trainingCenterMetrics" :key="metric.label">
+                  <div class="metric-box">
+                    <div class="metric-number" :class="metric.color + '--text'">{{ metric.value }}</div>
+                    <div class="metric-text">{{ metric.label }}</div>
+                  </div>
+                </v-col>
+              </v-row>
+            </v-card-text>
+          </v-card>
+        </v-col>
       </v-row>
 
 </div>
@@ -694,13 +763,19 @@
           <v-col cols="12" md="3">
             <v-text-field v-model="caregiverSearch" placeholder="Search caregivers..." prepend-inner-icon="mdi-magnify" variant="outlined" density="compact" hide-details />
           </v-col>
-          <v-col cols="12" md="2">
-            <v-select v-model="caregiverLocationFilter" :items="locationFilterOptions" label="All Locations" variant="outlined" density="compact" hide-details />
+          <v-col cols="12" sm="6" md="2">
+            <v-select v-model="caregiverLocationFilter" :items="caregiverLocationOptions" label="Location" variant="outlined" density="compact" hide-details />
           </v-col>
-          <v-col cols="12" md="2">
-            <v-select v-model="caregiverStatusFilter" :items="['All', 'Active', 'Assigned', 'Inactive']" label="All Status" variant="outlined" density="compact" hide-details />
+          <v-col cols="12" sm="6" md="2">
+            <v-select v-model="caregiverCountyFilter" :items="caregiverCountyOptions" label="County/Borough" variant="outlined" density="compact" hide-details />
           </v-col>
-          <v-col cols="12" md="3">
+          <v-col cols="12" sm="6" md="2">
+            <v-select v-model="caregiverCityFilter" :items="caregiverCityOptions" label="City" variant="outlined" density="compact" hide-details :disabled="caregiverCountyFilter === 'All'" />
+          </v-col>
+          <v-col cols="12" sm="6" md="2">
+            <v-select v-model="caregiverContractFilter" :items="['All', 'Ongoing contract', 'No contract']" label="Contract" variant="outlined" density="compact" hide-details />
+          </v-col>
+          <v-col cols="12" sm="6" md="2">
             <v-btn color="error" prepend-icon="mdi-plus" @click="openCaregiverDialog()">Add Caregiver</v-btn>
           </v-col>
         </v-row>
@@ -753,9 +828,9 @@
           </template>
           <template v-slot:item.actions="{ item }">
             <div class="action-buttons">
-              <v-btn class="action-btn-view" icon="mdi-eye" size="small" @click="viewCaregiverDetails(item)"></v-btn>
-              <v-btn class="action-btn-unapprove" icon="mdi-undo" size="small" @click="unapproveApplication(item)" :title="'Unapprove (set back to pending)'"></v-btn>
-              <v-btn class="action-btn-edit" icon="mdi-pencil" size="small" @click="openCaregiverDialog(item)"></v-btn>
+              <v-btn class="action-btn-view" icon="mdi-eye" size="small" @click="viewCaregiverDetails(item)" :aria-label="`View ${item.name || 'caregiver'} details`"></v-btn>
+              <v-btn class="action-btn-unapprove" icon="mdi-undo" size="small" @click="unapproveApplication(item)" :aria-label="`Unapprove ${item.name || 'caregiver'}`" :title="'Unapprove (set back to pending)'"></v-btn>
+              <v-btn class="action-btn-edit" icon="mdi-pencil" size="small" @click="openCaregiverDialog(item)" :aria-label="`Edit ${item.name || 'caregiver'}`"></v-btn>
             </div>
           </template>
         </v-data-table>
@@ -827,7 +902,7 @@
         <v-card-title class="pa-6" style="background: #dc2626; color: white;">
           <div class="d-flex align-center justify-space-between w-100">
             <span class="section-title" style="color: white;">Caregiver Details</span>
-            <v-btn icon="mdi-close" variant="text" style="color: white;" @click="viewCaregiverDialog = false"></v-btn>
+            <v-btn icon="mdi-close" variant="text" style="color: white;" @click="viewCaregiverDialog = false" aria-label="Close caregiver details dialog"></v-btn>
           </div>
         </v-card-title>
         <v-card-text class="pa-6" style="max-height: 60vh; overflow-y: auto;">
@@ -986,36 +1061,90 @@
           <v-divider class="my-4"></v-divider>
           
           <!-- Professional Certifications Section -->
-          <v-row v-if="viewingCaregiver.has_hha || viewingCaregiver.has_cna || viewingCaregiver.has_rn">
+          <v-row>
             <v-col cols="12">
               <div class="detail-label mb-3">
                 <v-icon class="mr-2">mdi-certificate</v-icon>
                 Professional Certifications
               </div>
             </v-col>
-            <v-col v-if="viewingCaregiver.has_hha" cols="12" md="4">
-              <v-chip color="success" prepend-icon="mdi-check-circle" class="mb-2">
-                HHA – Home Health Aide
-              </v-chip>
-              <div v-if="viewingCaregiver.hha_number" class="text-caption text-grey mt-1">
-                Certificate #: {{ viewingCaregiver.hha_number }}
-              </div>
+            
+            <!-- HHA Card -->
+            <v-col cols="12" md="4">
+              <v-card 
+                :class="viewingCaregiver.has_hha ? 'certification-card-active' : 'certification-card-inactive'"
+                class="certification-card pa-4"
+                variant="outlined"
+              >
+                <div class="d-flex align-center justify-space-between">
+                  <div class="d-flex align-center">
+                    <v-avatar :color="viewingCaregiver.has_hha ? 'success' : 'grey-lighten-2'" size="40" class="mr-3">
+                      <v-icon :color="viewingCaregiver.has_hha ? 'white' : 'grey'" size="20">mdi-medical-bag</v-icon>
+                    </v-avatar>
+                    <div>
+                      <div class="font-weight-bold" :class="viewingCaregiver.has_hha ? 'text-success' : 'text-grey'">HHA</div>
+                      <div class="text-caption text-grey">Home Health Aide</div>
+                    </div>
+                  </div>
+                  <v-icon v-if="viewingCaregiver.has_hha" color="success" size="24">mdi-check-circle</v-icon>
+                  <v-icon v-else color="grey-lighten-1" size="24">mdi-circle-outline</v-icon>
+                </div>
+                <div v-if="viewingCaregiver.has_hha && viewingCaregiver.hha_number" class="text-caption text-grey mt-2">
+                  Certificate #: {{ viewingCaregiver.hha_number }}
+                </div>
+              </v-card>
             </v-col>
-            <v-col v-if="viewingCaregiver.has_cna" cols="12" md="4">
-              <v-chip color="success" prepend-icon="mdi-check-circle" class="mb-2">
-                CNA – Certified Nursing Assistant
-              </v-chip>
-              <div v-if="viewingCaregiver.cna_number" class="text-caption text-grey mt-1">
-                Certificate #: {{ viewingCaregiver.cna_number }}
-              </div>
+            
+            <!-- CNA Card -->
+            <v-col cols="12" md="4">
+              <v-card 
+                :class="viewingCaregiver.has_cna ? 'certification-card-active' : 'certification-card-inactive'"
+                class="certification-card pa-4"
+                variant="outlined"
+              >
+                <div class="d-flex align-center justify-space-between">
+                  <div class="d-flex align-center">
+                    <v-avatar :color="viewingCaregiver.has_cna ? 'success' : 'grey-lighten-2'" size="40" class="mr-3">
+                      <v-icon :color="viewingCaregiver.has_cna ? 'white' : 'grey'" size="20">mdi-stethoscope</v-icon>
+                    </v-avatar>
+                    <div>
+                      <div class="font-weight-bold" :class="viewingCaregiver.has_cna ? 'text-success' : 'text-grey'">CNA</div>
+                      <div class="text-caption text-grey">Certified Nursing Assistant</div>
+                    </div>
+                  </div>
+                  <v-icon v-if="viewingCaregiver.has_cna" color="success" size="24">mdi-check-circle</v-icon>
+                  <v-icon v-else color="grey-lighten-1" size="24">mdi-circle-outline</v-icon>
+                </div>
+                <div v-if="viewingCaregiver.has_cna && viewingCaregiver.cna_number" class="text-caption text-grey mt-2">
+                  Certificate #: {{ viewingCaregiver.cna_number }}
+                </div>
+              </v-card>
             </v-col>
-            <v-col v-if="viewingCaregiver.has_rn" cols="12" md="4">
-              <v-chip color="success" prepend-icon="mdi-check-circle" class="mb-2">
-                RN – Registered Nurse
-              </v-chip>
-              <div v-if="viewingCaregiver.rn_number" class="text-caption text-grey mt-1">
-                License #: {{ viewingCaregiver.rn_number }}
-              </div>
+            
+            <!-- RN Card -->
+            <v-col cols="12" md="4">
+              <v-card 
+                :class="viewingCaregiver.has_rn ? 'certification-card-active' : 'certification-card-inactive'"
+                class="certification-card pa-4"
+                variant="outlined"
+              >
+                <div class="d-flex align-center justify-space-between">
+                  <div class="d-flex align-center">
+                    <v-avatar :color="viewingCaregiver.has_rn ? 'success' : 'grey-lighten-2'" size="40" class="mr-3">
+                      <v-icon :color="viewingCaregiver.has_rn ? 'white' : 'grey'" size="20">mdi-briefcase-plus</v-icon>
+                    </v-avatar>
+                    <div>
+                      <div class="font-weight-bold" :class="viewingCaregiver.has_rn ? 'text-success' : 'text-grey'">RN</div>
+                      <div class="text-caption text-grey">Registered Nurse</div>
+                    </div>
+                  </div>
+                  <v-icon v-if="viewingCaregiver.has_rn" color="success" size="24">mdi-check-circle</v-icon>
+                  <v-icon v-else color="grey-lighten-1" size="24">mdi-circle-outline</v-icon>
+                </div>
+                <div v-if="viewingCaregiver.has_rn && viewingCaregiver.rn_number" class="text-caption text-grey mt-2">
+                  License #: {{ viewingCaregiver.rn_number }}
+                </div>
+              </v-card>
             </v-col>
           </v-row>
           
@@ -1146,7 +1275,7 @@
         <v-card-title class="pa-6" style="background: #dc2626; color: white;">
           <div class="d-flex align-center justify-space-between w-100">
             <span class="section-title" style="color: white;">Client Details</span>
-            <v-btn icon="mdi-close" variant="text" style="color: white;" @click="viewClientDialog = false"></v-btn>
+            <v-btn icon="mdi-close" variant="text" style="color: white;" @click="viewClientDialog = false" aria-label="Close client details dialog"></v-btn>
           </div>
         </v-card-title>
         <v-card-text class="pa-6">
@@ -1165,6 +1294,42 @@
             </v-col>
           </v-row>
           
+          <v-divider class="mb-4"></v-divider>
+
+          <!-- Personal Information Section -->
+          <div class="mb-4">
+            <h3 class="text-subtitle-1 font-weight-bold mb-3 d-flex align-center">
+              <v-icon color="primary" class="mr-2">mdi-account</v-icon>
+              Personal Information
+            </h3>
+            <v-row>
+              <v-col cols="12" md="6">
+                <div class="detail-section">
+                  <div class="detail-label">First Name</div>
+                  <div class="detail-value">{{ viewingClient.first_name || (viewingClient.name ? viewingClient.name.split(' ')[0] : '') || 'Not provided' }}</div>
+                </div>
+              </v-col>
+              <v-col cols="12" md="6">
+                <div class="detail-section">
+                  <div class="detail-label">Last Name</div>
+                  <div class="detail-value">{{ viewingClient.last_name || (viewingClient.name ? viewingClient.name.split(' ').slice(1).join(' ') : '') || 'Not provided' }}</div>
+                </div>
+              </v-col>
+              <v-col cols="12" md="6">
+                <div class="detail-section">
+                  <div class="detail-label">Birthdate</div>
+                  <div class="detail-value">{{ viewingClient.birthdate || viewingClient.date_of_birth || 'Not provided' }}</div>
+                </div>
+              </v-col>
+              <v-col cols="12" md="6">
+                <div class="detail-section">
+                  <div class="detail-label">Age</div>
+                  <div class="detail-value">{{ viewingClient.age || 'Not provided' }}</div>
+                </div>
+              </v-col>
+            </v-row>
+          </div>
+
           <v-divider class="mb-4"></v-divider>
 
           <!-- Contact Information Section -->
@@ -1375,13 +1540,19 @@
           <v-col cols="12" md="3">
             <v-text-field v-model="housekeeperSearch" placeholder="Search housekeepers..." prepend-inner-icon="mdi-magnify" variant="outlined" density="compact" hide-details />
           </v-col>
-          <v-col cols="12" md="2">
-            <v-select v-model="housekeeperLocationFilter" :items="locationFilterOptions" label="All Locations" variant="outlined" density="compact" hide-details />
+          <v-col cols="12" sm="6" md="2">
+            <v-select v-model="housekeeperLocationFilter" :items="housekeeperLocationOptions" label="Location" variant="outlined" density="compact" hide-details />
           </v-col>
-          <v-col cols="12" md="2">
-            <v-select v-model="housekeeperStatusFilter" :items="['All', 'Active', 'Assigned', 'Inactive']" label="All Status" variant="outlined" density="compact" hide-details />
+          <v-col cols="12" sm="6" md="2">
+            <v-select v-model="housekeeperCountyFilter" :items="housekeeperCountyOptions" label="County/Borough" variant="outlined" density="compact" hide-details />
           </v-col>
-          <v-col cols="12" md="3">
+          <v-col cols="12" sm="6" md="2">
+            <v-select v-model="housekeeperCityFilter" :items="housekeeperCityOptions" label="City" variant="outlined" density="compact" hide-details :disabled="housekeeperCountyFilter === 'All'" />
+          </v-col>
+          <v-col cols="12" sm="6" md="2">
+            <v-select v-model="housekeeperContractFilter" :items="['All', 'Ongoing contract', 'No contract']" label="Contract" variant="outlined" density="compact" hide-details />
+          </v-col>
+          <v-col cols="12" sm="6" md="2">
             <v-btn color="error" prepend-icon="mdi-plus" @click="openHousekeeperDialog()">Add Housekeeper</v-btn>
           </v-col>
         </v-row>
@@ -1398,6 +1569,9 @@
         <v-data-table v-if="!isMobile" v-model="selectedHousekeepers" :headers="housekeeperHeaders" :items="filteredHousekeepers" :items-per-page="10" show-select item-value="userId" class="elevation-0" density="compact">
           <template v-slot:item.location="{ item }">
             {{ item.location || 'Unknown' }}
+          </template>
+          <template v-slot:item.hourly_rate="{ item }">
+            <span>${{ item.hourly_rate ?? 20 }}/hr</span>
           </template>
           <template v-slot:item.status="{ item }">
             <v-chip
@@ -1455,6 +1629,10 @@
                   <span class="mobile-card-label text-grey-darken-1">Location:</span>
                   <span class="mobile-card-value">{{ item.location || 'Unknown' }}</span>
                 </div>
+                <div class="mobile-card-row d-flex justify-space-between py-2" style="border-bottom: 1px solid #f3f4f6;">
+                  <span class="mobile-card-label text-grey-darken-1">Preferred Hourly Rate:</span>
+                  <span class="mobile-card-value font-weight-bold deep-purple--text">${{ item.hourly_rate ?? 20 }}/hr</span>
+                </div>
                 <div class="mobile-card-row d-flex justify-space-between align-center py-2">
                   <span class="mobile-card-label text-grey-darken-1">Rating:</span>
                   <div class="d-flex align-center">
@@ -1477,21 +1655,24 @@
     <!-- View Housekeeper Details Dialog -->
     <v-dialog v-model="viewHousekeeperDialog" :max-width="isMobile ? undefined : 800" :fullscreen="isMobile" scrollable>
       <v-card v-if="viewingHousekeeper">
-        <v-card-title class="pa-6" style="background: #dc2626; color: white;">
+        <v-card-title class="pa-6" style="background: #6A1B9A; color: white;">
           <div class="d-flex align-center justify-space-between w-100">
             <span class="section-title" style="color: white;">Housekeeper Details</span>
-            <v-btn icon="mdi-close" variant="text" style="color: white;" @click="viewHousekeeperDialog = false"></v-btn>
+            <v-btn icon="mdi-close" variant="text" style="color: white;" @click="viewHousekeeperDialog = false" aria-label="Close housekeeper details dialog"></v-btn>
           </div>
         </v-card-title>
         <v-card-text class="pa-6" style="max-height: 60vh; overflow-y: auto;">
           <v-row>
             <v-col cols="12" class="text-center mb-4">
               <v-avatar size="120" color="#6A1B9A" class="mb-3">
-                <span class="text-h3 font-weight-bold text-white">{{ viewingHousekeeper.name.split(' ').map(n => n[0]).join('') }}</span>
+                <span class="text-h3 font-weight-bold text-white">{{ (viewingHousekeeper.name || '').split(' ').map(n => n[0]).join('') || '?' }}</span>
               </v-avatar>
               <h2>{{ viewingHousekeeper.name }}</h2>
               <v-chip :color="getUserStatusColor(viewingHousekeeper.status)" class="mt-2">{{ viewingHousekeeper.status }}</v-chip>
-
+              <v-chip :color="viewingHousekeeper.verified ? 'success' : 'warning'" class="mt-2 ml-2">
+                <v-icon size="16" class="mr-1">{{ viewingHousekeeper.verified ? 'mdi-shield-check' : 'mdi-shield-alert' }}</v-icon>
+                {{ viewingHousekeeper.verified ? 'Verified' : 'Pending' }}
+              </v-chip>
               <!-- Rating Display -->
               <div class="mt-4">
                 <div class="d-flex align-center justify-center">
@@ -1503,6 +1684,7 @@
                     active-color="amber"
                     half-increments
                     readonly
+                    density="compact"
                   ></v-rating>
                   <span class="ml-2 text-h6">{{ parseFloat(viewingHousekeeper.rating || 0).toFixed(1) }}</span>
                 </div>
@@ -1515,8 +1697,20 @@
           <v-row>
             <v-col cols="12" md="6">
               <div class="detail-section">
+                <div class="detail-label">First Name</div>
+                <div class="detail-value">{{ viewingHousekeeper.first_name || (viewingHousekeeper.name ? viewingHousekeeper.name.split(' ')[0] : '') || 'N/A' }}</div>
+              </div>
+            </v-col>
+            <v-col cols="12" md="6">
+              <div class="detail-section">
+                <div class="detail-label">Last Name</div>
+                <div class="detail-value">{{ viewingHousekeeper.last_name || (viewingHousekeeper.name ? viewingHousekeeper.name.split(' ').slice(1).join(' ') : '') || 'N/A' }}</div>
+              </div>
+            </v-col>
+            <v-col cols="12" md="6">
+              <div class="detail-section">
                 <div class="detail-label">Email</div>
-                <div class="detail-value">{{ viewingHousekeeper.email }}</div>
+                <div class="detail-value">{{ viewingHousekeeper.email || 'N/A' }}</div>
               </div>
             </v-col>
             <v-col cols="12" md="6">
@@ -1527,8 +1721,38 @@
             </v-col>
             <v-col cols="12" md="6">
               <div class="detail-section">
-                <div class="detail-label">Location</div>
-                <div class="detail-value">{{ viewingHousekeeper.location || 'Unknown' }}</div>
+                <div class="detail-label">Birthdate</div>
+                <div class="detail-value">{{ viewingHousekeeper.birthdate || 'N/A' }}</div>
+              </div>
+            </v-col>
+            <v-col cols="12" md="6">
+              <div class="detail-section">
+                <div class="detail-label">Age</div>
+                <div class="detail-value">{{ viewingHousekeeper.age || 'N/A' }}</div>
+              </div>
+            </v-col>
+            <v-col cols="12" md="6">
+              <div class="detail-section">
+                <div class="detail-label">Address</div>
+                <div class="detail-value">{{ viewingHousekeeper.address || 'N/A' }}</div>
+              </div>
+            </v-col>
+            <v-col cols="12" md="6">
+              <div class="detail-section">
+                <div class="detail-label">State</div>
+                <div class="detail-value">{{ viewingHousekeeper.state || 'N/A' }}</div>
+              </div>
+            </v-col>
+            <v-col cols="12" md="6">
+              <div class="detail-section">
+                <div class="detail-label">County/Borough</div>
+                <div class="detail-value">{{ viewingHousekeeper.county || viewingHousekeeper.borough || 'N/A' }}</div>
+              </div>
+            </v-col>
+            <v-col cols="12" md="6">
+              <div class="detail-section">
+                <div class="detail-label">City</div>
+                <div class="detail-value">{{ viewingHousekeeper.city || 'N/A' }}</div>
               </div>
             </v-col>
             <v-col cols="12" md="6">
@@ -1539,8 +1763,30 @@
             </v-col>
             <v-col cols="12" md="6">
               <div class="detail-section">
+                <div class="detail-label">Location</div>
+                <div class="detail-value">{{ viewingHousekeeper.place_indicator || viewingHousekeeper.location || 'Unknown' }}</div>
+              </div>
+            </v-col>
+            <v-col cols="12" md="6">
+              <div class="detail-section">
+                <div class="detail-label">Joined</div>
+                <div class="detail-value">{{ viewingHousekeeper.joined || 'N/A' }}</div>
+              </div>
+            </v-col>
+            <v-col cols="12" md="6">
+              <div class="detail-section">
+                <div class="detail-label">Verification Status</div>
+                <div class="detail-value">
+                  <v-chip :color="viewingHousekeeper.verified ? 'success' : 'warning'" size="small">
+                    {{ viewingHousekeeper.verified ? 'Verified' : 'Pending' }}
+                  </v-chip>
+                </div>
+              </div>
+            </v-col>
+            <v-col cols="12" md="6">
+              <div class="detail-section">
                 <div class="detail-label">Experience</div>
-                <div class="detail-value">{{ viewingHousekeeper.years_experience || 0 }} years</div>
+                <div class="detail-value">{{ viewingHousekeeper.years_experience ?? 0 }} years</div>
               </div>
             </v-col>
             <v-col cols="12" md="6">
@@ -1549,9 +1795,48 @@
                 <div class="detail-value">
                   <v-chip color="success" size="small">
                     <v-icon size="14" class="mr-1">mdi-cash</v-icon>
-                    ${{ viewingHousekeeper.hourly_rate || 20 }}/hr
+                    ${{ viewingHousekeeper.hourly_rate ?? 20 }}/hr
                   </v-chip>
                 </div>
+              </div>
+            </v-col>
+          </v-row>
+
+          <v-divider class="my-4"></v-divider>
+
+          <!-- Professional Details -->
+          <v-row>
+            <v-col cols="12">
+              <div class="detail-label mb-3">
+                <v-icon class="mr-2">mdi-broom</v-icon>
+                Professional Details
+              </div>
+            </v-col>
+            <v-col cols="12" md="6">
+              <div class="detail-section">
+                <div class="detail-label">Cleaning Specialties</div>
+                <div class="detail-value">
+                  <template v-if="(viewingHousekeeper.cleaningSpecialties || viewingHousekeeper.specializations || []).length">
+                    <v-chip v-for="(s, i) in (viewingHousekeeper.cleaningSpecialties || viewingHousekeeper.specializations)" :key="i" size="small" class="mr-1 mb-1">{{ s }}</v-chip>
+                  </template>
+                  <span v-else>None specified</span>
+                </div>
+              </div>
+            </v-col>
+            <v-col cols="12" md="6">
+              <div class="detail-section">
+                <div class="detail-label">Has Own Supplies</div>
+                <div class="detail-value">
+                  <v-chip :color="viewingHousekeeper.has_own_supplies ? 'success' : 'grey'" size="small">
+                    {{ viewingHousekeeper.has_own_supplies ? 'Yes' : 'No' }}
+                  </v-chip>
+                </div>
+              </div>
+            </v-col>
+            <v-col cols="12" v-if="viewingHousekeeper.bio">
+              <div class="detail-section">
+                <div class="detail-label">About Me</div>
+                <div class="detail-value" style="white-space: pre-wrap;">{{ viewingHousekeeper.bio }}</div>
               </div>
             </v-col>
           </v-row>
@@ -1571,13 +1856,19 @@
           <v-col cols="12" md="3">
             <v-text-field v-model="clientSearch" placeholder="Search clients..." prepend-inner-icon="mdi-magnify" variant="outlined" density="compact" hide-details />
           </v-col>
-          <v-col cols="12" md="2">
-            <v-select v-model="clientLocationFilter" :items="locationFilterOptions" label="All Locations" variant="outlined" density="compact" hide-details />
+          <v-col cols="12" sm="6" md="2">
+            <v-select v-model="clientLocationFilter" :items="clientLocationOptions" label="Location" variant="outlined" density="compact" hide-details />
           </v-col>
-          <v-col cols="12" md="2">
-            <v-select v-model="clientStatusFilter" :items="['All', 'Active', 'Inactive']" label="All Status" variant="outlined" density="compact" hide-details />
+          <v-col cols="12" sm="6" md="2">
+            <v-select v-model="clientCountyFilter" :items="clientCountyOptions" label="County/Borough" variant="outlined" density="compact" hide-details />
           </v-col>
-          <v-col cols="12" md="3">
+          <v-col cols="12" sm="6" md="2">
+            <v-select v-model="clientCityFilter" :items="clientCityOptions" label="City" variant="outlined" density="compact" hide-details :disabled="clientCountyFilter === 'All'" />
+          </v-col>
+          <v-col cols="12" sm="6" md="2">
+            <v-select v-model="clientContractFilter" :items="['All', 'Ongoing contract', 'No contract']" label="Contract" variant="outlined" density="compact" hide-details />
+          </v-col>
+          <v-col cols="12" sm="6" md="2">
             <v-btn color="error" prepend-icon="mdi-plus" @click="openClientDialog()">Add Client</v-btn>
           </v-col>
         </v-row>
@@ -1593,7 +1884,7 @@
         <!-- Desktop Table View -->
         <v-data-table v-if="!isMobile" v-model="selectedClients" :headers="clientHeaders" :items="filteredClients" :items-per-page="10" show-select item-value="id" class="elevation-0" density="compact">
           <template v-slot:item.zip_code="{ item }">
-            {{ item.zip_code || 'Unknown ZIP' }}
+            {{ getClientZip(item) }}
           </template>
           <template v-slot:item.location="{ item }">
             <span style="display:none">{{ ensureItemPlaceIndicator(item) }}</span>
@@ -1639,7 +1930,7 @@
                 </div>
                 <div class="mobile-card-row d-flex justify-space-between py-2" style="border-bottom: 1px solid #f3f4f6;">
                   <span class="mobile-card-label text-grey-darken-1">ZIP Code:</span>
-                  <span class="mobile-card-value">{{ item.zip_code || 'Unknown' }}</span>
+                  <span class="mobile-card-value">{{ getClientZip(item) }}</span>
                 </div>
                 <div class="mobile-card-row d-flex justify-space-between py-2">
                   <span class="mobile-card-label text-grey-darken-1">Location:</span>
@@ -1681,12 +1972,15 @@
         
         <!-- Desktop Table View -->
         <v-data-table v-if="!isMobile" v-model="selectedMarketingStaff" :headers="marketingStaffHeaders" :items="filteredMarketingStaff" :items-per-page="10" show-select item-value="id" class="elevation-0" density="compact">
+          <template v-slot:item.name="{ item }">
+            {{ item.displayName || item.name || item.email || '—' }}
+          </template>
           <template v-slot:item.zip_code="{ item }">
-            {{ item.zip_code || 'Unknown ZIP' }}
+            {{ item.zip_code || '—' }}
           </template>
           <template v-slot:item.location="{ item }">
             <span style="display:none">{{ ensureItemPlaceIndicator(item) }}</span>
-            {{ item.place_indicator || item.location || 'Unknown ZIP' }}
+            {{ item.place_indicator || item.location || (item.zip_code || '—') }}
           </template>
           <template v-slot:item.referralCode="{ item }">
             <v-chip color="primary" size="small" class="font-weight-bold">
@@ -1728,7 +2022,7 @@
               <div class="mobile-card-header d-flex justify-space-between align-center pa-3" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);">
                 <div class="d-flex align-center">
                   <v-checkbox v-model="selectedMarketingStaff" :value="item.id" hide-details density="compact" color="white" class="mr-2"></v-checkbox>
-                  <span class="text-white font-weight-bold">{{ item.first_name }} {{ item.last_name }}</span>
+                  <span class="text-white font-weight-bold">{{ item.displayName || (item.first_name + ' ' + item.last_name).trim() || item.name || item.email }}</span>
                 </div>
                 <v-chip :color="getUserStatusColor(item.status)" size="small" class="font-weight-bold">{{ item.status }}</v-chip>
               </div>
@@ -1769,84 +2063,164 @@
     <!-- View Marketing Partner Details Dialog -->
     <v-dialog v-model="viewMarketingStaffDialog" :max-width="isMobile ? undefined : 800" :fullscreen="isMobile" scrollable>
       <v-card v-if="viewingMarketingStaff">
-        <v-card-title class="pa-6" style="background: #dc2626; color: white;">
+        <v-card-title class="pa-6" style="background: #f59e0b; color: white;">
           <div class="d-flex align-center justify-space-between w-100">
             <span class="section-title" style="color: white;">Marketing Partner Details</span>
-            <v-btn icon="mdi-close" variant="text" style="color: white;" @click="viewMarketingStaffDialog = false"></v-btn>
+            <v-btn icon="mdi-close" variant="text" style="color: white;" @click="viewMarketingStaffDialog = false" aria-label="Close marketing partner details"></v-btn>
           </div>
         </v-card-title>
-        <v-card-text class="pa-6">
+        <v-card-text class="pa-6" style="max-height: 60vh; overflow-y: auto;">
           <v-row>
             <v-col cols="12" class="text-center mb-4">
-              <v-avatar size="120" color="primary" class="mb-3">
-                <span class="text-h3 font-weight-bold text-white">{{ viewingMarketingStaff.name.split(' ').map(n => n[0]).join('') }}</span>
+              <v-avatar size="120" color="warning" class="mb-3">
+                <span class="text-h3 font-weight-bold text-white">{{ (viewingMarketingStaff.displayName || viewingMarketingStaff.name || viewingMarketingStaff.email || '?').split(' ').map(n => n[0]).filter(Boolean).join('').slice(0, 2) || '?' }}</span>
               </v-avatar>
-              <h2>{{ viewingMarketingStaff.name }}</h2>
+              <h2>{{ viewingMarketingStaff.displayName || viewingMarketingStaff.name || viewingMarketingStaff.email }}</h2>
               <v-chip :color="getUserStatusColor(viewingMarketingStaff.status)" class="mt-2">{{ viewingMarketingStaff.status }}</v-chip>
+              <v-chip :color="viewingMarketingStaff.verified ? 'success' : 'warning'" class="mt-2 ml-2">
+                <v-icon size="16" class="mr-1">{{ viewingMarketingStaff.verified ? 'mdi-shield-check' : 'mdi-shield-alert' }}</v-icon>
+                {{ viewingMarketingStaff.verified ? 'Verified' : 'Pending' }}
+              </v-chip>
             </v-col>
           </v-row>
-          
+
           <v-divider class="mb-4"></v-divider>
-          
-          <v-row>
-            <v-col cols="12" md="6">
-              <div class="detail-section">
-                <div class="detail-label">Email</div>
-                <div class="detail-value">{{ viewingMarketingStaff.email }}</div>
-              </div>
-            </v-col>
-            <v-col cols="12" md="6">
-              <div class="detail-section">
-                <div class="detail-label">Phone</div>
-                <div class="detail-value">{{ viewingMarketingStaff.phone }}</div>
-              </div>
-            </v-col>
-            <v-col cols="12" md="6">
-              <div class="detail-section">
-                <div class="detail-label">Zip Code</div>
-                <div class="detail-value">{{ viewingMarketingStaff.zip_code || viewingMarketingStaff.zip || 'Unknown ZIP' }}</div>
-              </div>
-            </v-col>
-            <v-col cols="12" md="6">
-              <div class="detail-section">
-                <div class="detail-label">Location</div>
-                <div class="detail-value">{{ viewingMarketingStaff.place_indicator || viewingMarketingStaff.location || 'Unknown ZIP' }}</div>
-              </div>
-            </v-col>
-          </v-row>
-          
-          <v-divider class="my-4"></v-divider>
-          
-          <h3 class="mb-3">Referral Code Information</h3>
+
+          <!-- Personal Information -->
+          <div class="mb-4">
+            <h3 class="text-subtitle-1 font-weight-bold mb-3 d-flex align-center">
+              <v-icon color="warning" class="mr-2">mdi-account</v-icon>
+              Personal Information
+            </h3>
+            <v-row>
+              <v-col cols="12" md="6">
+                <div class="detail-section">
+                  <div class="detail-label">First Name</div>
+                  <div class="detail-value">{{ viewingMarketingStaff.first_name || (viewingMarketingStaff.name ? viewingMarketingStaff.name.split(' ')[0] : '') || 'N/A' }}</div>
+                </div>
+              </v-col>
+              <v-col cols="12" md="6">
+                <div class="detail-section">
+                  <div class="detail-label">Last Name</div>
+                  <div class="detail-value">{{ viewingMarketingStaff.last_name || (viewingMarketingStaff.name ? viewingMarketingStaff.name.split(' ').slice(1).join(' ') : '') || 'N/A' }}</div>
+                </div>
+              </v-col>
+              <v-col cols="12" md="6">
+                <div class="detail-section">
+                  <div class="detail-label">Email</div>
+                  <div class="detail-value">{{ viewingMarketingStaff.email || 'N/A' }}</div>
+                </div>
+              </v-col>
+              <v-col cols="12" md="6">
+                <div class="detail-section">
+                  <div class="detail-label">Phone</div>
+                  <div class="detail-value">{{ viewingMarketingStaff.phone || 'N/A' }}</div>
+                </div>
+              </v-col>
+              <v-col cols="12" md="6">
+                <div class="detail-section">
+                  <div class="detail-label">Birthdate</div>
+                  <div class="detail-value">{{ viewingMarketingStaff.birthdate || viewingMarketingStaff.date_of_birth || 'N/A' }}</div>
+                </div>
+              </v-col>
+              <v-col cols="12" md="6">
+                <div class="detail-section">
+                  <div class="detail-label">Age</div>
+                  <div class="detail-value">{{ viewingMarketingStaff.age || 'N/A' }}</div>
+                </div>
+              </v-col>
+            </v-row>
+          </div>
+
+          <v-divider class="mb-4"></v-divider>
+
+          <!-- Address Information -->
+          <div class="mb-4">
+            <h3 class="text-subtitle-1 font-weight-bold mb-3 d-flex align-center">
+              <v-icon color="warning" class="mr-2">mdi-map-marker</v-icon>
+              Address Information
+            </h3>
+            <v-row>
+              <v-col cols="12">
+                <div class="detail-section">
+                  <div class="detail-label">Address</div>
+                  <div class="detail-value">{{ viewingMarketingStaff.address || 'N/A' }}</div>
+                </div>
+              </v-col>
+              <v-col cols="12" md="6">
+                <div class="detail-section">
+                  <div class="detail-label">City</div>
+                  <div class="detail-value">{{ viewingMarketingStaff.city || 'N/A' }}</div>
+                </div>
+              </v-col>
+              <v-col cols="12" md="6">
+                <div class="detail-section">
+                  <div class="detail-label">State</div>
+                  <div class="detail-value">{{ viewingMarketingStaff.state || 'N/A' }}</div>
+                </div>
+              </v-col>
+              <v-col cols="12" md="6">
+                <div class="detail-section">
+                  <div class="detail-label">County/Borough</div>
+                  <div class="detail-value">{{ viewingMarketingStaff.county || viewingMarketingStaff.borough || 'N/A' }}</div>
+                </div>
+              </v-col>
+              <v-col cols="12" md="6">
+                <div class="detail-section">
+                  <div class="detail-label">ZIP Code</div>
+                  <div class="detail-value">{{ viewingMarketingStaff.zip_code || viewingMarketingStaff.zip || 'N/A' }}</div>
+                </div>
+              </v-col>
+              <v-col cols="12" md="6">
+                <div class="detail-section">
+                  <div class="detail-label">Location</div>
+                  <div class="detail-value">{{ viewingMarketingStaff.place_indicator || viewingMarketingStaff.location || 'N/A' }}</div>
+                </div>
+              </v-col>
+              <v-col cols="12" md="6">
+                <div class="detail-section">
+                  <div class="detail-label">Joined</div>
+                  <div class="detail-value">{{ viewingMarketingStaff.joined || viewingMarketingStaff.created_at || 'N/A' }}</div>
+                </div>
+              </v-col>
+            </v-row>
+          </div>
+
+          <v-divider class="mb-4"></v-divider>
+
+          <!-- Referral Code Information -->
+          <h3 class="mb-3 d-flex align-center">
+            <v-icon color="warning" class="mr-2">mdi-ticket-percent</v-icon>
+            Referral Code Information
+          </h3>
           <v-row>
             <v-col cols="12" md="4">
               <v-card class="pa-4 text-center" color="primary" variant="tonal">
                 <v-icon size="32" color="primary">mdi-ticket-percent</v-icon>
-                <h4 class="mt-2">{{ viewingMarketingStaff.referralCode }}</h4>
+                <h4 class="mt-2">{{ viewingMarketingStaff.referralCode || 'N/A' }}</h4>
                 <div class="text-caption">Referral Code</div>
               </v-card>
             </v-col>
             <v-col cols="12" md="4">
               <v-card class="pa-4 text-center" color="info" variant="tonal">
                 <v-icon size="32" color="info">mdi-account-group</v-icon>
-                <h4 class="mt-2">{{ viewingMarketingStaff.clientsAcquired }}</h4>
+                <h4 class="mt-2">{{ viewingMarketingStaff.clientsAcquired ?? 0 }}</h4>
                 <div class="text-caption">Clients Acquired</div>
               </v-card>
             </v-col>
             <v-col cols="12" md="4">
               <v-card class="pa-4 text-center" color="success" variant="tonal">
                 <v-icon size="32" color="success">mdi-currency-usd</v-icon>
-                <h4 class="mt-2">${{ viewingMarketingStaff.commissionEarned }}</h4>
+                <h4 class="mt-2">${{ viewingMarketingStaff.commissionEarned ?? '0' }}</h4>
                 <div class="text-caption">Commission Earned</div>
               </v-card>
             </v-col>
           </v-row>
-          
           <v-row class="mt-4">
             <v-col cols="12" md="6">
               <div class="detail-section">
                 <div class="detail-label">Total Hours Referred</div>
-                <div class="detail-value">{{ viewingMarketingStaff.totalHours }} hours</div>
+                <div class="detail-value">{{ viewingMarketingStaff.totalHours ?? 0 }} hours</div>
               </div>
             </v-col>
             <v-col cols="12" md="6">
@@ -1918,7 +2292,7 @@
                   label="ZIP Code" 
                   variant="outlined"
                   maxlength="5"
-                  :rules="[v => !v || /^\d{5}$/.test(v) || 'Please enter a valid 5-digit ZIP code']"
+                  :rules="[v => !v || /^\d{5}$/.test(v) || 'Enter 5-digit ZIP', v => !v || /^(00501|00544|06390|1[0-4]\d{3})$/.test(v) || 'Must be NY ZIP (10xxx-14xxx)']"
                   placeholder="Enter ZIP code"
                   @input="lookupMarketingStaffZipCode"
                   @blur="lookupMarketingStaffZipCode"
@@ -1963,6 +2337,16 @@
               </v-col>
               <v-col cols="12" md="6">
                 <v-select v-model="marketingStaffFormData.status" :items="['Active', 'Inactive']" label="Status *" variant="outlined" required />
+              </v-col>
+              <v-col cols="12" md="6">
+                <v-text-field
+                  v-model="marketingStaffFormData.referral_code"
+                  label="Referral Code"
+                  variant="outlined"
+                  placeholder="e.g. HARRYPOGIG0553"
+                  hint="Clients enter this when booking to get the partner&#39;s discount. Leave blank on create to auto-generate."
+                  persistent-hint
+                />
               </v-col>
             </v-row>
           </div>
@@ -2086,69 +2470,170 @@
         <v-card-title class="pa-6" style="background: #dc2626; color: white;">
           <div class="d-flex align-center justify-space-between w-100">
             <span class="section-title" style="color: white;">Admin Staff Details</span>
-            <v-btn icon="mdi-close" variant="text" style="color: white;" @click="viewAdminStaffDialog = false"></v-btn>
+            <v-btn icon="mdi-close" variant="text" style="color: white;" @click="viewAdminStaffDialog = false" aria-label="Close admin staff details"></v-btn>
           </div>
         </v-card-title>
-        <v-card-text class="pa-6">
+        <v-card-text class="pa-6" style="max-height: 60vh; overflow-y: auto;">
           <v-row>
             <v-col cols="12" class="text-center mb-4">
               <v-avatar size="120" color="error" class="mb-3">
-                <span class="text-h3 font-weight-bold text-white">{{ viewingAdminStaff.name.split(' ').map(n => n[0]).join('') }}</span>
+                <span class="text-h3 font-weight-bold text-white">{{ (viewingAdminStaff.name || '').split(' ').map(n => n[0]).join('') || '?' }}</span>
               </v-avatar>
               <h2>{{ viewingAdminStaff.name }}</h2>
               <p class="text-subtitle-1 text-grey mb-2">Admin Staff</p>
               <v-chip :color="getUserStatusColor(viewingAdminStaff.status)" class="mt-2">{{ viewingAdminStaff.status }}</v-chip>
+              <v-chip :color="viewingAdminStaff.email_verified === 'Yes' ? 'success' : 'warning'" class="mt-2 ml-2">
+                <v-icon size="16" class="mr-1">{{ viewingAdminStaff.email_verified === 'Yes' ? 'mdi-shield-check' : 'mdi-shield-alert' }}</v-icon>
+                {{ viewingAdminStaff.email_verified === 'Yes' ? 'Verified' : 'Pending' }}
+              </v-chip>
             </v-col>
           </v-row>
-          
+
           <v-divider class="mb-4"></v-divider>
-          
-          <v-row>
-            <v-col cols="12" md="6">
-              <div class="detail-section">
-                <div class="detail-label">Email</div>
-                <div class="detail-value">{{ viewingAdminStaff.email }}</div>
-              </div>
-            </v-col>
-            <v-col cols="12" md="6">
-              <div class="detail-section">
-                <div class="detail-label">Phone</div>
-                <div class="detail-value">{{ viewingAdminStaff.phone || 'Not provided' }}</div>
-              </div>
-            </v-col>
-            <v-col cols="12" md="6">
-              <div class="detail-section">
-                <div class="detail-label">Email Verified</div>
-                <div class="detail-value">
-                  <v-chip :color="viewingAdminStaff.email_verified === 'Yes' ? 'success' : 'warning'" size="small">
-                    {{ viewingAdminStaff.email_verified }}
-                  </v-chip>
+
+          <!-- Personal Information -->
+          <div class="mb-4">
+            <h3 class="text-subtitle-1 font-weight-bold mb-3 d-flex align-center">
+              <v-icon color="error" class="mr-2">mdi-account</v-icon>
+              Personal Information
+            </h3>
+            <v-row>
+              <v-col cols="12" md="6">
+                <div class="detail-section">
+                  <div class="detail-label">First Name</div>
+                  <div class="detail-value">{{ viewingAdminStaff.first_name || (viewingAdminStaff.name ? viewingAdminStaff.name.split(' ')[0] : '') || 'N/A' }}</div>
                 </div>
-              </div>
-            </v-col>
-            <v-col cols="12" md="6">
-              <div class="detail-section">
-                <div class="detail-label">Last Login</div>
-                <div class="detail-value">{{ viewingAdminStaff.last_login }}</div>
-              </div>
-            </v-col>
-            <v-col cols="12" md="6">
-              <div class="detail-section">
-                <div class="detail-label">Joined Date</div>
-                <div class="detail-value">{{ viewingAdminStaff.joined }}</div>
-              </div>
-            </v-col>
-            <v-col cols="12" md="6">
-              <div class="detail-section">
-                <div class="detail-label">Location</div>
-                <div class="detail-value">{{ viewingAdminStaff.place_indicator || viewingAdminStaff.location || 'Unknown ZIP' }}</div>
-              </div>
-            </v-col>
-          </v-row>
-          
+              </v-col>
+              <v-col cols="12" md="6">
+                <div class="detail-section">
+                  <div class="detail-label">Last Name</div>
+                  <div class="detail-value">{{ viewingAdminStaff.last_name || (viewingAdminStaff.name ? viewingAdminStaff.name.split(' ').slice(1).join(' ') : '') || 'N/A' }}</div>
+                </div>
+              </v-col>
+              <v-col cols="12" md="6">
+                <div class="detail-section">
+                  <div class="detail-label">Email</div>
+                  <div class="detail-value">{{ viewingAdminStaff.email || 'N/A' }}</div>
+                </div>
+              </v-col>
+              <v-col cols="12" md="6">
+                <div class="detail-section">
+                  <div class="detail-label">Phone</div>
+                  <div class="detail-value">{{ viewingAdminStaff.phone || 'N/A' }}</div>
+                </div>
+              </v-col>
+              <v-col cols="12" md="6">
+                <div class="detail-section">
+                  <div class="detail-label">Birthdate</div>
+                  <div class="detail-value">{{ viewingAdminStaff.birthdate || viewingAdminStaff.date_of_birth || 'N/A' }}</div>
+                </div>
+              </v-col>
+              <v-col cols="12" md="6">
+                <div class="detail-section">
+                  <div class="detail-label">Age</div>
+                  <div class="detail-value">{{ viewingAdminStaff.age || 'N/A' }}</div>
+                </div>
+              </v-col>
+            </v-row>
+          </div>
+
+          <v-divider class="mb-4"></v-divider>
+
+          <!-- Address Information -->
+          <div class="mb-4">
+            <h3 class="text-subtitle-1 font-weight-bold mb-3 d-flex align-center">
+              <v-icon color="error" class="mr-2">mdi-map-marker</v-icon>
+              Address Information
+            </h3>
+            <v-row>
+              <v-col cols="12">
+                <div class="detail-section">
+                  <div class="detail-label">Address</div>
+                  <div class="detail-value">{{ viewingAdminStaff.address || 'N/A' }}</div>
+                </div>
+              </v-col>
+              <v-col cols="12" md="6">
+                <div class="detail-section">
+                  <div class="detail-label">City</div>
+                  <div class="detail-value">{{ viewingAdminStaff.city || 'N/A' }}</div>
+                </div>
+              </v-col>
+              <v-col cols="12" md="6">
+                <div class="detail-section">
+                  <div class="detail-label">State</div>
+                  <div class="detail-value">{{ viewingAdminStaff.state || 'N/A' }}</div>
+                </div>
+              </v-col>
+              <v-col cols="12" md="6">
+                <div class="detail-section">
+                  <div class="detail-label">County/Borough</div>
+                  <div class="detail-value">{{ viewingAdminStaff.county || viewingAdminStaff.borough || 'N/A' }}</div>
+                </div>
+              </v-col>
+              <v-col cols="12" md="6">
+                <div class="detail-section">
+                  <div class="detail-label">ZIP Code</div>
+                  <div class="detail-value">{{ viewingAdminStaff.zip_code || viewingAdminStaff.zip || 'N/A' }}</div>
+                </div>
+              </v-col>
+              <v-col cols="12" md="6">
+                <div class="detail-section">
+                  <div class="detail-label">Location</div>
+                  <div class="detail-value">{{ viewingAdminStaff.place_indicator || viewingAdminStaff.location || 'N/A' }}</div>
+                </div>
+              </v-col>
+            </v-row>
+          </div>
+
+          <v-divider class="mb-4"></v-divider>
+
+          <!-- Account Information -->
+          <div class="mb-4">
+            <h3 class="text-subtitle-1 font-weight-bold mb-3 d-flex align-center">
+              <v-icon color="error" class="mr-2">mdi-account-circle</v-icon>
+              Account Information
+            </h3>
+            <v-row>
+              <v-col cols="12" md="6">
+                <div class="detail-section">
+                  <div class="detail-label">Joined</div>
+                  <div class="detail-value">{{ viewingAdminStaff.joined || 'N/A' }}</div>
+                </div>
+              </v-col>
+              <v-col cols="12" md="6">
+                <div class="detail-section">
+                  <div class="detail-label">Last Login</div>
+                  <div class="detail-value">{{ viewingAdminStaff.last_login || 'N/A' }}</div>
+                </div>
+              </v-col>
+              <v-col cols="12" md="6">
+                <div class="detail-section">
+                  <div class="detail-label">Email Verified</div>
+                  <div class="detail-value">
+                    <v-chip :color="viewingAdminStaff.email_verified === 'Yes' ? 'success' : 'warning'" size="small">
+                      {{ viewingAdminStaff.email_verified || 'N/A' }}
+                    </v-chip>
+                  </div>
+                </div>
+              </v-col>
+              <v-col cols="12" md="6">
+                <div class="detail-section">
+                  <div class="detail-label">Status</div>
+                  <div class="detail-value">
+                    <v-chip :color="getUserStatusColor(viewingAdminStaff.status)" size="small">{{ viewingAdminStaff.status || 'N/A' }}</v-chip>
+                  </div>
+                </div>
+              </v-col>
+            </v-row>
+          </div>
+
           <v-divider class="my-4"></v-divider>
-          
-          <h3 class="mb-3">Access Permissions</h3>
+
+          <!-- Access Permissions -->
+          <h3 class="mb-3 d-flex align-center">
+            <v-icon color="error" class="mr-2">mdi-shield-key</v-icon>
+            Access Permissions
+          </h3>
           <v-row>
             <v-col cols="12" md="6">
               <v-list density="compact" class="bg-transparent">
@@ -2463,10 +2948,13 @@
           <v-col cols="12" md="3">
             <v-text-field v-model="trainingCenterSearch" placeholder="Search training centers..." prepend-inner-icon="mdi-magnify" variant="outlined" density="compact" hide-details />
           </v-col>
-          <v-col cols="12" md="2">
+          <v-col cols="12" sm="6" md="2">
+            <v-select v-model="trainingCenterCountyFilter" :items="trainingCenterCountyOptions" label="County" variant="outlined" density="compact" hide-details />
+          </v-col>
+          <v-col cols="12" sm="6" md="2">
             <v-select v-model="trainingCenterStatusFilter" :items="['All', 'Active', 'pending', 'Inactive']" label="All Status" variant="outlined" density="compact" hide-details />
           </v-col>
-          <v-col cols="12" md="3">
+          <v-col cols="12" sm="6" md="3">
             <v-btn color="error" prepend-icon="mdi-plus" @click="openTrainingCenterDialog()">Add Training Center</v-btn>
           </v-col>
         </v-row>
@@ -2572,13 +3060,13 @@
     <!-- View Training Center Details Dialog -->
     <v-dialog v-model="viewTrainingCenterDialog" :max-width="isMobile ? undefined : 900" :fullscreen="isMobile" scrollable>
       <v-card v-if="viewingTrainingCenter">
-        <v-card-title class="pa-6" style="background: #dc2626; color: white;">
+        <v-card-title class="pa-6" style="background: #ea580c; color: white;">
           <div class="d-flex align-center justify-space-between w-100">
             <span class="section-title" style="color: white;">Training Center Details</span>
-            <v-btn icon="mdi-close" variant="text" style="color: white;" @click="viewTrainingCenterDialog = false"></v-btn>
+            <v-btn icon="mdi-close" variant="text" style="color: white;" @click="viewTrainingCenterDialog = false" aria-label="Close training center details"></v-btn>
           </div>
         </v-card-title>
-        <v-card-text class="pa-6" style="max-height: calc(80vh - 140px); overflow-y: auto;">
+        <v-card-text class="pa-6" style="max-height: 60vh; overflow-y: auto;">
           <v-row>
             <v-col cols="12" class="text-center mb-4">
               <v-avatar size="120" color="warning" class="mb-3">
@@ -2588,64 +3076,130 @@
               <v-chip :color="getUserStatusColor(viewingTrainingCenter.status)" class="mt-2">{{ viewingTrainingCenter.status }}</v-chip>
             </v-col>
           </v-row>
-          
+
           <v-divider class="mb-4"></v-divider>
-          
-          <v-row>
-            <v-col cols="12" md="6">
-              <div class="detail-section">
-                <div class="detail-label">Email</div>
-                <div class="detail-value">{{ viewingTrainingCenter.email }}</div>
-              </div>
-            </v-col>
-            <v-col cols="12" md="6">
-              <div class="detail-section">
-                <div class="detail-label">Phone</div>
-                <div class="detail-value">{{ viewingTrainingCenter.phone }}</div>
-              </div>
-            </v-col>
-            <v-col cols="12" md="6">
-              <div class="detail-section">
-                <div class="detail-label">Zip Code</div>
-                <div class="detail-value">{{ viewingTrainingCenter.zip_code || viewingTrainingCenter.zip || 'Unknown ZIP' }}</div>
-              </div>
-            </v-col>
-            <v-col cols="12" md="6">
-              <div class="detail-section">
-                <div class="detail-label">Location</div>
-                <div class="detail-value">{{ viewingTrainingCenter.place_indicator || viewingTrainingCenter.location || 'Unknown ZIP' }}</div>
-              </div>
-            </v-col>
-            <v-col cols="12" md="6">
-              <div class="detail-section">
-                <div class="detail-label">Address</div>
-                <div class="detail-value">{{ viewingTrainingCenter.address || 'Not provided' }}</div>
-              </div>
-            </v-col>
-          </v-row>
-          
+
+          <!-- Contact Information -->
+          <div class="mb-4">
+            <h3 class="text-subtitle-1 font-weight-bold mb-3 d-flex align-center">
+              <v-icon color="warning" class="mr-2">mdi-card-account-details</v-icon>
+              Contact Information
+            </h3>
+            <v-row>
+              <v-col cols="12" md="6">
+                <div class="detail-section">
+                  <div class="detail-label">Email</div>
+                  <div class="detail-value">{{ viewingTrainingCenter.email || 'N/A' }}</div>
+                </div>
+              </v-col>
+              <v-col cols="12" md="6">
+                <div class="detail-section">
+                  <div class="detail-label">Phone</div>
+                  <div class="detail-value">{{ viewingTrainingCenter.phone || 'N/A' }}</div>
+                </div>
+              </v-col>
+            </v-row>
+          </div>
+
+          <v-divider class="mb-4"></v-divider>
+
+          <!-- Address Information -->
+          <div class="mb-4">
+            <h3 class="text-subtitle-1 font-weight-bold mb-3 d-flex align-center">
+              <v-icon color="warning" class="mr-2">mdi-map-marker</v-icon>
+              Address Information
+            </h3>
+            <v-row>
+              <v-col cols="12">
+                <div class="detail-section">
+                  <div class="detail-label">Address</div>
+                  <div class="detail-value">{{ viewingTrainingCenter.address || 'N/A' }}</div>
+                </div>
+              </v-col>
+              <v-col cols="12" md="6">
+                <div class="detail-section">
+                  <div class="detail-label">City</div>
+                  <div class="detail-value">{{ viewingTrainingCenter.city || 'N/A' }}</div>
+                </div>
+              </v-col>
+              <v-col cols="12" md="6">
+                <div class="detail-section">
+                  <div class="detail-label">State</div>
+                  <div class="detail-value">{{ viewingTrainingCenter.state || 'N/A' }}</div>
+                </div>
+              </v-col>
+              <v-col cols="12" md="6">
+                <div class="detail-section">
+                  <div class="detail-label">County/Borough</div>
+                  <div class="detail-value">{{ viewingTrainingCenter.county || viewingTrainingCenter.borough || 'N/A' }}</div>
+                </div>
+              </v-col>
+              <v-col cols="12" md="6">
+                <div class="detail-section">
+                  <div class="detail-label">ZIP Code</div>
+                  <div class="detail-value">{{ viewingTrainingCenter.zip_code || viewingTrainingCenter.zip || 'N/A' }}</div>
+                </div>
+              </v-col>
+              <v-col cols="12" md="6">
+                <div class="detail-section">
+                  <div class="detail-label">Location</div>
+                  <div class="detail-value">{{ viewingTrainingCenter.place_indicator || viewingTrainingCenter.location || 'N/A' }}</div>
+                </div>
+              </v-col>
+            </v-row>
+          </div>
+
+          <v-divider class="mb-4"></v-divider>
+
+          <!-- Account Information -->
+          <div class="mb-4">
+            <h3 class="text-subtitle-1 font-weight-bold mb-3 d-flex align-center">
+              <v-icon color="warning" class="mr-2">mdi-account-circle</v-icon>
+              Account Information
+            </h3>
+            <v-row>
+              <v-col cols="12" md="6">
+                <div class="detail-section">
+                  <div class="detail-label">Joined</div>
+                  <div class="detail-value">{{ viewingTrainingCenter.joined || viewingTrainingCenter.created_at || 'N/A' }}</div>
+                </div>
+              </v-col>
+              <v-col cols="12" md="6">
+                <div class="detail-section">
+                  <div class="detail-label">Status</div>
+                  <div class="detail-value">
+                    <v-chip :color="getUserStatusColor(viewingTrainingCenter.status)" size="small">{{ viewingTrainingCenter.status || 'N/A' }}</v-chip>
+                  </div>
+                </div>
+              </v-col>
+            </v-row>
+          </div>
+
           <v-divider class="my-4"></v-divider>
-          
-          <h3 class="mb-3">Commission Statistics</h3>
+
+          <h3 class="mb-3 d-flex align-center">
+            <v-icon color="warning" class="mr-2">mdi-chart-bar</v-icon>
+            Commission Statistics
+          </h3>
           <v-row>
             <v-col cols="12" md="4">
               <v-card class="pa-4 text-center" color="info" variant="tonal">
                 <v-icon size="32" color="info">mdi-account-heart</v-icon>
-                <h4 class="mt-2">{{ viewingTrainingCenter.caregiverCount }}</h4>
+                <h4 class="mt-2">{{ viewingTrainingCenter.caregiverCount ?? 0 }}</h4>
                 <div class="text-caption">Caregivers</div>
               </v-card>
             </v-col>
             <v-col cols="12" md="4">
               <v-card class="pa-4 text-center" color="primary" variant="tonal">
                 <v-icon size="32" color="primary">mdi-clock</v-icon>
-                <h4 class="mt-2">{{ viewingTrainingCenter.totalHours }}</h4>
+                <h4 class="mt-2">{{ viewingTrainingCenter.totalHours ?? 0 }}</h4>
                 <div class="text-caption">Total Hours</div>
               </v-card>
             </v-col>
             <v-col cols="12" md="4">
               <v-card class="pa-4 text-center" color="success" variant="tonal">
                 <v-icon size="32" color="success">mdi-currency-usd</v-icon>
-                <h4 class="mt-2">${{ viewingTrainingCenter.commissionEarned }}</h4>
+                <h4 class="mt-2">${{ viewingTrainingCenter.commissionEarned ?? '0' }}</h4>
                 <div class="text-caption">Commission Earned</div>
               </v-card>
             </v-col>
@@ -2661,15 +3215,18 @@
             <v-col cols="12" md="6">
               <div class="detail-section">
                 <div class="detail-label">Joined</div>
-                <div class="detail-value">{{ viewingTrainingCenter.joined }}</div>
+                <div class="detail-value">{{ viewingTrainingCenter.joined || 'N/A' }}</div>
               </div>
             </v-col>
           </v-row>
 
           <v-divider class="my-4" v-if="viewingTrainingCenter.caregivers && viewingTrainingCenter.caregivers.length > 0"></v-divider>
-          
+
           <div v-if="viewingTrainingCenter.caregivers && viewingTrainingCenter.caregivers.length > 0">
-            <h3 class="mb-3">Caregivers Using This Training Center</h3>
+            <h3 class="mb-3 d-flex align-center">
+              <v-icon color="warning" class="mr-2">mdi-account-group</v-icon>
+              Caregivers Using This Training Center
+            </h3>
             <div style="max-height: 300px; overflow-y: auto;">
               <v-table density="compact">
                 <thead style="position: sticky; top: 0; background-color: white; z-index: 1;">
@@ -2690,7 +3247,7 @@
             </div>
           </div>
         </v-card-text>
-        <v-card-actions class="pa-6">
+        <v-card-actions class="pa-6 pt-0">
           <v-spacer />
           <v-btn color="grey" variant="outlined" @click="viewTrainingCenterDialog = false">Close</v-btn>
           <v-btn color="error" @click="openTrainingCenterDialog(viewingTrainingCenter); viewTrainingCenterDialog = false">Edit</v-btn>
@@ -2742,7 +3299,7 @@
                   label="ZIP Code" 
                   variant="outlined"
                   maxlength="5"
-                  :rules="[v => !v || /^\d{5}$/.test(v) || 'Please enter a valid 5-digit ZIP code']"
+                  :rules="[v => !v || /^\d{5}$/.test(v) || 'Enter 5-digit ZIP', v => !v || /^(00501|00544|06390|1[0-4]\d{3})$/.test(v) || 'Must be NY ZIP (10xxx-14xxx)']"
                   placeholder="Enter ZIP code"
                   @input="lookupTrainingCenterZipCode"
                   @blur="lookupTrainingCenterZipCode"
@@ -3304,13 +3861,37 @@
       <v-card elevation="0">
         <v-card-title class="card-header pa-4 pa-md-8 d-flex justify-space-between align-center flex-wrap ga-2">
           <span class="section-title error--text">Client Bookings</span>
-          <v-btn v-if="selectedBookings.length > 0" color="error" variant="outlined" prepend-icon="mdi-delete" size="small" @click="deleteSelectedBookings">
-            Delete ({{ selectedBookings.length }})
-          </v-btn>
+          <div class="d-flex align-center ga-2">
+            <v-btn v-if="loadingBookings" color="primary" variant="text" size="small" :loading="true" disabled>
+              Loading...
+            </v-btn>
+            <v-btn v-else color="primary" variant="outlined" prepend-icon="mdi-refresh" size="small" @click="loadClientBookings">
+              Refresh
+            </v-btn>
+            <v-btn v-if="selectedBookings.length > 0" color="error" variant="outlined" prepend-icon="mdi-delete" size="small" @click="deleteSelectedBookings">
+              Delete ({{ selectedBookings.length }})
+            </v-btn>
+          </div>
         </v-card-title>
         
+        <!-- Loading State -->
+        <div v-if="loadingBookings" class="pa-8 text-center">
+          <v-progress-circular indeterminate color="primary" size="48" class="mb-4"></v-progress-circular>
+          <div class="text-body-1 text-grey-darken-1">Loading bookings...</div>
+        </div>
+        
+        <!-- Error State -->
+        <div v-else-if="bookingsLoadError" class="pa-8 text-center">
+          <v-icon size="64" color="error" class="mb-4">mdi-alert-circle-outline</v-icon>
+          <div class="text-h6 text-error mb-2">Failed to Load Bookings</div>
+          <div class="text-body-2 text-grey mb-4">{{ bookingsLoadError }}</div>
+          <v-btn color="primary" variant="flat" prepend-icon="mdi-refresh" @click="loadClientBookings">
+            Try Again
+          </v-btn>
+        </div>
+        
         <!-- Desktop Table View -->
-        <v-data-table v-if="!isMobile" v-model="selectedBookings" :headers="bookingHeaders" :items="filteredBookings" :items-per-page="10" :items-per-page-options="[10, 25, 50, -1]" show-select item-value="id" class="elevation-0 admin-bookings-table" density="compact">
+        <v-data-table v-else-if="!isMobile" v-model="selectedBookings" :headers="bookingHeaders" :items="filteredBookings" :items-per-page="10" :items-per-page-options="[10, 25, 50, -1]" show-select item-value="id" class="elevation-0 admin-bookings-table" density="compact">
           <template v-slot:item.formattedPrice="{ item }">
             <div class="price-cell">
               <span v-if="item.referralDiscountApplied && item.referralDiscountApplied > 0" class="original-price-strike">
@@ -3403,7 +3984,7 @@
         </v-data-table>
         
         <!-- Mobile Card View for Bookings -->
-        <div v-else class="mobile-cards-container pa-3">
+        <div v-else-if="isMobile && !loadingBookings && !bookingsLoadError" class="mobile-cards-container pa-3">
           <v-card v-for="item in filteredBookings" :key="item.id" class="mobile-data-card mb-3" elevation="2">
             <v-card-text class="pa-0">
               <div class="mobile-card-header d-flex justify-space-between align-center pa-3" style="background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);">
@@ -3891,184 +4472,126 @@
         <!-- Company Account Tab -->
         <v-tabs-window-item value="company-account">
           <v-row>
-            <!-- Stripe Account Status -->
-            <v-col cols="12" md="6">
-              <v-card elevation="0" class="mb-4">
-                <v-card-title class="card-header pa-4" style="background: linear-gradient(135deg, #635bff 0%, #4f46e5 100%); color: white;">
-                  <div class="d-flex align-center">
-                    <v-icon class="mr-3" color="white">mdi-credit-card-check</v-icon>
-                    <span class="section-title" style="color: white;">Stripe Account</span>
-                  </div>
-                </v-card-title>
-                <v-card-text class="pa-6">
-                  <div class="d-flex align-center mb-4">
-                    <v-avatar color="primary" size="56" class="mr-4">
-                      <v-icon color="white" size="28">mdi-bank</v-icon>
-                    </v-avatar>
-                    <div>
-                      <div class="text-h6 font-weight-bold">{{ companyAccount.account?.business_name || 'CAS Private Care' }}</div>
-                      <div class="text-caption text-grey">Stripe Connect Platform Account</div>
+            <!-- Stripe Account Status - Minimalist -->
+            <v-col cols="12">
+              <v-card elevation="0" class="mb-4 border rounded-lg">
+                <v-card-text class="pa-5">
+                  <div class="d-flex align-center justify-space-between mb-4">
+                    <div class="d-flex align-center">
+                      <v-icon size="24" color="grey-darken-2" class="mr-3">mdi-credit-card-outline</v-icon>
+                      <div>
+                        <div class="text-subtitle-1 font-weight-bold">Stripe Account</div>
+                        <div class="text-caption text-grey">Payment Processing</div>
+                      </div>
                     </div>
-                    <v-spacer />
-                    <v-chip :color="companyAccount.account?.charges_enabled ? 'success' : 'warning'" variant="flat">
-                      <v-icon start size="16">mdi-check-circle</v-icon>
-                      {{ companyAccount.account?.charges_enabled ? 'Active' : 'Pending' }}
+                    <v-chip 
+                      :color="companyAccount.account?.charges_enabled ? 'success' : 'warning'" 
+                      variant="tonal"
+                      size="small"
+                    >
+                      {{ companyAccount.account?.charges_enabled ? 'Active' : 'Setup Required' }}
                     </v-chip>
                   </div>
 
                   <v-divider class="mb-4" />
+                  
+                  <div class="text-body-2 mb-4">
+                    <div class="font-weight-medium mb-1">{{ companyAccount.account?.business_name || 'CAS Private Care' }}</div>
+                    <div class="text-grey text-caption">Platform Account</div>
+                  </div>
 
-                  <div class="account-details">
-                    <div class="d-flex justify-space-between py-2" style="border-bottom: 1px solid #f3f4f6;">
-                      <span class="text-grey-darken-1">Account ID:</span>
-                      <span class="font-weight-medium">{{ companyAccount.account?.id?.substring(0, 10) || 'acct_' }}••••</span>
+                  <div class="d-flex flex-column" style="gap: 12px;">
+                    <div class="d-flex justify-space-between">
+                      <span class="text-grey text-body-2">Account ID</span>
+                      <code class="text-body-2">{{ companyAccount.account?.id?.substring(0, 10) || 'acct_' }}••••</code>
                     </div>
-                    <div class="d-flex justify-space-between py-2" style="border-bottom: 1px solid #f3f4f6;">
-                      <span class="text-grey-darken-1">Business Type:</span>
-                      <span class="font-weight-medium">Company (LLC)</span>
+                    <div class="d-flex justify-space-between">
+                      <span class="text-grey text-body-2">Type</span>
+                      <span class="text-body-2">Company (LLC)</span>
                     </div>
-                    <div class="d-flex justify-space-between py-2" style="border-bottom: 1px solid #f3f4f6;">
-                      <span class="text-grey-darken-1">Country:</span>
-                      <span class="font-weight-medium">{{ companyAccount.account?.country || 'United States' }}</span>
+                    <div class="d-flex justify-space-between">
+                      <span class="text-grey text-body-2">Country</span>
+                      <span class="text-body-2">{{ companyAccount.account?.country || 'US' }}</span>
                     </div>
-                    <div class="d-flex justify-space-between py-2" style="border-bottom: 1px solid #f3f4f6;">
-                      <span class="text-grey-darken-1">Default Currency:</span>
-                      <span class="font-weight-medium">{{ companyAccount.account?.default_currency || 'USD' }} ($)</span>
+                    <div class="d-flex justify-space-between">
+                      <span class="text-grey text-body-2">Currency</span>
+                      <span class="text-body-2">{{ companyAccount.account?.default_currency || 'USD' }}</span>
                     </div>
-                    <div class="d-flex justify-space-between py-2">
-                      <span class="text-grey-darken-1">Payout Schedule:</span>
-                      <span class="font-weight-medium">Weekly (Friday)</span>
+                    <div class="d-flex justify-space-between">
+                      <span class="text-grey text-body-2">Payouts</span>
+                      <span class="text-body-2">Weekly</span>
                     </div>
                   </div>
 
                   <v-btn 
-                    color="primary" 
+                    color="grey-darken-3" 
                     variant="outlined" 
-                    class="mt-4" 
                     block
+                    class="mt-5"
                     href="https://dashboard.stripe.com" 
                     target="_blank"
-                    prepend-icon="mdi-open-in-new"
+                    size="small"
                   >
                     Open Stripe Dashboard
+                    <v-icon end size="16">mdi-open-in-new</v-icon>
                   </v-btn>
-                </v-card-text>
-              </v-card>
-            </v-col>
-
-            <!-- Company Bank Account -->
-            <v-col cols="12" md="6">
-              <v-card elevation="0" class="mb-4">
-                <v-card-title class="card-header pa-4" style="background: linear-gradient(135deg, #16a34a 0%, #15803d 100%); color: white;">
-                  <div class="d-flex align-center">
-                    <v-icon class="mr-3" color="white">mdi-bank-transfer</v-icon>
-                    <span class="section-title" style="color: white;">Company Bank Account</span>
-                  </div>
-                </v-card-title>
-                <v-card-text class="pa-6">
-                  <div class="d-flex align-center mb-4">
-                    <v-avatar color="success" size="56" class="mr-4">
-                      <v-icon color="white" size="28">mdi-bank</v-icon>
-                    </v-avatar>
-                    <div>
-                      <div class="text-h6 font-weight-bold">{{ companyAccount.bank_account ? 'Business Checking ••••' + companyAccount.bank_account.last4 : 'No Bank Connected' }}</div>
-                      <div class="text-caption text-grey">Primary Payout Account</div>
-                    </div>
-                    <v-spacer />
-                    <v-chip :color="companyAccount.bank_account ? 'success' : 'warning'" variant="flat">
-                      <v-icon start size="16">{{ companyAccount.bank_account ? 'mdi-check-circle' : 'mdi-alert' }}</v-icon>
-                      {{ companyAccount.bank_account ? 'Verified' : 'Not Set Up' }}
-                    </v-chip>
-                  </div>
-
-                  <v-divider class="mb-4" />
-
-                  <div class="account-details">
-                    <div class="d-flex justify-space-between py-2" style="border-bottom: 1px solid #f3f4f6;">
-                      <span class="text-grey-darken-1">Bank Name:</span>
-                      <span class="font-weight-medium">{{ companyAccount.bank_account?.bank_name || 'Not Connected' }}</span>
-                    </div>
-                    <div class="d-flex justify-space-between py-2" style="border-bottom: 1px solid #f3f4f6;">
-                      <span class="text-grey-darken-1">Account Type:</span>
-                      <span class="font-weight-medium">Business Checking</span>
-                    </div>
-                    <div class="d-flex justify-space-between py-2" style="border-bottom: 1px solid #f3f4f6;">
-                      <span class="text-grey-darken-1">Routing Number:</span>
-                      <span class="font-weight-medium">{{ companyAccount.bank_account?.routing ? '••••••' + companyAccount.bank_account.routing.slice(-4) : '••••••••' }}</span>
-                    </div>
-                    <div class="d-flex justify-space-between py-2" style="border-bottom: 1px solid #f3f4f6;">
-                      <span class="text-grey-darken-1">Account Number:</span>
-                      <span class="font-weight-medium">{{ companyAccount.bank_account ? '••••••••' + companyAccount.bank_account.last4 : '••••••••' }}</span>
-                    </div>
-                    <div class="d-flex justify-space-between py-2">
-                      <span class="text-grey-darken-1">Status:</span>
-                      <v-chip color="success" size="small" variant="flat">Active</v-chip>
-                    </div>
-                  </div>
-
-                  <v-alert type="info" variant="tonal" density="compact" class="mt-4">
-                    <span class="text-caption">Bank account is managed through Stripe. To update, visit the Stripe Dashboard.</span>
-                  </v-alert>
                 </v-card-text>
               </v-card>
             </v-col>
           </v-row>
 
+          <!-- Balance Cards Row - Minimalist -->
           <v-row>
-            <!-- Balance Summary -->
+            <!-- Available Balance -->
             <v-col cols="12" md="4">
-              <v-card elevation="0" class="h-100">
-                <v-card-title class="card-header pa-4">
-                  <span class="section-title-compact success--text">Available Balance</span>
-                </v-card-title>
-                <v-card-text class="pa-6 text-center">
-                  <v-icon size="48" color="success" class="mb-3">mdi-cash-multiple</v-icon>
-                  <div class="text-h3 font-weight-bold success--text mb-2">
-                    ${{ moneyFlow.totals?.stripe_balance?.toFixed(2) || '0.00' }}
+              <v-card elevation="0" class="h-100 border rounded-lg">
+                <v-card-text class="pa-5">
+                  <div class="d-flex align-center justify-space-between mb-3">
+                    <span class="text-caption text-grey text-uppercase font-weight-medium">Available</span>
+                    <v-icon size="20" color="grey-lighten-1">mdi-wallet-outline</v-icon>
                   </div>
-                  <div class="text-caption text-grey">Available for payouts</div>
-                  <v-btn color="success" variant="flat" class="mt-4" prepend-icon="mdi-bank-transfer-out" disabled>
-                    Manual Payout
-                  </v-btn>
-                  <div class="text-caption text-grey mt-2">Automatic payouts enabled</div>
+                  <div class="text-h4 font-weight-bold mb-1">
+                    ${{ (moneyFlow.totals?.stripe_balance || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}
+                  </div>
+                  <div class="text-caption text-grey">Ready for payout</div>
                 </v-card-text>
               </v-card>
             </v-col>
 
+            <!-- Pending Balance -->
             <v-col cols="12" md="4">
-              <v-card elevation="0" class="h-100">
-                <v-card-title class="card-header pa-4">
-                  <span class="section-title-compact warning--text">Pending Balance</span>
-                </v-card-title>
-                <v-card-text class="pa-6 text-center">
-                  <v-icon size="48" color="warning" class="mb-3">mdi-clock-outline</v-icon>
-                  <div class="text-h3 font-weight-bold warning--text mb-2">
-                    ${{ moneyFlow.totals?.pending_payouts?.toFixed(2) || '0.00' }}
+              <v-card elevation="0" class="h-100 border rounded-lg">
+                <v-card-text class="pa-5">
+                  <div class="d-flex align-center justify-space-between mb-3">
+                    <span class="text-caption text-grey text-uppercase font-weight-medium">Pending</span>
+                    <v-icon size="20" color="grey-lighten-1">mdi-clock-outline</v-icon>
                   </div>
-                  <div class="text-caption text-grey">Pending contractor payouts</div>
-                  <v-chip color="warning" variant="tonal" class="mt-4">
-                    <v-icon start size="16">mdi-information</v-icon>
-                    Processing
-                  </v-chip>
+                  <div class="text-h4 font-weight-bold mb-1">
+                    ${{ (moneyFlow.totals?.pending_payouts || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}
+                  </div>
+                  <div class="text-caption text-grey">Processing</div>
                 </v-card-text>
               </v-card>
             </v-col>
 
+            <!-- This Month Revenue -->
             <v-col cols="12" md="4">
-              <v-card elevation="0" class="h-100">
-                <v-card-title class="card-header pa-4">
-                  <span class="section-title-compact primary--text">This Month Revenue</span>
-                </v-card-title>
-                <v-card-text class="pa-6 text-center">
-                  <v-icon size="48" color="primary" class="mb-3">mdi-trending-up</v-icon>
-                  <div class="text-h3 font-weight-bold primary--text mb-2">
-                    ${{ moneyFlow.totals?.total_received?.toFixed(2) || '0.00' }}
+              <v-card elevation="0" class="h-100 border rounded-lg">
+                <v-card-text class="pa-5">
+                  <div class="d-flex align-center justify-space-between mb-3">
+                    <span class="text-caption text-grey text-uppercase font-weight-medium">This Month</span>
+                    <v-chip 
+                      :color="(companyAccount.percent_change || 0) >= 0 ? 'success' : 'error'" 
+                      variant="tonal" 
+                      size="x-small"
+                    >
+                      {{ (companyAccount.percent_change || 0) >= 0 ? '+' : '' }}{{ companyAccount.percent_change || 0 }}%
+                    </v-chip>
                   </div>
-                  <div class="text-caption text-grey">Total payments received</div>
-                  <v-chip :color="(companyAccount.percent_change || 0) >= 0 ? 'success' : 'error'" variant="tonal" class="mt-4">
-                    <v-icon start size="16">{{ (companyAccount.percent_change || 0) >= 0 ? 'mdi-arrow-up' : 'mdi-arrow-down' }}</v-icon>
-                    {{ (companyAccount.percent_change || 0) >= 0 ? '+' : '' }}{{ companyAccount.percent_change || 0 }}% vs last month
-                  </v-chip>
+                  <div class="text-h4 font-weight-bold mb-1">
+                    ${{ (moneyFlow.totals?.total_received || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}
+                  </div>
+                  <div class="text-caption text-grey">Revenue</div>
                 </v-card-text>
               </v-card>
             </v-col>
@@ -4077,16 +4600,15 @@
           <!-- Recent Payouts History -->
           <v-row class="mt-4">
             <v-col cols="12">
-              <v-card elevation="0">
-                <v-card-title class="card-header pa-4">
-                  <div class="d-flex align-center justify-space-between w-100">
-                    <span class="section-title-compact error--text">Recent Platform Payouts</span>
-                    <v-btn color="primary" variant="text" size="small" prepend-icon="mdi-download">
+              <v-card elevation="0" class="border rounded-lg">
+                <v-card-text class="pa-4">
+                  <div class="d-flex align-center justify-space-between mb-4">
+                    <span class="text-subtitle-1 font-weight-bold">Recent Payouts</span>
+                    <v-btn color="grey-darken-3" variant="text" size="small">
                       Export
+                      <v-icon end size="16">mdi-download</v-icon>
                     </v-btn>
                   </div>
-                </v-card-title>
-                <v-card-text class="pa-0">
                   <v-data-table
                     :headers="[
                       { title: 'Date', key: 'date' },
@@ -4985,7 +5507,7 @@
     <v-dialog v-model="paymentConfirmDialog" :max-width="isMobile ? undefined : 550" :fullscreen="isMobile" persistent scrollable>
       <v-card elevation="8" class="rounded-lg">
         <!-- Header with Navy Blue -->
-        <v-card-title class="pa-4" style="background: linear-gradient(135deg, #1565c0 0%, #0d47a1 100%);">
+        <v-card-title class="pa-4" style="background: linear-gradient(135deg, #1565c0 0%, #0d47a1 100%); color: white;">
           <div class="d-flex align-center">
             <v-icon size="28" color="white" class="mr-2">mdi-cash-check</v-icon>
             <span class="text-h6 font-weight-bold text-white">Confirm Payment</span>
@@ -5106,7 +5628,7 @@
     <v-dialog v-model="caregiverPaymentDetailsDialog" :max-width="isMobile ? undefined : 550" :fullscreen="isMobile" scrollable>
       <v-card elevation="8" class="rounded-lg">
         <!-- Header with Navy Blue -->
-        <v-card-title class="pa-4" style="background: linear-gradient(135deg, #1565c0 0%, #0d47a1 100%);">
+        <v-card-title class="pa-4" style="background: linear-gradient(135deg, #1565c0 0%, #0d47a1 100%); color: white;">
           <div class="d-flex align-center">
             <v-icon size="28" color="white" class="mr-2">mdi-information</v-icon>
             <span class="text-h6 font-weight-bold text-white">Payment Details</span>
@@ -5307,13 +5829,13 @@
             <v-card-text class="pa-8 text-center">
               <div class="position-relative d-inline-block">
                 <v-avatar size="120" color="error" class="mb-4" style="cursor: pointer;" @click="triggerAvatarUpload">
-                  <img v-if="userAvatar && userAvatar.length > 0" :src="userAvatar" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;" />
+                  <img v-if="userAvatar && userAvatar.length > 0" :src="userAvatar" :alt="`${profile.firstName} ${profile.lastName}'s profile photo`" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;" />
                   <span v-else class="text-h3 font-weight-bold">{{ profile.firstName && profile.lastName ? `${profile.firstName[0]}${profile.lastName[0]}` : 'AU' }}</span>
                 </v-avatar>
-                <v-btn icon size="small" color="error" class="position-absolute" style="bottom: 16px; right: -8px;" @click="triggerAvatarUpload" :loading="uploadingAvatar">
+                <v-btn icon size="small" color="error" class="position-absolute" style="bottom: 16px; right: -8px;" @click="triggerAvatarUpload" :loading="uploadingAvatar" aria-label="Upload profile photo">
                   <v-icon size="small">mdi-camera</v-icon>
                 </v-btn>
-                <input ref="avatarInput" type="file" accept="image/*" style="display: none;" @change="uploadAvatar" />
+                <input ref="avatarInput" type="file" accept="image/*" style="display: none;" @change="uploadAvatar" aria-label="Select profile photo" />
               </div>
               <h2 class="mb-2">{{ profile.firstName && profile.lastName ? `${profile.firstName} ${profile.lastName}` : 'Admin User' }}</h2>
               <p class="text-grey mb-4">System Administrator</p>
@@ -5325,7 +5847,7 @@
               </div>
               <div class="profile-stat">
                 <v-icon color="error" class="mr-2">mdi-calendar</v-icon>
-                <span>Admin since Jan 2024</span>
+                <span>Admin since {{ memberSince }}</span>
               </div>
             </v-card-text>
           </v-card>
@@ -5679,7 +6201,7 @@
                   label="ZIP Code" 
                   variant="outlined"
                   maxlength="5"
-                  :rules="[v => !v || /^\d{5}$/.test(v) || 'Please enter a valid 5-digit ZIP code']"
+                  :rules="[v => !v || /^\d{5}$/.test(v) || 'Enter 5-digit ZIP', v => !v || /^(00501|00544|06390|1[0-4]\d{3})$/.test(v) || 'Must be NY ZIP (10xxx-14xxx)']"
                   placeholder="Enter ZIP code"
                   @input="lookupClientZipCode"
                   @blur="lookupClientZipCode"
@@ -5854,7 +6376,7 @@
                   label="ZIP Code" 
                   variant="outlined"
                   maxlength="5"
-                  :rules="[v => !v || /^\d{5}$/.test(v) || 'Please enter a valid 5-digit ZIP code']"
+                  :rules="[v => !v || /^\d{5}$/.test(v) || 'Enter 5-digit ZIP', v => !v || /^(00501|00544|06390|1[0-4]\d{3})$/.test(v) || 'Must be NY ZIP (10xxx-14xxx)']"
                   placeholder="Enter ZIP code"
                   @input="lookupCaregiverZipCode"
                   @blur="lookupCaregiverZipCode"
@@ -5909,7 +6431,7 @@
                 <v-checkbox v-model="caregiverForm.isCustomTrainingCenter" label="Custom Training Center" density="compact" hide-details />
               </v-col>
               <v-col cols="12" md="6">
-                <v-select v-if="!caregiverForm.isCustomTrainingCenter" v-model="caregiverForm.trainingCenter" :items="caregiverTrainingCenters" label="Training Center" variant="outlined" />
+                <v-select v-if="!caregiverForm.isCustomTrainingCenter" v-model="caregiverForm.trainingCenter" :items="caregiverTrainingCenterOptions" label="Training Center" variant="outlined" no-data-text="No CAS training centers. Use Custom Training Center to enter one." />
                 <v-text-field v-else v-model="caregiverForm.customTrainingCenter" label="Custom Training Center" variant="outlined" />
               </v-col>
               <v-col cols="12" md="6">
@@ -6008,7 +6530,7 @@
                   label="ZIP Code" 
                   variant="outlined"
                   maxlength="5"
-                  :rules="[v => !v || /^\d{5}$/.test(v) || 'Please enter a valid 5-digit ZIP code']"
+                  :rules="[v => !v || /^\d{5}$/.test(v) || 'Enter 5-digit ZIP', v => !v || /^(00501|00544|06390|1[0-4]\d{3})$/.test(v) || 'Must be NY ZIP (10xxx-14xxx)']"
                   placeholder="Enter ZIP code"
                   @input="lookupHousekeeperZipCode"
                   @blur="lookupHousekeeperZipCode"
@@ -6107,24 +6629,24 @@
     </v-dialog>
 
     <!-- Confirmation Dialog -->
-    <v-dialog v-model="confirmDialog" :max-width="isMobile ? undefined : 500" :fullscreen="isMobile" scrollable>
-      <v-card>
-        <v-card-title class="pa-6" style="background: #dc2626; color: white;">
+    <v-dialog v-model="confirmDialog" :max-width="isMobile ? '90%' : 500" :width="isMobile ? '90%' : undefined" class="confirm-dialog-mobile">
+      <v-card class="rounded-lg">
+        <v-card-title class="pa-4 pa-md-6" style="background: #dc2626; color: white;">
           <div class="d-flex align-center justify-space-between w-100">
             <div class="d-flex align-center">
-              <v-icon color="white" class="mr-3">{{ confirmData.buttonIcon === 'mdi-check' ? 'mdi-check-circle' : 'mdi-alert-circle' }}</v-icon>
-              <span class="section-title" style="color: white;">{{ confirmData.title }}</span>
+              <v-icon color="white" size="24" class="mr-2">{{ confirmData.buttonIcon === 'mdi-check' ? 'mdi-check-circle' : 'mdi-alert-circle' }}</v-icon>
+              <span class="text-subtitle-1 text-md-h6 font-weight-bold" style="color: white;">{{ confirmData.title }}</span>
             </div>
-            <v-btn icon="mdi-close" variant="text" style="color: white;" @click="confirmDialog = false"></v-btn>
+            <v-btn icon="mdi-close" variant="text" size="small" style="color: white;" @click="confirmDialog = false"></v-btn>
           </div>
         </v-card-title>
-        <v-card-text class="pa-6">
-          <p class="text-body-1">{{ confirmData.message }}</p>
+        <v-card-text class="pa-4 pa-md-6">
+          <p class="text-body-2 text-md-body-1">{{ confirmData.message }}</p>
         </v-card-text>
-        <v-card-actions class="pa-6 pt-0">
-          <v-spacer />
-          <v-btn color="grey" variant="outlined" @click="confirmDialog = false">Cancel</v-btn>
-          <v-btn :color="confirmData.buttonColor" variant="flat" :prepend-icon="confirmData.buttonIcon" @click="handleConfirm">{{ confirmData.buttonText }}</v-btn>
+        <v-card-actions class="pa-4 pa-md-6 pt-0 flex-column flex-sm-row ga-2">
+          <v-spacer class="d-none d-sm-flex" />
+          <v-btn color="grey" variant="outlined" :block="isMobile" @click="confirmDialog = false">Cancel</v-btn>
+          <v-btn :color="confirmData.buttonColor" variant="flat" :prepend-icon="confirmData.buttonIcon" :block="isMobile" @click="handleConfirm">{{ confirmData.buttonText }}</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -6198,7 +6720,7 @@
                 label="ZIP Code *" 
                 variant="outlined"
                 maxlength="5"
-                :rules="[v => !!v || 'ZIP code is required', v => /^\d{5}$/.test(v) || 'Please enter a valid 5-digit ZIP code']"
+                :rules="[v => !!v || 'ZIP code is required', v => /^\d{5}$/.test(v) || 'Enter 5-digit ZIP', v => /^(00501|00544|06390|1[0-4]\d{3})$/.test(v) || 'Must be NY ZIP (10xxx-14xxx)']"
                 required
                 @input="lookupBookingZipCode"
                 @blur="lookupBookingZipCode"
@@ -8340,11 +8862,49 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
+
+    <!-- Profile Picture Success Modal -->
+    <v-dialog 
+      v-model="showAvatarSuccessModal" 
+      max-width="400"
+      persistent
+    >
+      <v-card class="avatar-success-modal text-center pa-6">
+        <div class="success-animation-container">
+          <div class="success-checkmark">
+            <div class="check-icon">
+              <span class="icon-line line-tip"></span>
+              <span class="icon-line line-long"></span>
+              <div class="icon-circle"></div>
+              <div class="icon-fix"></div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="success-modal-title">Success!</div>
+        
+        <div class="success-modal-message">
+          Your profile picture has been updated successfully.
+        </div>
+        
+        <v-card-actions class="justify-center pt-6 pb-2">
+          <v-btn 
+            color="error" 
+            variant="flat" 
+            size="large"
+            min-width="150"
+            @click="closeAvatarSuccessModal"
+          >
+            Done
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </dashboard-template>
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue';
+import { ref, computed, watch, onMounted, onBeforeUnmount, defineAsyncComponent } from 'vue';
 import DashboardTemplate from './DashboardTemplate.vue';
 import StatCard from './shared/StatCard.vue';
 import NotificationToast from './shared/NotificationToast.vue';
@@ -8353,6 +8913,16 @@ import EmailVerificationBanner from './EmailVerificationBanner.vue';
 import EmailMarketingPanel from './admin/EmailMarketingPanel.vue';
 import LoadingOverlay from './LoadingOverlay.vue';
 import { useNotification } from '../composables/useNotification';
+
+// Lazy-loaded admin tab components for better performance
+const AdminUsersTab = defineAsyncComponent(() => import('./admin/AdminUsersTab.vue'));
+const AdminBookingsTab = defineAsyncComponent(() => import('./admin/AdminBookingsTab.vue'));
+const AdminPayoutsTab = defineAsyncComponent(() => import('./admin/AdminPayoutsTab.vue'));
+const AdminReportsTab = defineAsyncComponent(() => import('./admin/AdminReportsTab.vue'));
+
+// Import centralized composables
+import { getCsrfToken, authFetch } from '../composables/useCsrfToken';
+import { debounce } from '../composables/useDebounce';
 
 const { notification, success, error, warning, info } = useNotification();
 
@@ -8467,6 +9037,10 @@ onBeforeUnmount(() => {
     clearInterval(sessionCountdownInterval);
   }
 });
+
+// Error Modal State
+const showErrorModal = ref(false);
+const errorMessages = ref([]);
 
 const currentSection = ref(localStorage.getItem('adminSection') || 'dashboard');
 const userEmailVerified = ref(false);
@@ -8597,14 +9171,19 @@ const loadRecentAnnouncements = async () => {
 
 const userSearch = ref('');
 const userType = ref('All');
-const userStatus = ref('All');
 const locationFilter = ref('All');
+const userCountyFilter = ref('All');
+const userCityFilter = ref('All');
 const caregiverSearch = ref('');
 const caregiverLocationFilter = ref('All');
-const caregiverStatusFilter = ref('All');
+const caregiverCountyFilter = ref('All');
+const caregiverCityFilter = ref('All');
+const caregiverContractFilter = ref('All');
 const clientSearch = ref('');
 const clientLocationFilter = ref('All');
-const clientStatusFilter = ref('All');
+const clientCountyFilter = ref('All');
+const clientCityFilter = ref('All');
+const clientContractFilter = ref('All');
 const bookingLocationFilter = ref('All');
 const revenueChartPeriod = ref('month');
 const revenueChart = ref(null);
@@ -8630,11 +9209,14 @@ const maintenanceMode = ref(false);
 
 const caregivers = ref([]);
 const caregiverAssignments = ref({}); // Track which caregivers are assigned to which bookings
+const housekeeperAssignments = ref({}); // Track which housekeepers are assigned to which bookings
 
 const housekeepers = ref([]);
 const housekeeperSearch = ref('');
 const housekeeperLocationFilter = ref('All');
-const housekeeperStatusFilter = ref('All');
+const housekeeperCountyFilter = ref('All');
+const housekeeperCityFilter = ref('All');
+const housekeeperContractFilter = ref('All');
 
 const clients = ref([]);
 
@@ -8702,6 +9284,7 @@ const housekeeperHeaders = [
   { title: 'Phone', key: 'phone' },
   { title: 'ZIP Code', key: 'zip_code' },
   { title: 'Location', key: 'location' },
+  { title: 'Preferred Hourly Rate', key: 'hourly_rate', sortable: false },
   { title: 'Status', key: 'status' },
   { title: 'Experience', key: 'years_experience' },
   { title: 'Rating', key: 'rating' },
@@ -8842,6 +9425,7 @@ const adminStaffHeaders = [
 const trainingCenters = ref([]);
 const trainingCenterSearch = ref('');
 const trainingCenterStatusFilter = ref('All');
+const trainingCenterCountyFilter = ref('All');
 const trainingCenterDialog = ref(false);
 const editingTrainingCenter = ref(null);
 const viewTrainingCenterDialog = ref(false);
@@ -8862,9 +9446,16 @@ const trainingCenterZipLocation = ref('');
 
 // Use the same training center list pattern as the caregiver profile (API-backed)
 const caregiverTrainingCenters = ref([]);
+// Include current form value so selector always shows what training center it is
+const caregiverTrainingCenterOptions = computed(() => {
+  const list = [...(caregiverTrainingCenters.value || [])];
+  const current = (caregiverForm.value?.trainingCenter || '').trim();
+  if (current && !list.includes(current)) list.unshift(current);
+  return list;
+});
 const loadCaregiverTrainingCenters = async () => {
   try {
-    const response = await fetch('/api/training-centers', {
+    const response = await fetch('/api/training-centers?active_only=1', {
       headers: {
         'Accept': 'application/json',
         'Content-Type': 'application/json',
@@ -8873,8 +9464,8 @@ const loadCaregiverTrainingCenters = async () => {
     });
 
     const data = await response.json().catch(() => ({}));
-    // Accept a few possible shapes
-    const centers = Array.isArray(data) ? data : (data.centers || data.training_centers || []);
+    // Accept a few possible shapes (centers, training_centers, trainingCenters)
+    const centers = Array.isArray(data) ? data : (data.centers || data.training_centers || data.trainingCenters || []);
     caregiverTrainingCenters.value = (centers || [])
       .map(c => (typeof c === 'string' ? c : (c.name || c.title || '')))
       .map(s => String(s || '').trim())
@@ -8932,12 +9523,30 @@ const passwordData = ref({
 // Profile for header
 const profile = ref({
   firstName: '',
-  lastName: ''
+  lastName: '',
+  created_at: null
 });
 const userAvatar = ref('');
 const uploadingAvatar = ref(false);
 const adminUserId = ref(null);
 const avatarInput = ref(null);
+const showAvatarSuccessModal = ref(false);
+
+const closeAvatarSuccessModal = () => {
+  showAvatarSuccessModal.value = false;
+};
+
+const memberSince = computed(() => {
+  if (profile.value.created_at) {
+    try {
+      const date = new Date(profile.value.created_at);
+      return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    } catch {
+      return 'N/A';
+    }
+  }
+  return 'N/A';
+});
 
 const triggerAvatarUpload = () => {
   avatarInput.value?.click();
@@ -8960,6 +9569,7 @@ const uploadAvatar = async (event) => {
     if (response.ok) {
       const data = await response.json();
       userAvatar.value = data.avatar_url;
+      showAvatarSuccessModal.value = true;
     }
   } catch (error) {
   } finally {
@@ -8978,6 +9588,7 @@ const loadProfile = async () => {
       const data = result.user || result;
       profile.value.firstName = data.first_name || data.name?.split(' ')[0] || 'Admin';
       profile.value.lastName = data.last_name || data.name?.split(' ').slice(1).join(' ') || 'User';
+      profile.value.created_at = data.created_at || null;
       adminUserId.value = data.id;
       
       // Set email verification status
@@ -9052,7 +9663,8 @@ const loadBookingMaintenanceStatus = async () => {
       credentials: 'include'
     });
     if (response.ok) {
-      const data = await response.json();
+      const json = await response.json();
+      const data = json.data || json;
       bookingMaintenanceEnabled.value = data.maintenance_enabled || false;
       bookingMaintenanceMessage.value = data.maintenance_message || 'Our booking system is currently under maintenance. Please try again later.';
     }
@@ -9085,7 +9697,8 @@ const toggleBookingMaintenance = async () => {
     });
     
     if (response.ok) {
-      const data = await response.json();
+      const json = await response.json();
+      const data = json.data || json;
       bookingMaintenanceEnabled.value = data.maintenance_enabled;
       bookingMaintenanceMessage.value = data.maintenance_message;
       
@@ -9094,7 +9707,7 @@ const toggleBookingMaintenance = async () => {
         show: true,
         type: data.maintenance_enabled ? 'warning' : 'success',
         title: data.maintenance_enabled ? 'Booking Disabled' : 'Booking Enabled',
-        message: data.message,
+        message: json.message || 'Operation successful',
         timeout: 5000
       };
       
@@ -9331,7 +9944,31 @@ const housekeeperMetrics = ref([
   { label: 'Avg Earnings', value: '$0', color: 'deep-purple' },
 ]);
 
+const adminStaffMetrics = ref([
+  { label: 'Total Admins', value: '0', color: 'error' },
+  { label: 'Active', value: '—', color: 'grey' },
+  { label: 'New This Month', value: '—', color: 'grey' },
+  { label: '—', value: '—', color: 'grey' },
+]);
+
+const marketingMetrics = ref([
+  { label: 'Total Partners', value: '0', color: 'warning' },
+  { label: 'Active', value: '—', color: 'grey' },
+  { label: 'Referrals', value: '—', color: 'grey' },
+  { label: '—', value: '—', color: 'grey' },
+]);
+
+const trainingCenterMetrics = ref([
+  { label: 'Total Centers', value: '0', color: 'info' },
+  { label: 'Active', value: '—', color: 'grey' },
+  { label: 'Caregivers Linked', value: '—', color: 'grey' },
+  { label: '—', value: '—', color: 'grey' },
+]);
+
 const adminCount = ref('0');
+const marketingCount = ref('0');
+const trainingCenterCount = ref('0');
+const pendingApplicationsCount = ref('0');
 const userProgress = ref(0);
 const userGrowth = ref('+0% this month');
 const revenueProgress = ref(0);
@@ -9362,15 +9999,25 @@ const loadMetrics = async () => {
     const totalCaregivers = data.total_caregivers || 0;
     const totalClients = data.total_clients || 0;
     const totalHousekeepers = data.total_housekeepers || 0;
+    const totalAdmins = data.total_admins || 0;
+    const totalMarketing = data.total_marketing || 0;
+    const totalTraining = data.total_training || 0;
     const totalRevenue = data.total_revenue || 0;
-    const admins = totalUsers - totalCaregivers - totalClients - totalHousekeepers;
     
     // Update counts
     clientMetrics.value[0].value = totalClients.toString();
     caregiverMetrics.value[0].value = totalCaregivers.toString();
     housekeeperMetrics.value[0].value = totalHousekeepers.toString();
-    adminCount.value = admins.toString();
+    adminCount.value = totalAdmins.toString();
+    marketingCount.value = totalMarketing.toString();
+    trainingCenterCount.value = totalTraining.toString();
+    pendingApplicationsCount.value = (data.pending_applications_count ?? 0).toString();
     totalUsersForChart.value = totalUsers.toString();
+    
+    // Admin, Marketing, Training analytics
+    adminStaffMetrics.value[0].value = totalAdmins.toString();
+    marketingMetrics.value[0].value = totalMarketing.toString();
+    trainingCenterMetrics.value[0].value = totalTraining.toString();
     
     // Use REAL analytics data from API
     // Client metrics
@@ -9492,15 +10139,13 @@ const loadUsers = async () => {
           clients: 0,
           joined: u.joined,
           verified: true,
-          // Prefer canonical field `zip_code`, fall back to `zip` if present
           zip_code: u.zip_code || u.zip || '',
-          // No guessing: place_indicator will be resolved via /api/zipcode-lookup.
-          // Keep legacy location empty so the table doesn't show misleading data.
+          city: u.city || '',
+          county: u.county || '',
+          borough: u.borough || '',
           location: '',
-          // Accurate place indicator (City, ST) filled in lazily via /api/zipcode-lookup
           place_indicator: (u.zip_code || u.zip) ? 'Loading...' : '',
           phone: u.phone || '(646) 282-8282',
-          // Use actual stored file path from DB (null when not uploaded)
           training_certificate: u.caregiver?.training_certificate || null,
           preferred_hourly_rate_min: u.caregiver?.preferred_hourly_rate_min || null,
           preferred_hourly_rate_max: u.caregiver?.preferred_hourly_rate_max || null
@@ -9516,8 +10161,9 @@ const loadUsers = async () => {
     // do NOT wipe already-loaded caregivers — just keep existing data.
     let allUsers = [];
     try {
-      const response = await fetch('/api/admin/users', {
-        credentials: 'include'
+      const response = await fetch(`/api/admin/users?_=${Date.now()}`, {
+        credentials: 'include',
+        headers: { 'Accept': 'application/json' }
       });
       const text = await response.text();
       if (text && text.trim().startsWith('{')) {
@@ -9532,6 +10178,8 @@ const loadUsers = async () => {
     // Build other tables ONLY if we actually got JSON users.
     if (allUsers.length > 0) {
       clients.value = allUsers.filter(u => u.type === 'Client').map(u => {
+        const rawZip = u.zip_code ?? u.zip ?? u.zipCode ?? '';
+        const zip = (rawZip !== null && rawZip !== '' && String(rawZip).trim() !== '') ? String(rawZip).trim() : '';
         const item = {
           id: u.id,
           name: u.name,
@@ -9542,7 +10190,7 @@ const loadUsers = async () => {
           totalSpent: '$0',
           joined: u.joined,
           verified: true,
-          zip_code: u.zip_code || u.zip || '',
+          zip_code: zip,
           city: u.city || '',
           state: u.state || '',
           county: u.county || '',
@@ -9550,7 +10198,7 @@ const loadUsers = async () => {
           address: u.address || '',
           date_of_birth: u.date_of_birth || '',
           location: '',
-          place_indicator: (u.zip_code || u.zip) ? 'Loading...' : '',
+          place_indicator: zip ? 'Loading...' : '',
           created_at: u.created_at || '',
           email_verified_at: u.email_verified_at || null
         };
@@ -9575,29 +10223,103 @@ const loadHousekeepers = async () => {
       credentials: 'include'
     });
     const data = await response.json();
-  housekeepers.value = (data.housekeepers || []).map(h => ({
-  id: h.housekeeper?.id,
+  const nameParts = (h) => {
+    const n = (h.name || '').trim();
+    if (!n) return { first_name: '', last_name: '' };
+    const parts = n.split(/\s+/);
+    return { first_name: parts[0] || '', last_name: parts.slice(1).join(' ') || '' };
+  };
+  housekeepers.value = (data.housekeepers || []).map(h => {
+    const { first_name, last_name } = nameParts(h);
+    return {
+      id: h.housekeeper?.id,
       userId: h.id,
       name: h.name,
+      first_name,
+      last_name,
       email: h.email,
       phone: h.phone || 'N/A',
       zip_code: h.zip_code || '',
+      city: h.city || '',
+      county: h.county || '',
+      borough: h.borough || '',
       location: h.location || 'Unknown',
       status: h.status || 'Active',
-      years_experience: h.years_experience || 0,
-  rating: h.housekeeper?.rating || h.rating || 0,
-  hourly_rate: h.housekeeper?.hourly_rate || 20,
+      years_experience: h.years_experience ?? h.housekeeper?.years_experience ?? 0,
+      rating: h.housekeeper?.rating ?? h.rating ?? 0,
+      hourly_rate: h.housekeeper?.hourly_rate ?? 20,
       joined: h.joined
-  })).filter(h => !!h.id);
+    };
+  }).filter(h => !!h.id);
   } catch (error) {
     console.error('Error loading housekeepers:', error);
     housekeepers.value = [];
   }
 };
 
-const viewHousekeeperDetails = (housekeeper) => {
-  viewingHousekeeper.value = housekeeper;
+const viewHousekeeperDetails = async (housekeeper) => {
   viewHousekeeperDialog.value = true;
+  viewingHousekeeper.value = null;
+  const userId = housekeeper.userId || housekeeper.user_id || housekeeper.id;
+  try {
+    const resp = await fetch(`/api/admin/housekeepers/${userId}`, { credentials: 'include' });
+    const text = await resp.text();
+    if (!text || !text.trim().startsWith('{')) {
+      viewingHousekeeper.value = housekeeper;
+      return;
+    }
+    const data = JSON.parse(text);
+    if (!data || !data.user) {
+      viewingHousekeeper.value = housekeeper;
+      return;
+    }
+    const u = data.user;
+    const hk = data.housekeeper || {};
+    const zipVal = String(u.zip_code || u.zip || '');
+    const placeIndicator = await resolveZipCityState(zipVal);
+    const nameParts = (u.name || '').trim().split(/\s+/);
+    viewingHousekeeper.value = {
+      id: hk.id || housekeeper.id,
+      userId: u.id,
+      name: u.name,
+      first_name: nameParts[0] || '',
+      last_name: nameParts.slice(1).join(' ') || '',
+      email: u.email,
+      phone: u.phone || housekeeper.phone || '',
+      birthdate: u.date_of_birth ? new Date(u.date_of_birth).toLocaleDateString() : '',
+      age: (() => {
+        const dob = u.date_of_birth;
+        if (!dob) return '';
+        const d = new Date(dob);
+        if (Number.isNaN(d.getTime())) return '';
+        const today = new Date();
+        let a = today.getFullYear() - d.getFullYear();
+        const m = today.getMonth() - d.getMonth();
+        if (m < 0 || (m === 0 && today.getDate() < d.getDate())) a--;
+        return a;
+      })(),
+      address: u.address || '',
+      state: u.state || 'New York',
+      county: u.county || u.borough || '',
+      city: u.city || '',
+      zip_code: u.zip_code || u.zip || '',
+      borough: u.borough || u.county || '',
+      place_indicator: placeIndicator,
+      location: placeIndicator,
+      joined: u.created_at ? new Date(u.created_at).toLocaleDateString() : (housekeeper.joined || ''),
+      verified: Boolean(u.email_verified_at),
+      status: housekeeper.status || u.status || 'Active',
+      rating: hk.rating ?? housekeeper.rating ?? 0,
+      years_experience: hk.years_experience ?? housekeeper.years_experience ?? 0,
+      hourly_rate: hk.hourly_rate ?? housekeeper.hourly_rate ?? 20,
+      bio: hk.bio || housekeeper.bio || '',
+      specializations: hk.specializations || housekeeper.specializations || [],
+      cleaningSpecialties: Array.isArray(hk.specializations) ? hk.specializations : (housekeeper.cleaningSpecialties || []),
+      has_own_supplies: Boolean(hk.has_own_supplies),
+    };
+  } catch (err) {
+    viewingHousekeeper.value = housekeeper;
+  }
 };
 
 const settings = ref({
@@ -9849,6 +10571,8 @@ const loadAllReviews = async () => {
       headers: {
         'Accept': 'application/json',
         'Content-Type': 'application/json',
+        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+        'X-Requested-With': 'XMLHttpRequest'
       },
       credentials: 'include'
     });
@@ -9858,10 +10582,14 @@ const loadAllReviews = async () => {
     if (data.success) {
       allReviews.value = data.reviews || [];
     } else {
-      error(data.message || 'Failed to load reviews');
+      // Don't show error for empty reviews - that's expected
+      if (data.message && !data.message.includes('empty')) {
+        error(data.message || 'Failed to load reviews');
+      }
     }
   } catch (err) {
-    error('Failed to load reviews. Please try again.');
+    console.error('Reviews load error:', err);
+    // Silently fail for reviews - not critical
   } finally {
     loadingReviews.value = false;
   }
@@ -10936,8 +11664,13 @@ const bookingHeaders = [
 ];
 
 const clientBookings = ref([]);
+const loadingBookings = ref(false);
+const bookingsLoadError = ref(null);
 
 const loadClientBookings = async () => {
+  loadingBookings.value = true;
+  bookingsLoadError.value = null;
+  
   try {
     const response = await fetch('/api/admin/bookings', {
       method: 'GET',
@@ -10949,7 +11682,7 @@ const loadClientBookings = async () => {
       credentials: 'include'
     });
 
-if (!response.ok) {
+    if (!response.ok) {
       const errorText = await response.text();
       throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
     }
@@ -10958,6 +11691,7 @@ if (!response.ok) {
     
     if (!result.success) {
       clientBookings.value = [];
+      bookingsLoadError.value = result.message || 'Failed to load bookings';
       return;
     }
     
@@ -11018,10 +11752,11 @@ if (!response.ok) {
       // Store assignments in memory with full caregiver data
       if (assignedCount > 0) {
         caregiverAssignments.value[b.id] = b.assignments.map(a => a.caregiver_id);
-        // Store the full booking data including assignments for phone access
-        if (!clientBookings.value.find(existing => existing.id === b.id)) {
-          // This will be set later, but we need to ensure assignments are preserved
-        }
+      }
+      // Store housekeeper assignments for contract filter
+      const hkAssignments = b.housekeeper_assignments || b.housekeeperAssignments || [];
+      if (hkAssignments.length > 0) {
+        housekeeperAssignments.value[b.id] = hkAssignments.map(a => a.housekeeper_id ?? a.housekeeper?.id).filter(Boolean);
       }
       
       // Determine assignment status based on assigned count
@@ -11093,6 +11828,7 @@ if (!response.ok) {
       
       return {
         id: b.id,
+        client_id: b.client_id ?? b.client?.id ?? null,
         client: b.client?.name || 'Unknown',
         service: b.service_type,
         date: date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }),
@@ -11143,18 +11879,24 @@ if (!response.ok) {
         apartmentUnit: b.apartment_unit
       };
     });
-    
+
+    // Update client total spent from bookings (replace array to trigger reactivity)
+    const loadedBookings = clientBookings.value;
+    clients.value = clients.value.map(client => {
+      const clientBookingList = loadedBookings.filter(b => b.client_id != null && Number(b.client_id) === Number(client.id));
+      const total = clientBookingList.reduce((sum, b) => sum + (parseFloat(b.totalBudget) || 0), 0);
+      return { ...client, totalSpent: '$' + total.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 }) };
+    });
+
     // Update caregiver statuses based on assignments
     updateCaregiverStatuses();
   } catch (error) {
     // Error loading bookings
     console.error('Error loading bookings:', error);
-    const errorInfo = {
-      message: error.message,
-      stack: error.stack,
-      name: error.name
-    };
+    bookingsLoadError.value = error.message || 'Failed to load bookings';
     clientBookings.value = [];
+  } finally {
+    loadingBookings.value = false;
   }
 };
 
@@ -11184,36 +11926,66 @@ const filteredUsers = computed(() => {
   return users.value.filter(u => {
     const matchesSearch = !userSearch.value || u.name.toLowerCase().includes(userSearch.value.toLowerCase()) || u.email.toLowerCase().includes(userSearch.value.toLowerCase());
     const matchesType = userType.value === 'All' || u.type === userType.value.slice(0, -1);
-    const matchesStatus = userStatus.value === 'All' || u.status === userStatus.value;
-    const matchesLocation = locationFilter.value === 'All' || (u.county && u.county.includes(locationFilter.value));
-    return matchesSearch && matchesType && matchesStatus && matchesLocation;
+    const uCounty = u.county != null ? String(u.county).trim() : '';
+    const uBorough = u.borough != null ? String(u.borough).trim() : '';
+    const uCity = u.city != null ? String(u.city).trim() : '';
+    const locVal = locationFilter.value === 'All' ? '' : String(locationFilter.value).trim().toLowerCase();
+    const matchesLocation = !locVal || (uCounty && uCounty.toLowerCase().includes(locVal)) || (uBorough && uBorough.toLowerCase().includes(locVal));
+    const matchesCounty = userCountyFilter.value === 'All' || (uCounty && uCounty === userCountyFilter.value);
+    const matchesCity = userCityFilter.value === 'All' || (uCity && uCity === userCityFilter.value);
+    return matchesSearch && matchesType && matchesLocation && matchesCounty && matchesCity;
   });
 });
 
 const filteredCaregivers = computed(() => {
+  const ongoingIds = caregiverIdsWithOngoingContract.value;
   return caregivers.value.filter(c => {
     const matchesSearch = !caregiverSearch.value || c.name.toLowerCase().includes(caregiverSearch.value.toLowerCase()) || c.email.toLowerCase().includes(caregiverSearch.value.toLowerCase());
-    const matchesLocation = caregiverLocationFilter.value === 'All' || (c.borough && c.borough.includes(caregiverLocationFilter.value)) || (c.county && c.county.includes(caregiverLocationFilter.value));
-    const matchesStatus = caregiverStatusFilter.value === 'All' || c.status === caregiverStatusFilter.value;
-    return matchesSearch && matchesLocation && matchesStatus;
+    const cCounty = c.county != null ? String(c.county).trim() : '';
+    const cBorough = c.borough != null ? String(c.borough).trim() : '';
+    const cCity = c.city != null ? String(c.city).trim() : '';
+    const locVal = caregiverLocationFilter.value === 'All' ? '' : String(caregiverLocationFilter.value).trim().toLowerCase();
+    const matchesLocation = !locVal || (cCounty && cCounty.toLowerCase().includes(locVal)) || (cBorough && cBorough.toLowerCase().includes(locVal));
+    const matchesCounty = caregiverCountyFilter.value === 'All' || (cCounty && cCounty === caregiverCountyFilter.value);
+    const matchesCity = caregiverCityFilter.value === 'All' || (cCity && cCity === caregiverCityFilter.value);
+    const hasOngoing = ongoingIds.has(Number(c.id));
+    const matchesContract = caregiverContractFilter.value === 'All' || (caregiverContractFilter.value === 'Ongoing contract' && hasOngoing) || (caregiverContractFilter.value === 'No contract' && !hasOngoing);
+    return matchesSearch && matchesLocation && matchesCounty && matchesCity && matchesContract;
   });
 });
 
 const filteredHousekeepers = computed(() => {
+  const ongoingIds = housekeeperIdsWithOngoingContract.value;
   return housekeepers.value.filter(h => {
     const matchesSearch = !housekeeperSearch.value || h.name.toLowerCase().includes(housekeeperSearch.value.toLowerCase()) || h.email.toLowerCase().includes(housekeeperSearch.value.toLowerCase());
-    const matchesLocation = housekeeperLocationFilter.value === 'All' || (h.location && h.location.includes(housekeeperLocationFilter.value));
-    const matchesStatus = housekeeperStatusFilter.value === 'All' || h.status === housekeeperStatusFilter.value;
-    return matchesSearch && matchesLocation && matchesStatus;
+    const hCounty = h.county != null ? String(h.county).trim() : '';
+    const hBorough = h.borough != null ? String(h.borough).trim() : '';
+    const hCity = h.city != null ? String(h.city).trim() : '';
+    const hLocation = h.location != null ? String(h.location).trim() : '';
+    const locVal = housekeeperLocationFilter.value === 'All' ? '' : String(housekeeperLocationFilter.value).trim().toLowerCase();
+    const matchesLocation = !locVal || (hCounty && hCounty.toLowerCase().includes(locVal)) || (hBorough && hBorough.toLowerCase().includes(locVal)) || (hLocation && hLocation.toLowerCase().includes(locVal));
+    const matchesCounty = housekeeperCountyFilter.value === 'All' || (hCounty && hCounty === housekeeperCountyFilter.value);
+    const matchesCity = housekeeperCityFilter.value === 'All' || (hCity && hCity === housekeeperCityFilter.value);
+    const hasOngoing = ongoingIds.has(Number(h.id));
+    const matchesContract = housekeeperContractFilter.value === 'All' || (housekeeperContractFilter.value === 'Ongoing contract' && hasOngoing) || (housekeeperContractFilter.value === 'No contract' && !hasOngoing);
+    return matchesSearch && matchesLocation && matchesCounty && matchesCity && matchesContract;
   });
 });
 
 const filteredClients = computed(() => {
+  const ongoingIds = clientIdsWithOngoingContract.value;
   return clients.value.filter(c => {
     const matchesSearch = !clientSearch.value || c.name.toLowerCase().includes(clientSearch.value.toLowerCase()) || c.email.toLowerCase().includes(clientSearch.value.toLowerCase());
-    const matchesLocation = clientLocationFilter.value === 'All' || (c.county && c.county.includes(clientLocationFilter.value));
-    const matchesStatus = clientStatusFilter.value === 'All' || c.status === clientStatusFilter.value;
-    return matchesSearch && matchesLocation && matchesStatus;
+    const cCounty = c.county != null ? String(c.county).trim() : '';
+    const cBorough = c.borough != null ? String(c.borough).trim() : '';
+    const cCity = c.city != null ? String(c.city).trim() : '';
+    const locVal = clientLocationFilter.value === 'All' ? '' : String(clientLocationFilter.value).trim().toLowerCase();
+    const matchesLocation = !locVal || (cCounty && cCounty.toLowerCase().includes(locVal)) || (cBorough && cBorough.toLowerCase().includes(locVal));
+    const matchesCounty = clientCountyFilter.value === 'All' || (cCounty && cCounty === clientCountyFilter.value);
+    const matchesCity = clientCityFilter.value === 'All' || (cCity && cCity === clientCityFilter.value);
+    const hasOngoing = ongoingIds.has(Number(c.id));
+    const matchesContract = clientContractFilter.value === 'All' || (clientContractFilter.value === 'Ongoing contract' && hasOngoing) || (clientContractFilter.value === 'No contract' && !hasOngoing);
+    return matchesSearch && matchesLocation && matchesCounty && matchesCity && matchesContract;
   });
 });
 
@@ -11221,7 +11993,7 @@ const filteredClients = computed(() => {
 const filteredMarketingStaff = computed(() => {
   return marketingStaff.value.filter(m => {
     const matchesSearch = !marketingStaffSearch.value || m.name.toLowerCase().includes(marketingStaffSearch.value.toLowerCase()) || m.email.toLowerCase().includes(marketingStaffSearch.value.toLowerCase());
-    const matchesStatus = marketingStaffStatusFilter.value === 'All' || m.status === marketingStaffStatusFilter.value;
+    const matchesStatus = marketingStaffStatusFilter.value === 'All' || (m.status && String(m.status).toLowerCase() === marketingStaffStatusFilter.value.toLowerCase());
     return matchesSearch && matchesStatus;
   });
 });
@@ -11232,7 +12004,7 @@ const filteredAdminStaff = computed(() => {
     const matchesSearch = !adminStaffSearch.value || 
       a.name.toLowerCase().includes(adminStaffSearch.value.toLowerCase()) || 
       a.email.toLowerCase().includes(adminStaffSearch.value.toLowerCase());
-    const matchesStatus = adminStaffStatusFilter.value === 'All' || a.status === adminStaffStatusFilter.value;
+    const matchesStatus = adminStaffStatusFilter.value === 'All' || (a.status && String(a.status).toLowerCase() === adminStaffStatusFilter.value.toLowerCase());
     return matchesSearch && matchesStatus;
   });
 });
@@ -11241,8 +12013,10 @@ const filteredAdminStaff = computed(() => {
 const filteredTrainingCenters = computed(() => {
   return trainingCenters.value.filter(t => {
     const matchesSearch = !trainingCenterSearch.value || t.name.toLowerCase().includes(trainingCenterSearch.value.toLowerCase()) || t.email.toLowerCase().includes(trainingCenterSearch.value.toLowerCase());
-    const matchesStatus = trainingCenterStatusFilter.value === 'All' || t.status === trainingCenterStatusFilter.value;
-    return matchesSearch && matchesStatus;
+    const matchesStatus = trainingCenterStatusFilter.value === 'All' || (t.status && String(t.status).toLowerCase() === trainingCenterStatusFilter.value.toLowerCase());
+    const tCounty = t.county != null ? String(t.county).trim() : '';
+    const matchesCounty = trainingCenterCountyFilter.value === 'All' || (tCounty && tCounty === trainingCenterCountyFilter.value);
+    return matchesSearch && matchesStatus && matchesCounty;
   });
 });
 
@@ -11257,6 +12031,87 @@ const locationFilterOptions = ref([
   'Suffolk',
   'Westchester'
 ]);
+
+// Helper: unique non-empty trimmed values from array of items and key (handles null/undefined/whitespace)
+const uniqueTrimmed = (items, key) => {
+  const vals = items
+    .map((item) => {
+      const v = item[key];
+      if (v == null) return null;
+      const s = String(v).trim();
+      return s === '' ? null : s;
+    })
+    .filter(Boolean);
+  return [...new Set(vals)].sort();
+};
+
+// County/borough options derived from actual data per table (only show existing values)
+const userCountyOptions = computed(() => ['All', ...uniqueTrimmed(users.value, 'county')]);
+const caregiverCountyOptions = computed(() => ['All', ...uniqueTrimmed(caregivers.value, 'county')]);
+const housekeeperCountyOptions = computed(() => ['All', ...uniqueTrimmed(housekeepers.value, 'county')]);
+const clientCountyOptions = computed(() => ['All', ...uniqueTrimmed(clients.value, 'county')]);
+const trainingCenterCountyOptions = computed(() => ['All', ...uniqueTrimmed(trainingCenters.value, 'county')]);
+
+// Location options from actual data (county + borough combined) per section
+const userLocationOptions = computed(() => {
+  const fromCounty = uniqueTrimmed(users.value, 'county');
+  const fromBorough = uniqueTrimmed(users.value, 'borough');
+  return ['All', ...new Set([...fromCounty, ...fromBorough])].sort();
+});
+const caregiverLocationOptions = computed(() => {
+  const fromCounty = uniqueTrimmed(caregivers.value, 'county');
+  const fromBorough = uniqueTrimmed(caregivers.value, 'borough');
+  return ['All', ...new Set([...fromCounty, ...fromBorough])].sort();
+});
+const housekeeperLocationOptions = computed(() => {
+  const fromCounty = uniqueTrimmed(housekeepers.value, 'county');
+  const fromBorough = uniqueTrimmed(housekeepers.value, 'borough');
+  return ['All', ...new Set([...fromCounty, ...fromBorough])].sort();
+});
+const clientLocationOptions = computed(() => {
+  const fromCounty = uniqueTrimmed(clients.value, 'county');
+  const fromBorough = uniqueTrimmed(clients.value, 'borough');
+  return ['All', ...new Set([...fromCounty, ...fromBorough])].sort();
+});
+
+// City options: when County/Borough is selected, show cities from that county; otherwise all unique cities
+const userCityOptions = computed(() => {
+  const countyVal = userCountyFilter.value === 'All' ? null : userCountyFilter.value;
+  const base = countyVal ? users.value.filter(u => (u.county != null && String(u.county).trim() === countyVal)) : users.value;
+  return ['All', ...uniqueTrimmed(base, 'city')];
+});
+const caregiverCityOptions = computed(() => {
+  const countyVal = caregiverCountyFilter.value === 'All' ? null : caregiverCountyFilter.value;
+  const base = countyVal ? caregivers.value.filter(c => (c.county != null && String(c.county).trim() === countyVal)) : caregivers.value;
+  return ['All', ...uniqueTrimmed(base, 'city')];
+});
+const housekeeperCityOptions = computed(() => {
+  const countyVal = housekeeperCountyFilter.value === 'All' ? null : housekeeperCountyFilter.value;
+  const base = countyVal ? housekeepers.value.filter(h => (h.county != null && String(h.county).trim() === countyVal)) : housekeepers.value;
+  return ['All', ...uniqueTrimmed(base, 'city')];
+});
+const clientCityOptions = computed(() => {
+  const countyVal = clientCountyFilter.value === 'All' ? null : clientCountyFilter.value;
+  const base = countyVal ? clients.value.filter(c => (c.county != null && String(c.county).trim() === countyVal)) : clients.value;
+  return ['All', ...uniqueTrimmed(base, 'city')];
+});
+
+// Contract filter: IDs with ongoing (active) bookings
+const clientIdsWithOngoingContract = computed(() => {
+  const active = (clientBookings.value || []).filter(b => b.isActive && (b.client_id != null));
+  return new Set(active.map(b => Number(b.client_id)));
+});
+const caregiverIdsWithOngoingContract = computed(() => {
+  const active = (clientBookings.value || []).filter(b => b.isActive && (caregiverAssignments.value[b.id]?.length));
+  const ids = active.flatMap(b => caregiverAssignments.value[b.id] || []);
+  return new Set(ids.map(id => Number(id)));
+});
+const housekeeperIdsWithOngoingContract = computed(() => {
+  const hkAssign = housekeeperAssignments.value || {};
+  const active = (clientBookings.value || []).filter(b => b.isActive && (hkAssign[b.id]?.length));
+  const ids = active.flatMap(b => (hkAssign[b.id] || []));
+  return new Set(ids.map(id => Number(id)));
+});
 
 const filteredBookings = computed(() => {
   return clientBookings.value.filter(b => {
@@ -11304,6 +12159,15 @@ const getStatusIcon = (status) => {
     'Unverified': 'mdi-shield-alert'
   };
   return icons[status] || 'mdi-help-circle';
+};
+
+/** Client ZIP: from item first, then from raw users list (API response) so ZIP always shows when available. */
+const getClientZip = (item) => {
+  let z = item?.zip_code ?? item?.zip ?? item?.zipCode ?? '';
+  if (z !== null && z !== '' && String(z).trim() !== '') return String(z).trim();
+  const u = users.value?.find((u) => Number(u.id) === Number(item?.id));
+  z = u?.zip_code ?? u?.zip ?? u?.zipCode ?? '';
+  return (z !== null && z !== '' && String(z).trim() !== '') ? String(z).trim() : 'Unknown ZIP';
 };
 
 const saveProfile = async () => {
@@ -11425,8 +12289,12 @@ const approveApplication = async (application) => {
         const response = await fetch(`/api/admin/applications/${application.id}/approve`, {
           method: 'POST',
           headers: {
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
-          }
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+            'X-Requested-With': 'XMLHttpRequest'
+          },
+          credentials: 'include'
         });
         const result = await response.json();
         if (result.success) {
@@ -11446,12 +12314,27 @@ const approveApplication = async (application) => {
   );
 };
 
+const refreshAdminCsrfToken = async () => {
+  try {
+    const r = await fetch('/api/admin/csrf-token', { credentials: 'include' });
+    if (!r.ok) return null;
+    const data = await r.json();
+    const token = data?.token;
+    const meta = document.querySelector('meta[name="csrf-token"]');
+    if (token && meta) {
+      meta.setAttribute('content', token);
+      return token;
+    }
+  } catch (_) {
+    // e.g. network error or non-JSON response (redirect) – keep existing meta token
+  }
+  return null;
+};
+
 const unapproveApplication = async (application) => {
-  console.log('unapproveApplication called with:', application);
-  // For caregivers/housekeepers from tables, userId is the correct user ID
-  // For applications, id is the user ID. Prioritize userId for table items.
+  // For caregivers/housekeepers from tables, userId is the user ID (required for API).
+  // For applications list, id is the user ID. Always prefer userId for table rows.
   const resolvedId = application?.userId ?? application?.id;
-  console.log('Resolved ID:', resolvedId);
   if (!resolvedId) {
     error('Unable to unapprove: missing user id.', 'Unapprove Failed');
     return;
@@ -11460,24 +12343,37 @@ const unapproveApplication = async (application) => {
     'Unapprove Application',
     `Unapprove ${application.name}? This will move them back to Pending and they may lose access to their dashboard.`,
     async () => {
-      try {
-        console.log('Making unapprove request to:', `/api/admin/applications/${resolvedId}/unapprove`);
+      const doUnapprove = async (retryAfterCsrf = false) => {
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
         const response = await fetch(`/api/admin/applications/${resolvedId}/unapprove`, {
           method: 'POST',
           headers: {
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
-          }
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'X-CSRF-TOKEN': csrfToken,
+            'X-Requested-With': 'XMLHttpRequest'
+          },
+          credentials: 'include'
         });
-        const result = await response.json();
-        console.log('Unapprove response:', result);
-        if (result.success) {
+        if (response.status === 419 && !retryAfterCsrf) {
+          const newToken = await refreshAdminCsrfToken();
+          if (newToken) return doUnapprove(true);
+        }
+        const contentType = response.headers.get('content-type');
+        const isJson = contentType && contentType.includes('application/json');
+        const result = isJson ? await response.json() : {};
+        if (response.ok && result.success) {
           warning(`${application.name} has been moved back to Pending.`, 'Application Unapproved');
         } else {
-          error('Failed to unapprove application. Please try again.', 'Unapprove Failed');
+          const msg = result.message || (response.ok ? 'Please try again.' : 'Server error. Please try again.');
+          error(msg, 'Unapprove Failed');
         }
         loadApplications();
         loadUsers();
         loadHousekeepers();
+      };
+      try {
+        await doUnapprove();
       } catch (err) {
         error('Failed to unapprove application. Please try again.', 'Unapprove Failed');
       }
@@ -11497,8 +12393,12 @@ const rejectApplication = async (application) => {
         const response = await fetch(`/api/admin/applications/${application.id}/reject`, {
           method: 'POST',
           headers: {
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
-          }
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+            'X-Requested-With': 'XMLHttpRequest'
+          },
+          credentials: 'include'
         });
         const result = await response.json();
         if (result.success) {
@@ -11527,8 +12427,12 @@ const processPasswordReset = async (reset) => {
         const response = await fetch(`/api/admin/password-resets/${reset.id}/process`, {
           method: 'POST',
           headers: {
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
-          }
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+            'X-Requested-With': 'XMLHttpRequest'
+          },
+          credentials: 'include'
         });
         const result = await response.json().catch(() => ({ success: response.ok }));
         if (result.success) {
@@ -11654,20 +12558,29 @@ const calculateAge = (birthdate) => {
 const openClientDialog = (client = null) => {
   if (client) {
     editingClient.value = true;
-    // Parse name into firstName and lastName if needed
-    const nameParts = (client.name || '').split(' ');
+    // Handle both snake_case (from API) and camelCase field names
+    let firstName = client.first_name || client.firstName || '';
+    let lastName = client.last_name || client.lastName || '';
+    
+    // If first/last name not available, try to parse from combined name
+    if (!firstName && !lastName && client.name) {
+      const nameParts = client.name.split(' ');
+      firstName = nameParts[0] || '';
+      lastName = nameParts.slice(1).join(' ') || '';
+    }
+    
     clientForm.value = {
       id: client.id,
-      firstName: nameParts[0] || '',
-      lastName: nameParts.slice(1).join(' ') || '',
+      firstName: firstName,
+      lastName: lastName,
       email: client.email || '',
       phone: client.phone || '',
-      birthdate: client.date_of_birth || '',
+      birthdate: client.date_of_birth || client.birthdate || '',
       address: client.address || '',
       state: client.state || 'New York',
       county: client.county || '',
       city: client.city || client.borough || '',
-      zip_code: client.zip_code || '',
+      zip_code: client.zip_code || client.zip || '',
       password: '',
       status: client.status || 'Active'
     };
@@ -11840,7 +12753,8 @@ const marketingStaffFormData = ref({
   city: '',
   zip_code: '',
   password: '',
-  status: 'Active'
+  status: 'Active',
+  referral_code: ''
 });
 
 const loadMarketingStaff = async () => {
@@ -11850,8 +12764,15 @@ const loadMarketingStaff = async () => {
     });
     const data = await response.json();
     marketingStaff.value = (data.staff || []).map(s => {
+      const nameParts = (s.name || '').trim().split(/\s+/);
+      const first = s.first_name ?? nameParts[0] ?? '';
+      const last = s.last_name ?? nameParts.slice(1).join(' ') ?? '';
+      const displayName = (first && last && first === last) ? first : (s.name || (first + ' ' + last).trim() || s.email || '—');
       const item = {
         ...s,
+        first_name: first,
+        last_name: last,
+        displayName,
         zip_code: s.zip_code || s.zip || '',
         location: '',
         place_indicator: ''
@@ -11946,20 +12867,32 @@ const viewMarketingStaffDetails = (staff) => {
 const openMarketingStaffDialog = (staff = null) => {
   if (staff) {
     editingMarketingStaff.value = staff;
-    const nameParts = (staff.name || '').split(' ');
+    // Handle both snake_case (from API) and camelCase field names
+    // Also handle combined 'name' field as fallback
+    let firstName = staff.first_name || staff.firstName || '';
+    let lastName = staff.last_name || staff.lastName || '';
+    
+    // If first/last name not available, try to parse from combined name
+    if (!firstName && !lastName && staff.name) {
+      const nameParts = staff.name.split(' ');
+      firstName = nameParts[0] || '';
+      lastName = nameParts.slice(1).join(' ') || '';
+    }
+    
     marketingStaffFormData.value = {
-      firstName: nameParts[0] || '',
-      lastName: nameParts.slice(1).join(' ') || '',
+      firstName: firstName,
+      lastName: lastName,
       email: staff.email || '',
       phone: staff.phone || '',
-      birthdate: staff.date_of_birth || '',
+      birthdate: staff.date_of_birth || staff.birthdate || '',
       address: staff.address || '',
       state: staff.state || 'New York',
       county: staff.county || '',
       city: staff.city || '',
-      zip_code: staff.zip_code || '',
+      zip_code: staff.zip_code || staff.zip || '',
       password: '',
-      status: staff.status || 'Active'
+      status: staff.status || 'Active',
+      referral_code: staff.referralCode && staff.referralCode !== 'N/A' ? staff.referralCode : ''
     };
   } else {
     editingMarketingStaff.value = null;
@@ -11975,7 +12908,8 @@ const openMarketingStaffDialog = (staff = null) => {
       city: '', 
       zip_code: '', 
       password: '', 
-      status: 'Active' 
+      status: 'Active',
+      referral_code: '' 
     };
   }
   marketingStaffDialog.value = true;
@@ -12010,7 +12944,9 @@ const saveMarketingStaff = async () => {
       zip_code: marketingStaffFormData.value.zip_code || null,
       status: marketingStaffFormData.value.status
     };
-    
+    if (editingMarketingStaff.value && marketingStaffFormData.value.referral_code !== undefined) {
+      formData.referral_code = marketingStaffFormData.value.referral_code ? String(marketingStaffFormData.value.referral_code).trim() : null;
+    }
     if (!editingMarketingStaff.value && marketingStaffFormData.value.password) {
       formData.password = marketingStaffFormData.value.password;
     }
@@ -12429,38 +13365,48 @@ const deleteTrainingCenter = (center) => {
 const openCaregiverDialog = (caregiver = null) => {
   if (caregiver) {
     editingCaregiver.value = true;
-    const nameParts = (caregiver.name || '').split(' ');
+    // Handle both snake_case (from API) and camelCase field names
+    let firstName = caregiver.first_name || caregiver.firstName || '';
+    let lastName = caregiver.last_name || caregiver.lastName || '';
+    
+    // If first/last name not available, try to parse from combined name
+    if (!firstName && !lastName && caregiver.name) {
+      const nameParts = caregiver.name.split(' ');
+      firstName = nameParts[0] || '';
+      lastName = nameParts.slice(1).join(' ') || '';
+    }
+    
     caregiverForm.value = {
-  // IMPORTANT: the update endpoint is /api/admin/users/{id} and expects the *users.id*.
-  // Our caregiver row object includes both `userId` (users.id) and `id` (caregiver.id).
-  // Using caregiver.id here causes updates to target the wrong user and triggers
-  // "email already taken" because that email belongs to a different user.
-  id: caregiver.userId || caregiver.id,
-      firstName: nameParts[0] || '',
-      lastName: nameParts.slice(1).join(' ') || '',
+      // IMPORTANT: the update endpoint is /api/admin/users/{id} and expects the *users.id*.
+      // Our caregiver row object includes both `userId` (users.id) and `id` (caregiver.id).
+      // Using caregiver.id here causes updates to target the wrong user and triggers
+      // "email already taken" because that email belongs to a different user.
+      id: caregiver.userId || caregiver.id,
+      firstName: firstName,
+      lastName: lastName,
       email: caregiver.email || '',
       phone: caregiver.phone || '',
-      birthdate: caregiver.date_of_birth || '',
+      birthdate: caregiver.date_of_birth || caregiver.birthdate || '',
       address: caregiver.address || '',
       state: caregiver.state || 'New York',
       county: caregiver.county || '',
       city: caregiver.city || caregiver.borough || '',
-      zip_code: caregiver.zip_code || '',
+      zip_code: caregiver.zip_code || caregiver.zip || '',
       password: '',
       experience: caregiver.years_experience || caregiver.experience || '',
-  trainingCenter: caregiver.training_center_name || caregiver.training_center || '',
+      trainingCenter: caregiver.training_center_name || caregiver.training_center || '',
       customTrainingCenter: '',
       isCustomTrainingCenter: false,
       trainingCertificate: null,
       bio: caregiver.bio || '',
-  preferred_hourly_rate_min: caregiver.preferred_hourly_rate_min ?? caregiver.caregiver?.preferred_hourly_rate_min ?? null,
-  preferred_hourly_rate_max: caregiver.preferred_hourly_rate_max ?? caregiver.caregiver?.preferred_hourly_rate_max ?? null,
-  has_hha: Boolean(caregiver.has_hha ?? caregiver.caregiver?.has_hha),
-  hha_number: caregiver.hha_number || caregiver.caregiver?.hha_number || '',
-  has_cna: Boolean(caregiver.has_cna ?? caregiver.caregiver?.has_cna),
-  cna_number: caregiver.cna_number || caregiver.caregiver?.cna_number || '',
-  has_rn: Boolean(caregiver.has_rn ?? caregiver.caregiver?.has_rn),
-  rn_number: caregiver.rn_number || caregiver.caregiver?.rn_number || '',
+      preferred_hourly_rate_min: caregiver.preferred_hourly_rate_min ?? caregiver.caregiver?.preferred_hourly_rate_min ?? null,
+      preferred_hourly_rate_max: caregiver.preferred_hourly_rate_max ?? caregiver.caregiver?.preferred_hourly_rate_max ?? null,
+      has_hha: Boolean(caregiver.has_hha ?? caregiver.caregiver?.has_hha),
+      hha_number: caregiver.hha_number || caregiver.caregiver?.hha_number || '',
+      has_cna: Boolean(caregiver.has_cna ?? caregiver.caregiver?.has_cna),
+      cna_number: caregiver.cna_number || caregiver.caregiver?.cna_number || '',
+      has_rn: Boolean(caregiver.has_rn ?? caregiver.caregiver?.has_rn),
+      rn_number: caregiver.rn_number || caregiver.caregiver?.rn_number || '',
       status: caregiver.status || 'Active'
     };
     if (caregiver.zip_code) {
@@ -12510,21 +13456,31 @@ const closeCaregiverDialog = () => {
 const openHousekeeperDialog = (housekeeper = null) => {
   if (housekeeper) {
     editingHousekeeper.value = true;
-    const nameParts = (housekeeper.name || '').split(' ');
+    // Handle both snake_case (from API) and camelCase field names
+    let firstName = housekeeper.first_name || housekeeper.firstName || '';
+    let lastName = housekeeper.last_name || housekeeper.lastName || '';
+    
+    // If first/last name not available, try to parse from combined name
+    if (!firstName && !lastName && housekeeper.name) {
+      const nameParts = housekeeper.name.split(' ');
+      firstName = nameParts[0] || '';
+      lastName = nameParts.slice(1).join(' ') || '';
+    }
+    
     housekeeperForm.value = {
       id: housekeeper.userId || housekeeper.id,
-      firstName: nameParts[0] || '',
-      lastName: nameParts.slice(1).join(' ') || '',
+      firstName: firstName,
+      lastName: lastName,
       email: housekeeper.email || '',
       phone: housekeeper.phone || '',
-      birthdate: housekeeper.date_of_birth || '',
+      birthdate: housekeeper.date_of_birth || housekeeper.birthdate || '',
       address: housekeeper.address || '',
       state: housekeeper.state || 'New York',
       county: housekeeper.county || '',
       city: housekeeper.city || housekeeper.borough || '',
-      zip_code: housekeeper.zip_code || '',
+      zip_code: housekeeper.zip_code || housekeeper.zip || '',
       password: '',
-      experience: housekeeper.years_experience || '',
+      experience: housekeeper.years_experience || housekeeper.experience || '',
       hourly_rate: housekeeper.hourly_rate || '',
       bio: housekeeper.bio || '',
       has_own_supplies: Boolean(housekeeper.has_own_supplies),
@@ -13188,21 +14144,27 @@ const deleteSelectedBookings = async () => {
               continue;
             }
             
-            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-            if (!csrfToken) {
-              errors.push(`Missing CSRF token for booking ${bookingId}`);
-              failedCount++;
-              continue;
+            let csrfToken = '';
+            try {
+              csrfToken = getCsrfToken();
+            } catch (_) {
+              const match = document.cookie?.match(/XSRF-TOKEN=([^;]+)/);
+              if (match?.[1]) {
+                try { csrfToken = decodeURIComponent(match[1]); } catch (_) { }
+              }
             }
             
             const response = await fetch(`/api/bookings/${bookingId}`, {
               method: 'DELETE',
               headers: {
                 'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': csrfToken,
                 'Accept': 'application/json',
+                'X-CSRF-TOKEN': csrfToken,
+                'X-XSRF-TOKEN': csrfToken,
                 'X-Requested-With': 'XMLHttpRequest'
-              }
+              },
+              body: JSON.stringify({ _token: csrfToken }),
+              credentials: 'include'
             });
 
 let data;
@@ -13351,10 +14313,47 @@ const normalizeZip5 = (z) => {
   const m = zip.match(/^(\d{5})/);
   return m ? m[1] : '';
 };
+
+/**
+ * NY ZIP Code Validation Helper
+ * Valid NY ZIPs: 10xxx-14xxx range OR special cases (00501, 00544, 06390)
+ */
+const isValidNYZip = (zip) => {
+  if (!zip) return false;
+  const nyZipRegex = /^(00501|00544|06390|1[0-4]\d{3})(-\d{4})?$/;
+  return nyZipRegex.test(zip);
+};
+
+/**
+ * Get NY region based on ZIP prefix for fallback
+ */
+const getNYRegionFromZip = (zip) => {
+  if (!zip || !isValidNYZip(zip)) return null;
+  const prefix = parseInt(zip.substring(0, 3), 10);
+  if (prefix >= 100 && prefix <= 102) return 'Manhattan, NY';
+  if (prefix === 103) return 'Staten Island, NY';
+  if (prefix === 104) return 'Bronx, NY';
+  if (prefix >= 105 && prefix <= 109) return 'Westchester, NY';
+  if (prefix >= 110 && prefix <= 111) return 'Long Island, NY';
+  if (prefix === 112) return 'Brooklyn, NY';
+  if (prefix >= 113 && prefix <= 119) return 'Long Island, NY';
+  if (prefix >= 120 && prefix <= 129) return 'Capital Region, NY';
+  if (prefix >= 130 && prefix <= 139) return 'Central NY';
+  if (prefix >= 140 && prefix <= 149) return 'Western NY';
+  return 'New York, NY';
+};
+
 const resolveZipCityState = async (zipLike) => {
   const zip = normalizeZip5(zipLike);
   if (!zip) return '';
   if (zipCityStateCache.has(zip)) return zipCityStateCache.get(zip);
+
+  // Client-side NY validation first
+  if (!isValidNYZip(zip)) {
+    const notNY = 'Not a NY ZIP (10xxx-14xxx)';
+    zipCityStateCache.set(zip, notNY);
+    return notNY;
+  }
 
   try {
     const resp = await fetch(`/api/zipcode-lookup/${zip}`, {
@@ -13372,15 +14371,19 @@ const resolveZipCityState = async (zipLike) => {
         (data && data.city && (data.state || data.state_abbreviation) ? `${data.city}, ${data.state || data.state_abbreviation}` : '') ||
         ''
       ).trim();
-      zipCityStateCache.set(zip, location);
-      return location;
+      if (location) {
+        zipCityStateCache.set(zip, location);
+        return location;
+      }
     }
   } catch (error) {
     console.error('AdminDashboard ZIP code lookup error:', error);
   }
 
-  zipCityStateCache.set(zip, '');
-  return '';
+  // Fallback to region for valid NY ZIPs
+  const regionFallback = getNYRegionFromZip(zip) || 'New York, NY';
+  zipCityStateCache.set(zip, regionFallback);
+  return regionFallback;
 };
 
 const ensureItemPlaceIndicator = async (item) => {
@@ -13777,31 +14780,43 @@ const viewAssignedCaregivers = async (booking) => {
   weeklySchedule.value = {}; // Reset weekly schedule
 
 if (booking && booking.assignments) {
+    console.log('Loading schedules for booking', booking.id, 'with assignments:', booking.assignments);
     for (const assignment of booking.assignments) {
       try {
+        console.log('Fetching schedule for caregiver_id:', assignment.caregiver_id);
         const response = await fetch(`/api/bookings/${booking.id}/caregiver/${assignment.caregiver_id}/schedule`, {
+          headers: {
+            'Accept': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest'
+          },
           credentials: 'include'
         });
         if (response.ok) {
-          const data = await response.json();
+          const responseData = await response.json();
+          console.log('Schedule response for caregiver', assignment.caregiver_id, ':', responseData);
           
-          if (data.schedule) {
+          // API wraps data in 'data' object
+          const scheduleData = responseData.data?.schedule || responseData.schedule;
+          
+          if (scheduleData) {
             // Store the full schedule object (days array and schedules object)
             caregiverSchedules.value[assignment.caregiver_id] = {
-              days: data.schedule.days || [],
-              schedules: data.schedule.schedules || {}
+              days: scheduleData.days || [],
+              schedules: scheduleData.schedules || {}
             };
 
-// Build the weekly schedule view
-            if (data.schedule.days) {
-              for (const day of data.schedule.days) {
+            // Build the weekly schedule view
+            if (scheduleData.days) {
+              for (const day of scheduleData.days) {
                 weeklySchedule.value[day] = assignment.caregiver_id;
               }
             }
           }
         } else {
+          console.error('Failed to fetch schedule for caregiver', assignment.caregiver_id, 'status:', response.status);
         }
       } catch (err) {
+        console.error('Error fetching schedule for caregiver', assignment.caregiver_id, err);
       }
     }
   }
@@ -13823,14 +14838,16 @@ const viewAssignedHousekeepers = async (booking) => {
         credentials: 'include'
       });
       if (response.ok) {
-        const data = await response.json();
-        if (data && data.schedule) {
+        const responseData = await response.json();
+        // API wraps data in 'data' object
+        const scheduleData = responseData.data?.schedule || responseData.schedule;
+        if (scheduleData) {
           housekeeperSchedules.value[hk.id] = {
-            days: data.schedule.days || [],
-            schedules: data.schedule.schedules || {}
+            days: scheduleData.days || [],
+            schedules: scheduleData.schedules || {}
           };
-          if (data.schedule.days) {
-            for (const day of data.schedule.days) {
+          if (scheduleData.days) {
+            for (const day of scheduleData.days) {
               weeklyHousekeeperSchedule.value[day] = hk.id;
             }
           }
@@ -14047,15 +15064,20 @@ const assignCaregiverToDay = async (dayValue, caregiverId) => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+          'Accept': 'application/json',
+          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+          'X-Requested-With': 'XMLHttpRequest'
         },
+        credentials: 'include',
         body: JSON.stringify({
           days: oldSchedule.days,
           schedules: oldSchedule.schedules
         })
       }).then(response => {
         if (response.ok) {
+          console.log('Previous caregiver schedule cleared');
         } else {
+          console.error('Failed to clear previous caregiver schedule');
         }
       }).catch(err => console.error('Error removing previous caregiver:', err));
       
@@ -14067,6 +15089,7 @@ const assignCaregiverToDay = async (dayValue, caregiverId) => {
   try {
     const caregiver = getAssignedCaregivers(viewingBookingCaregivers.value.id).find(c => c.id === caregiverId);
     if (!caregiver) {
+      console.error('Caregiver not found in assigned list:', caregiverId);
       return;
     }
     
@@ -14081,13 +15104,17 @@ const assignCaregiverToDay = async (dayValue, caregiverId) => {
     // Update cache immediately before API call
     caregiverSchedules.value[caregiverId] = { ...currentSchedule };
 
-// Save to database
+    // Save to database
+    console.log('Saving schedule for caregiver', caregiverId, 'day', dayValue, 'schedule:', currentSchedule);
     const response = await fetch(`/api/bookings/${viewingBookingCaregivers.value.id}/caregiver/${caregiverId}/schedule`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+        'Accept': 'application/json',
+        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+        'X-Requested-With': 'XMLHttpRequest'
       },
+      credentials: 'include',
       body: JSON.stringify({
         days: currentSchedule.days,
         schedules: currentSchedule.schedules
@@ -14095,12 +15122,16 @@ const assignCaregiverToDay = async (dayValue, caregiverId) => {
     });
     
     if (response.ok) {
-      const data = await response.json();
-      // Update cache with server response
-      caregiverSchedules.value[caregiverId] = data.schedule;
-      
+      const responseData = await response.json();
+      console.log('Schedule saved successfully:', responseData);
+      // Update cache with server response - API wraps data in 'data' object
+      const scheduleData = responseData.data?.schedule || responseData.schedule;
+      if (scheduleData) {
+        caregiverSchedules.value[caregiverId] = scheduleData;
+      }
     } else {
       const errorText = await response.text();
+      console.error('Failed to save schedule:', errorText);
       
       // Revert on error
       if (previousCaregiverId) {
@@ -14110,7 +15141,7 @@ const assignCaregiverToDay = async (dayValue, caregiverId) => {
       }
     }
   } catch (error) {
-    
+    console.error('Error saving schedule:', error);
     // Revert on error
     if (previousCaregiverId) {
       weeklySchedule.value[dayValue] = previousCaregiverId;
@@ -14140,8 +15171,11 @@ const removeCaregiverFromDay = async (dayValue) => {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+        'Accept': 'application/json',
+        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+        'X-Requested-With': 'XMLHttpRequest'
       },
+      credentials: 'include',
       body: JSON.stringify({
         days: currentSchedule.days,
         schedules: currentSchedule.schedules
@@ -14149,11 +15183,15 @@ const removeCaregiverFromDay = async (dayValue) => {
     });
     
     if (response.ok) {
-      const data = await response.json();
-      // Update cache
-      caregiverSchedules.value[caregiverId] = data.schedule;
+      const responseData = await response.json();
+      // Update cache - API wraps data in 'data' object
+      const scheduleData = responseData.data?.schedule || responseData.schedule;
+      if (scheduleData) {
+        caregiverSchedules.value[caregiverId] = scheduleData;
+      }
     }
   } catch (error) {
+    console.error('Error removing caregiver from day:', error);
   }
 };
 
@@ -14177,8 +15215,11 @@ const clearAllSchedules = () => {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
-              'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+              'Accept': 'application/json',
+              'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+              'X-Requested-With': 'XMLHttpRequest'
             },
+            credentials: 'include',
             body: JSON.stringify({
               days: [],
               schedules: {}
@@ -14235,8 +15276,11 @@ const saveWeeklySchedule = async () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
           'X-Requested-With': 'XMLHttpRequest'
         },
+        credentials: 'include',
         body: JSON.stringify({ 
           days: days,
           schedules: days.reduce((acc, day) => {
@@ -14289,8 +15333,11 @@ const unassignCaregiver = async (caregiverId) => {
           method: 'DELETE',
           headers: {
             'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
-          }
+            'Accept': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+            'X-Requested-With': 'XMLHttpRequest'
+          },
+          credentials: 'include'
         });
         
         if (deleteResponse.ok) {
@@ -14425,10 +15472,12 @@ const openScheduleDialog = async (caregiver, booking) => {
       credentials: 'include'
     });
     if (response.ok) {
-      const data = await response.json();
-      if (data.schedule) {
-        selectedDays.value = data.schedule.days || [];
-        daySchedules.value = data.schedule.schedules || {};
+      const responseData = await response.json();
+      // API wraps data in 'data' object
+      const scheduleData = responseData.data?.schedule || responseData.schedule;
+      if (scheduleData) {
+        selectedDays.value = scheduleData.days || [];
+        daySchedules.value = scheduleData.schedules || {};
       } else {
         // No existing schedule, reset
         selectedDays.value = [];
@@ -14577,8 +15626,11 @@ const saveSchedule = async () => {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+        'Accept': 'application/json',
+        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+        'X-Requested-With': 'XMLHttpRequest'
       },
+      credentials: 'include',
       body: JSON.stringify({
         days: selectedDays.value,
         schedules: daySchedules.value
@@ -14688,8 +15740,10 @@ const confirmAssignCaregivers = async () => {
       headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
-        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+        'X-Requested-With': 'XMLHttpRequest'
       },
+      credentials: 'include',
       body: JSON.stringify({ 
         caregiver_ids: assignSelectedCaregivers.value,
         assigned_rates: assignedRates.value,
@@ -15045,38 +16099,63 @@ const countyCityMap = {
   "Yates": ["Penn Yan", "Dresden", "Dundee", "Rushville", "Himrod", "Branchport"]
 };
 
+// Include current form city so saved values display (permanent fix for city not showing after load).
 const clientCities = computed(() => {
   if (!clientForm.value.county) return [];
-  return countyCityMap[clientForm.value.county] || [];
+  const list = countyCityMap[clientForm.value.county] || [];
+  const current = clientForm.value.city?.trim();
+  if (!current) return list;
+  const inList = list.some((c) => String(c).trim().toLowerCase() === current.toLowerCase());
+  if (!inList) return [current, ...list];
+  return list;
 });
 
 const caregiverCities = computed(() => {
   if (!caregiverForm.value.county) return [];
-  return countyCityMap[caregiverForm.value.county] || [];
+  const list = countyCityMap[caregiverForm.value.county] || [];
+  const current = caregiverForm.value.city?.trim();
+  if (!current) return list;
+  const inList = list.some((c) => String(c).trim().toLowerCase() === current.toLowerCase());
+  if (!inList) return [current, ...list];
+  return list;
 });
 
 const housekeeperCities = computed(() => {
   if (!housekeeperForm.value.county) return [];
-  return countyCityMap[housekeeperForm.value.county] || [];
+  const list = countyCityMap[housekeeperForm.value.county] || [];
+  const current = housekeeperForm.value.city?.trim();
+  if (!current) return list;
+  const inList = list.some((c) => String(c).trim().toLowerCase() === current.toLowerCase());
+  if (!inList) return [current, ...list];
+  return list;
 });
 
-// Watch for county changes to reset city selection
+// Permanent: only reset city when admin changes county and current city is not valid for the new county.
 watch(() => clientForm.value.county, (newCounty) => {
-  if (newCounty) {
-    clientForm.value.city = ''; // Reset city when county changes
-  }
+  if (!newCounty) return;
+  const list = countyCityMap[newCounty] || [];
+  const current = clientForm.value.city?.trim();
+  if (!current) return;
+  const valid = list.some((c) => String(c).trim().toLowerCase() === current.toLowerCase());
+  if (!valid) clientForm.value.city = '';
 });
 
 watch(() => caregiverForm.value.county, (newCounty) => {
-  if (newCounty) {
-    caregiverForm.value.city = ''; // Reset city when county changes
-  }
+  if (!newCounty) return;
+  const list = countyCityMap[newCounty] || [];
+  const current = caregiverForm.value.city?.trim();
+  if (!current) return;
+  const valid = list.some((c) => String(c).trim().toLowerCase() === current.toLowerCase());
+  if (!valid) caregiverForm.value.city = '';
 });
 
 watch(() => housekeeperForm.value.county, (newCounty) => {
-  if (newCounty) {
-    housekeeperForm.value.city = ''; // Reset city when county changes
-  }
+  if (!newCounty) return;
+  const list = countyCityMap[newCounty] || [];
+  const current = housekeeperForm.value.city?.trim();
+  if (!current) return;
+  const valid = list.some((c) => String(c).trim().toLowerCase() === current.toLowerCase());
+  if (!valid) housekeeperForm.value.city = '';
 });
 
 const callCaregiver = (caregiver) => {
@@ -15199,15 +16278,18 @@ const initCharts = () => {
     const ctx = userChart.value.getContext('2d');
     const clients = parseInt(clientMetrics.value[0].value) || 0;
     const caregivers = parseInt(caregiverMetrics.value[0].value) || 0;
+    const housekeepers = parseInt(housekeeperMetrics.value[0].value) || 0;
     const admins = parseInt(adminCount.value) || 0;
-    const total = clients + caregivers + admins;
+    const marketing = parseInt(marketingCount.value) || 0;
+    const training = parseInt(trainingCenterCount.value) || 0;
+    const total = clients + caregivers + housekeepers + admins + marketing + training;
     userChartInstance = new window.Chart(ctx, {
       type: 'doughnut',
       data: {
-        labels: ['Clients', 'Caregivers', 'Admins'],
+        labels: ['Clients', 'Caregivers', 'Housekeepers', 'Admins', 'Marketing', 'Training'],
         datasets: [{ 
-          data: [clients, caregivers, admins], 
-          backgroundColor: ['#3b82f6', '#10b981', '#dc2626'], 
+          data: [clients, caregivers, housekeepers, admins, marketing, training], 
+          backgroundColor: ['#3b82f6', '#10b981', '#8b5cf6', '#dc2626', '#f59e0b', '#06b6d4'], 
           borderWidth: 2,
           borderColor: '#fff',
           hoverBorderWidth: 3
@@ -15226,9 +16308,10 @@ const initCharts = () => {
               generateLabels: function(chart) {
                 const data = chart.data;
                 if (data.labels.length && data.datasets.length) {
+                  const sum = total || 1;
                   return data.labels.map((label, i) => {
                     const value = data.datasets[0].data[i];
-                    const percentage = ((value / total) * 100).toFixed(1);
+                    const percentage = ((value / sum) * 100).toFixed(1);
                     return {
                       text: `${label}: ${value} (${percentage}%)`,
                       fillStyle: data.datasets[0].backgroundColor[i],
@@ -15556,8 +16639,12 @@ watch(currentSection, (newVal) => {
     setTimeout(initCharts, 300);
   }
   // Reload training centers when switching to training centers section
-  if (newVal === 'training') {
+  if (newVal === 'training-centers') {
     loadTrainingCenters();
+  }
+  // Load bookings when opening Clients/Caregivers/Housekeepers so contract filter (Ongoing/No contract) has data
+  if ((newVal === 'clients' || newVal === 'caregivers' || newVal === 'housekeepers') && clientBookings.value.length === 0 && !loadingBookings.value) {
+    loadClientBookings();
   }
 });
 
@@ -15620,6 +16707,12 @@ const addMobileTableLabels = () => {
 };
 
 onMounted(async () => {
+  // Refresh CSRF token so meta tag matches current session (non-blocking; never break dashboard load)
+  try {
+    await refreshAdminCsrfToken();
+  } catch (_) {
+    // ignore – blade meta token is still used; unapprove will retry on 419
+  }
   // Show loading overlay
   isPageLoading.value = true;
   loadingContext.value = 'dashboard';
@@ -15700,12 +16793,10 @@ onMounted(async () => {
   
   // Ensure progress shows 100%
   loadingProgress.value = 100;
-  
-  // Small delay to show completion, then hide overlay
-  setTimeout(() => {
-    isPageLoading.value = false;
-    initialDataLoaded.value = true;
-  }, 300);
+
+  // Hide overlay immediately
+  isPageLoading.value = false;
+  initialDataLoaded.value = true;
   
   if (currentSection.value === 'analytics') {
     setTimeout(initCharts, 500);
@@ -15772,8 +16863,11 @@ watch([clients, caregivers, housekeepers], () => {
   const assignedHousekeepers = housekeepers.value.filter(h => h.status === 'Assigned' || h.assigned).length;
   housekeeperMetrics.value[2].value = assignedHousekeepers.toString();
   
-  // Update total users for chart
-  totalUsersForChart.value = (clients.value.length + caregivers.value.length + housekeepers.value.length + parseInt(adminCount.value || 0)).toString();
+  // Update total users for chart (all 6 types)
+  totalUsersForChart.value = (
+    clients.value.length + caregivers.value.length + housekeepers.value.length +
+    parseInt(adminCount.value || 0) + parseInt(marketingCount.value || 0) + parseInt(trainingCenterCount.value || 0)
+  ).toString();
   
   // Update analytics stats
   analyticsStats.value[1].value = clients.value.length.toString();
@@ -16175,6 +17269,28 @@ setInterval(() => {
 
 .requirement-item.valid .requirement-text {
   color: #059669;
+}
+
+/* Error Modal Styles */
+.error-modal-card {
+  border-radius: 16px !important;
+  overflow: hidden;
+}
+
+.error-modal-header {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+}
+
+.error-list {
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.error-item {
+  display: flex;
+  align-items: flex-start;
+  font-size: 0.95rem;
+  line-height: 1.5;
 }
 </style>
 
@@ -17507,6 +18623,27 @@ setInterval(() => {
   font-size: 0.875rem;
   color: #1f2937;
   font-weight: 500;
+}
+
+/* Certification Cards Styling */
+.certification-card {
+  border-radius: 12px;
+  transition: all 0.2s ease;
+}
+
+.certification-card-active {
+  background: linear-gradient(180deg, #ecfdf5 0%, #ffffff 100%) !important;
+  border-color: #10b981 !important;
+}
+
+.certification-card-inactive {
+  background: #fafafa !important;
+  border-color: #e5e7eb !important;
+}
+
+.certification-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
 .search-field :deep(.v-field) {
@@ -19077,4 +20214,172 @@ button:focus-visible {
   }
 }
 
+/* Avatar Success Modal Styles */
+.avatar-success-modal {
+  border-radius: 16px !important;
+  overflow: hidden;
+  animation: modalSlideIn 0.3s ease-out;
+}
+
+.success-modal-title {
+  font-size: 1.5rem !important;
+  font-weight: 700 !important;
+  color: #2e7d32 !important;
+  text-align: center;
+  margin-top: 16px;
+}
+
+.success-modal-message {
+  font-size: 1rem !important;
+  color: #616161 !important;
+  text-align: center;
+  padding: 8px 24px 0 24px;
+}
+
+.success-animation-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding-top: 20px;
+}
+
+.success-checkmark {
+  width: 80px;
+  height: 80px;
+  position: relative;
+}
+
+.success-checkmark .check-icon {
+  width: 80px;
+  height: 80px;
+  position: relative;
+  border-radius: 50%;
+  box-sizing: content-box;
+  border: 4px solid #4CAF50;
+}
+
+.success-checkmark .check-icon::before {
+  top: 3px;
+  left: -2px;
+  width: 30px;
+  transform-origin: 100% 50%;
+  border-radius: 100px 0 0 100px;
+}
+
+.success-checkmark .check-icon::after {
+  top: 0;
+  left: 30px;
+  width: 60px;
+  transform-origin: 0 50%;
+  border-radius: 0 100px 100px 0;
+  animation: rotate-circle 4.25s ease-in;
+}
+
+.success-checkmark .check-icon::before,
+.success-checkmark .check-icon::after {
+  content: '';
+  height: 100px;
+  position: absolute;
+  background: #FFFFFF;
+  transform: rotate(-45deg);
+}
+
+.success-checkmark .check-icon .icon-line {
+  height: 5px;
+  background-color: #4CAF50;
+  display: block;
+  border-radius: 2px;
+  position: absolute;
+  z-index: 10;
+}
+
+.success-checkmark .check-icon .icon-line.line-tip {
+  top: 46px;
+  left: 14px;
+  width: 25px;
+  transform: rotate(45deg);
+  animation: icon-line-tip 0.75s;
+}
+
+.success-checkmark .check-icon .icon-line.line-long {
+  top: 38px;
+  right: 8px;
+  width: 47px;
+  transform: rotate(-45deg);
+  animation: icon-line-long 0.75s;
+}
+
+.success-checkmark .check-icon .icon-circle {
+  top: -4px;
+  left: -4px;
+  z-index: 10;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  position: absolute;
+  box-sizing: content-box;
+  border: 4px solid rgba(76, 175, 80, 0.5);
+}
+
+.success-checkmark .check-icon .icon-fix {
+  top: 8px;
+  width: 5px;
+  left: 26px;
+  z-index: 1;
+  height: 85px;
+  position: absolute;
+  transform: rotate(-45deg);
+  background-color: #FFFFFF;
+}
+
+@keyframes rotate-circle {
+  0% { transform: rotate(-45deg); }
+  5% { transform: rotate(-45deg); }
+  12% { transform: rotate(-405deg); }
+  100% { transform: rotate(-405deg); }
+}
+
+@keyframes icon-line-tip {
+  0% { width: 0; left: 1px; top: 19px; }
+  54% { width: 0; left: 1px; top: 19px; }
+  70% { width: 50px; left: -8px; top: 37px; }
+  84% { width: 17px; left: 21px; top: 48px; }
+  100% { width: 25px; left: 14px; top: 46px; }
+}
+
+@keyframes icon-line-long {
+  0% { width: 0; right: 46px; top: 54px; }
+  65% { width: 0; right: 46px; top: 54px; }
+  84% { width: 55px; right: 0px; top: 35px; }
+  100% { width: 47px; right: 8px; top: 38px; }
+}
+
+@keyframes modalSlideIn {
+  0% { opacity: 0; transform: scale(0.8) translateY(-20px); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+
+/* Error Modal Styles */
+.error-modal-card {
+  border-radius: 16px !important;
+  overflow: hidden;
+}
+
+.error-modal-header {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+}
+
+.error-list {
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.error-item {
+  display: flex;
+  align-items: flex-start;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
 </style>
+

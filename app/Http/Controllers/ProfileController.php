@@ -5,7 +5,9 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use App\Models\Client;
 use App\Rules\NotInPasswordHistory;
+use App\Rules\ValidNYZipCode;
 use App\Services\PasswordHistoryService;
+use App\Http\Traits\ApiResponseTrait;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -13,6 +15,7 @@ use Illuminate\Support\Facades\Storage;
 
 class ProfileController extends Controller
 {
+    use ApiResponseTrait;
     public function show()
     {
         $user = Auth::user();
@@ -38,7 +41,7 @@ class ProfileController extends Controller
             'city' => 'required|string',
             'borough' => 'required|string',
             'state' => 'required|string',
-            'zip_code' => ['required','string','regex:/^\\d{5}(-\\d{4})?$/'],
+            'zip_code' => ['required', 'string', 'max:10', new ValidNYZipCode],
             'emergency_contact_name' => 'required|string',
             'emergency_contact_phone' => 'required|string',
             'emergency_contact_relationship' => 'required|string',
@@ -135,11 +138,12 @@ class ProfileController extends Controller
                 'birthdate' => 'nullable|date',
                 'address' => 'nullable|string',
                 'city' => 'nullable|string',
+                'county' => 'nullable|string|max:100',
                 'borough' => 'nullable|string',
                 'state' => 'nullable|string',
                 // accept either 'zip' (frontend older endpoints) or 'zip_code' (newer endpoints)
-                'zip' => ['nullable','string','regex:/^\\d{5}(-\\d{4})?$/'],
-                'zip_code' => ['nullable','string','regex:/^\\d{5}(-\\d{4})?$/'],
+                'zip' => ['nullable', 'string', 'max:10', new ValidNYZipCode],
+                'zip_code' => ['nullable', 'string', 'max:10', new ValidNYZipCode],
                 'ein' => 'nullable|string',
                 'experience' => 'nullable|integer',
                 'trainingCenter' => 'nullable|string',
@@ -156,7 +160,14 @@ class ProfileController extends Controller
                 'hasRN' => 'nullable|boolean',
                 'rnNumber' => 'nullable|string|max:255',
                 'preferredHourlyRateMin' => 'nullable|numeric|min:20|max:50',
-                'preferredHourlyRateMax' => 'nullable|numeric|min:20|max:50'
+                'preferredHourlyRateMax' => 'nullable|numeric|min:20|max:50',
+                // Housekeeper-specific
+                'cleaningSpecialties' => 'nullable|array',
+                'cleaningSpecialties.*' => 'nullable|string|max:100',
+                'specializations' => 'nullable|array',
+                'specializations.*' => 'nullable|string|max:100',
+                'hourly_rate' => 'nullable|numeric|min:0',
+                'hasOwnSupplies' => 'nullable|boolean'
             ];
             
             // Only validate file if it's actually being uploaded
@@ -188,6 +199,7 @@ class ProfileController extends Controller
         if (isset($validated['birthdate'])) $updateData['date_of_birth'] = $validated['birthdate'];
         if (isset($validated['address'])) $updateData['address'] = $validated['address'];
         if (isset($validated['city'])) $updateData['city'] = $validated['city'];
+        if (isset($validated['county'])) $updateData['county'] = $validated['county'];
         if (isset($validated['borough'])) $updateData['borough'] = $validated['borough'];
         if (isset($validated['state'])) $updateData['state'] = $validated['state'];
     // Accept either incoming key and normalize to users.zip_code
@@ -204,11 +216,56 @@ class ProfileController extends Controller
             $user->update($updateData);
         }
 
-        // Only handle caregiver-specific fields if user is actually a caregiver
+        // Handle role-specific profile data
         $isCaregiver = $user->user_type === 'caregiver' || $user->user_type === 'Caregiver';
-        
+        $isHousekeeper = strtolower($user->user_type ?? '') === 'housekeeper';
+
+        if ($isHousekeeper) {
+            // Ensure housekeeper record exists
+            $housekeeper = $user->housekeeper;
+            if (!$housekeeper) {
+                $housekeeper = \App\Models\Housekeeper::create([
+                    'user_id' => $user->id,
+                    'availability_status' => 'available',
+                ]);
+                $user->refresh();
+            }
+            $hkData = [];
+            if (isset($validated['experience'])) {
+                $hkData['years_experience'] = (int) $validated['experience'];
+            }
+            if (isset($validated['bio'])) {
+                $hkData['bio'] = $validated['bio'];
+            }
+            // Accept cleaningSpecialties (frontend) or specializations
+            $specs = $validated['cleaningSpecialties'] ?? $validated['specializations'] ?? null;
+            if ($specs !== null && is_array($specs)) {
+                $hkData['specializations'] = array_values(array_filter(array_map('trim', $specs)));
+            }
+            if (isset($validated['hourly_rate'])) {
+                $hkData['hourly_rate'] = (float) $validated['hourly_rate'];
+            }
+            if (isset($validated['hasOwnSupplies'])) {
+                $hkData['has_own_supplies'] = (bool) $validated['hasOwnSupplies'];
+            }
+            if (!empty($hkData)) {
+                $housekeeper->update($hkData);
+            }
+            return response()->json([
+                'success' => true,
+                'message' => 'Profile updated successfully!',
+                'user' => $user->fresh(),
+                'caregiver' => [
+                    'id' => $housekeeper->id,
+                    'years_experience' => $housekeeper->fresh()->years_experience,
+                    'bio' => $housekeeper->fresh()->bio,
+                    'specializations' => $housekeeper->fresh()->specializations,
+                ],
+            ]);
+        }
+
         if (!$isCaregiver) {
-            // For non-caregivers (admin, client, etc.), just return success
+            // For other roles (admin, client, etc.), just return success
             return response()->json([
                 'success' => true,
                 'message' => 'Profile updated successfully',
@@ -288,25 +345,36 @@ class ProfileController extends Controller
             $caregiverData['training_center_approval_status'] = null;
             \Log::info('Custom training center selected, clearing training_center_id');
         } else if (isset($validated['trainingCenter']) && !empty(trim($validated['trainingCenter']))) {
-            // Find training center by name
-            $trainingCenterName = trim($validated['trainingCenter']);
+            // Find training center by name or email (Active + pending so selection saves)
+            $trainingCenterValue = trim($validated['trainingCenter']);
+            // Normalize "x x" (duplicated label) to "x" so lookup matches DB
+            if (preg_match('/^(.+)\s+\1$/u', $trainingCenterValue, $m)) {
+                $trainingCenterValue = trim($m[1]);
+            }
             $trainingCenter = \App\Models\User::whereIn('user_type', ['training_center', 'training'])
-                ->where('name', $trainingCenterName)
-                ->where('status', 'Active')
+                ->whereIn('status', ['Active', 'pending'])
+                ->where(function ($q) use ($trainingCenterValue) {
+                    $q->where('name', $trainingCenterValue)
+                        ->orWhere('email', $trainingCenterValue);
+                })
                 ->first();
-            
+
             if ($trainingCenter) {
                 $caregiverData['training_center_id'] = $trainingCenter->id;
                 $caregiverData['has_training_center'] = true;
-                // Set approval status to pending - requires training center approval
-                $caregiverData['training_center_approval_status'] = 'pending';
-                \Log::info('Training center association requested (pending approval):', [
-                    'caregiver_id' => $user->caregiver->id,
-                    'training_center_id' => $trainingCenter->id,
-                    'training_center_name' => $trainingCenter->name
-                ]);
+                // Only set to pending when this is a new/changed training center; keep existing approved/rejected
+                $existingId = $user->caregiver->training_center_id ?? null;
+                if ((int) $existingId !== (int) $trainingCenter->id) {
+                    $caregiverData['training_center_approval_status'] = 'pending';
+                    \Log::info('Training center association requested (pending approval):', [
+                        'caregiver_id' => $user->caregiver->id,
+                        'training_center_id' => $trainingCenter->id,
+                        'training_center_name' => $trainingCenter->name
+                    ]);
+                }
+                // else: same center, leave training_center_approval_status unchanged
             } else {
-                \Log::warning('Training center not found:', ['name' => $trainingCenterName]);
+                \Log::warning('Training center not found:', ['value' => $trainingCenterValue]);
             }
         } else if (isset($validated['trainingCenter']) && empty(trim($validated['trainingCenter']))) {
             // Training center was explicitly cleared (empty string sent)
@@ -351,12 +419,15 @@ class ProfileController extends Controller
             $user->refresh();
             $caregiver = $user->caregiver ? $user->caregiver->fresh() : null;
             
-            // Get training center name if caregiver has a training center
+            // Get training center name if caregiver has a training center (dedupe "x x" -> "x")
             $trainingCenterName = null;
             if ($caregiver && $caregiver->training_center_id) {
                 $trainingCenter = \App\Models\User::find($caregiver->training_center_id);
                 if ($trainingCenter) {
-                    $trainingCenterName = $trainingCenter->name;
+                    $trainingCenterName = trim($trainingCenter->name ?? $trainingCenter->email ?? '') ?: null;
+                    if ($trainingCenterName && preg_match('/^(.+)\s+\1$/u', $trainingCenterName, $m)) {
+                        $trainingCenterName = trim($m[1]);
+                    }
                 }
             }
             
@@ -406,12 +477,15 @@ class ProfileController extends Controller
         $client = $user->client;
         $housekeeper = $user->housekeeper;
         
-        // Get training center name if caregiver has a training center
+        // Get training center name if caregiver has a training center (dedupe "x x" -> "x")
         $trainingCenterName = null;
         if ($caregiver && $caregiver->training_center_id) {
             $trainingCenter = \App\Models\User::find($caregiver->training_center_id);
             if ($trainingCenter) {
-                $trainingCenterName = $trainingCenter->name;
+                $trainingCenterName = trim($trainingCenter->name ?? $trainingCenter->email ?? '') ?: null;
+                if ($trainingCenterName && preg_match('/^(.+)\s+\1$/u', $trainingCenterName, $m)) {
+                    $trainingCenterName = trim($m[1]);
+                }
             }
         }
         
@@ -436,7 +510,10 @@ class ProfileController extends Controller
             if ($housekeeper->training_center_id) {
                 $housekeeperTrainingCenter = \App\Models\User::find($housekeeper->training_center_id);
                 if ($housekeeperTrainingCenter) {
-                    $housekeeperTrainingCenterName = $housekeeperTrainingCenter->name;
+                    $housekeeperTrainingCenterName = trim($housekeeperTrainingCenter->name ?? $housekeeperTrainingCenter->email ?? '') ?: null;
+                    if ($housekeeperTrainingCenterName && preg_match('/^(.+)\s+\1$/u', $housekeeperTrainingCenterName, $m)) {
+                        $housekeeperTrainingCenterName = trim($m[1]);
+                    }
                 }
             }
             

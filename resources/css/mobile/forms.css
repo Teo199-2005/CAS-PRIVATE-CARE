@@ -1,0 +1,382 @@
+/**
+ * CAS Private Care - Forms CSS Module
+ * Part of the mobile-fixes modular system
+ * 
+ * Mobile-optimized form styling:
+ * - Touch-friendly inputs
+ * - Proper keyboard handling
+ * - Accessible error states
+ */
+
+/* ==========================================================================
+   Form Container
+   ========================================================================== */
+
+@media screen and (max-width: 767px) {
+    .form-container {
+        padding: 16px;
+        max-width: 100%;
+    }
+    
+    .form-section {
+        margin-bottom: 24px;
+    }
+    
+    .form-section__title {
+        font-size: 1.125rem;
+        font-weight: 600;
+        margin-bottom: 12px;
+        padding-bottom: 8px;
+        border-bottom: 1px solid var(--border-light, #eee);
+    }
+}
+
+/* ==========================================================================
+   Input Fields
+   ========================================================================== */
+
+@media screen and (max-width: 767px) {
+    input[type="text"],
+    input[type="email"],
+    input[type="password"],
+    input[type="tel"],
+    input[type="number"],
+    input[type="search"],
+    input[type="url"],
+    input[type="date"],
+    input[type="time"],
+    input[type="datetime-local"],
+    textarea,
+    select,
+    .v-field__input {
+        /* Minimum 16px to prevent iOS zoom */
+        font-size: 16px !important;
+        min-height: 48px;
+        padding: 12px 16px;
+        border-radius: 8px;
+        width: 100%;
+        box-sizing: border-box;
+    }
+    
+    /* Vuetify field adjustments */
+    .v-field {
+        min-height: 48px;
+    }
+    
+    .v-field__outline {
+        border-radius: 8px;
+    }
+    
+    /* Input with icon */
+    .v-field--prepended {
+        padding-left: 12px;
+    }
+    
+    .v-field--appended {
+        padding-right: 12px;
+    }
+    
+    /* Textarea */
+    textarea {
+        min-height: 100px;
+        resize: vertical;
+    }
+    
+    /* Select dropdown */
+    select {
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpath fill='%23666' d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 12px center;
+        padding-right: 40px;
+    }
+}
+
+/* ==========================================================================
+   Labels
+   ========================================================================== */
+
+@media screen and (max-width: 767px) {
+    label,
+    .v-label {
+        display: block;
+        font-size: 0.875rem;
+        font-weight: 500;
+        margin-bottom: 6px;
+        color: var(--text-primary, #333);
+    }
+    
+    .v-field__label {
+        font-size: 16px;
+    }
+    
+    /* Required field indicator */
+    .required-indicator,
+    label[required]::after,
+    .v-label--required::after {
+        content: " *";
+        color: var(--color-error, #dc3545);
+    }
+}
+
+/* ==========================================================================
+   Form Groups & Spacing
+   ========================================================================== */
+
+@media screen and (max-width: 767px) {
+    .form-group,
+    .v-input {
+        margin-bottom: 16px;
+    }
+    
+    .form-row {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+    
+    /* Two column layout on larger phones */
+    @media (min-width: 400px) {
+        .form-row--inline {
+            flex-direction: row;
+            gap: 12px;
+        }
+        
+        .form-row--inline > * {
+            flex: 1;
+        }
+    }
+}
+
+/* ==========================================================================
+   Checkboxes & Radio Buttons
+   ========================================================================== */
+
+@media screen and (max-width: 767px) {
+    .v-checkbox,
+    .v-radio,
+    .checkbox-wrapper,
+    .radio-wrapper {
+        min-height: 44px;
+        display: flex;
+        align-items: center;
+    }
+    
+    .v-selection-control {
+        min-height: 44px;
+    }
+    
+    .v-selection-control__wrapper {
+        width: 24px;
+        height: 24px;
+    }
+    
+    /* Custom checkbox styling */
+    input[type="checkbox"],
+    input[type="radio"] {
+        width: 24px;
+        height: 24px;
+        margin-right: 12px;
+    }
+    
+    .v-checkbox .v-label,
+    .v-radio .v-label {
+        font-size: 1rem;
+        margin-bottom: 0;
+    }
+}
+
+/* ==========================================================================
+   Error States
+   ========================================================================== */
+
+@media screen and (max-width: 767px) {
+    /* Error input styling */
+    .v-field--error .v-field__outline,
+    .input-error,
+    input:invalid:not(:focus),
+    .field-error {
+        border-color: var(--color-error, #dc3545) !important;
+    }
+    
+    .v-field--error .v-field__outline__start,
+    .v-field--error .v-field__outline__end {
+        border-color: var(--color-error, #dc3545) !important;
+    }
+    
+    /* Error message styling */
+    .error-message,
+    .v-messages.error--text,
+    .v-messages--error {
+        color: var(--color-error, #dc3545);
+        font-size: 0.75rem;
+        margin-top: 4px;
+        display: flex;
+        align-items: flex-start;
+        gap: 4px;
+    }
+    
+    .error-message::before {
+        content: "⚠";
+        font-size: 0.75rem;
+    }
+    
+    /* Focus error state */
+    .v-field--error:focus-within .v-field__outline,
+    input:invalid:focus {
+        box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.25);
+    }
+}
+
+/* ==========================================================================
+   Hint Text
+   ========================================================================== */
+
+@media screen and (max-width: 767px) {
+    .hint-text,
+    .v-messages:not(.error--text),
+    .form-hint {
+        font-size: 0.75rem;
+        color: var(--text-secondary, #666);
+        margin-top: 4px;
+    }
+}
+
+/* ==========================================================================
+   Submit Button
+   ========================================================================== */
+
+@media screen and (max-width: 767px) {
+    .form-submit,
+    .submit-button,
+    button[type="submit"],
+    .v-btn[type="submit"] {
+        width: 100%;
+        min-height: 48px;
+        font-size: 1rem;
+        font-weight: 600;
+        margin-top: 8px;
+    }
+    
+    /* Button group */
+    .form-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        margin-top: 24px;
+    }
+    
+    @media (min-width: 400px) {
+        .form-actions--inline {
+            flex-direction: row;
+        }
+        
+        .form-actions--inline > * {
+            flex: 1;
+        }
+    }
+}
+
+/* ==========================================================================
+   Autocomplete Styling
+   ========================================================================== */
+
+@media screen and (max-width: 767px) {
+    .v-autocomplete .v-field__input {
+        padding-right: 40px;
+    }
+    
+    .v-autocomplete__content {
+        max-height: 50vh;
+    }
+    
+    .v-list-item {
+        min-height: 48px;
+        padding: 12px 16px;
+    }
+}
+
+/* ==========================================================================
+   File Input
+   ========================================================================== */
+
+@media screen and (max-width: 767px) {
+    .file-input-wrapper {
+        position: relative;
+        overflow: hidden;
+        display: inline-block;
+        width: 100%;
+    }
+    
+    .file-input-wrapper input[type="file"] {
+        position: absolute;
+        left: 0;
+        top: 0;
+        opacity: 0;
+        width: 100%;
+        height: 100%;
+        cursor: pointer;
+    }
+    
+    .file-input-label {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 48px;
+        padding: 12px 16px;
+        border: 2px dashed var(--border-color, #ccc);
+        border-radius: 8px;
+        background: var(--bg-secondary, #f5f5f5);
+        text-align: center;
+        cursor: pointer;
+    }
+    
+    .file-input-label:active {
+        background: var(--bg-tertiary, #eee);
+    }
+}
+
+/* ==========================================================================
+   Date/Time Inputs
+   ========================================================================== */
+
+@media screen and (max-width: 767px) {
+    input[type="date"],
+    input[type="time"],
+    input[type="datetime-local"] {
+        appearance: none;
+        -webkit-appearance: none;
+        min-height: 48px;
+        padding: 12px 16px;
+    }
+    
+    /* Vuetify date picker */
+    .v-date-picker {
+        width: 100%;
+        max-width: 100%;
+    }
+    
+    .v-date-picker-month__day {
+        min-width: 40px;
+        min-height: 40px;
+    }
+}
+
+/* ==========================================================================
+   Form Keyboard Handling
+   ========================================================================== */
+
+@media screen and (max-width: 767px) {
+    /* Scroll input into view when focused */
+    input:focus,
+    textarea:focus,
+    select:focus {
+        scroll-margin-bottom: 100px;
+    }
+    
+    /* When keyboard is open, adjust form */
+    .keyboard-open .form-actions {
+        position: relative;
+        bottom: auto;
+    }
+}

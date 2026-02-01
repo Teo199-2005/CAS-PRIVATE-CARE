@@ -1,7 +1,7 @@
 <template>
   <!-- Global Loading Overlay -->
-  <LoadingOverlay 
-    :visible="isPageLoading" 
+  <LoadingOverlay
+    :visible="isPageLoading"
     context="caregiver"
     tagline="Caregiver Portal"
   />
@@ -25,12 +25,72 @@
       <div style="flex: 1;"></div>
     </template>
 
-    <!-- Email Verification Banner -->
-    <email-verification-banner />
+    <!-- Error Modal -->
+    <v-dialog v-model="showErrorModal" max-width="500">
+      <v-card class="error-modal-card" elevation="8">
+        <v-card-title class="error-modal-header pa-6">
+          <div class="d-flex align-center">
+            <v-icon color="white" size="32" class="mr-3">mdi-alert-circle</v-icon>
+            <span class="text-h5 font-weight-bold text-white">Validation Error</span>
+          </div>
+        </v-card-title>
+        <v-card-text class="pa-6">
+          <div class="mb-4 text-center">
+            <v-icon color="error" size="64">mdi-alert-circle-outline</v-icon>
+          </div>
+          <p class="text-h6 mb-4 text-center" style="color: #1e293b;">Please fix the following errors:</p>
+          <v-alert type="error" variant="tonal" class="mb-0">
+            <div v-if="Array.isArray(errorMessages)" class="error-list">
+              <div v-for="(error, index) in errorMessages" :key="index" class="error-item mb-2">
+                <v-icon size="16" class="mr-2">mdi-alert</v-icon>
+                {{ error }}
+              </div>
+            </div>
+            <div v-else class="error-item">
+              <v-icon size="16" class="mr-2">mdi-alert</v-icon>
+              {{ errorMessages }}
+            </div>
+          </v-alert>
+        </v-card-text>
+        <v-card-actions class="pa-6 pt-0">
+          <v-spacer></v-spacer>
+          <v-btn
+            color="error"
+            variant="flat"
+            size="large"
+            prepend-icon="mdi-close"
+            @click="showErrorModal = false"
+          >
+            Close
+          </v-btn>
+          <v-spacer></v-spacer>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
 
-    <!-- Pending Approval Banner - SECURITY: Alert users their account is restricted -->
+    <!-- Email Verification Modal (blocks dashboard until verified via OTP) -->
+    <email-verification-modal
+      v-if="!isEmailVerified && userEmail"
+      :user-email="userEmail"
+      :is-verified="isEmailVerified"
+      @verified="handleEmailVerified"
+    />
+
+    <!-- Onboarding Progress Component - Shows setup steps for contractors -->
+    <OnboardingProgress
+      v-if="applicationStatus !== 'approved' || !stripeConnected"
+      role="caregiver"
+      :user-data="profile"
+      :application-status="applicationStatus"
+      :bank-connected="stripeConnected"
+      :w9-submitted="w9Submitted"
+      :profile-complete="profileComplete"
+      @step-click="handleOnboardingStepClick"
+    />
+
+    <!-- Legacy Pending Approval Banner - Fallback for older browsers -->
     <v-alert
-      v-if="applicationStatus === 'pending'"
+      v-if="applicationStatus === 'pending' && !showOnboardingProgress"
       type="warning"
       variant="tonal"
       prominent
@@ -91,17 +151,17 @@
               </v-card>
             </v-col>
             <v-col v-for="(stat, index) in stats" :key="stat.title" cols="6" sm="6" md="3">
-              <div 
+              <div
                 :class="stat.clickable ? 'cursor-pointer' : ''"
                 @click="stat.onClick ? stat.onClick() : null"
               >
-                <stat-card 
-                  :icon="stat.icon" 
-                  :value="stat.value" 
-                  :label="stat.title" 
-                  :change="stat.change" 
-                  :change-color="stat.changeColor" 
-                  :change-icon="stat.changeIcon" 
+                <stat-card
+                  :icon="stat.icon"
+                  :value="stat.value"
+                  :label="stat.title"
+                  :change="stat.change"
+                  :change-color="stat.changeColor"
+                  :change-icon="stat.changeIcon"
                   icon-class="success"
                   :stagger-index="index + 1"
                 />
@@ -217,33 +277,33 @@
 
               <v-row>
                 <v-col cols="12">
-                  <v-card class="mb-3 enhanced-card" elevation="2">
-                    <v-card-title class="enhanced-card-header pa-6">
-                      <v-icon color="success" class="mr-3">mdi-calendar-week</v-icon>
-                      <span class="section-title success--text">Weekly Time History</span>
-                    </v-card-title>
-                    <v-card-text class="pa-6">
-                      <div class="week-calendar">
-                        <div v-for="day in weekHistory" :key="day.date" class="day-card">
-                          <div class="day-header" :class="{ 'today': day.isToday }">
-                            <div class="day-name">{{ day.dayName }}</div>
-                            <div class="day-date">{{ day.date }}</div>
+                  <v-card class="mb-3" elevation="1">
+                    <v-card-text class="pa-4">
+                      <div class="d-flex align-center mb-3">
+                        <v-icon color="success" size="20" class="mr-2">mdi-calendar-week</v-icon>
+                        <span class="text-subtitle-2 font-weight-medium">Weekly Schedule</span>
+                        <v-spacer></v-spacer>
+                        <v-chip v-if="weeklySchedule.filter(d => d.assigned).length > 0" size="x-small" color="success" variant="tonal">
+                          {{ weeklySchedule.filter(d => d.assigned).length }} days
+                        </v-chip>
+                      </div>
+                      <div v-if="loadingWeeklySchedule" class="text-center py-3">
+                        <v-progress-circular indeterminate color="success" size="24"></v-progress-circular>
+                      </div>
+                      <div v-else class="schedule-grid">
+                        <div v-for="day in weeklySchedule" :key="day.day"
+                             class="schedule-day"
+                             :class="{ 'is-assigned': day.assigned, 'is-today': isToday(day.day) }">
+                          <div class="day-label">{{ day.day.substring(0, 3) }}</div>
+                          <div v-if="day.assigned" class="day-status assigned">
+                            <v-icon size="12" color="success">mdi-check-circle</v-icon>
+                            <span class="time-label">{{ formatTime(day.start_time) }}</span>
                           </div>
-                          <div class="day-content">
-                            <div v-if="day.timeIn" class="time-entry">
-                              <div class="time-label">Time In</div>
-                              <div class="time-value success--text">{{ day.timeIn }}</div>
-                            </div>
-                            <div v-if="day.timeOut" class="time-entry">
-                              <div class="time-label">Time Out</div>
-                              <div class="time-value error--text">{{ day.timeOut }}</div>
-                            </div>
-                            <div v-if="day.totalHours" class="total-hours">
-                              <v-chip size="x-small" color="info">{{ day.totalHours }} hrs</v-chip>
-                            </div>
-                            <div v-if="!day.timeIn" class="no-data">No record</div>
-                          </div>
+                          <div v-else class="day-status off">—</div>
                         </div>
+                      </div>
+                      <div v-if="!loadingWeeklySchedule && weeklySchedule.every(d => !d.assigned)" class="text-center py-2">
+                        <span class="text-caption text-grey">No schedule assigned</span>
                       </div>
                     </v-card-text>
                   </v-card>
@@ -253,7 +313,7 @@
               <!-- Tax & Payroll Section -->
               <v-row>
                 <v-col cols="12">
-                  <tax-payroll-section 
+                  <tax-payroll-section
                     user-type="caregiver"
                     primary-color="success"
                   />
@@ -326,7 +386,7 @@
                     </div>
                     <v-chip v-if="job.isUrgent" color="error" size="x-small" class="ml-2">Urgent</v-chip>
                   </div>
-                  
+
                   <!-- Service & Duration -->
                   <div class="mb-3">
                     <div class="d-flex align-center mb-2">
@@ -438,10 +498,10 @@
               <v-card elevation="0" class="mb-6">
                 <v-card-title class="card-header pa-8 d-flex justify-space-between align-center">
                   <span class="section-title success--text">Payout Method</span>
-                  <v-btn 
-                    v-if="!stripeConnected" 
-                    color="success" 
-                    prepend-icon="mdi-wallet-plus" 
+                  <v-btn
+                    v-if="!stripeConnected"
+                    color="success"
+                    prepend-icon="mdi-wallet-plus"
                     @click="connectBankAccount"
                     :loading="connectingBank"
                   >
@@ -460,7 +520,7 @@
                       Connect your preferred payout method via Stripe to receive weekly payments.<br>
                       Your payment information is securely encrypted and never shared.
                     </p>
-                    
+
                     <!-- Stripe Connect Not Enabled Warning -->
                     <v-alert type="warning" variant="tonal" class="mb-4 text-left">
                       <div class="font-weight-bold mb-2">Stripe Connect Setup Required</div>
@@ -471,7 +531,7 @@
                         Once enabled, you'll be able to connect your bank account, debit card, or digital wallet to receive payments.
                       </p>
                     </v-alert>
-                    
+
                     <!-- Available Payout Methods -->
                     <v-alert color="info" variant="tonal" class="mb-4 text-left">
                       <div class="font-weight-bold mb-3">Available Payout Methods (Coming Soon):</div>
@@ -493,7 +553,7 @@
                       </div>
                     </v-alert>
                   </div>
-                  
+
                   <!-- Payout Method Connected -->
                   <v-row v-else>
                     <v-col cols="12">
@@ -508,26 +568,26 @@
                             Active
                           </v-chip>
                         </div>
-                        
+
                         <v-divider class="my-4"></v-divider>
-                        
+
                         <div class="d-flex justify-space-between align-center mb-3">
                           <span class="text-body-2 text-grey">Payout Method:</span>
                           <span class="font-weight-medium">Bank Transfer (ACH)</span>
                         </div>
-                        
+
                         <div class="d-flex justify-space-between align-center mb-3">
                           <span class="text-body-2 text-grey">Payout Schedule:</span>
                           <span class="font-weight-medium">Weekly (Every Friday)</span>
                         </div>
-                        
+
                         <div class="d-flex justify-space-between align-center mb-3">
                           <span class="text-body-2 text-grey">Next Payout:</span>
                           <span class="font-weight-bold success--text">{{ nextPayoutDate }}</span>
                         </div>
-                        
+
                         <v-divider class="my-4"></v-divider>
-                        
+
                         <v-alert type="success" variant="tonal" density="compact">
                           <div class="d-flex align-center">
                             <v-icon class="mr-2">mdi-shield-check</v-icon>
@@ -536,25 +596,34 @@
                             </span>
                           </div>
                         </v-alert>
-                        
-                        <div class="mt-4 d-flex gap-2">
-                          <v-btn 
-                            color="primary" 
-                            variant="outlined" 
+
+                        <div class="mt-4 d-flex flex-wrap gap-2">
+                          <v-btn
+                            color="success"
+                            variant="flat"
+                            size="small"
+                            prepend-icon="mdi-swap-horizontal"
+                            @click="connectBankAccount"
+                          >
+                            Change Payout Method
+                          </v-btn>
+                          <v-btn
+                            color="primary"
+                            variant="outlined"
                             size="small"
                             prepend-icon="mdi-open-in-new"
                             @click="openStripeDashboard"
                           >
                             Manage on Stripe
                           </v-btn>
-                          <v-btn 
-                            color="grey" 
-                            variant="outlined" 
+                          <v-btn
+                            color="error"
+                            variant="outlined"
                             size="small"
-                            prepend-icon="mdi-refresh"
-                            @click="reconnectBankAccount"
+                            prepend-icon="mdi-delete"
+                            @click="showRemovePayoutDialog = true"
                           >
-                            Update Bank Info
+                            Remove Method
                           </v-btn>
                         </div>
                       </div>
@@ -590,7 +659,7 @@
                     <span class="summary-value font-weight-bold">{{ nextPayoutDate }}</span>
                   </div>
                   <v-divider class="my-4" />
-                  
+
                   <!-- Automatic Payout Information -->
                   <div v-if="parseFloat(pendingEarnings) > 0" class="mt-4">
                     <v-alert type="info" variant="tonal" density="compact" color="blue">
@@ -600,7 +669,7 @@
                       </div>
                     </v-alert>
                   </div>
-                  
+
                   <div v-else class="mt-4">
                     <v-alert type="success" variant="tonal" density="compact">
                       <div class="text-body-2">
@@ -609,17 +678,17 @@
                       </div>
                     </v-alert>
                   </div>
-                  
+
                   <div v-if="applicationStatus === 'pending'" class="mt-4">
                     <v-alert type="warning" variant="tonal" class="mb-4" density="compact">
                       <div class="text-body-2">
                         <strong>Action Required:</strong> Please view and print the W9 form, then submit it to the office to complete your application approval.
                       </div>
                     </v-alert>
-                    <v-btn 
-                      color="primary" 
-                      block 
-                      size="large" 
+                    <v-btn
+                      color="primary"
+                      block
+                      size="large"
                       prepend-icon="mdi-file-document"
                       @click="viewW9Form"
                       class="mb-3"
@@ -631,16 +700,6 @@
                 </v-card-text>
               </v-card>
 
-              <v-card elevation="0">
-                <v-card-title class="card-header pa-8">
-                  <span class="section-title success--text">Payment Settings</span>
-                </v-card-title>
-                <v-card-text class="pa-8">
-                  <!-- payout frequency restricted to Weekly per v1.5.0 -->
-                  <v-select v-model="payoutFrequency" :items="['Weekly']" label="Payout Frequency" variant="outlined" density="comfortable" class="mb-4" />
-                  <v-select v-model="payoutMethod" :items="['Bank Transfer', 'PayPal', 'Check']" label="Payout Method" variant="outlined" density="comfortable" />
-                </v-card-text>
-              </v-card>
             </v-col>
           </v-row>
 
@@ -658,9 +717,9 @@
                   </v-chip>
                 </v-card-title>
                 <v-card-text class="pa-0">
-                  <v-data-table 
-                    :headers="pastBookingsHeaders" 
-                    :items="pastBookings" 
+                  <v-data-table
+                    :headers="pastBookingsHeaders"
+                    :items="pastBookings"
                     :items-per-page="10"
                     class="elevation-0"
                   >
@@ -711,10 +770,10 @@
                     </template>
 
                     <template v-slot:item.actions="{ item }">
-                      <v-btn 
-                        size="small" 
-                        color="primary" 
-                        variant="text" 
+                      <v-btn
+                        size="small"
+                        color="primary"
+                        variant="text"
                         icon="mdi-eye"
                         @click="viewBookingDetails(item)"
                       >
@@ -874,8 +933,8 @@
               </v-card>
             </v-col>
             <v-col cols="6" md="3">
-              <v-card 
-                elevation="2" 
+              <v-card
+                elevation="2"
                 class="stat-card-earnings cursor-pointer hover-highlight"
                 @click="salaryRangeDialog = true"
                 style="transition: all 0.3s ease;"
@@ -936,9 +995,9 @@
                     </div>
                     <v-progress-linear color="success" :model-value="100" height="8" rounded></v-progress-linear>
                   </div>
-                  
+
                   <v-divider class="my-4"></v-divider>
-                  
+
                   <div class="earnings-breakdown-detail mb-3">
                     <div class="d-flex justify-space-between">
                       <span class="text-grey">Regular Hours ({{ earningsReportData.regularHours }} hrs)</span>
@@ -957,18 +1016,18 @@
                       <span>${{ earningsReportData.bonuses }}</span>
                     </div>
                   </div>
-                  
+
                   <v-divider class="my-4"></v-divider>
-                  
+
                   <div class="earnings-breakdown-detail mb-3">
                     <div class="d-flex justify-space-between text-error">
                       <span>Estimated Tax (Self-Employment)</span>
                       <span>-${{ earningsReportData.estimatedTax }}</span>
                     </div>
                   </div>
-                  
+
                   <v-divider class="my-4"></v-divider>
-                  
+
                   <div class="earnings-breakdown-item">
                     <div class="d-flex justify-space-between align-center">
                       <span class="font-weight-bold text-h6">Net Earnings</span>
@@ -994,9 +1053,9 @@
                         <v-icon size="20">mdi-clock-outline</v-icon>
                       </v-avatar>
                     </div>
-                    
+
                     <v-divider class="my-3"></v-divider>
-                    
+
                     <div class="d-flex justify-space-between align-center mb-4">
                       <div>
                         <div class="text-caption text-grey">This Month</div>
@@ -1006,9 +1065,9 @@
                         <v-icon size="20">mdi-calendar-month</v-icon>
                       </v-avatar>
                     </div>
-                    
+
                     <v-divider class="my-3"></v-divider>
-                    
+
                     <div class="d-flex justify-space-between align-center mb-4">
                       <div>
                         <div class="text-caption text-grey">Total Sessions</div>
@@ -1018,9 +1077,9 @@
                         <v-icon size="20">mdi-briefcase-check</v-icon>
                       </v-avatar>
                     </div>
-                    
+
                     <v-divider class="my-3"></v-divider>
-                    
+
                     <div class="d-flex justify-space-between align-center">
                       <div>
                         <div class="text-caption text-grey">Average Daily</div>
@@ -1072,9 +1131,9 @@
                 <v-card-title class="card-header pa-6">
                   <span class="section-title success--text">Recent Earnings History</span>
                 </v-card-title>
-                <v-data-table 
-                  :headers="earningsHistoryHeaders" 
-                  :items="earningsHistory" 
+                <v-data-table
+                  :headers="earningsHistoryHeaders"
+                  :items="earningsHistory"
                   :items-per-page="5"
                   class="elevation-0 table-no-checkbox"
                 >
@@ -1138,7 +1197,7 @@
                         <template v-slot:append-inner>
                           <v-tooltip :text="userEmailVerified ? 'Email Verified' : 'Email Not Verified'" location="top">
                             <template v-slot:activator="{ props }">
-                              <v-icon 
+                              <v-icon
                                 v-bind="props"
                                 :color="userEmailVerified ? 'success' : 'error'"
                                 size="20"
@@ -1172,12 +1231,15 @@
                       <v-select v-model="profile.city" :items="nyCities" label="City" variant="outlined" :disabled="!profile.county" />
                     </v-col>
                     <v-col cols="12" md="3">
-                      <v-text-field 
-                        v-model="profile.zip" 
-                        label="ZIP Code" 
-                        variant="outlined" 
+                      <v-text-field
+                        v-model="profile.zip"
+                        label="ZIP Code"
+                        variant="outlined"
                         maxlength="5"
-                        :rules="[v => !v || /^\d{5}$/.test(v) || 'Please enter a valid 5-digit ZIP code']"
+                        :rules="[
+                          v => !v || /^\d{5}$/.test(v) || 'Enter a 5-digit ZIP code',
+                          v => !v || /^(00501|00544|06390|1[0-4]\d{3})$/.test(v) || 'Must be a NY ZIP (10xxx-14xxx)'
+                        ]"
                         @input="lookupProfileZipCode"
                         @blur="lookupProfileZipCode"
                       >
@@ -1185,7 +1247,7 @@
                           <v-icon>mdi-map-marker</v-icon>
                         </template>
                       </v-text-field>
-                      <div v-if="profileZipLocation" class="text-caption text-grey mt-1" style="font-weight: 600;">
+                      <div v-if="profileZipLocation" :class="['text-caption', 'mt-1', profileZipLocation.includes('Not a NY') ? 'text-error' : 'text-grey']" style="font-weight: 600;">
                         {{ profileZipLocation }}
                       </div>
                     </v-col>
@@ -1204,11 +1266,21 @@
                       <v-text-field v-model="profile.experience" label="Years of Experience" variant="outlined" type="number" />
                     </v-col>
                     <v-col cols="12" md="6">
-                      <v-select v-if="!isCustomTrainingCenter" v-model="profile.trainingCenter" :items="trainingCenters" label="Training Center" variant="outlined" />
+                      <v-select v-if="!isCustomTrainingCenter" v-model="profile.trainingCenter" :items="trainingCenterOptions" label="Training Center" variant="outlined" no-data-text="No CAS training centers yet. Use Custom Training Center below to enter yours." />
                       <v-text-field v-else v-model="profile.customTrainingCenter" label="Custom Training Center" variant="outlined" />
+                      <v-alert v-if="profile.trainingCenter && trainingCenterApprovalStatus === 'pending'" type="info" density="compact" class="mt-2" variant="tonal" border="start">
+                        <div class="d-flex align-center">
+                          <v-icon size="20" class="mr-2" color="warning">mdi-clock-outline</v-icon>
+                          <span>Your training center must approve your request. You'll see an update here once they respond.</span>
+                        </div>
+                      </v-alert>
+                      <v-chip v-else-if="profile.trainingCenter && trainingCenterApprovalStatus === 'approved'" size="small" color="success" variant="tonal" class="mt-2">
+                        <v-icon start size="16">mdi-check-circle</v-icon>
+                        Training center approved
+                      </v-chip>
                     </v-col>
                     <v-col cols="12" md="6">
-                      <v-file-input v-model="profile.trainingCertificate" label="Training Certificate" variant="outlined" accept=".pdf,.jpg,.jpeg,.png" prepend-icon="mdi-certificate" placeholder="Upload training certificate here" hint="Accepted formats: PDF, JPG, PNG (Max 5MB)" persistent-hint />
+                      <v-file-input v-model="profile.trainingCertificate" label="Training Certificate" variant="outlined" accept=".pdf,.jpg,.jpeg,.png" prepend-icon="mdi-certificate" hint="Accepted formats: PDF, JPG, PNG (Max 5MB)" persistent-hint />
                     </v-col>
                     <v-col cols="12" md="6" class="d-flex align-center">
                       <v-checkbox v-model="isCustomTrainingCenter" label="Custom Training Center" density="compact" hide-details />
@@ -1226,11 +1298,11 @@
                         <v-chip size="small" color="blue-grey-lighten-4" class="ml-auto">Optional</v-chip>
                       </div>
                     </v-col>
-                    
+
                     <!-- HHA Certification Card -->
                     <v-col cols="12" md="4">
-                      <v-card 
-                        :elevation="profile.hasHHA ? 8 : 2" 
+                      <v-card
+                        :elevation="profile.hasHHA ? 8 : 2"
                         :color="profile.hasHHA ? 'success' : 'grey-lighten-4'"
                         class="pa-4 h-100 transition-swing cursor-pointer"
                         hover
@@ -1238,9 +1310,9 @@
                       >
                         <div class="d-flex align-center justify-space-between">
                           <div class="d-flex align-center">
-                            <v-icon 
-                              :color="profile.hasHHA ? 'white' : 'success'" 
-                              size="40" 
+                            <v-icon
+                              :color="profile.hasHHA ? 'white' : 'success'"
+                              size="40"
                               class="mr-3"
                             >
                               mdi-hospital-box
@@ -1254,8 +1326,8 @@
                               </div>
                             </div>
                           </div>
-                          <v-icon 
-                            :color="profile.hasHHA ? 'white' : 'success'" 
+                          <v-icon
+                            :color="profile.hasHHA ? 'white' : 'success'"
                             size="32"
                           >
                             {{ profile.hasHHA ? 'mdi-checkbox-marked-circle' : 'mdi-checkbox-blank-circle-outline' }}
@@ -1263,11 +1335,11 @@
                         </div>
                       </v-card>
                     </v-col>
-                    
+
                     <!-- CNA Certification Card -->
                     <v-col cols="12" md="4">
-                      <v-card 
-                        :elevation="profile.hasCNA ? 8 : 2" 
+                      <v-card
+                        :elevation="profile.hasCNA ? 8 : 2"
                         :color="profile.hasCNA ? 'success' : 'grey-lighten-4'"
                         class="pa-4 h-100 transition-swing cursor-pointer"
                         hover
@@ -1275,9 +1347,9 @@
                       >
                         <div class="d-flex align-center justify-space-between">
                           <div class="d-flex align-center">
-                            <v-icon 
-                              :color="profile.hasCNA ? 'white' : 'success'" 
-                              size="40" 
+                            <v-icon
+                              :color="profile.hasCNA ? 'white' : 'success'"
+                              size="40"
                               class="mr-3"
                             >
                               mdi-stethoscope
@@ -1291,8 +1363,8 @@
                               </div>
                             </div>
                           </div>
-                          <v-icon 
-                            :color="profile.hasCNA ? 'white' : 'success'" 
+                          <v-icon
+                            :color="profile.hasCNA ? 'white' : 'success'"
                             size="32"
                           >
                             {{ profile.hasCNA ? 'mdi-checkbox-marked-circle' : 'mdi-checkbox-blank-circle-outline' }}
@@ -1300,11 +1372,11 @@
                         </div>
                       </v-card>
                     </v-col>
-                    
+
                     <!-- RN Certification Card -->
                     <v-col cols="12" md="4">
-                      <v-card 
-                        :elevation="profile.hasRN ? 8 : 2" 
+                      <v-card
+                        :elevation="profile.hasRN ? 8 : 2"
                         :color="profile.hasRN ? 'success' : 'grey-lighten-4'"
                         class="pa-4 h-100 transition-swing cursor-pointer"
                         hover
@@ -1312,9 +1384,9 @@
                       >
                         <div class="d-flex align-center justify-space-between">
                           <div class="d-flex align-center">
-                            <v-icon 
-                              :color="profile.hasRN ? 'white' : 'success'" 
-                              size="40" 
+                            <v-icon
+                              :color="profile.hasRN ? 'white' : 'success'"
+                              size="40"
                               class="mr-3"
                             >
                               mdi-medical-bag
@@ -1328,8 +1400,8 @@
                               </div>
                             </div>
                           </div>
-                          <v-icon 
-                            :color="profile.hasRN ? 'white' : 'success'" 
+                          <v-icon
+                            :color="profile.hasRN ? 'white' : 'success'"
                             size="32"
                           >
                             {{ profile.hasRN ? 'mdi-checkbox-marked-circle' : 'mdi-checkbox-blank-circle-outline' }}
@@ -1355,28 +1427,31 @@
                     <v-avatar color="success" class="w-100 h-auto" :size="$vuetify.display.xs ? 96 : 120">
                       <img v-if="userAvatar && userAvatar.length > 0"
                         :src="userAvatar"
+                        :alt="`${profile.firstName} ${profile.lastName}'s profile photo`"
                         class="avatar-img-responsive"
                         @error="userAvatar = ''"
                       />
                       <span v-else class="text-h3 font-weight-bold text-white">{{ profile.firstName && profile.lastName ? `${profile.firstName[0]}${profile.lastName[0]}` : 'DC' }}</span>
                     </v-avatar>
-                    <v-btn 
-                      icon 
-                      size="small" 
-                      color="success" 
+                    <v-btn
+                      icon
+                      size="small"
+                      color="success"
                       class="avatar-upload-btn"
                       style="position: absolute; bottom: 0; right: 0;"
+                      aria-label="Upload profile photo"
                       @click="triggerAvatarUpload"
                       :loading="uploadingAvatar"
                     >
                       <v-icon size="small">mdi-camera</v-icon>
                     </v-btn>
-                    <input 
-                      ref="avatarInput" 
-                      type="file" 
-                      accept="image/jpeg,image/png,image/jpg,image/gif" 
-                      style="display: none;" 
+                    <input
+                      ref="avatarInput"
+                      type="file"
+                      accept="image/jpeg,image/png,image/jpg,image/gif"
+                      style="display: none;"
                       @change="uploadAvatar"
+                      aria-label="Select profile photo"
                     />
                   </div>
                   <h2 class="mb-2">{{ profile.firstName && profile.lastName ? `${profile.firstName} ${profile.lastName}` : 'Demo Caregiver' }}</h2>
@@ -1386,7 +1461,7 @@
 
                   <div class="profile-stat">
                     <v-icon color="info" class="mr-2">mdi-calendar</v-icon>
-                    <span>Member since Jan 2024</span>
+                    <span>Member since {{ memberSince }}</span>
                   </div>
                   <v-divider class="my-4" />
                   <div class="text-center">
@@ -1560,7 +1635,7 @@
         </v-card-title>
         <v-card-text class="pt-4">
           <p class="text-body-1 mb-4">Set your preferred hourly rate range ($20 - $50)</p>
-          
+
           <v-row>
             <v-col cols="12" md="6">
               <v-text-field
@@ -1617,27 +1692,100 @@
       </v-card>
     </v-dialog>
 
+    <!-- Remove Payout Method Dialog -->
+    <v-dialog v-model="showRemovePayoutDialog" max-width="450">
+      <v-card>
+        <v-card-title class="pa-4 bg-error text-white">
+          <v-icon class="mr-2">mdi-delete-alert</v-icon>
+          Remove Payout Method
+        </v-card-title>
+        <v-card-text class="pa-4">
+          <p class="text-body-1 mb-4">Are you sure you want to remove your connected payout method?</p>
+          <v-alert type="warning" variant="tonal" density="compact" class="mb-4">
+            <div class="text-body-2">
+              <strong>Warning:</strong> You will not be able to receive payments until you connect a new payout method.
+            </div>
+          </v-alert>
+        </v-card-text>
+        <v-card-actions class="pa-4 pt-0">
+          <v-spacer />
+          <v-btn variant="text" @click="showRemovePayoutDialog = false">Cancel</v-btn>
+          <v-btn color="error" variant="flat" :loading="removingPayout" @click="removePayoutMethod">
+            <v-icon left>mdi-delete</v-icon>
+            Remove Method
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
     <!-- Notification Toast -->
     <notification-toast v-model="notification.show" :type="notification.type" :title="notification.title" :message="notification.message" :timeout="notification.timeout" />
+
+    <!-- Profile Picture Success Modal -->
+    <v-dialog
+      v-model="showAvatarSuccessModal"
+      max-width="400"
+      persistent
+    >
+      <v-card class="avatar-success-modal text-center pa-6">
+        <div class="success-animation-container">
+          <div class="success-checkmark">
+            <div class="check-icon">
+              <span class="icon-line line-tip"></span>
+              <span class="icon-line line-long"></span>
+              <div class="icon-circle"></div>
+              <div class="icon-fix"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="success-modal-title">Success!</div>
+
+        <div class="success-modal-message">
+          Your profile picture has been updated successfully.
+        </div>
+
+        <v-card-actions class="justify-center pt-6 pb-2">
+          <v-btn
+            color="success"
+            variant="flat"
+            size="large"
+            min-width="150"
+            @click="closeAvatarSuccessModal"
+          >
+            Done
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </dashboard-template>
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue';
+import { ref, computed, onMounted, watch, nextTick } from 'vue';
 import DashboardTemplate from './DashboardTemplate.vue';
 import StatCard from './shared/StatCard.vue';
 import ClientProfileModal from './shared/ClientProfileModal.vue';
 import NotificationCenter from './shared/NotificationCenter.vue';
 import AlertModal from './shared/AlertModal.vue';
 import NotificationToast from './shared/NotificationToast.vue';
-import EmailVerificationBanner from './EmailVerificationBanner.vue';
+import EmailVerificationModal from './EmailVerificationModal.vue';
+import { useEmailVerification } from '../composables/useEmailVerification';
 import TaxPayrollSection from './TaxPayrollSection.vue';
 import LoadingOverlay from './LoadingOverlay.vue';
+import OnboardingProgress from './shared/OnboardingProgress.vue';
 import { useNotification } from '../composables/useNotification.js';
 import { useNYLocationData } from '../composables/useNYLocationData.js';
 
 const { notification, success } = useNotification();
 const { counties, getCitiesForCounty, loadNYLocationData } = useNYLocationData();
+
+// Email verification
+const { isVerified: isEmailVerified, userEmail, checkVerificationStatus } = useEmailVerification();
+const handleEmailVerified = () => {
+  checkVerificationStatus();
+  window.location.reload();
+};
 
 // Global loading state
 const isPageLoading = ref(true);
@@ -1646,6 +1794,10 @@ const loadingProgress = ref(0);
 
 const caregiverId = ref(null);
 const userEmailVerified = ref(false);
+
+// Error Modal State
+const showErrorModal = ref(false);
+const errorMessages = ref([]);
 
 const currentSection = ref(localStorage.getItem('caregiverSection') || 'dashboard');
 const contactDialog = ref(false);
@@ -1729,13 +1881,13 @@ const availableClients = ref([]);
 const loadAvailableClients = async () => {
   try {
     const response = await fetch('/api/available-clients');
-    
+
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
-    
+
     const data = await response.json();
-    
+
     // Use the transformed data directly from the API
     if (Array.isArray(data) && data.length > 0) {
       availableClients.value = data;
@@ -1790,23 +1942,23 @@ const scheduleCalendarDates = computed(() => {
   const daysInMonth = new Date(year, month + 1, 0).getDate();
   const prevMonthDays = new Date(year, month, 0).getDate();
   const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-  
+
   for (let i = firstDay - 1; i >= 0; i--) {
     dates.push({ day: prevMonthDays - i, isCurrentMonth: false, isToday: false, events: [], key: `prev-${i}` });
   }
-  
+
   for (let i = 1; i <= daysInMonth; i++) {
     const isToday = today.getDate() === i && today.getMonth() === month && today.getFullYear() === year;
     const events = scheduleEvents.value[i] || [];
     const fullDate = `${monthNames[month]} ${i}, ${year}`;
     dates.push({ day: i, isCurrentMonth: true, isToday, events, fullDate, key: `curr-${i}` });
   }
-  
+
   const remainingDays = 42 - dates.length;
   for (let i = 1; i <= remainingDays; i++) {
     dates.push({ day: i, isCurrentMonth: false, isToday: false, events: [], key: `next-${i}` });
   }
-  
+
   return dates;
 });
 
@@ -1847,25 +1999,25 @@ const calendarDates = computed(() => {
   const firstDay = new Date(year, month, 1).getDay();
   const daysInMonth = new Date(year, month + 1, 0).getDate();
   const prevMonthDays = new Date(year, month, 0).getDate();
-  
+
   // Previous month days
   for (let i = firstDay - 1; i >= 0; i--) {
     dates.push({ day: prevMonthDays - i, isCurrentMonth: false, isToday: false, hasAppointment: false, key: `prev-${i}` });
   }
-  
+
   // Current month days
   for (let i = 1; i <= daysInMonth; i++) {
     const isToday = today.getDate() === i && today.getMonth() === month && today.getFullYear() === year;
     const hasAppointment = [15, 18, 22, 25].includes(i); // Sample appointment dates
     dates.push({ day: i, isCurrentMonth: true, isToday, hasAppointment, key: `curr-${i}` });
   }
-  
+
   // Next month days
   const remainingDays = 42 - dates.length;
   for (let i = 1; i <= remainingDays; i++) {
     dates.push({ day: i, isCurrentMonth: false, isToday: false, hasAppointment: false, key: `next-${i}` });
   }
-  
+
   return dates;
 });
 
@@ -1875,40 +2027,39 @@ const sidebarUnreadCount = computed(() => sidebarNotifications.value.filter(n =>
 // SECURITY: Check if contractor is approved to access restricted features
 const isApproved = computed(() => applicationStatus.value === 'approved');
 
-// Navigation items with pending status restrictions
-// Pending contractors cannot access payment, job listings, or earnings features
+// Navigation items - all accessible regardless of approval status
 const navItems = computed(() => [
-  { icon: 'mdi-view-dashboard', title: 'Dashboard', value: 'dashboard' },
-  { icon: 'mdi-bell', title: 'Notifications', value: 'notifications', badge: sidebarUnreadCount.value > 0 },
-  { 
-    icon: 'mdi-credit-card', 
-    title: 'Payment Information', 
-    value: 'payment', 
+  { icon: 'mdi-view-dashboard', title: 'Dashboard', value: 'dashboard', disabled: false },
+  { icon: 'mdi-bell', title: 'Notifications', value: 'notifications', badge: sidebarUnreadCount.value > 0, disabled: false },
+  {
+    icon: 'mdi-credit-card',
+    title: 'Payment Information',
+    value: 'payment',
     category: 'FINANCIAL',
-    disabled: !isApproved.value  // Disabled until approved
+    disabled: false
   },
-  { 
-    icon: 'mdi-history', 
-    title: 'Transaction History', 
-    value: 'transactions', 
+  {
+    icon: 'mdi-history',
+    title: 'Transaction History',
+    value: 'transactions',
     category: 'FINANCIAL',
-    disabled: !isApproved.value  // Disabled until approved
+    disabled: false
   },
-  { 
-    icon: 'mdi-account-search', 
-    title: 'Job Listings', 
-    value: 'available-clients', 
+  {
+    icon: 'mdi-account-search',
+    title: 'Job Listings',
+    value: 'available-clients',
     category: 'WORK',
-    disabled: !isApproved.value  // Disabled until approved
+    disabled: false
   },
-  { 
-    icon: 'mdi-chart-bar', 
-    title: 'Earnings Report', 
-    value: 'analytics', 
+  {
+    icon: 'mdi-chart-bar',
+    title: 'Earnings Report',
+    value: 'analytics',
     category: 'WORK',
-    disabled: !isApproved.value  // Disabled until approved
+    disabled: false
   },
-  { icon: 'mdi-account-circle', title: 'Profile (1099 Contractors)', value: 'profile', category: 'ACCOUNT' }
+  { icon: 'mdi-account-circle', title: 'Profile (1099 Contractors)', value: 'profile', category: 'ACCOUNT', disabled: false }
 ]);
 
 const loadSidebarNotificationCount = async () => {
@@ -1965,7 +2116,7 @@ const loadEarningsReportData = async () => {
   try {
     const response = await fetch(`/api/caregiver/${caregiverId.value}/earnings-report?period=${encodeURIComponent(earningsReportPeriod.value)}`);
     const data = await response.json();
-    
+
     if (data.success) {
       earningsReportData.value = {
         totalEarnings: data.totalEarnings || '0.00',
@@ -1987,7 +2138,7 @@ const loadEarningsReportData = async () => {
         completionRate: data.completionRate || 100
       };
       earningsHistory.value = data.history || [];
-      
+
       // Update time tracking summary
       timeTrackingSummary.value = {
         weeklyHours: data.weeklyHours || '0.0',
@@ -2018,7 +2169,7 @@ const exportEarningsReport = async () => {
         history: earningsHistory.value
       })
     });
-    
+
     if (response.ok) {
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
@@ -2068,20 +2219,20 @@ const isBookingActive = computed(() => {
   if (currentBookingStatus.value && !['approved', 'active'].includes(currentBookingStatus.value)) {
     return false;
   }
-  
+
   if (!currentBookingServiceDate.value || !currentBookingDurationDays.value) {
     return false;
   }
-  
+
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-  
+
   const serviceDate = new Date(currentBookingServiceDate.value);
   serviceDate.setHours(0, 0, 0, 0);
-  
+
   const endDate = new Date(serviceDate);
   endDate.setDate(endDate.getDate() + parseInt(currentBookingDurationDays.value));
-  
+
   // Booking is active if today is between service_date and end_date
   return serviceDate <= today && today <= endDate;
 });
@@ -2089,63 +2240,63 @@ const isBookingActive = computed(() => {
 const hasStartTimePassed = computed(() => {
   const now = new Date();
   const today = now.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase(); // monday, tuesday, etc.
-  
+
   // Check if booking has day_schedules (new system)
   if (currentBookingDaySchedules.value && typeof currentBookingDaySchedules.value === 'object') {
     // Check if caregiver is assigned to work today
     if (!currentBookingDaySchedules.value[today]) {
       return false; // Not assigned to work today
     }
-    
+
     // Parse today's schedule (e.g., "11:00 AM - 11:00 PM")
     const todaySchedule = currentBookingDaySchedules.value[today];
     const scheduleMatch = todaySchedule.match(/(\d+:\d+\s*[AP]M)\s*-\s*(\d+:\d+\s*[AP]M)/);
-    
+
     if (scheduleMatch) {
       const startTimeStr = scheduleMatch[1]; // e.g., "11:00 AM"
-      
+
       // Parse the time
       const timeMatch = startTimeStr.match(/(\d+):(\d+)\s*([AP]M)/);
       if (timeMatch) {
         let hour = parseInt(timeMatch[1]);
         const minute = parseInt(timeMatch[2]);
         const period = timeMatch[3];
-        
+
         // Convert to 24-hour format
         if (period === 'PM' && hour !== 12) {
           hour += 12;
         } else if (period === 'AM' && hour === 12) {
           hour = 0;
         }
-        
+
         // Create start time for today
         const startTime = new Date();
         startTime.setHours(hour, minute, 0, 0);
-        
+
         // Check if current time >= start time
         return now >= startTime;
       }
     }
-    
+
     return false;
   }
-  
+
   // Fallback to old system (single start_time for all days)
   if (!currentBookingServiceDate.value || !currentBookingStartTime.value) {
     return false;
   }
-  
+
   const serviceDate = new Date(currentBookingServiceDate.value);
-  
+
   // Parse start_time (format: HH:MM:SS or HH:MM)
   const timeParts = currentBookingStartTime.value.split(':');
   const startHour = parseInt(timeParts[0]) || 0;
   const startMinute = parseInt(timeParts[1]) || 0;
-  
+
   // Create a date object for the booking start date and time
   const bookingStartDateTime = new Date(serviceDate);
   bookingStartDateTime.setHours(startHour, startMinute, 0, 0);
-  
+
   // Check if current time is >= booking start time
   return now >= bookingStartDateTime;
 });
@@ -2158,43 +2309,43 @@ const bookingStatusMessage = computed(() => {
   if (currentClient.value === 'N/A') {
     return 'No active client assigned';
   }
-  
+
   // Check booking status
   if (currentBookingStatus.value && !['approved', 'active'].includes(currentBookingStatus.value)) {
     return `Booking is ${currentBookingStatus.value}`;
   }
-  
+
   if (!currentBookingServiceDate.value) {
     return 'Ready to start your shift';
   }
-  
+
   const serviceDate = new Date(currentBookingServiceDate.value);
   const today = new Date();
   const todayDayName = today.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
   today.setHours(0, 0, 0, 0);
   serviceDate.setHours(0, 0, 0, 0);
-  
+
   if (serviceDate > today) {
     // Booking hasn't started yet
     const startStr = serviceDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
     return `Booking starts on ${startStr}`;
   }
-  
+
   if (!isBookingActive.value) {
     return 'Booking has ended';
   }
-  
+
   // Check if using day_schedules system
   if (currentBookingDaySchedules.value && typeof currentBookingDaySchedules.value === 'object') {
     // Check if assigned to work today
     if (!currentBookingDaySchedules.value[todayDayName]) {
       return 'Not assigned to work today';
     }
-    
+
     // Get today's schedule
     const todaySchedule = currentBookingDaySchedules.value[todayDayName];
     const scheduleMatch = todaySchedule.match(/(\d+:\d+\s*[AP]M)\s*-\s*(\d+:\d+\s*[AP]M)/);
-    
+
     if (scheduleMatch && !hasStartTimePassed.value) {
       return `Shift starts at ${scheduleMatch[1]}`;
     }
@@ -2209,7 +2360,7 @@ const bookingStatusMessage = computed(() => {
     const displayMinute = startMinute.toString().padStart(2, '0');
     return `Shift starts at ${displayHour}:${displayMinute} ${ampm}`;
   }
-  
+
   return 'Ready to start your shift';
 });
 
@@ -2236,7 +2387,7 @@ const handleTimeIn = async () => {
     // Check if response is JSON
     const contentType = response.headers.get('content-type');
     let data;
-    
+
     if (contentType && contentType.includes('application/json')) {
       data = await response.json();
     } else {
@@ -2280,7 +2431,7 @@ const handleTimeOut = async () => {
     // Check if response is JSON
     const contentType = response.headers.get('content-type');
     let data;
-    
+
     if (contentType && contentType.includes('application/json')) {
       data = await response.json();
     } else {
@@ -2333,6 +2484,7 @@ const topClientsTotal = computed(() => {
 });
 const paidOut = ref('0.00');
 const trainingCertificateUrl = ref(null);
+const isLoadingProfile = ref(false);
 
 const loadProfile = async () => {
   try {
@@ -2340,27 +2492,31 @@ const loadProfile = async () => {
     if (trainingCenters.value.length === 0) {
       await loadTrainingCenters();
     }
-    
-    const response = await fetch('/api/profile?user_type=caregiver');
+
+    const response = await fetch('/api/profile?user_type=caregiver', { credentials: 'same-origin' });
     const data = await response.json();
-    if (data.user) {
+    // API returns { success, message, data: { user, caregiver } }; support both wrapped and unwrapped
+    const payload = data.data ?? data;
+    const user = payload?.user;
+    if (user) {
+      isLoadingProfile.value = true;
       // Set user ID for avatar upload
-      caregiverUserId.value = data.user.id;
-      
+      caregiverUserId.value = user.id;
+
       // Set email verification status
-      userEmailVerified.value = data.user.email_verified_at !== null && data.user.email_verified_at !== undefined;
-      
+      userEmailVerified.value = user.email_verified_at !== null && user.email_verified_at !== undefined;
+
       // Set avatar if exists
-      if (data.user.avatar) {
-        userAvatar.value = data.user.avatar.startsWith('/') ? data.user.avatar : '/storage/' + data.user.avatar;
+      if (user.avatar) {
+        userAvatar.value = user.avatar.startsWith('/') ? user.avatar : '/storage/' + user.avatar;
       } else {
       }
-      
-      const nameParts = data.user.name.split(' ');
-      
-      // Use user.caregiver for all fields including certifications
-      const caregiverData = data.user?.caregiver || data.caregiver || {};
-      
+
+      const nameParts = user.name.split(' ');
+
+      // Prefer explicit caregiver from API (getProfile returns { user, caregiver }); fallback to user.caregiver
+      const caregiverData = data.caregiver ?? payload?.caregiver ?? user?.caregiver ?? {};
+
       console.log('🔍 Loading certifications from API:', {
         has_hha: caregiverData.has_hha,
         hha_type: typeof caregiverData.has_hha,
@@ -2369,20 +2525,23 @@ const loadProfile = async () => {
         has_rn: caregiverData.has_rn,
         rn_type: typeof caregiverData.has_rn
       });
-      
+
+      // Preserve training center if API omits it (e.g. after save); normalize "x x" -> "x"
+      const apiTc = (caregiverData.training_center_name ?? '').toString().trim();
+      const savedTrainingCenter = normalizeTrainingCenterLabel(apiTc || (profile.value?.trainingCenter ?? '')) || apiTc || (profile.value?.trainingCenter ?? '');
       profile.value = {
         firstName: nameParts[0] || '',
         lastName: nameParts.slice(1).join(' ') || '',
-        email: data.user.email || '',
-        phone: data.user.phone || '',
-        address: data.user.address || '',
-        city: data.user.city || '',
-        county: data.user.borough || data.user.county || '',
-        state: data.user.state || '',
-        zip: data.user.zip_code || '',
-        birthdate: data.user.date_of_birth || '',
+        email: user.email || '',
+        phone: user.phone || '',
+        address: user.address || '',
+        city: user.city || '',
+        county: user.borough || user.county || '',
+        state: user.state || '',
+        zip: user.zip_code || '',
+        birthdate: user.date_of_birth || '',
         experience: caregiverData.years_experience || '',
-        trainingCenter: caregiverData.training_center_name || '',
+        trainingCenter: savedTrainingCenter,
         customTrainingCenter: '',
         trainingCertificate: null,
         specializations: caregiverData.specializations || [],
@@ -2392,21 +2551,22 @@ const loadProfile = async () => {
         hasCNA: Boolean(caregiverData.has_cna),
         cnaNumber: caregiverData.cna_number || '',
         hasRN: Boolean(caregiverData.has_rn),
-        rnNumber: caregiverData.rn_number || ''
+        rnNumber: caregiverData.rn_number || '',
+        created_at: user.created_at || ''
       };
-      
+
       // Load salary range
       salaryRange.value = {
         min: caregiverData.preferred_hourly_rate_min || 20,
         max: caregiverData.preferred_hourly_rate_max || 50
       };
-      
+
       console.log('✅ Profile loaded with certifications:', {
         hasHHA: profile.value.hasHHA,
         hasCNA: profile.value.hasCNA,
         hasRN: profile.value.hasRN
       });
-      
+
       // Load training certificate if exists
       // NOTE: /profile returns the caregiver object under `data.caregiver`.
       // Older code sometimes expected `data.user.caregiver`, so we normalize via caregiverData above.
@@ -2417,14 +2577,22 @@ const loadProfile = async () => {
       } else {
         trainingCertificateUrl.value = null;
       }
-      
+
       // Store caregiver ID for stats loading
       if (caregiverData?.id) {
         caregiverId.value = caregiverData.id;
       }
-      
+
+      trainingCenterApprovalStatus.value = caregiverData.training_center_approval_status ?? trainingCenterApprovalStatus.value ?? '';
+
+      // Set W9 submitted status from user data
+      // If user is approved, W9 is considered submitted (approval requires physical W9 submission)
+      w9Submitted.value = Boolean(user.w9_submitted) || user.status === 'Active';
+
       // Check application status
       await checkApplicationStatus();
+      await nextTick();
+      isLoadingProfile.value = false;
     } else if (data.error === 'User not authenticated') {
       // Fallback for demo purposes - use Demo Caregiver ID
       caregiverId.value = 25;
@@ -2443,7 +2611,7 @@ const loadProfile = async () => {
         ssn: '',
         itin: '',
         experience: '5',
-        trainingCenter: 'NYC Healthcare Training Institute',
+        trainingCenter: '',
         customTrainingCenter: '',
         trainingCertificate: null,
         specializations: [],
@@ -2454,50 +2622,51 @@ const loadProfile = async () => {
     // Fallback for demo purposes
     caregiverId.value = 25;
     caregiverUserId.value = null;
+    isLoadingProfile.value = false;
   }
 };
 
 const loadCaregiverStats = async () => {
   try {
     isLoadingStats.value = true;
-    
+
     if (!caregiverId.value) {
       return;
     }
-    
+
     const response = await fetch(`/api/caregiver/${caregiverId.value}/stats`);
     const data = await response.json();
-    
+
     // Check multiple possible data structures
     let hasActiveClient = false;
     let clientName = 'N/A';
-    
+
     if (data.active_assignments && data.active_assignments.length > 0) {
       // Get the first assignment (prioritize active over upcoming)
       const assignment = data.active_assignments[0];
-      
+
       // Try different possible structures
       if (assignment.booking?.client?.name) {
         clientName = assignment.booking.client.name;
         hasActiveClient = true;
-        
+
         // Store booking details for clock in/out validation
         currentBookingServiceDate.value = assignment.booking.service_date || null;
         currentBookingStartTime.value = assignment.booking.start_time || null;
         currentBookingDurationDays.value = assignment.booking.duration_days || null;
         currentBookingDaySchedules.value = assignment.booking.day_schedules || null;
         currentBookingStatus.value = assignment.booking.status || null;
-        
+
         // Get contract dates from booking
         if (assignment.booking.service_date) {
           contractStartDate.value = formatContractDate(assignment.booking.service_date);
-          
+
           // Check if this is an upcoming assignment (service_date in future)
           const serviceDate = new Date(assignment.booking.service_date);
           const today = new Date();
           today.setHours(0, 0, 0, 0);
           serviceDate.setHours(0, 0, 0, 0);
-          
+
           if (serviceDate > today) {
             // This is an upcoming assignment, show "Starts: [date]"
             const startStr = serviceDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
@@ -2522,7 +2691,7 @@ const loadCaregiverStats = async () => {
         clientName = assignment.name;
         hasActiveClient = true;
       }
-      
+
       // Try to get dates from assignment directly
       if (assignment.start_date) {
         contractStartDate.value = formatContractDate(assignment.start_date);
@@ -2531,7 +2700,7 @@ const loadCaregiverStats = async () => {
         contractEndDate.value = formatContractDate(assignment.end_date);
       }
     }
-    
+
     // Also check if there's a direct client field
     if (!hasActiveClient && data.client) {
       if (data.client.name) {
@@ -2539,13 +2708,13 @@ const loadCaregiverStats = async () => {
         hasActiveClient = true;
       }
     }
-    
+
     // Note: The /api/caregiver/{id}/assignments endpoint does not exist
     // The active_assignments data should already be included in the /api/caregiver/{id}/stats response
     // If no active client was found from the stats response, show N/A
 
 if (hasActiveClient) {
-      const contractInfo = contractStartDate.value && contractEndDate.value 
+      const contractInfo = contractStartDate.value && contractEndDate.value
         ? `${contractStartDate.value} - ${contractEndDate.value}`
         : 'Status: Active Contract';
       stats.value[0] = {
@@ -2592,15 +2761,15 @@ if (hasActiveClient) {
     contractEndDate.value = '';
   } finally {
     isLoadingStats.value = false;
-    
+
     // Update Hourly Rate to show preferred salary range
-    const salaryRangeText = salaryRange.value.min && salaryRange.value.max 
-      ? `$${salaryRange.value.min} - $${salaryRange.value.max}` 
+    const salaryRangeText = salaryRange.value.min && salaryRange.value.max
+      ? `$${salaryRange.value.min} - $${salaryRange.value.max}`
       : 'Not Set';
-    const salaryRangeSubtext = salaryRange.value.min && salaryRange.value.max 
-      ? 'Click to update' 
+    const salaryRangeSubtext = salaryRange.value.min && salaryRange.value.max
+      ? 'Click to update'
       : 'Click to set your rate';
-    
+
     stats.value[1] = {
       title: 'Preferred Salary Range',
       value: salaryRangeText,
@@ -2612,7 +2781,7 @@ if (hasActiveClient) {
       clickable: true,
       onClick: () => { salaryRangeDialog.value = true; }
     };
-    
+
     // Calculate weekly earnings from time tracking
     try {
       const earningsResponse = await fetch(`/api/caregiver/${caregiverId.value}/earnings-report?period=This Week`);
@@ -2623,7 +2792,7 @@ if (hasActiveClient) {
         const lastWeekEarnings = weeklyTotal * 0.88; // Approximate last week for comparison
         const changePercent = lastWeekEarnings > 0 ? Math.round(((weeklyTotal - lastWeekEarnings) / lastWeekEarnings) * 100) : 0;
         const changeSign = changePercent >= 0 ? '+' : '';
-        
+
         stats.value[2] = {
           title: 'Weekly Earnings',
           value: '$' + weeklyTotal.toFixed(2),
@@ -2633,11 +2802,11 @@ if (hasActiveClient) {
           changeColor: changePercent >= 0 ? 'text-success' : 'text-error',
           changeIcon: changePercent >= 0 ? 'mdi-trending-up' : 'mdi-trending-down'
         };
-        
+
         // Note: accountBalance will be updated from payment summary API
         // which includes all pending earnings, not just this week
       }
-      
+
       // Load previous week data
       const prevWeekResponse = await fetch(`/api/caregiver/${caregiverId.value}/earnings-report?period=Last Week`);
       const prevWeekData = await prevWeekResponse.json();
@@ -2692,7 +2861,7 @@ const loadNotifications = async () => {
         if (diffMins < 60) timeAgo = `${diffMins} minutes ago`;
         else if (diffHours < 24) timeAgo = `${diffHours} hours ago`;
         else timeAgo = `${diffDays} days ago`;
-        
+
         const iconMap = {
           'Appointments': 'mdi-calendar',
           'Payments': 'mdi-check-circle',
@@ -2705,7 +2874,7 @@ const loadNotifications = async () => {
           'Clients': 'info',
           'System': 'purple'
         };
-        
+
         return {
           id: n.id,
           title: n.title,
@@ -2736,12 +2905,12 @@ const notifications = computed(() => allNotifications.value.slice(0, 3));
 
 const filteredNotifications = computed(() => {
   return allNotifications.value.filter(n => {
-    const matchesFilter = notificationFilter.value === 'All' || 
+    const matchesFilter = notificationFilter.value === 'All' ||
       (notificationFilter.value === 'Unread' && !n.read) ||
       (notificationFilter.value === 'Today' && n.time.includes('hour')) ||
       (notificationFilter.value === 'This Week' && !n.time.includes('week'));
     const matchesType = notificationType.value === 'All' || n.type === notificationType.value;
-    const matchesSearch = !notificationSearch.value || 
+    const matchesSearch = !notificationSearch.value ||
       n.title.toLowerCase().includes(notificationSearch.value.toLowerCase()) ||
       n.message.toLowerCase().includes(notificationSearch.value.toLowerCase());
     return matchesFilter && matchesType && matchesSearch;
@@ -2806,30 +2975,30 @@ const filteredAvailableClients = computed(() => {
   return availableClients.value.filter(job => {
     // Search by client name, service type, or location
     const searchTerm = availableClientSearch.value.toLowerCase();
-    const matchesSearch = !searchTerm || 
+    const matchesSearch = !searchTerm ||
       job.clientName?.toLowerCase().includes(searchTerm) ||
       job.serviceType?.toLowerCase().includes(searchTerm) ||
       job.location?.toLowerCase().includes(searchTerm) ||
       job.city?.toLowerCase().includes(searchTerm);
-    
+
     // Filter by county (check location field or extract from city)
     let matchesCounty = true;
     if (availableCountyFilter.value && availableCountyFilter.value !== 'All') {
       const jobCounty = job.county || job.borough || extractCountyFromLocation(job.location);
       matchesCounty = jobCounty?.toLowerCase() === availableCountyFilter.value.toLowerCase();
     }
-    
+
     // Filter by city
     let matchesCity = true;
     if (availableCityFilter.value && availableCityFilter.value !== 'All') {
       matchesCity = job.city?.toLowerCase() === availableCityFilter.value.toLowerCase();
     }
-    
+
     // Filter by date
     let matchesDate = true;
     if (availableDateFilter.value && availableDateFilter.value !== 'All') {
       let startDate = null;
-      
+
       // Try to get the raw service_date first (more reliable)
       if (job.service_date) {
         startDate = new Date(job.service_date);
@@ -2837,22 +3006,22 @@ const filteredAvailableClients = computed(() => {
         // Parse formatted date like "Dec 17, 2025"
         startDate = parseFormattedDate(job.startDate);
       }
-      
+
       if (!startDate || isNaN(startDate.getTime())) {
         matchesDate = false;
       } else {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
         startDate.setHours(0, 0, 0, 0);
-        
+
         const weekFromNow = new Date(today);
         weekFromNow.setDate(today.getDate() + 7);
         weekFromNow.setHours(23, 59, 59, 999);
-        
+
         const twoWeeksFromNow = new Date(today);
         twoWeeksFromNow.setDate(today.getDate() + 14);
         twoWeeksFromNow.setHours(23, 59, 59, 999);
-        
+
         if (availableDateFilter.value === 'This Week') {
           matchesDate = startDate >= today && startDate <= weekFromNow;
         } else if (availableDateFilter.value === 'Soon') {
@@ -2860,7 +3029,7 @@ const filteredAvailableClients = computed(() => {
         }
       }
     }
-    
+
     return matchesSearch && matchesCounty && matchesCity && matchesDate;
   });
 });
@@ -2881,86 +3050,104 @@ const extractCountyFromLocation = (location) => {
 // Helper function to parse formatted date string like "Dec 17, 2025"
 const parseFormattedDate = (dateStr) => {
   if (!dateStr) return null;
-  
+
   // Try standard Date parsing first
   let date = new Date(dateStr);
   if (!isNaN(date.getTime())) {
     return date;
   }
-  
+
   // If that fails, try manual parsing for "M d, Y" format
   const months = {
     'Jan': 0, 'Feb': 1, 'Mar': 2, 'Apr': 3, 'May': 4, 'Jun': 5,
     'Jul': 6, 'Aug': 7, 'Sep': 8, 'Oct': 9, 'Nov': 10, 'Dec': 11
   };
-  
+
   const parts = dateStr.trim().split(/[\s,]+/);
   if (parts.length === 3) {
     const monthName = parts[0];
     const day = parseInt(parts[1], 10);
     const year = parseInt(parts[2], 10);
-    
+
     if (months.hasOwnProperty(monthName) && !isNaN(day) && !isNaN(year)) {
       return new Date(year, months[monthName], day);
     }
   }
-  
+
   return null;
 };
 
 const currentTime = ref(new Date());
 
+const weeklySchedule = ref([
+  { day: 'Sunday', assigned: false, client: null, start_time: null, end_time: null },
+  { day: 'Monday', assigned: false, client: null, start_time: null, end_time: null },
+  { day: 'Tuesday', assigned: false, client: null, start_time: null, end_time: null },
+  { day: 'Wednesday', assigned: false, client: null, start_time: null, end_time: null },
+  { day: 'Thursday', assigned: false, client: null, start_time: null, end_time: null },
+  { day: 'Friday', assigned: false, client: null, start_time: null, end_time: null },
+  { day: 'Saturday', assigned: false, client: null, start_time: null, end_time: null }
+]);
+const loadingWeeklySchedule = ref(false);
+
+const loadWeeklySchedule = async () => {
+  try {
+    if (!caregiverId.value) return;
+
+    loadingWeeklySchedule.value = true;
+    const response = await fetch(`/api/caregiver/${caregiverId.value}/weekly-schedule`, {
+      credentials: 'include'
+    });
+    const data = await response.json();
+
+    if (data.success && data.data?.weekly_schedule) {
+      weeklySchedule.value = data.data.weekly_schedule;
+    } else if (data.weekly_schedule) {
+      weeklySchedule.value = data.weekly_schedule;
+    }
+  } catch (error) {
+    console.error('Error loading weekly schedule:', error);
+  } finally {
+    loadingWeeklySchedule.value = false;
+  }
+};
+
+const isToday = (dayName) => {
+  const today = new Date();
+  const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  return days[today.getDay()].toLowerCase() === dayName.toLowerCase();
+};
+
+const formatTime = (time) => {
+  if (!time) return '';
+  try {
+    // Handle various time formats
+    if (time.includes('T')) {
+      const date = new Date(time);
+      return date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+    }
+    const [hours, minutes] = time.split(':');
+    const hour = parseInt(hours);
+    const ampm = hour >= 12 ? 'PM' : 'AM';
+    const displayHour = hour % 12 || 12;
+    return `${displayHour}:${minutes} ${ampm}`;
+  } catch {
+    return time;
+  }
+};
+
+// Keep weekHistory for backwards compatibility
 const weekHistory = ref([]);
 
 const loadWeekHistory = async () => {
-  try {
-    if (!caregiverId.value) return;
-    
-    const response = await fetch(`/api/time-tracking/weekly-history/${caregiverId.value}`);
-    const data = await response.json();
-    
-    if (data.weekly_data) {
-      // Transform the API data to match the expected format
-      weekHistory.value = data.weekly_data.map(day => ({
-        dayName: day.day,
-        date: day.date,
-        timeIn: day.sessions.length > 0 ? day.sessions[0].clock_in : null,
-        timeOut: day.sessions.length > 0 ? day.sessions[0].clock_out : null,
-        totalHours: day.total_hours > 0 ? `${day.total_hours} hrs` : null,
-        isToday: day.date === new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-      }));
-    } else {
-      // Generate empty week if no data
-      const today = new Date();
-      const weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-      weekHistory.value = [];
-      
-      for (let i = 6; i >= 0; i--) {
-        const date = new Date(today);
-        date.setDate(today.getDate() - i);
-        const dayName = weekDays[date.getDay()];
-        const dateStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-        const isToday = i === 0;
-        
-        weekHistory.value.push({
-          dayName,
-          date: dateStr,
-          timeIn: null,
-          timeOut: null,
-          totalHours: null,
-          isToday
-        });
-      }
-    }
-  } catch (error) {
-    weekHistory.value = [];
-  }
+  // Now loading weekly schedule instead
+  await loadWeeklySchedule();
 };
 
 const loadCurrentSession = async () => {
   try {
     if (!caregiverId.value) return;
-    
+
     const response = await fetch(`/api/time-tracking/current-session/${caregiverId.value}`);
     const data = await response.json();
 
@@ -2968,14 +3155,14 @@ if (data.active_session) {
       isTimedIn.value = true;
       // Parse the clock_in_time from the database
       const clockInTime = new Date(data.active_session.clock_in_time);
-      
+
       // Format the time for display
-      timeIn.value = clockInTime.toLocaleTimeString('en-US', { 
-        hour: 'numeric', 
-        minute: '2-digit', 
-        hour12: true 
+      timeIn.value = clockInTime.toLocaleTimeString('en-US', {
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true
       });
-      
+
     } else {
       isTimedIn.value = false;
       timeIn.value = '';
@@ -2986,10 +3173,10 @@ if (data.active_session) {
 };
 
 const currentDate = computed(() => {
-  return currentTime.value.toLocaleDateString('en-US', { 
-    weekday: 'short', 
-    month: 'short', 
-    day: 'numeric' 
+  return currentTime.value.toLocaleDateString('en-US', {
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric'
   });
 });
 
@@ -2998,9 +3185,9 @@ const nextFridayDate = computed(() => {
   const daysUntilFriday = (5 - today.getDay() + 7) % 7 || 7;
   const nextFriday = new Date(today);
   nextFriday.setDate(today.getDate() + daysUntilFriday);
-  return nextFriday.toLocaleDateString('en-US', { 
-    month: 'short', 
-    day: 'numeric' 
+  return nextFriday.toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric'
   });
 });
 
@@ -3025,10 +3212,10 @@ const accountBalance = ref('0.00');
 
 // Today's date formatted
 const todayFormatted = computed(() => {
-  return currentTime.value.toLocaleDateString('en-US', { 
-    weekday: 'short', 
-    month: 'short', 
-    day: 'numeric' 
+  return currentTime.value.toLocaleDateString('en-US', {
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric'
   });
 });
 
@@ -3040,9 +3227,9 @@ const nextPayoutDate = computed(() => {
   if (daysUntilFriday === 0) daysUntilFriday = 7; // If today is Friday, next payout is next Friday
   const nextFriday = new Date(today);
   nextFriday.setDate(today.getDate() + daysUntilFriday);
-  return nextFriday.toLocaleDateString('en-US', { 
-    month: 'short', 
-    day: 'numeric' 
+  return nextFriday.toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric'
   });
 });
 
@@ -3057,8 +3244,8 @@ const previousPayoutDate = computed(() => {
   const daysSinceLastFriday = (dayOfWeek + 2) % 7 || 7;
   const lastFriday = new Date(today);
   lastFriday.setDate(today.getDate() - daysSinceLastFriday);
-  return lastFriday.toLocaleDateString('en-US', { 
-    month: 'short', 
+  return lastFriday.toLocaleDateString('en-US', {
+    month: 'short',
     day: 'numeric',
     year: 'numeric'
   });
@@ -3078,17 +3265,8 @@ const logout = () => {
   window.location.href = '/login';
 };
 
-// SECURITY: Handle section change with pending status check
+// Section change: FINANCIAL and WORK (Payment, Transaction History, Job Listings, Earnings Report) are available to all contractors including pending
 const handleSectionChange = (section) => {
-  // Check if trying to access a restricted section while pending
-  const restrictedSections = ['payment', 'transactions', 'available-clients', 'analytics'];
-  if (restrictedSections.includes(section) && applicationStatus.value === 'pending') {
-    notification.type = 'warning';
-    notification.title = 'Feature Restricted';
-    notification.message = 'This feature is only available after your application is approved. Please complete your W9 submission first.';
-    notification.show = true;
-    return;
-  }
   currentSection.value = section;
 };
 
@@ -3121,9 +3299,9 @@ const applyForClient = async (job) => {
         'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
       }
     });
-    
+
     const data = await response.json();
-    
+
     if (response.ok) {
       alert(`Successfully applied for booking: ${job.clientName || job.name}\n${job.serviceType} • ${job.durationDays} days • ${job.location}`);
       // Reload available bookings to refresh the list
@@ -3186,15 +3364,44 @@ const lastPaymentAmount = ref('0.00');
 const stripeConnected = ref(false);
 const stripeOnboardingComplete = ref(false);
 const connectingBank = ref(false);
+const showRemovePayoutDialog = ref(false);
+const removingPayout = ref(false);
+
+// Onboarding progress tracking
+const w9Submitted = ref(false);
+const profileComplete = computed(() => {
+  return profile.value.firstName && profile.value.lastName && profile.value.phone;
+});
+const showOnboardingProgress = ref(true);
+
+// Handle onboarding step clicks
+const handleOnboardingStepClick = (step) => {
+  switch (step.action) {
+    case 'view-application':
+      // Already on dashboard, show status
+      break;
+    case 'submit-w9':
+      viewW9Form();
+      break;
+    case 'connect-bank':
+      currentSection.value = 'payment';
+      break;
+    case 'edit-profile':
+      currentSection.value = 'profile';
+      break;
+    default:
+      break;
+  }
+};
 
 // Stripe Connect Functions
 const connectBankAccount = async () => {
   try {
     connectingBank.value = true;
-    
+
     // Navigate to YOUR custom styled page (like payment page)
     window.location.href = '/connect-bank-account';
-    
+
   } catch (error) {
     alert('An error occurred. Please try again.');
     connectingBank.value = false;
@@ -3208,6 +3415,45 @@ const reconnectBankAccount = async () => {
 const openStripeDashboard = () => {
   // Open Stripe Express Dashboard for caregiver to manage their account
   window.open('https://dashboard.stripe.com/connect/accounts', '_blank');
+};
+
+const removePayoutMethod = async () => {
+  try {
+    removingPayout.value = true;
+
+    const response = await fetch('/api/caregiver/payout-method', {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+        'X-Requested-With': 'XMLHttpRequest'
+      },
+      credentials: 'include'
+    });
+
+    if (response.ok) {
+      stripeConnected.value = false;
+      stripeOnboardingComplete.value = false;
+      showRemovePayoutDialog.value = false;
+      success('Payout method removed successfully', 'Payout Method');
+    } else {
+      const data = await response.json();
+      throw new Error(data.message || 'Failed to remove payout method');
+    }
+  } catch (error) {
+    console.error('Error removing payout method:', error);
+    notification.value = {
+      show: true,
+      type: 'error',
+      title: 'Error',
+      message: error.message || 'Failed to remove payout method',
+      timeout: 5000
+    };
+  } finally {
+    removingPayout.value = false;
+    showRemovePayoutDialog.value = false;
+  }
 };
 
 const setDefaultCard = (card) => {
@@ -3281,7 +3527,7 @@ const loadPaymentData = async () => {
   try {
     const response = await fetch('/api/caregiver/payment-data');
     const data = await response.json();
-    
+
     if (data.success) {
       // Update payment summary
       if (data.payment_summary) {
@@ -3289,28 +3535,28 @@ const loadPaymentData = async () => {
         totalEarnings.value = data.payment_summary.total_earnings;
         pendingEarnings.value = data.payment_summary.pending_earnings;
         lastPaymentAmount.value = data.payment_summary.last_payment_amount;
-        
+
         // Update transaction page stats
         pendingBalance.value = data.payment_summary.pending_earnings;
         paidOut.value = data.payment_summary.total_earnings;
-        
+
         // Update last payment info
         if (data.payment_summary.last_payment_amount !== '0.00') {
         }
       }
-      
+
       // Update transactions with real data from time_trackings
       if (data.transactions && data.transactions.length > 0) {
         transactions.value = data.transactions;
       } else {
         transactions.value = [];
       }
-      
+
       // Update Stripe connection status
       if (data.stripe_info) {
         stripeConnected.value = data.stripe_info.connected;
         stripeOnboardingComplete.value = data.stripe_info.onboarding_complete;
-        
+
         if (!data.stripe_info.connected) {
           // Show connect bank account prompt
           paymentMethods.value = [];
@@ -3327,7 +3573,7 @@ const loadPaymentData = async () => {
           }];
         }
       }
-      
+
       // Update statistics
       if (data.statistics) {
         Object.assign(earningStats.value, {
@@ -3338,7 +3584,7 @@ const loadPaymentData = async () => {
           avg_hours: data.statistics.average_hours_per_session
         });
       }
-      
+
     } else {
     }
   } catch (error) {
@@ -3356,7 +3602,7 @@ const loadPastBookings = async () => {
   try {
     const response = await fetch('/api/caregiver/past-bookings');
     const data = await response.json();
-    
+
     if (data.success && data.bookings) {
       pastBookings.value = data.bookings;
     }
@@ -3405,19 +3651,54 @@ const zipCodeMap = {
 
 const profileZipLocation = ref('');
 
+/**
+ * NY ZIP Code Validation Helper
+ * Valid NY ZIPs: 10xxx-14xxx range OR special cases (00501, 00544, 06390)
+ */
+const isValidNYZip = (zip) => {
+  if (!zip) return false;
+  const nyZipRegex = /^(00501|00544|06390|1[0-4]\d{3})(-\d{4})?$/;
+  return nyZipRegex.test(zip);
+};
+
+/**
+ * Get NY region based on ZIP prefix for fallback
+ */
+const getNYRegionFromZip = (zip) => {
+  if (!zip || !isValidNYZip(zip)) return null;
+  const prefix = parseInt(zip.substring(0, 3), 10);
+  if (prefix >= 100 && prefix <= 102) return 'Manhattan, NY';
+  if (prefix === 103) return 'Staten Island, NY';
+  if (prefix === 104) return 'Bronx, NY';
+  if (prefix >= 105 && prefix <= 109) return 'Westchester, NY';
+  if (prefix >= 110 && prefix <= 111) return 'Long Island, NY';
+  if (prefix === 112) return 'Brooklyn, NY';
+  if (prefix >= 113 && prefix <= 119) return 'Long Island, NY';
+  if (prefix >= 120 && prefix <= 129) return 'Capital Region, NY';
+  if (prefix >= 130 && prefix <= 139) return 'Central NY';
+  if (prefix >= 140 && prefix <= 149) return 'Western NY';
+  return 'New York, NY';
+};
+
 const lookupProfileZipCode = async () => {
   const zip = profile.value.zip;
-  
+
   if (!zip || zip.length !== 5 || !/^\d{5}$/.test(zip)) {
     profileZipLocation.value = '';
     return;
   }
 
-  // Try API lookup first (supports all NY ZIP codes)
+  // Client-side NY ZIP validation FIRST
+  if (!isValidNYZip(zip)) {
+    profileZipLocation.value = 'Not a NY ZIP (must be 10xxx-14xxx)';
+    return;
+  }
+
+  // Try API lookup (supports all NY ZIP codes)
   try {
     profileZipLocation.value = 'Looking up location…';
     const response = await fetch(`/api/zipcode-lookup/${zip}`);
-    
+
     if (response.ok) {
       const data = await response.json();
       if (data.success && data.location) {
@@ -3425,13 +3706,13 @@ const lookupProfileZipCode = async () => {
         return;
       }
     }
-    
-    // API returned error or no location found
-    profileZipLocation.value = 'ZIP not found';
+
+    // Fallback to region for valid NY ZIPs
+    profileZipLocation.value = zipCodeMap[zip] || getNYRegionFromZip(zip) || 'New York, NY';
   } catch (error) {
     console.error('Profile ZIP code lookup error:', error);
-    // Fallback to static map
-    profileZipLocation.value = zipCodeMap[zip] || 'ZIP not found';
+    // Fallback to static map or region
+    profileZipLocation.value = zipCodeMap[zip] || getNYRegionFromZip(zip) || 'New York, NY';
   }
 };
 
@@ -3447,47 +3728,43 @@ const nyZipCodes = [
 
 const trainingCenters = ref([]);
 const isCustomTrainingCenter = ref(false);
+const trainingCenterApprovalStatus = ref(''); // 'pending' | 'approved' | 'rejected' | ''
+
+// Normalize duplicated label "x x" -> "x" so display and save use a single value
+const normalizeTrainingCenterLabel = (val) => {
+  if (val == null || typeof val !== 'string') return (val ?? '').toString().trim();
+  const s = String(val).trim();
+  const m = s.match(/^(.+)\s+\1$/u);
+  return m ? m[1].trim() : s;
+};
+
+// Dropdown options: CAS partners + current profile value (deduped, normalized)
+const trainingCenterOptions = computed(() => {
+  const raw = [...(trainingCenters.value || [])];
+  const current = normalizeTrainingCenterLabel(profile.value?.trainingCenter || '');
+  if (current && !raw.some((x) => normalizeTrainingCenterLabel(x) === current)) raw.unshift(current);
+  const normalized = raw.map((x) => normalizeTrainingCenterLabel(typeof x === 'string' ? x : (x?.name ?? x?.email ?? x ?? ''))).filter(Boolean);
+  return [...new Set(normalized)];
+});
 
 const loadTrainingCenters = async () => {
   try {
+    // Use /api/training-centers (web route with auth returns Active + pending; name or email as label)
     const response = await fetch('/api/training-centers', {
-      headers: {
-        'Accept': 'application/json',
-        'X-Requested-With': 'XMLHttpRequest'
-      },
+      headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
       credentials: 'same-origin'
     });
-    
     if (response.ok) {
       const data = await response.json();
-      trainingCenters.value = data.trainingCenters || [];
+      const raw = data.trainingCenters || data.centers || [];
+      trainingCenters.value = Array.isArray(raw)
+        ? raw.map(c => (typeof c === 'string' ? c : (c?.name || c?.email || c?.title || ''))).filter(Boolean)
+        : [];
     } else {
-      // Fallback to default list if API fails
-      trainingCenters.value = [
-        'NYC Healthcare Training Institute',
-        'American Red Cross',
-        'National Association for Home Care & Hospice',
-        'Certified Nursing Assistant Training Center',
-        'Home Health Aide Training Academy',
-        'Metropolitan Healthcare Training',
-        'Brooklyn Healthcare Institute',
-        'Queens Medical Training Center',
-        'Bronx Community Health Training'
-      ];
+      trainingCenters.value = [];
     }
   } catch (err) {
-    // Fallback to default list
-    trainingCenters.value = [
-      'NYC Healthcare Training Institute',
-      'American Red Cross',
-      'National Association for Home Care & Hospice',
-      'Certified Nursing Assistant Training Center',
-      'Home Health Aide Training Academy',
-      'Metropolitan Healthcare Training',
-      'Brooklyn Healthcare Institute',
-      'Queens Medical Training Center',
-      'Bronx Community Health Training'
-    ];
+    trainingCenters.value = [];
   }
 };
 
@@ -3496,6 +3773,11 @@ const avatarInput = ref(null);
 const userAvatar = ref('');
 const uploadingAvatar = ref(false);
 const caregiverUserId = ref(null);
+const showAvatarSuccessModal = ref(false);
+
+const closeAvatarSuccessModal = () => {
+  showAvatarSuccessModal.value = false;
+};
 
 const profile = ref({
   firstName: 'Demo',
@@ -3508,7 +3790,7 @@ const profile = ref({
   zip: '',
   birthdate: '',
   experience: '5',
-  trainingCenter: 'NYC Healthcare Training Institute',
+  trainingCenter: '',
   customTrainingCenter: '',
   trainingCertificate: null,
   specializations: [],
@@ -3518,7 +3800,8 @@ const profile = ref({
   hasCNA: false,
   cnaNumber: '',
   hasRN: false,
-  rnNumber: ''
+  rnNumber: '',
+  created_at: ''
 });
 
 const age = computed(() => {
@@ -3533,11 +3816,29 @@ const age = computed(() => {
   return age;
 });
 
+const memberSince = computed(() => {
+  if (profile.value.created_at) {
+    try {
+      const date = new Date(profile.value.created_at);
+      return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    } catch {
+      return 'N/A';
+    }
+  }
+  return 'N/A';
+});
+
+// Include current profile city so saved/API values always display (permanent fix for city not showing after load).
 const nyCities = computed(() => {
   if (!profile.value.county) {
     return ['Select County First'];
   }
-  return getCitiesForCounty(profile.value.county);
+  const list = getCitiesForCounty(profile.value.county) || [];
+  const current = profile.value.city?.trim();
+  if (!current) return list;
+  const inList = list.some((c) => String(c).trim().toLowerCase() === current.toLowerCase());
+  if (!inList) return [current, ...list];
+  return list;
 });
 
 const showCurrentPassword = ref(false);
@@ -3552,31 +3853,31 @@ const triggerAvatarUpload = () => {
 const uploadAvatar = async (event) => {
   const file = event.target.files[0];
   if (!file) return;
-  
+
   // Validate file type
   const validTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/gif'];
   if (!validTypes.includes(file.type)) {
     alert('Please select a valid image file (JPEG, PNG, or GIF)');
     return;
   }
-  
+
   // Validate file size (max 2MB)
   if (file.size > 2 * 1024 * 1024) {
     alert('Image size must be less than 2MB');
     return;
   }
-  
+
   if (!caregiverUserId.value) {
     alert('User ID not available. Please refresh the page.');
     return;
   }
-  
+
   uploadingAvatar.value = true;
-  
+
   try {
     const formData = new FormData();
     formData.append('avatar', file);
-    
+
     const response = await fetch(`/api/user/${caregiverUserId.value}/avatar`, {
       method: 'POST',
       headers: {
@@ -3584,12 +3885,12 @@ const uploadAvatar = async (event) => {
       },
       body: formData
     });
-    
+
     const data = await response.json();
-    
+
     if (response.ok && data.success) {
       userAvatar.value = data.avatar;
-      success('Profile picture updated successfully!');
+      showAvatarSuccessModal.value = true;
     } else {
       alert('Error: ' + (data.error || 'Failed to upload avatar'));
     }
@@ -3662,6 +3963,7 @@ const saveSalaryRange = async () => {
         'Accept': 'application/json',
         'X-CSRF-TOKEN': csrfToken
       },
+      credentials: 'same-origin',
       body: JSON.stringify({
         user_type: 'caregiver',
         preferredHourlyRateMin: minRate,
@@ -3686,7 +3988,7 @@ const saveSalaryRange = async () => {
         timeout: 3000
       };
       salaryRangeDialog.value = false;
-      
+
       // Reload stats to reflect changes
       await loadCaregiverStats();
     } else {
@@ -3722,7 +4024,7 @@ if (profile.value.trainingCertificate) {
         hasFile = true;
       }
     }
-    
+
     if (hasFile && certificateFile) {
       // Log file info for debugging
       const fileInfo = {
@@ -3733,7 +4035,13 @@ if (profile.value.trainingCertificate) {
       };
       // File info logged
     }
-    
+
+    // Normalize training center to a single string (dedupe "x x" -> "x") for both FormData and JSON
+    const tcRaw = profile.value.trainingCenter != null
+      ? (Array.isArray(profile.value.trainingCenter) ? (profile.value.trainingCenter[0] ?? '') : profile.value.trainingCenter)
+      : '';
+    const trainingCenterForSave = normalizeTrainingCenterLabel(typeof tcRaw === 'string' ? tcRaw : String(tcRaw || ''));
+
     let response;
     if (hasFile) {
       // Use FormData for file uploads
@@ -3744,13 +4052,13 @@ if (profile.value.trainingCertificate) {
       if (profile.value.phone) formData.append('phone', String(profile.value.phone));
       if (profile.value.birthdate) formData.append('birthdate', profile.value.birthdate);
       if (profile.value.address) formData.append('address', profile.value.address);
-      if (profile.value.city) formData.append('city', profile.value.city);
-      if (profile.value.county) formData.append('borough', profile.value.county);
+      if (profile.value.city != null && profile.value.city !== '') formData.append('city', String(profile.value.city));
+      if (profile.value.county != null && profile.value.county !== '') formData.append('county', String(profile.value.county));
       if (profile.value.state) formData.append('state', profile.value.state);
       if (profile.value.zip) formData.append('zip', profile.value.zip);
       if (profile.value.experience) formData.append('experience', profile.value.experience);
-      if (profile.value.trainingCenter) formData.append('trainingCenter', profile.value.trainingCenter);
-      if (profile.value.customTrainingCenter) formData.append('customTrainingCenter', profile.value.customTrainingCenter);
+      formData.append('trainingCenter', trainingCenterForSave);
+      formData.append('customTrainingCenter', profile.value.customTrainingCenter ?? '');
       if (profile.value.bio) formData.append('bio', profile.value.bio);
       // Add certifications
       formData.append('hasHHA', profile.value.hasHHA ? '1' : '0');
@@ -3759,11 +4067,11 @@ if (profile.value.trainingCertificate) {
       if (profile.value.hasCNA && profile.value.cnaNumber) formData.append('cnaNumber', profile.value.cnaNumber);
       formData.append('hasRN', profile.value.hasRN ? '1' : '0');
       if (profile.value.hasRN && profile.value.rnNumber) formData.append('rnNumber', profile.value.rnNumber);
-      
+
       // Append the file - check if it's a File object
       if (certificateFile && certificateFile instanceof File) {
         formData.append('trainingCertificate', certificateFile);
-        
+
         // Log FormData contents for debugging
         for (let pair of formData.entries()) {
           if (pair[1] instanceof File) {
@@ -3774,20 +4082,29 @@ if (profile.value.trainingCertificate) {
         alert('Please select a valid file for the training certificate.');
         return;
       }
-      
+
       response = await fetch('/api/profile/update', {
         method: 'POST',
         headers: {
           'Accept': 'application/json',
           'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
         },
+        credentials: 'same-origin',
         body: formData
       });
     } else {
-      // Use JSON for non-file updates
+      // Permanent: explicitly send city/county/borough/state/address/zip and training so they always persist.
       const payload = {
         ...profile.value,
-        borough: profile.value.county,
+        city: profile.value.city ?? '',
+        county: profile.value.county ?? '',
+        borough: profile.value.borough ?? profile.value.county ?? '',
+        state: profile.value.state ?? '',
+        address: profile.value.address ?? '',
+        zip: profile.value.zip ?? '',
+        zip_code: profile.value.zip ?? profile.value.zip_code ?? '',
+        trainingCenter: trainingCenterForSave,
+        customTrainingCenter: profile.value.customTrainingCenter ?? '',
         hasHHA: profile.value.hasHHA,
         hhaNumber: profile.value.hhaNumber,
         hasCNA: profile.value.hasCNA,
@@ -3795,19 +4112,19 @@ if (profile.value.trainingCertificate) {
         hasRN: profile.value.hasRN,
         rnNumber: profile.value.rnNumber
       };
-      
+
       // Ensure phone is a string if present, or remove it if empty
       if (payload.phone) {
         payload.phone = String(payload.phone);
       } else {
         delete payload.phone; // Remove if empty to avoid null issues
       }
-      
+
       // Remove trainingCertificate from payload if it's null or empty
       if (!payload.trainingCertificate || payload.trainingCertificate.length === 0) {
         delete payload.trainingCertificate;
       }
-      
+
       response = await fetch('/api/profile/update', {
         method: 'POST',
         headers: {
@@ -3815,34 +4132,69 @@ if (profile.value.trainingCertificate) {
           'Accept': 'application/json',
           'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
         },
+        credentials: 'same-origin',
         body: JSON.stringify(payload)
       });
     }
-    
+
     // Check if response is ok and is JSON
     const contentType = response.headers.get('content-type');
     if (response.ok && contentType && contentType.includes('application/json')) {
       const responseData = await response.json();
-      
+      const payload = responseData.data ?? responseData;
+      const savedUser = payload.user;
+
       // Update training certificate URL if it was uploaded
-      if (responseData.caregiver && responseData.caregiver.training_certificate) {
-        trainingCertificateUrl.value = responseData.caregiver.training_certificate.startsWith('/') 
-          ? responseData.caregiver.training_certificate 
-          : '/storage/' + responseData.caregiver.training_certificate;
+      const caregiver = payload.caregiver ?? responseData.caregiver;
+      if (caregiver?.training_certificate) {
+        trainingCertificateUrl.value = caregiver.training_certificate.startsWith('/')
+          ? caregiver.training_certificate
+          : '/storage/' + caregiver.training_certificate;
       }
-      
+
+      // Immediately apply saved user to form so city/county/borough persist in UI
+      if (savedUser) {
+        if (savedUser.city != null) profile.value.city = savedUser.city;
+        if (savedUser.county != null) profile.value.county = savedUser.county;
+        if (savedUser.borough != null) profile.value.borough = savedUser.borough;
+        if (savedUser.address != null) profile.value.address = savedUser.address;
+        if (savedUser.state != null) profile.value.state = savedUser.state;
+        if (savedUser.zip_code != null) profile.value.zip = savedUser.zip_code;
+      }
+
+      // Apply training center from save response (normalized) so it persists and doesn't clear
+      const savedTcName = caregiver?.training_center_name != null ? normalizeTrainingCenterLabel(caregiver.training_center_name) || caregiver.training_center_name : null;
+      if (savedTcName) {
+        profile.value.trainingCenter = savedTcName;
+      }
+      if (caregiver != null && caregiver.training_center_approval_status != null) {
+        trainingCenterApprovalStatus.value = caregiver.training_center_approval_status;
+      }
+
       // Clear the file input after successful upload
       if (hasFile) {
         profile.value.trainingCertificate = null;
       }
-      
-      success('Profile changes saved successfully!');
-      // Reload profile data to reflect changes
+
+      const isPendingApproval = (caregiver?.training_center_approval_status || trainingCenterApprovalStatus.value) === 'pending';
+      if (isPendingApproval && profile.value.trainingCenter) {
+        success(
+          'Profile saved. Your training center must approve your request—you\'ll see an update here once they respond.',
+          'Profile saved'
+        );
+      } else {
+        success('Profile changes saved successfully!');
+      }
+      // Reload profile but preserve training center if API returns empty (avoid clearing after save)
       await loadProfile();
+      if (savedTcName && (!profile.value.trainingCenter || !profile.value.trainingCenter.trim())) {
+        profile.value.trainingCenter = savedTcName;
+        trainingCenterApprovalStatus.value = caregiver?.training_center_approval_status ?? trainingCenterApprovalStatus.value;
+      }
     } else {
       let errorMessage = 'Failed to save profile';
       let errorData = null;
-      
+
       try {
         // Try to parse as JSON first
         if (contentType && contentType.includes('application/json')) {
@@ -3855,7 +4207,7 @@ if (profile.value.trainingCertificate) {
       } catch (e) {
         errorMessage = 'Failed to parse server response. Status: ' + response.status;
       }
-      
+
       // Handle Laravel validation errors (data.error can be an object)
       if (errorData) {
         if (errorData.error && typeof errorData.error === 'object') {
@@ -3873,12 +4225,14 @@ if (profile.value.trainingCertificate) {
           errorMessage = errorData.error || errorData.message || errorMessage;
         }
       }
-      
-      alert('Error: ' + errorMessage);
+
+      errorMessages.value = [errorMessage];
+      showErrorModal.value = true;
     }
   } catch (error) {
     const errorMessage = error?.message || error?.toString() || 'Unknown error occurred';
-    alert('Error saving profile: ' + errorMessage);
+    errorMessages.value = ['Error saving profile: ' + errorMessage];
+    showErrorModal.value = true;
   }
 };
 
@@ -3992,10 +4346,15 @@ const initCharts = () => {
   }
 };
 
-// Watch for county changes to reset city selection
+// Permanent: only reset city when user changes county and current city is not valid for the new county (do not clear on profile load).
 watch(() => profile.value.county, (newCounty) => {
-  if (newCounty) {
-    profile.value.city = ''; // Reset city when county changes
+  if (!newCounty) return;
+  const citiesForCounty = getCitiesForCounty(newCounty) || [];
+  const currentCity = profile.value.city?.trim();
+  if (!currentCity) return;
+  const cityValidForCounty = citiesForCounty.some((c) => String(c).trim().toLowerCase() === currentCity.toLowerCase());
+  if (!cityValidForCounty) {
+    profile.value.city = '';
   }
 });
 
@@ -4018,7 +4377,7 @@ onMounted(async () => {
   isPageLoading.value = true;
   loadingContext.value = 'staff';
   loadingProgress.value = 0;
-  
+
   const loadingTasks = [
     { fn: loadNYLocationData, weight: 5 },
     { fn: loadTrainingCenters, weight: 5 },
@@ -4026,10 +4385,10 @@ onMounted(async () => {
     { fn: loadAvailableClients, weight: 10 },
     { fn: loadSidebarNotificationCount, weight: 3 }
   ];
-  
+
   const totalWeight = 100;
   let completedWeight = 0;
-  
+
   // Execute initial tasks in parallel
   const initialPromises = loadingTasks.map(async (task) => {
     try {
@@ -4041,14 +4400,14 @@ onMounted(async () => {
       loadingProgress.value = Math.round((completedWeight / totalWeight) * 100);
     }
   });
-  
+
   await Promise.allSettled(initialPromises);
-  
+
   // Load profile first (needs to complete before other caregiver-specific tasks)
   loadingProgress.value = 35;
   await loadProfile();
   loadingProgress.value = 50;
-  
+
   if (caregiverId.value) {
     const caregiverTasks = [
       { fn: loadCaregiverStats, weight: 10 },
@@ -4059,7 +4418,7 @@ onMounted(async () => {
       { fn: loadPaymentData, weight: 5 },
       { fn: loadPastBookings, weight: 5 }
     ];
-    
+
     const caregiverPromises = caregiverTasks.map(async (task) => {
       try {
         await task.fn();
@@ -4070,27 +4429,25 @@ onMounted(async () => {
         loadingProgress.value = Math.min(95, Math.round((completedWeight / totalWeight) * 100));
       }
     });
-    
+
     await Promise.allSettled(caregiverPromises);
   }
-  
+
   // Ensure progress shows 100%
   loadingProgress.value = 100;
-  
-  // Small delay to show completion, then hide overlay
-  setTimeout(() => {
-    isPageLoading.value = false;
-  }, 300);
-  
+
+  // Hide overlay immediately
+  isPageLoading.value = false;
+
   if (currentSection.value === 'analytics') {
     setTimeout(initCharts, 500);
   }
-  
+
   // Update time every minute for responsive dates
   setInterval(() => {
     currentTime.value = new Date();
   }, 60000);
-  
+
   // Refresh assignment status every 30 seconds for real-time updates
   // (5 seconds was too aggressive and caused performance issues)
   setInterval(() => {
@@ -4101,7 +4458,7 @@ onMounted(async () => {
       loadPaymentData(); // Refresh payment data in real-time
     }
   }, 30000);
-  
+
   // Refresh notification count every 30 seconds
   setInterval(loadSidebarNotificationCount, 30000);
 });
@@ -5414,82 +5771,83 @@ onMounted(async () => {
   color: #374151;
 }
 
-.week-calendar {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap: 12px;
+/* Minimalist Weekly Schedule Grid */
+.schedule-grid {
+  display: flex;
+  gap: 4px;
+  justify-content: space-between;
 }
 
-.day-card {
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
-  overflow: hidden;
-  background: white;
-  transition: all 0.2s ease;
-}
-
-.day-card:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  transform: translateY(-2px);
-}
-
-.day-header {
+.schedule-day {
+  flex: 1;
+  text-align: center;
+  padding: 8px 4px;
+  border-radius: 8px;
   background: #f8fafc;
-  padding: 8px;
-  text-align: center;
-  border-bottom: 1px solid #e5e7eb;
+  transition: all 0.15s ease;
+  min-width: 0;
 }
 
-.day-header.today {
-  background: #10b981;
-  color: white;
+.schedule-day.is-today {
+  background: #ecfdf5;
+  border: 1px solid #10b981;
 }
 
-.day-name {
-  font-size: 0.75rem;
+.schedule-day.is-assigned {
+  background: #f0fdf4;
+}
+
+.schedule-day .day-label {
+  font-size: 11px;
   font-weight: 600;
+  color: #64748b;
   text-transform: uppercase;
+  margin-bottom: 4px;
 }
 
-.day-date {
-  font-size: 0.875rem;
-  font-weight: 700;
-  margin-top: 2px;
+.schedule-day.is-today .day-label {
+  color: #10b981;
 }
 
-.day-content {
-  padding: 12px 8px;
-  min-height: 80px;
+.schedule-day .day-status {
+  font-size: 11px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
 }
 
-.time-entry {
-  margin-bottom: 8px;
+.schedule-day .day-status.assigned {
+  color: #10b981;
+  font-weight: 500;
 }
 
-.time-label {
-  font-size: 0.7rem;
-  color: #6b7280;
-  text-transform: uppercase;
-  font-weight: 600;
+.schedule-day .day-status.off {
+  color: #cbd5e1;
 }
 
-.time-value {
-  font-size: 0.8rem;
-  font-weight: 600;
-  margin-top: 2px;
+.schedule-day .time-label {
+  font-size: 10px;
 }
 
-.total-hours {
-  text-align: center;
-  margin-top: 8px;
-}
+@media (max-width: 600px) {
+  .schedule-grid {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
 
-.no-data {
-  text-align: center;
-  color: #9ca3af;
-  font-size: 0.75rem;
-  font-style: italic;
-  margin-top: 20px;
+  .schedule-day {
+    flex: 0 0 calc(25% - 6px);
+    padding: 6px 2px;
+  }
+
+  .schedule-day .day-label {
+    font-size: 10px;
+  }
+
+  .schedule-day .time-label {
+    font-size: 9px;
+  }
 }
 
 /* Fix first column width for tables WITHOUT checkboxes */
@@ -5620,7 +5978,7 @@ onMounted(async () => {
     margin-left: -4px !important;
     margin-right: -4px !important;
   }
-  
+
   .earnings-stats-row > .v-col {
     padding: 4px !important;
   }
@@ -5631,62 +5989,62 @@ onMounted(async () => {
     align-items: stretch !important;
     gap: 12px !important;
   }
-  
+
   .earnings-chart-header .section-title {
     text-align: center;
   }
-  
+
   .period-toggle {
     width: 100% !important;
     display: flex !important;
   }
-  
+
   .period-toggle .v-btn {
     flex: 1 !important;
   }
-  
+
   /* Chart Stats Row */
   .chart-stats-row {
     display: grid !important;
     grid-template-columns: repeat(3, 1fr) !important;
     gap: 10px !important;
   }
-  
+
   .chart-stats-row .chart-stat {
     text-align: center;
   }
-  
+
   /* Earnings Report Header */
   [class*="analytics"] .card-header {
     flex-direction: column !important;
     align-items: flex-start !important;
     gap: 12px !important;
   }
-  
+
   [class*="analytics"] .card-header .d-flex {
     width: 100% !important;
     flex-wrap: wrap !important;
     gap: 10px !important;
   }
-  
+
   /* Stats cards - 2 columns on tablet */
   .stat-card-earnings .v-card-text {
     padding: 16px !important;
   }
-  
+
   .stat-card-earnings .text-h5 {
     font-size: 1.25rem !important;
   }
-  
+
   /* Chart stats row */
   .chart-stat {
     padding: 10px 12px;
   }
-  
+
   .chart-stat .stat-value {
     font-size: 1.25rem;
   }
-  
+
   .chart-stat .stat-label {
     font-size: 0.7rem;
   }
@@ -5700,26 +6058,26 @@ onMounted(async () => {
   .earnings-chart-card {
     border-radius: 12px !important;
   }
-  
+
   .earnings-chart-header {
     padding: 14px 16px !important;
     flex-direction: column !important;
     align-items: center !important;
     gap: 12px !important;
   }
-  
+
   .earnings-chart-header .section-title {
     font-size: 1rem !important;
     text-align: center !important;
   }
-  
+
   .period-toggle {
     width: 100% !important;
     display: flex !important;
     border-radius: 10px !important;
     overflow: hidden !important;
   }
-  
+
   .period-toggle .v-btn {
     flex: 1 !important;
     font-size: 0.8125rem !important;
@@ -5727,7 +6085,7 @@ onMounted(async () => {
     min-height: 40px !important;
     border-radius: 0 !important;
   }
-  
+
   /* Chart Stats Row - 3 column grid */
   .chart-stats-row {
     display: grid !important;
@@ -5738,29 +6096,29 @@ onMounted(async () => {
     border-radius: 10px !important;
     margin-bottom: 16px !important;
   }
-  
+
   .chart-stats-row .chart-stat {
     background: transparent !important;
     padding: 8px 4px !important;
     text-align: center !important;
     border-radius: 0 !important;
   }
-  
+
   .chart-stats-row .chart-stat .stat-value {
     font-size: 1rem !important;
   }
-  
+
   .chart-stats-row .chart-stat .stat-label {
     font-size: 0.625rem !important;
     margin-top: 2px !important;
   }
-  
+
   /* Chart Container */
   .chart-container {
     height: 180px !important;
     min-height: 150px !important;
   }
-  
+
   .earnings-chart-card .v-card-text {
     padding: 14px !important;
   }
@@ -5771,50 +6129,50 @@ onMounted(async () => {
     margin-right: -4px !important;
     margin-bottom: 16px !important;
   }
-  
+
   .earnings-stats-row > .v-col {
     padding: 4px !important;
   }
-  
+
   /* Stat cards in 2x2 grid - stacked layout */
   .earnings-stats-row .stat-card-earnings {
     height: 100% !important;
     border-radius: 12px !important;
   }
-  
+
   .earnings-stats-row .stat-card-earnings .v-card-text {
     padding: 12px !important;
     height: 100% !important;
   }
-  
+
   .earnings-stats-row .stat-card-earnings .v-card-text > .d-flex {
     flex-direction: column !important;
     align-items: center !important;
     text-align: center !important;
     gap: 8px !important;
   }
-  
+
   .earnings-stats-row .stat-card-earnings .v-avatar {
     width: 36px !important;
     height: 36px !important;
     order: -1 !important;
   }
-  
+
   .earnings-stats-row .stat-card-earnings .v-avatar .v-icon {
     font-size: 18px !important;
   }
-  
+
   .earnings-stats-row .stat-card-earnings .text-h5 {
     font-size: 1rem !important;
     line-height: 1.2 !important;
     margin: 4px 0 !important;
   }
-  
+
   .earnings-stats-row .stat-card-earnings .text-caption {
     font-size: 0.625rem !important;
     line-height: 1.3 !important;
   }
-  
+
   .earnings-stats-row .stat-card-earnings .text-caption .v-icon {
     font-size: 10px !important;
   }
@@ -5826,161 +6184,161 @@ onMounted(async () => {
     align-items: stretch !important;
     gap: 12px !important;
   }
-  
+
   [class*="analytics"] .v-card-title.card-header > div:first-child {
     text-align: center;
   }
-  
+
   [class*="analytics"] .v-card-title.card-header .section-title {
     font-size: 1.125rem !important;
   }
-  
+
   [class*="analytics"] .v-card-title.card-header .text-caption {
     font-size: 0.75rem !important;
   }
-  
+
   [class*="analytics"] .v-card-title.card-header .d-flex.align-center.ga-2 {
     flex-direction: column !important;
     width: 100% !important;
     gap: 10px !important;
   }
-  
+
   [class*="analytics"] .v-card-title.card-header .v-select {
     width: 100% !important;
   }
-  
+
   [class*="analytics"] .v-card-title.card-header .v-btn {
     width: 100% !important;
   }
-  
+
   /* Stats Cards - 2x2 grid on mobile */
   .stat-card-earnings {
     border-radius: 12px !important;
   }
-  
+
   .stat-card-earnings .v-card-text {
     padding: 12px !important;
   }
-  
+
   .stat-card-earnings .v-card-text > .d-flex {
     flex-direction: column-reverse !important;
     text-align: center !important;
     gap: 10px !important;
   }
-  
+
   .stat-card-earnings .v-avatar {
     width: 40px !important;
     height: 40px !important;
     margin: 0 auto !important;
   }
-  
+
   .stat-card-earnings .v-avatar .v-icon {
     font-size: 20px !important;
   }
-  
+
   .stat-card-earnings .text-h5 {
     font-size: 1.125rem !important;
     margin-top: 4px !important;
   }
-  
+
   .stat-card-earnings .text-caption {
     font-size: 0.6875rem !important;
   }
-  
+
   /* Salary Range Card clickable */
   .stat-card-earnings.hover-highlight {
     cursor: pointer;
   }
-  
+
   .stat-card-earnings.hover-highlight:active {
     transform: scale(0.98);
     background: rgba(76, 175, 80, 0.08) !important;
   }
-  
+
   /* Earnings Breakdown Card */
   .earnings-breakdown-item .d-flex {
     flex-direction: column !important;
     align-items: flex-start !important;
     gap: 8px !important;
   }
-  
+
   .earnings-breakdown-item .text-h6 {
     font-size: 1.125rem !important;
   }
-  
+
   .earnings-breakdown-item .text-h5 {
     font-size: 1.25rem !important;
   }
-  
+
   .earnings-breakdown-detail .d-flex {
     flex-direction: row !important;
     justify-content: space-between !important;
   }
-  
+
   .earnings-breakdown-detail span {
     font-size: 0.8125rem !important;
   }
-  
+
   /* Time Tracking Summary */
   .time-tracking-summary .d-flex.justify-space-between {
     gap: 12px;
   }
-  
+
   .time-tracking-summary .text-h5 {
     font-size: 1.125rem !important;
   }
-  
+
   .time-tracking-summary .v-avatar {
     width: 36px !important;
     height: 36px !important;
   }
-  
+
   .time-tracking-summary .v-avatar .v-icon {
     font-size: 18px !important;
   }
-  
+
   /* Earnings Chart Section */
   .chart-stat {
     padding: 8px 10px;
     border-radius: 8px;
   }
-  
+
   .chart-stat .stat-value {
     font-size: 1rem !important;
   }
-  
+
   .chart-stat .stat-label {
     font-size: 0.625rem !important;
   }
-  
+
   /* Chart toggle buttons */
   .v-btn-toggle.v-btn-group--density-default {
     display: flex !important;
     width: 100% !important;
     margin-top: 8px !important;
   }
-  
+
   .v-btn-toggle .v-btn {
     flex: 1 !important;
     font-size: 0.75rem !important;
     padding: 8px 12px !important;
   }
-  
+
   /* Chart container */
   [style*="height: 250px"] {
     height: 180px !important;
   }
-  
+
   /* Earnings History Table - Card view on mobile */
   :deep(.table-no-checkbox) {
     overflow: visible !important;
   }
-  
+
   :deep(.table-no-checkbox .v-table__wrapper) {
     overflow-x: auto !important;
     -webkit-overflow-scrolling: touch !important;
   }
-  
+
   :deep(.table-no-checkbox table) {
     min-width: 500px !important;
   }
@@ -5996,37 +6354,37 @@ onMounted(async () => {
     margin-right: -3px !important;
     margin-bottom: 12px !important;
   }
-  
+
   .earnings-stats-row > .v-col {
     padding: 3px !important;
   }
-  
+
   .earnings-stats-row .stat-card-earnings {
     border-radius: 10px !important;
   }
-  
+
   .earnings-stats-row .stat-card-earnings .v-card-text {
     padding: 10px 8px !important;
   }
-  
+
   .earnings-stats-row .stat-card-earnings .v-avatar {
     width: 32px !important;
     height: 32px !important;
   }
-  
+
   .earnings-stats-row .stat-card-earnings .v-avatar .v-icon {
     font-size: 16px !important;
   }
-  
+
   .earnings-stats-row .stat-card-earnings .text-h5 {
     font-size: 0.875rem !important;
   }
-  
+
   .earnings-stats-row .stat-card-earnings .text-caption {
     font-size: 0.5625rem !important;
     line-height: 1.25 !important;
   }
-  
+
   .earnings-stats-row .stat-card-earnings .text-caption .v-icon {
     font-size: 8px !important;
   }
@@ -6035,26 +6393,26 @@ onMounted(async () => {
   .earnings-chart-card {
     border-radius: 10px !important;
   }
-  
+
   .earnings-chart-header {
     padding: 12px !important;
     gap: 10px !important;
   }
-  
+
   .earnings-chart-header .section-title {
     font-size: 0.9375rem !important;
   }
-  
+
   .period-toggle {
     border-radius: 8px !important;
   }
-  
+
   .period-toggle .v-btn {
     font-size: 0.6875rem !important;
     padding: 8px 6px !important;
     min-height: 36px !important;
   }
-  
+
   /* Chart Stats Row - Very Compact */
   .chart-stats-row {
     gap: 6px !important;
@@ -6062,26 +6420,26 @@ onMounted(async () => {
     border-radius: 8px !important;
     margin-bottom: 12px !important;
   }
-  
+
   .chart-stats-row .chart-stat {
     padding: 6px 2px !important;
   }
-  
+
   .chart-stats-row .chart-stat .stat-value {
     font-size: 0.875rem !important;
   }
-  
+
   .chart-stats-row .chart-stat .stat-label {
     font-size: 0.5625rem !important;
     line-height: 1.2 !important;
   }
-  
+
   /* Chart Container - Very Compact */
   .chart-container {
     height: 150px !important;
     min-height: 120px !important;
   }
-  
+
   .earnings-chart-card .v-card-text {
     padding: 10px !important;
   }
@@ -6090,158 +6448,158 @@ onMounted(async () => {
   [class*="analytics"] .v-card-title.card-header {
     padding: 12px !important;
   }
-  
+
   [class*="analytics"] .v-card-title.card-header .section-title {
     font-size: 1rem !important;
   }
-  
+
   /* Stats Cards - very compact */
   .stat-card-earnings {
     border-radius: 10px !important;
   }
-  
+
   .stat-card-earnings .v-card-text {
     padding: 10px !important;
   }
-  
+
   .stat-card-earnings .text-h5 {
     font-size: 1rem !important;
   }
-  
+
   .stat-card-earnings .text-caption {
     font-size: 0.625rem !important;
     line-height: 1.3 !important;
   }
-  
+
   .stat-card-earnings .v-avatar {
     width: 36px !important;
     height: 36px !important;
   }
-  
+
   .stat-card-earnings .v-avatar .v-icon {
     font-size: 18px !important;
   }
-  
+
   /* Breakdown Cards - very compact */
   .earnings-breakdown-item .text-h6,
   .earnings-breakdown-item .font-weight-medium {
     font-size: 0.9375rem !important;
   }
-  
+
   .earnings-breakdown-item .text-h5 {
     font-size: 1.125rem !important;
   }
-  
+
   .earnings-breakdown-detail span {
     font-size: 0.75rem !important;
   }
-  
+
   /* Progress bar */
   :deep(.v-progress-linear) {
     height: 6px !important;
   }
-  
+
   /* Time Tracking Summary - very compact */
   .time-tracking-summary .text-h5 {
     font-size: 1rem !important;
   }
-  
+
   .time-tracking-summary .text-caption {
     font-size: 0.6875rem !important;
   }
-  
+
   .time-tracking-summary .v-avatar {
     width: 32px !important;
     height: 32px !important;
   }
-  
+
   .time-tracking-summary .v-avatar .v-icon {
     font-size: 16px !important;
   }
-  
+
   /* Chart section - very compact */
   .chart-stat {
     padding: 6px 8px;
     border-radius: 6px;
   }
-  
+
   .chart-stat .stat-value {
     font-size: 0.875rem !important;
   }
-  
+
   .chart-stat .stat-label {
     font-size: 0.5625rem !important;
   }
-  
+
   /* Chart toggle buttons */
   .v-btn-toggle .v-btn {
     font-size: 0.6875rem !important;
     padding: 6px 10px !important;
     min-height: 32px !important;
   }
-  
+
   /* Chart height */
   [style*="height: 250px"],
   [style*="height: 180px"] {
     height: 150px !important;
   }
-  
+
   /* Card padding - very compact */
   .v-card-text.pa-6 {
     padding: 14px !important;
   }
-  
+
   .v-card-title.card-header.pa-6 {
     padding: 12px 14px !important;
   }
-  
+
   /* Dividers - tighter spacing */
   :deep(.v-divider.my-4) {
     margin-top: 12px !important;
     margin-bottom: 12px !important;
   }
-  
+
   :deep(.v-divider.my-3) {
     margin-top: 8px !important;
     margin-bottom: 8px !important;
   }
-  
+
   /* Row spacing */
   :deep(.v-row.mb-6) {
     margin-bottom: 16px !important;
   }
-  
+
   /* Column spacing on mobile */
   :deep(.v-col) {
     padding: 6px !important;
   }
-  
+
   /* Earnings history table */
   :deep(.v-data-table) {
     border-radius: 12px !important;
     overflow: hidden !important;
   }
-  
+
   :deep(.v-data-table th) {
     font-size: 0.6875rem !important;
     padding: 10px 8px !important;
   }
-  
+
   :deep(.v-data-table td) {
     font-size: 0.75rem !important;
     padding: 10px 8px !important;
   }
-  
+
   /* Avatar in table */
   :deep(.v-data-table .v-avatar) {
     width: 24px !important;
     height: 24px !important;
   }
-  
+
   :deep(.v-data-table .v-avatar .text-caption) {
     font-size: 0.5rem !important;
   }
-  
+
   /* Chips in table */
   :deep(.v-data-table .v-chip) {
     font-size: 0.625rem !important;
@@ -6260,12 +6618,12 @@ onMounted(async () => {
   [style*="height: 150px"] {
     height: 120px !important;
   }
-  
+
   /* Compact stats cards in landscape */
   .stat-card-earnings .v-card-text {
     padding: 8px !important;
   }
-  
+
   .stat-card-earnings .v-avatar {
     width: 28px !important;
     height: 28px !important;
@@ -6280,17 +6638,17 @@ onMounted(async () => {
   .stat-card-earnings.hover-highlight {
     min-height: 100px;
   }
-  
+
   .v-btn-toggle .v-btn {
     min-height: 44px !important;
   }
-  
+
   /* Remove hover effects on touch */
   .stat-card-earnings:hover {
     transform: none !important;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06) !important;
   }
-  
+
   /* Active state for touch */
   .stat-card-earnings:active,
   .stat-card-earnings.hover-highlight:active {
@@ -6312,38 +6670,38 @@ onMounted(async () => {
     flex: 0 0 100% !important;
     max-width: 100% !important;
   }
-  
+
   /* Compact card headers */
   .v-card-title {
     font-size: 1rem !important;
     padding: 12px !important;
   }
-  
+
   .v-card-text {
     padding: 12px !important;
   }
-  
+
   /* Touch-friendly buttons */
   .v-btn:not(.v-btn--icon) {
     min-height: 44px !important;
     font-size: 0.8rem !important;
   }
-  
+
   /* Chips minimum size */
   .v-chip {
     min-height: 32px !important;
     font-size: 0.75rem !important;
   }
-  
+
   /* Stats grid compactness */
   .stat-card-earnings {
     padding: 10px !important;
   }
-  
+
   .stat-card-earnings .stat-value {
     font-size: 1.25rem !important;
   }
-  
+
   .stat-card-earnings .stat-label {
     font-size: 0.7rem !important;
   }
@@ -6354,22 +6712,22 @@ onMounted(async () => {
   .section-title {
     font-size: 1.1rem !important;
   }
-  
+
   .page-subtitle {
     font-size: 1.25rem !important;
   }
-  
+
   .card-name {
     font-size: 1rem !important;
   }
-  
+
   /* Stack buttons vertically */
   .d-flex.gap-2,
   .d-flex.ga-2 {
     flex-direction: column !important;
     width: 100%;
   }
-  
+
   .d-flex.gap-2 > .v-btn,
   .d-flex.ga-2 > .v-btn {
     width: 100% !important;
@@ -6383,7 +6741,7 @@ onMounted(async () => {
     -webkit-overflow-scrolling: touch;
     position: relative;
   }
-  
+
   /* Scroll fade indicator */
   .v-data-table__wrapper::after {
     content: '';
@@ -6412,7 +6770,7 @@ onMounted(async () => {
     min-height: 44px !important;
     min-width: 44px !important;
   }
-  
+
   /* Ensure icon buttons in tables have adequate touch targets */
   .v-data-table .v-btn--icon,
   .action-btn-view,
@@ -6423,7 +6781,7 @@ onMounted(async () => {
     width: 44px !important;
     height: 44px !important;
   }
-  
+
   /* Filter controls touch optimization */
   .v-text-field .v-field,
   .v-select .v-field {
@@ -6466,7 +6824,7 @@ onMounted(async () => {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
-  
+
   .notification-dot,
   [class*="pulse"] {
     animation: none !important;
@@ -6497,7 +6855,7 @@ button:focus-visible {
   :deep(.v-data-table) .v-table__wrapper {
     overflow-x: auto !important;
     -webkit-overflow-scrolling: touch !important;
-    background: 
+    background:
       linear-gradient(to right, white 20px, transparent 60px),
       linear-gradient(to left, white 20px, transparent 60px) 100% 0,
       linear-gradient(to right, rgba(0,0,0,0.06) 0, transparent 15px),
@@ -6517,6 +6875,198 @@ button:focus-visible {
     font-size: 0.8125rem !important;
     line-height: 1.5 !important;
   }
+}
+
+/* Avatar Success Modal Styles */
+.avatar-success-modal {
+  border-radius: 16px !important;
+  overflow: hidden;
+}
+
+.success-modal-title {
+  font-size: 1.5rem !important;
+  font-weight: 700 !important;
+  color: #2e7d32 !important;
+  text-align: center;
+  margin-top: 16px;
+}
+
+.success-modal-message {
+  font-size: 1rem !important;
+  color: #616161 !important;
+  text-align: center;
+  padding: 8px 24px 0 24px;
+}
+
+.success-animation-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding-top: 20px;
+}
+
+.success-checkmark {
+  width: 80px;
+  height: 80px;
+  position: relative;
+}
+
+.success-checkmark .check-icon {
+  width: 80px;
+  height: 80px;
+  position: relative;
+  border-radius: 50%;
+  box-sizing: content-box;
+  border: 4px solid #4CAF50;
+}
+
+.success-checkmark .check-icon::before {
+  top: 3px;
+  left: -2px;
+  width: 30px;
+  transform-origin: 100% 50%;
+  border-radius: 100px 0 0 100px;
+}
+
+.success-checkmark .check-icon::after {
+  top: 0;
+  left: 30px;
+  width: 60px;
+  transform-origin: 0 50%;
+  border-radius: 0 100px 100px 0;
+  animation: rotate-circle 4.25s ease-in;
+}
+
+.success-checkmark .check-icon::before,
+.success-checkmark .check-icon::after {
+  content: '';
+  height: 100px;
+  position: absolute;
+  background: #FFFFFF;
+  transform: rotate(-45deg);
+}
+
+.success-checkmark .check-icon .icon-line {
+  height: 5px;
+  background-color: #4CAF50;
+  display: block;
+  border-radius: 2px;
+  position: absolute;
+  z-index: 10;
+}
+
+.success-checkmark .check-icon .icon-line.line-tip {
+  top: 46px;
+  left: 14px;
+  width: 25px;
+  transform: rotate(45deg);
+  animation: icon-line-tip 0.75s;
+}
+
+.success-checkmark .check-icon .icon-line.line-long {
+  top: 38px;
+  right: 8px;
+  width: 47px;
+  transform: rotate(-45deg);
+  animation: icon-line-long 0.75s;
+}
+
+.success-checkmark .check-icon .icon-circle {
+  top: -4px;
+  left: -4px;
+  z-index: 10;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  position: absolute;
+  box-sizing: content-box;
+  border: 4px solid rgba(76, 175, 80, 0.5);
+}
+
+.success-checkmark .check-icon .icon-fix {
+  top: 8px;
+  width: 5px;
+  left: 26px;
+  z-index: 1;
+  height: 85px;
+  position: absolute;
+  transform: rotate(-45deg);
+  background-color: #FFFFFF;
+}
+
+@keyframes rotate-circle {
+  0% { transform: rotate(-45deg); }
+  5% { transform: rotate(-45deg); }
+  12% { transform: rotate(-405deg); }
+  100% { transform: rotate(-405deg); }
+}
+
+@keyframes icon-line-tip {
+  0% { width: 0; left: 1px; top: 19px; }
+  54% { width: 0; left: 1px; top: 19px; }
+  70% { width: 50px; left: -8px; top: 37px; }
+  84% { width: 17px; left: 21px; top: 48px; }
+  100% { width: 25px; left: 14px; top: 46px; }
+}
+
+@keyframes icon-line-long {
+  0% { width: 0; right: 46px; top: 54px; }
+  65% { width: 0; right: 46px; top: 54px; }
+  84% { width: 55px; right: 0px; top: 35px; }
+  100% { width: 47px; right: 8px; top: 38px; }
+}
+
+.avatar-success-modal {
+  animation: modalSlideIn 0.3s ease-out;
+}
+
+@keyframes modalSlideIn {
+  0% { opacity: 0; transform: scale(0.8) translateY(-20px); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+/* Error Modal Styles */
+.error-modal-card {
+  border-radius: 16px !important;
+  overflow: hidden;
+}
+
+.error-modal-header {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+}
+
+.error-list {
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.error-item {
+  display: flex;
+  align-items: flex-start;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+/* Error Modal Styles */
+.error-modal-card {
+  border-radius: 16px !important;
+  overflow: hidden;
+}
+
+.error-modal-header {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+}
+
+.error-list {
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.error-item {
+  display: flex;
+  align-items: flex-start;
+  font-size: 0.95rem;
+  line-height: 1.5;
 }
 
 </style>

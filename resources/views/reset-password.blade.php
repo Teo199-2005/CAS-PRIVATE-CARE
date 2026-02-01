@@ -421,7 +421,7 @@
 
     <div class="auth-container">
         <div class="auth-logo">
-            <img src="{{ asset('logo flower.png') }}" alt="CAS Private Care LLC Logo">
+            <img src="{{ asset('logo flower.png') }}" alt="CAS Private Care LLC Logo" width="130" height="130" fetchpriority="high">
         </div>
 
         <div class="auth-header">

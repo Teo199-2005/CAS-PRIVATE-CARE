@@ -39,3 +39,5 @@ class AnnouncementEmail extends Mailable
 
 
 
+
+

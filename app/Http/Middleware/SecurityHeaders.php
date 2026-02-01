@@ -100,8 +100,8 @@ class SecurityHeaders
             // Note: 'unsafe-eval' REMOVED - Vue.js now uses pre-compiled templates via Vite
             "script-src 'self' 'nonce-{$nonce}' 'strict-dynamic' https://js.stripe.com https://www.google.com https://www.gstatic.com https://connect.facebook.net https://cdn.jsdelivr.net https://www.googletagmanager.com",
             
-            // Styles - allow self, nonce for inline styles, and font CDNs
-            "style-src 'self' 'nonce-{$nonce}' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net",
+            // Styles - use nonce for inline styles (no unsafe-inline for maximum security)
+            "style-src 'self' 'nonce-{$nonce}' https://fonts.googleapis.com https://cdn.jsdelivr.net",
             
             // Images - allow self, data URIs, https sources, and blob
             "img-src 'self' data: https: blob:",
@@ -139,8 +139,9 @@ class SecurityHeaders
             // Upgrade insecure requests in production
             "upgrade-insecure-requests",
             
-            // Report violations (optional - uncomment and set your endpoint)
-            // "report-uri /api/csp-report",
+            // Report violations to internal endpoint for security monitoring
+            "report-uri /api/csp-report",
+            "report-to csp-endpoint",
         ];
         
         return implode('; ', $directives);

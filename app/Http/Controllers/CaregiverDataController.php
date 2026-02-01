@@ -207,17 +207,32 @@ class CaregiverDataController extends Controller
     }
 
     /**
-     * Get training centers for dropdown
+     * Get training centers for dropdown (Active + pending so caregivers can select any registered center).
+     * Uses name or email as fallback so centers with null name still appear.
      */
     public function trainingCenters()
     {
-        $trainingCenters = User::whereIn('user_type', ['training_center', 'training'])
-            ->where('status', 'Active')
+        $users = User::whereIn('user_type', ['training_center', 'training'])
+            ->whereIn('status', ['Active', 'pending'])
             ->orderBy('name', 'asc')
-            ->pluck('name')
+            ->get(['id', 'name', 'email']);
+
+        $trainingCenters = $users
+            ->map(function ($u) {
+                $label = trim($u->name ?? $u->email ?? '') ?: null;
+                if (!$label) return null;
+                // If name is duplicated (e.g. "x x"), show once
+                if (preg_match('/^(.+)\s+\1$/u', $label, $m)) {
+                    $label = trim($m[1]);
+                }
+                return $label;
+            })
+            ->filter()
+            ->values()
+            ->unique()
             ->values()
             ->toArray();
-        
+
         return response()->json(['trainingCenters' => $trainingCenters]);
     }
 

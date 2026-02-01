@@ -61,10 +61,14 @@ class ReferralCodeController extends Controller
         $referralCode = ReferralCode::findValidCode($code);
 
         if (!$referralCode) {
+            $inactive = ReferralCode::whereRaw('UPPER(TRIM(code)) = ?', [$code])->first();
+            $message = $inactive
+                ? 'This referral code is currently inactive. Please contact the marketing partner.'
+                : 'Invalid or inactive referral code';
             return response()->json([
                 'success' => false,
                 'valid' => false,
-                'message' => 'Invalid or inactive referral code'
+                'message' => $message
             ]);
         }
 
@@ -72,6 +76,7 @@ class ReferralCodeController extends Controller
             'success' => true,
             'valid' => true,
             'data' => [
+                'id' => $referralCode->id,
                 'code' => $referralCode->code,
                 'discount_per_hour' => $referralCode->discount_per_hour,
                 'marketing_name' => $referralCode->user->name ?? 'CAS Marketing',

@@ -48,7 +48,8 @@
             overflow-x: hidden;
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
-            background: #f8fafc;
+            background-color: #ffffff;
+            background-image: url("https://www.transparenttextures.com/patterns/batthern.png");
         }
 
         /* Contact Hero Section */
@@ -110,6 +111,8 @@
             padding: 0;
             position: relative;
             margin-top: -3rem;
+            background-color: #ffffff;
+            background-image: url("https://www.transparenttextures.com/patterns/batthern.png");
         }
 
         .contact-container {
@@ -374,7 +377,11 @@
             to { transform: rotate(360deg); }
         }
 
-        /* Responsive Design */
+        /* =============================================================
+           MOBILE RESPONSIVE DESIGN - Contact Page
+           ============================================================= */
+        
+        /* Tablets (769px - 1024px) */
         @media (max-width: 1024px) {
             .contact-grid {
                 grid-template-columns: 1fr;
@@ -390,56 +397,194 @@
             }
         }
 
+        /* Standard Mobile (768px) */
         @media (max-width: 768px) {
+            /* Contact Hero */
             .contact-hero {
-                padding: 3rem 1.5rem 4rem;
+                margin-top: 70px;
+                padding: 2.5rem 1.25rem 3.5rem;
             }
 
             .contact-hero h1 {
-                font-size: 2.5rem;
+                font-size: 2rem;
+                line-height: 1.2;
+                margin-bottom: 0.75rem;
             }
 
             .contact-hero p {
-                font-size: 1.1rem;
+                font-size: 1rem;
+                line-height: 1.6;
             }
-
-            .contact-form-side h2 {
-                font-size: 2rem;
-            }
-
-            .form-row {
-                grid-template-columns: 1fr;
-            }
-
-            .contact-form-side,
-            .contact-info-side {
-                padding: 2.5rem 1.5rem;
-            }
-
-            .contact-info-side h3 {
-                font-size: 1.75rem;
+            
+            /* Contact Section */
+            .contact-section {
+                margin-top: -2rem;
             }
 
             .contact-container {
                 padding: 0 1rem;
             }
+            
+            .contact-grid {
+                border-radius: 20px;
+                box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+            }
+
+            /* Form Side */
+            .contact-form-side {
+                padding: 2rem 1.5rem;
+            }
+            
+            .contact-form-side h2 {
+                font-size: 1.5rem;
+                margin-bottom: 0.5rem;
+            }
+            
+            .contact-form-side > p {
+                font-size: 0.9rem;
+                margin-bottom: 1.5rem;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+            
+            .form-group {
+                margin-bottom: 1rem;
+            }
+            
+            .form-group label {
+                font-size: 0.9rem;
+                margin-bottom: 0.375rem;
+            }
+            
+            .form-input,
+            .form-select,
+            .form-textarea {
+                padding: 0.875rem 1rem;
+                font-size: 16px; /* Prevents iOS zoom */
+                border-radius: 10px;
+            }
+            
+            .form-textarea {
+                min-height: 120px;
+            }
+            
+            .submit-btn {
+                width: 100%;
+                padding: 0.875rem 1.5rem;
+                font-size: 1rem;
+                min-height: 48px;
+            }
+
+            /* Info Side */
+            .contact-info-side {
+                padding: 2rem 1.5rem;
+            }
+
+            .contact-info-side h3 {
+                font-size: 1.5rem;
+                margin-bottom: 0.5rem;
+            }
+            
+            .contact-info-side > p {
+                font-size: 0.9rem;
+            }
+            
+            .contact-info-item {
+                padding: 1rem;
+                margin-bottom: 1rem;
+            }
+            
+            .contact-info-item i {
+                font-size: 1.25rem;
+            }
+            
+            .contact-info-item h4 {
+                font-size: 0.95rem;
+            }
+            
+            .contact-info-item p,
+            .contact-info-item a {
+                font-size: 0.85rem;
+            }
+            
+            /* Social Links */
+            .social-links {
+                gap: 0.75rem;
+            }
+            
+            .social-link {
+                width: 44px;
+                height: 44px;
+                min-width: 44px;
+            }
+            
+            /* Map */
+            .map-container {
+                height: 250px;
+                border-radius: 12px;
+            }
         }
 
+        /* Small Phones (480px) */
         @media (max-width: 480px) {
+            .contact-hero {
+                padding: 2rem 1rem 3rem;
+            }
+            
             .contact-hero h1 {
-                font-size: 2rem;
-            }
-
-            .contact-hero p {
-                font-size: 1rem;
-            }
-
-            .contact-form-side h2 {
                 font-size: 1.75rem;
             }
 
+            .contact-hero p {
+                font-size: 0.9rem;
+            }
+
+            .contact-form-side,
+            .contact-info-side {
+                padding: 1.5rem 1.25rem;
+            }
+
+            .contact-form-side h2,
+            .contact-info-side h3 {
+                font-size: 1.35rem;
+            }
+
             .contact-grid {
-                border-radius: 20px;
+                border-radius: 16px;
+            }
+            
+            .form-input,
+            .form-select,
+            .form-textarea {
+                padding: 0.75rem 0.875rem;
+            }
+        }
+        
+        /* Very Small Phones (360px) */
+        @media (max-width: 360px) {
+            .contact-hero h1 {
+                font-size: 1.5rem;
+            }
+            
+            .contact-form-side h2,
+            .contact-info-side h3 {
+                font-size: 1.2rem;
+            }
+            
+            .contact-form-side,
+            .contact-info-side {
+                padding: 1.25rem 1rem;
+            }
+            
+            .contact-info-item {
+                padding: 0.875rem;
+            }
+            
+            .contact-info-item h4 {
+                font-size: 0.9rem;
             }
         }
 
@@ -469,14 +614,37 @@
             opacity: 1;
             transform: translateX(0);
         }
+
+        /* Skip Link for Accessibility */
+        .skip-link {
+            position: absolute;
+            top: -40px;
+            left: 0;
+            background: #1e40af;
+            color: white;
+            padding: 8px 16px;
+            z-index: 10000;
+            text-decoration: none;
+            font-weight: 600;
+            border-radius: 0 0 4px 0;
+            transition: top 0.3s ease;
+        }
+        .skip-link:focus {
+            top: 0;
+            outline: 2px solid #fbbf24;
+            outline-offset: 2px;
+        }
     </style>
 </head>
 <body>
+    <!-- Skip Link for Accessibility -->
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+
     @include('partials.navigation')
 
     @include('partials.trust-strip')
 
-    <main>
+    <main id="main-content" role="main" tabindex="-1">
         <!-- Hero Section -->
         <section class="contact-hero">
             <h1><span style="color: #f97316;">Contact</span> <span style="color: white;">Us</span></h1>
@@ -517,7 +685,7 @@
                                 </div>
                                 <div class="form-group">
                                     <label for="email">Email <span>*</span></label>
-                                    <input type="email" id="email" name="email" class="form-input" placeholder="your@email.com" required>
+                                    <input type="email" id="email" name="email" class="form-input" placeholder="your@email.com" required inputmode="email">
                                 </div>
                             </div>
 

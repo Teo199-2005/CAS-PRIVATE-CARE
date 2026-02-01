@@ -1,0 +1,10 @@
+Contact: mailto:security@casprivatecare.com
+Expires: 2027-01-29T00:00:00.000Z
+Preferred-Languages: en
+Canonical: https://casprivatecare.com/.well-known/security.txt
+Policy: https://casprivatecare.com/security-policy
+Hiring: https://casprivatecare.com/careers
+
+# CAS Private Care Security Disclosure Policy
+# We appreciate your efforts to responsibly disclose your findings.
+# Please report any security vulnerabilities to security@casprivatecare.com

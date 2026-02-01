@@ -119,6 +119,36 @@
     </div>
   </div>
 
+  <!-- Delete Payment Method Confirmation Modal -->
+  <div v-if="showDeleteConfirm" class="modal-overlay" @click.self="cancelDelete">
+    <div class="modal-content delete-confirm-modal" role="alertdialog" aria-labelledby="delete-modal-title" aria-describedby="delete-modal-desc">
+      <div class="modal-header">
+        <h3 id="delete-modal-title"><i class="bi bi-exclamation-triangle text-warning"></i> Delete Payment Method</h3>
+        <button class="close-btn" @click="cancelDelete" aria-label="Close">
+          <i class="bi bi-x-lg"></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p id="delete-modal-desc" class="delete-prompt">
+          Are you sure you want to delete the payment method 
+          <strong v-if="deleteConfirmMethod">
+            {{ deleteConfirmMethod.card.brand.toUpperCase() }} •••• {{ deleteConfirmMethod.card.last4 }}
+          </strong>?
+        </p>
+        <p class="delete-warning">This action cannot be undone.</p>
+        
+        <div class="modal-actions">
+          <button class="btn-cancel" @click="cancelDelete">Cancel</button>
+          <button class="btn-delete" @click="deletePaymentMethod" :disabled="deletingMethodId">
+            <i v-if="deletingMethodId" class="bi bi-hourglass-split"></i>
+            <i v-else class="bi bi-trash"></i>
+            {{ deletingMethodId ? 'Deleting...' : 'Delete' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div class="payment-container">
     <!-- Left Side: Payment Form -->
     <div class="payment-form-section">
@@ -158,9 +188,21 @@
               <div class="method-brand">{{ method.card.brand.toUpperCase() }} •••• {{ method.card.last4 }}</div>
               <div class="method-expiry">Expires {{ method.card.exp_month }}/{{ method.card.exp_year }}</div>
             </div>
-            <div class="method-check">
-              <i v-if="selectedPaymentMethod?.id === method.id" class="bi bi-check-circle-fill"></i>
-              <i v-else class="bi bi-circle"></i>
+            <div class="method-actions">
+              <div class="method-check">
+                <i v-if="selectedPaymentMethod?.id === method.id" class="bi bi-check-circle-fill"></i>
+                <i v-else class="bi bi-circle"></i>
+              </div>
+              <button 
+                class="delete-method-btn"
+                @click.stop="confirmDeletePaymentMethod(method)"
+                :disabled="deletingMethodId === method.id"
+                :aria-label="'Delete payment method ending in ' + method.card.last4"
+                title="Delete payment method"
+              >
+                <i v-if="deletingMethodId === method.id" class="bi bi-hourglass-split"></i>
+                <i v-else class="bi bi-trash"></i>
+              </button>
             </div>
           </div>
         </div>
@@ -287,6 +329,23 @@ const booking = ref(props.bookingData || {});
 const processing = ref(false);
 const promoCode = ref('');
 
+// Payment method management
+const savedPaymentMethods = ref([]);
+const selectedPaymentMethod = ref(null);
+const showAddCardModal = ref(false);
+const showPasswordModal = ref(false);
+const confirmPassword = ref('');
+const savingCard = ref(false);
+const deletingMethodId = ref(null);
+const deleteConfirmMethod = ref(null);
+const showDeleteConfirm = ref(false);
+const newCardData = ref({
+  name: '',
+  address: '',
+  zipCode: '',
+  saveForFuture: true
+});
+
 // Stripe instances
 let stripe = null;
 let cardElement = null;
@@ -392,6 +451,166 @@ const error = (message, title = 'Error') => {
 const goBack = () => {
   window.location.href = '/client-dashboard';
 };
+
+// Payment method helper functions
+const getCardIcon = (brand) => {
+  const icons = {
+    visa: 'bi bi-credit-card-2-front',
+    mastercard: 'bi bi-credit-card-2-back',
+    amex: 'bi bi-credit-card',
+    discover: 'bi bi-credit-card-fill',
+    default: 'bi bi-credit-card'
+  };
+  return icons[brand?.toLowerCase()] || icons.default;
+};
+
+const selectPaymentMethod = (method) => {
+  selectedPaymentMethod.value = method;
+};
+
+const openAddCardModal = () => {
+  showAddCardModal.value = true;
+};
+
+const closeAddCardModal = () => {
+  showAddCardModal.value = false;
+  newCardData.value = {
+    name: '',
+    address: '',
+    zipCode: '',
+    saveForFuture: true
+  };
+};
+
+// Confirm delete payment method
+const confirmDeletePaymentMethod = (method) => {
+  deleteConfirmMethod.value = method;
+  showDeleteConfirm.value = true;
+};
+
+// Delete payment method
+const deletePaymentMethod = async () => {
+  if (!deleteConfirmMethod.value) return;
+  
+  const method = deleteConfirmMethod.value;
+  deletingMethodId.value = method.id;
+  
+  try {
+    const response = await fetch(`/api/stripe/payment-methods/${method.id}`, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+      }
+    });
+    
+    const data = await response.json();
+    
+    if (data.success) {
+      // Remove from local array
+      savedPaymentMethods.value = savedPaymentMethods.value.filter(m => m.id !== method.id);
+      
+      // Clear selection if deleted method was selected
+      if (selectedPaymentMethod.value?.id === method.id) {
+        selectedPaymentMethod.value = savedPaymentMethods.value[0] || null;
+      }
+      
+      success('Payment method deleted successfully');
+    } else {
+      error(data.message || 'Failed to delete payment method');
+    }
+  } catch (err) {
+    error('An error occurred while deleting the payment method');
+  } finally {
+    deletingMethodId.value = null;
+    deleteConfirmMethod.value = null;
+    showDeleteConfirm.value = false;
+  }
+};
+
+const cancelDelete = () => {
+  deleteConfirmMethod.value = null;
+  showDeleteConfirm.value = false;
+};
+
+// Fetch saved payment methods
+const fetchSavedPaymentMethods = async () => {
+  try {
+    const response = await fetch('/api/stripe/payment-methods', {
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+      }
+    });
+    
+    const data = await response.json();
+    
+    if (data.success && data.payment_methods) {
+      savedPaymentMethods.value = data.payment_methods;
+      // Auto-select first method if available
+      if (savedPaymentMethods.value.length > 0) {
+        selectedPaymentMethod.value = savedPaymentMethods.value[0];
+      }
+    }
+  } catch (err) {
+    console.error('Failed to fetch payment methods:', err);
+  }
+};
+
+// Save new payment method
+const saveNewPaymentMethod = async () => {
+  savingCard.value = true;
+  
+  try {
+    // Create payment method with Stripe
+    const { error: stripeError, paymentMethod } = await stripe.createPaymentMethod({
+      type: 'card',
+      card: modalCardElement,
+      billing_details: {
+        name: newCardData.value.name,
+        address: {
+          line1: newCardData.value.address,
+          postal_code: newCardData.value.zipCode
+        }
+      }
+    });
+    
+    if (stripeError) {
+      error(stripeError.message || 'Failed to save payment method');
+      savingCard.value = false;
+      return;
+    }
+    
+    // Attach to customer on backend
+    const response = await fetch('/api/stripe/attach-payment-method', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+      },
+      body: JSON.stringify({
+        payment_method_id: paymentMethod.id
+      })
+    });
+    
+    const data = await response.json();
+    
+    if (data.success) {
+      // Refresh the saved methods list
+      await fetchSavedPaymentMethods();
+      closeAddCardModal();
+      success('Payment method added successfully');
+    } else {
+      error(data.message || 'Failed to save payment method');
+    }
+  } catch (err) {
+    error('An error occurred while saving the payment method');
+  } finally {
+    savingCard.value = false;
+  }
+};
+
+let modalCardElement = null;
 
 // Initialize Stripe Elements
 const initializeStripe = () => {
@@ -550,6 +769,9 @@ onMounted(() => {
   };
   
   initStripeWhenReady();
+  
+  // Fetch saved payment methods
+  fetchSavedPaymentMethods();
   
   // Load booking data if not provided
   if (!booking.value || Object.keys(booking.value).length === 0) {
@@ -984,5 +1206,80 @@ onMounted(() => {
   .summary-title {
     font-size: 1.25rem;
   }
+}
+
+/* Payment Method Actions */
+.method-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.delete-method-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: #94a3b8;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.delete-method-btn:hover:not(:disabled) {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.delete-method-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+/* Delete Confirmation Modal */
+.delete-confirm-modal {
+  max-width: 420px;
+}
+
+.delete-prompt {
+  font-size: 1rem;
+  color: #475569;
+  margin-bottom: 0.5rem;
+}
+
+.delete-warning {
+  font-size: 0.875rem;
+  color: #dc2626;
+  margin-bottom: 1.5rem;
+}
+
+.btn-delete {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.25rem;
+  background: #dc2626;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-delete:hover:not(:disabled) {
+  background: #b91c1c;
+}
+
+.btn-delete:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.text-warning {
+  color: #f59e0b;
 }
 </style>

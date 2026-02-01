@@ -46,7 +46,8 @@
             line-height: 1.6;
             color: #0f172a;
             overflow-x: hidden;
-            background: #f8fafc;
+            background-color: #ffffff;
+            background-image: url("https://www.transparenttextures.com/patterns/batthern.png");
         }
 
         main {
@@ -484,6 +485,53 @@
 
             .blog-grid {
                 grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        
+        /* Very Small Phones (360px) */
+        @media (max-width: 360px) {
+            .blog-hero {
+                padding: 2.5rem 1rem !important;
+            }
+            
+            .blog-hero h1 {
+                font-size: 1.5rem !important;
+            }
+            
+            .blog-hero p {
+                font-size: 0.85rem !important;
+            }
+            
+            .section-light {
+                padding: 2.5rem 0.75rem !important;
+            }
+            
+            .blog-card h3 {
+                font-size: 1rem;
+            }
+            
+            .blog-card p {
+                font-size: 0.8rem;
+                display: -webkit-box;
+                -webkit-line-clamp: 2;
+                -webkit-box-orient: vertical;
+                overflow: hidden;
+            }
+            
+            .blog-card-content {
+                padding: 1rem;
+            }
+            
+            .sidebar {
+                padding: 1.25rem;
+            }
+            
+            .sidebar h3 {
+                font-size: 1.1rem;
+            }
+            
+            .cta-banner h2 {
+                font-size: 1.5rem;
             }
         }
 

@@ -562,7 +562,13 @@
 
             <div class="location-grid">
                 <div class="location-card">
-                    <img src="https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=600" alt="Manhattan Housekeeping" class="location-image">
+                    <x-responsive-image 
+                        src="https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=600" 
+                        alt="Manhattan Housekeeping Services" 
+                        class="location-image"
+                        :widths="[400, 600, 800]"
+                        sizes="(max-width: 768px) 100vw, 33vw"
+                    />
                     <div class="location-content">
                         <h3>Manhattan</h3>
                         <p class="subtitle">Professional Home Services</p>
@@ -572,7 +578,13 @@
                 </div>
 
                 <div class="location-card">
-                    <img src="https://images.unsplash.com/photo-1527515637462-cff94eecc1ac?w=600" alt="Brooklyn Housekeeping" class="location-image">
+                    <x-responsive-image 
+                        src="https://images.unsplash.com/photo-1527515637462-cff94eecc1ac?w=600" 
+                        alt="Brooklyn Housekeeping Services" 
+                        class="location-image"
+                        :widths="[400, 600, 800]"
+                        sizes="(max-width: 768px) 100vw, 33vw"
+                    />
                     <div class="location-content">
                         <h3>Brooklyn</h3>
                         <p class="subtitle">Home Care Excellence</p>
@@ -582,7 +594,13 @@
                 </div>
 
                 <div class="location-card">
-                    <img src="https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=600" alt="Queens Housekeeping" class="location-image">
+                    <x-responsive-image 
+                        src="https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=600" 
+                        alt="Queens Housekeeping Services" 
+                        class="location-image"
+                        :widths="[400, 600, 800]"
+                        sizes="(max-width: 768px) 100vw, 33vw"
+                    />
                     <div class="location-content">
                         <h3>Queens</h3>
                         <p class="subtitle">Reliable Home Services</p>

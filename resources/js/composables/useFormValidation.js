@@ -136,6 +136,25 @@ export const rules = {
     return /^\d{5}(-\d{4})?$/.test(value) || 'Invalid ZIP code';
   },
 
+  /**
+   * New York State ZIP code validation
+   * Valid NY ZIPs: 10xxx-14xxx range OR special cases (00501, 00544, 06390)
+   * Supports both 5-digit and ZIP+4 formats
+   */
+  nyZipCode: (value) => {
+    if (!value) return true;
+    // NY ZIP regex: special cases OR 10xxx-14xxx range, with optional -XXXX suffix
+    const nyZipRegex = /^(00501|00544|06390|1[0-4]\d{3})(-\d{4})?$/;
+    if (!nyZipRegex.test(value)) {
+      // First check if it's at least a valid format
+      if (!/^\d{5}(-\d{4})?$/.test(value)) {
+        return 'ZIP code must be 5 digits';
+      }
+      return 'Must be a valid New York State ZIP code (10xxx-14xxx)';
+    }
+    return true;
+  },
+
   custom: (validator, message) => (value) => {
     return validator(value) || message;
   }

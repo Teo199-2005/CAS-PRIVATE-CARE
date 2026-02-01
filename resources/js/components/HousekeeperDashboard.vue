@@ -8,10 +8,10 @@
 
   <dashboard-template
     user-role="housekeeper"
-    :user-name="profile.firstName && profile.lastName ? `${profile.firstName} ${profile.lastName}` : 'Demo Housekeeper'"
-    :user-initials="profile.firstName && profile.lastName ? `${profile.firstName[0]}${profile.lastName[0]}` : 'DC'"
+    :user-name="profileDisplayName"
+    :user-initials="profileInitials"
     :user-avatar="userAvatar"
-    :welcome-message="profile.firstName ? `Welcome Back, ${profile.firstName}` : 'Welcome Back, Demo'"
+    :welcome-message="`Welcome Back, ${profileDisplayName}`"
     subtitle="Manage your appointments and clients"
     header-title="Housekeeper Portal"
     header-subtitle="Manage your cleaning assignments"
@@ -21,12 +21,72 @@
     @logout="logout"
     @disabled-click="handleDisabledNavClick"
   >
-    <!-- Email Verification Banner -->
-    <email-verification-banner />
+    <!-- Error Modal -->
+    <v-dialog v-model="showErrorModal" max-width="500">
+      <v-card class="error-modal-card" elevation="8">
+        <v-card-title class="error-modal-header pa-6">
+          <div class="d-flex align-center">
+            <v-icon color="white" size="32" class="mr-3">mdi-alert-circle</v-icon>
+            <span class="text-h5 font-weight-bold text-white">Validation Error</span>
+          </div>
+        </v-card-title>
+        <v-card-text class="pa-6">
+          <div class="mb-4 text-center">
+            <v-icon color="error" size="64">mdi-alert-circle-outline</v-icon>
+          </div>
+          <p class="text-h6 mb-4 text-center" style="color: #1e293b;">Please fix the following errors:</p>
+          <v-alert type="error" variant="tonal" class="mb-0">
+            <div v-if="Array.isArray(errorMessages)" class="error-list">
+              <div v-for="(error, index) in errorMessages" :key="index" class="error-item mb-2">
+                <v-icon size="16" class="mr-2">mdi-alert</v-icon>
+                {{ error }}
+              </div>
+            </div>
+            <div v-else class="error-item">
+              <v-icon size="16" class="mr-2">mdi-alert</v-icon>
+              {{ errorMessages }}
+            </div>
+          </v-alert>
+        </v-card-text>
+        <v-card-actions class="pa-6 pt-0">
+          <v-spacer></v-spacer>
+          <v-btn
+            color="error"
+            variant="flat"
+            size="large"
+            prepend-icon="mdi-close"
+            @click="showErrorModal = false"
+          >
+            Close
+          </v-btn>
+          <v-spacer></v-spacer>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
 
-    <!-- Pending Approval Banner - SECURITY: Alert users their account is restricted -->
+    <!-- Email Verification Modal (blocks dashboard until verified via OTP) -->
+    <email-verification-modal
+      v-if="!isEmailVerified && userEmail"
+      :user-email="userEmail"
+      :is-verified="isEmailVerified"
+      @verified="handleEmailVerified"
+    />
+
+    <!-- Onboarding Progress Component - Shows setup steps for contractors -->
+    <OnboardingProgress
+      v-if="applicationStatus !== 'approved' || !stripeOnboardingComplete"
+      role="housekeeper"
+      :user-data="profile"
+      :application-status="applicationStatus"
+      :bank-connected="stripeOnboardingComplete"
+      :w9-submitted="w9Submitted"
+      :profile-complete="profileComplete"
+      @step-click="handleOnboardingStepClick"
+    />
+
+    <!-- Legacy Pending Approval Banner - Fallback -->
     <v-alert
-      v-if="applicationStatus === 'pending'"
+      v-if="applicationStatus === 'pending' && !showOnboardingProgress"
       type="warning"
       variant="tonal"
       prominent
@@ -219,33 +279,33 @@
 
               <v-row>
                 <v-col cols="12">
-                  <v-card class="mb-3 enhanced-card" elevation="2">
-                    <v-card-title class="enhanced-card-header pa-6">
-                      <v-icon color="deep-purple" class="mr-3">mdi-calendar-week</v-icon>
-                      <span class="section-title deep-purple--text">Weekly Time History</span>
-                    </v-card-title>
-                    <v-card-text class="pa-6">
-                      <div class="week-calendar">
-                        <div v-for="day in weekHistory" :key="day.date" class="day-card">
-                          <div class="day-header" :class="{ 'today': day.isToday }">
-                            <div class="day-name">{{ day.dayName }}</div>
-                            <div class="day-date">{{ day.date }}</div>
+                  <v-card class="mb-3" elevation="1">
+                    <v-card-text class="pa-4">
+                      <div class="d-flex align-center mb-3">
+                        <v-icon color="deep-purple" size="20" class="mr-2">mdi-calendar-week</v-icon>
+                        <span class="text-subtitle-2 font-weight-medium">Weekly Schedule</span>
+                        <v-spacer></v-spacer>
+                        <v-chip v-if="weeklySchedule.filter(d => d.assigned).length > 0" size="x-small" color="deep-purple" variant="tonal">
+                          {{ weeklySchedule.filter(d => d.assigned).length }} days
+                        </v-chip>
+                      </div>
+                      <div v-if="loadingWeeklySchedule" class="text-center py-3">
+                        <v-progress-circular indeterminate color="deep-purple" size="24"></v-progress-circular>
+                      </div>
+                      <div v-else class="schedule-grid">
+                        <div v-for="day in weeklySchedule" :key="day.day" 
+                             class="schedule-day" 
+                             :class="{ 'is-assigned': day.assigned, 'is-today': isToday(day.day) }">
+                          <div class="day-label">{{ day.day.substring(0, 3) }}</div>
+                          <div v-if="day.assigned" class="day-status assigned">
+                            <v-icon size="12" color="deep-purple">mdi-check-circle</v-icon>
+                            <span class="time-label">{{ formatTime(day.start_time) }}</span>
                           </div>
-                          <div class="day-content">
-                            <div v-if="day.timeIn" class="time-entry">
-                              <div class="time-label">Time In</div>
-                              <div class="time-value deep-purple--text">{{ day.timeIn }}</div>
-                            </div>
-                            <div v-if="day.timeOut" class="time-entry">
-                              <div class="time-label">Time Out</div>
-                              <div class="time-value error--text">{{ day.timeOut }}</div>
-                            </div>
-                            <div v-if="day.totalHours" class="total-hours">
-                              <v-chip size="x-small" color="info">{{ day.totalHours }} hrs</v-chip>
-                            </div>
-                            <div v-if="!day.timeIn" class="no-data">No record</div>
-                          </div>
+                          <div v-else class="day-status off">—</div>
                         </div>
+                      </div>
+                      <div v-if="!loadingWeeklySchedule && weeklySchedule.every(d => !d.assigned)" class="text-center py-2">
+                        <span class="text-caption text-grey">No schedule assigned</span>
                       </div>
                     </v-card-text>
                   </v-card>
@@ -529,7 +589,16 @@
                           </div>
                         </v-alert>
                         
-                        <div class="mt-4 d-flex gap-2">
+                        <div class="mt-4 d-flex flex-wrap gap-2">
+                          <v-btn 
+                            color="deep-purple" 
+                            variant="flat" 
+                            size="small"
+                            prepend-icon="mdi-swap-horizontal"
+                            @click="connectBankAccount"
+                          >
+                            Change Payout Method
+                          </v-btn>
                           <v-btn 
                             color="primary" 
                             variant="outlined" 
@@ -540,13 +609,13 @@
                             Manage on Stripe
                           </v-btn>
                           <v-btn 
-                            color="grey" 
+                            color="error" 
                             variant="outlined" 
                             size="small"
-                            prepend-icon="mdi-refresh"
-                            @click="reconnectBankAccount"
+                            prepend-icon="mdi-delete"
+                            @click="showRemovePayoutDialog = true"
                           >
-                            Update Bank Info
+                            Remove Method
                           </v-btn>
                         </div>
                       </div>
@@ -623,16 +692,6 @@
                 </v-card-text>
               </v-card>
 
-              <v-card elevation="0">
-                <v-card-title class="card-header pa-8">
-                  <span class="section-title deep-purple--text">Payment Settings</span>
-                </v-card-title>
-                <v-card-text class="pa-8">
-                  <!-- payout frequency restricted to Weekly per v1.5.0 -->
-                  <v-select v-model="payoutFrequency" :items="['Weekly']" label="Payout Frequency" variant="outlined" density="comfortable" class="mb-4" />
-                  <v-select v-model="payoutMethod" :items="['Bank Transfer', 'PayPal', 'Check']" label="Payout Method" variant="outlined" density="comfortable" />
-                </v-card-text>
-              </v-card>
             </v-col>
           </v-row>
 
@@ -1254,7 +1313,10 @@
                         label="ZIP Code" 
                         variant="outlined" 
                         maxlength="5"
-                        :rules="[v => !v || /^\d{5}$/.test(v) || 'Please enter a valid 5-digit ZIP code']"
+                        :rules="[
+                          v => !v || /^\d{5}$/.test(v) || 'Enter a 5-digit ZIP code',
+                          v => !v || /^(00501|00544|06390|1[0-4]\d{3})$/.test(v) || 'Must be a NY ZIP (10xxx-14xxx)'
+                        ]"
                         @input="lookupProfileZipCode"
                         @blur="lookupProfileZipCode"
                       >
@@ -1262,7 +1324,7 @@
                           <v-icon>mdi-map-marker</v-icon>
                         </template>
                       </v-text-field>
-                      <div v-if="profileZipLocation" class="text-caption text-grey mt-1" style="font-weight: 600;">
+                      <div v-if="profileZipLocation" :class="['text-caption', 'mt-1', profileZipLocation.includes('Not a NY') ? 'text-error' : 'text-grey']" style="font-weight: 600;">
                         {{ profileZipLocation }}
                       </div>
                     </v-col>
@@ -1284,7 +1346,7 @@
                       <v-select v-model="profile.cleaningSpecialties" :items="['Deep Cleaning', 'Regular Cleaning', 'Move-in/Move-out', 'Post-Construction', 'Commercial', 'Residential']" label="Cleaning Specialties" variant="outlined" multiple chips />
                     </v-col>
                     <v-col cols="12">
-                      <v-textarea v-model="profile.bio" label="About Me" variant="outlined" rows="3" placeholder="Tell clients about your housekeeping experience and services..." />
+                      <v-textarea v-model="profile.bio" label="About Me" variant="outlined" rows="3" hint="Tell clients about your housekeeping experience and services" persistent-hint />
                     </v-col>
                   </v-row>
                   <v-btn color="deep-purple" class="mt-4" size="large" @click="saveProfileChanges">Update Profile</v-btn>
@@ -1300,10 +1362,11 @@
                     <v-avatar color="deep-purple" class="w-100 h-auto" :size="$vuetify.display.xs ? 96 : 120">
                       <img v-if="userAvatar && userAvatar.length > 0"
                         :src="userAvatar"
+                        :alt="`${profileDisplayName}'s profile photo`"
                         class="avatar-img-responsive"
                         @error="userAvatar = ''"
                       />
-                      <span v-else class="text-h3 font-weight-bold text-white">{{ profile.firstName && profile.lastName ? `${profile.firstName[0]}${profile.lastName[0]}` : 'DC' }}</span>
+                      <span v-else class="text-h3 font-weight-bold text-white">{{ profileInitials }}</span>
                     </v-avatar>
                     <v-btn 
                       icon 
@@ -1311,6 +1374,7 @@
                       color="deep-purple" 
                       class="avatar-upload-btn"
                       style="position: absolute; bottom: 0; right: 0;"
+                      aria-label="Upload profile photo"
                       @click="triggerAvatarUpload"
                       :loading="uploadingAvatar"
                     >
@@ -1322,16 +1386,17 @@
                       accept="image/jpeg,image/png,image/jpg,image/gif" 
                       style="display: none;" 
                       @change="uploadAvatar"
+                      aria-label="Select profile photo"
                     />
                   </div>
-                  <h2 class="mb-2">{{ profile.firstName && profile.lastName ? `${profile.firstName} ${profile.lastName}` : 'Demo Housekeeper' }}</h2>
+                  <h2 class="mb-2">{{ profileDisplayName }}</h2>
                   <p class="text-grey mb-4">Professional Housekeeper</p>
                   <v-chip color="deep-purple" class="mb-4">Active</v-chip>
                   <v-divider class="my-4" />
 
                   <div class="profile-stat">
                     <v-icon color="info" class="mr-2">mdi-calendar</v-icon>
-                    <span>Member since Jan 2024</span>
+                    <span>Member since {{ memberSince }}</span>
                   </div>
                 </v-card-text>
               </v-card>
@@ -1558,8 +1623,72 @@
       </v-card>
     </v-dialog>
 
+    <!-- Remove Payout Method Dialog -->
+    <v-dialog v-model="showRemovePayoutDialog" max-width="450">
+      <v-card>
+        <v-card-title class="pa-4 bg-error text-white">
+          <v-icon class="mr-2">mdi-delete-alert</v-icon>
+          Remove Payout Method
+        </v-card-title>
+        <v-card-text class="pa-4">
+          <p class="text-body-1 mb-4">Are you sure you want to remove your connected payout method?</p>
+          <v-alert type="warning" variant="tonal" density="compact" class="mb-4">
+            <div class="text-body-2">
+              <strong>Warning:</strong> You will not be able to receive payments until you connect a new payout method.
+            </div>
+          </v-alert>
+        </v-card-text>
+        <v-card-actions class="pa-4 pt-0">
+          <v-spacer />
+          <v-btn variant="text" @click="showRemovePayoutDialog = false">Cancel</v-btn>
+          <v-btn color="error" variant="flat" :loading="removingPayout" @click="removePayoutMethod">
+            <v-icon left>mdi-delete</v-icon>
+            Remove Method
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
     <!-- Notification Toast -->
     <notification-toast v-model="notification.show" :type="notification.type" :title="notification.title" :message="notification.message" :timeout="notification.timeout" />
+
+    <!-- Profile Picture Success Modal -->
+    <v-dialog 
+      v-model="showAvatarSuccessModal" 
+      max-width="400"
+      persistent
+    >
+      <v-card class="avatar-success-modal text-center pa-6">
+        <div class="success-animation-container">
+          <div class="success-checkmark">
+            <div class="check-icon">
+              <span class="icon-line line-tip"></span>
+              <span class="icon-line line-long"></span>
+              <div class="icon-circle"></div>
+              <div class="icon-fix"></div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="success-modal-title">Success!</div>
+        
+        <div class="success-modal-message">
+          Your profile picture has been updated successfully.
+        </div>
+        
+        <v-card-actions class="justify-center pt-6 pb-2">
+          <v-btn 
+            color="deep-purple" 
+            variant="flat" 
+            size="large"
+            min-width="150"
+            @click="closeAvatarSuccessModal"
+          >
+            Done
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </dashboard-template>
 </template>
 
@@ -1571,14 +1700,23 @@ import ClientProfileModal from './shared/ClientProfileModal.vue';
 import NotificationCenter from './shared/NotificationCenter.vue';
 import AlertModal from './shared/AlertModal.vue';
 import NotificationToast from './shared/NotificationToast.vue';
-import EmailVerificationBanner from './EmailVerificationBanner.vue';
+import EmailVerificationModal from './EmailVerificationModal.vue';
+import { useEmailVerification } from '../composables/useEmailVerification';
 import TaxPayrollSection from './TaxPayrollSection.vue';
 import LoadingOverlay from './LoadingOverlay.vue';
+import OnboardingProgress from './shared/OnboardingProgress.vue';
 import { useNotification } from '../composables/useNotification.js';
 import { useNYLocationData } from '../composables/useNYLocationData.js';
 
 const { notification, success } = useNotification();
 const { counties, getCitiesForCounty, loadNYLocationData } = useNYLocationData();
+
+// Email verification
+const { isVerified: isEmailVerified, userEmail, checkVerificationStatus } = useEmailVerification();
+const handleEmailVerified = () => {
+  checkVerificationStatus();
+  window.location.reload();
+};
 
 // Global loading state
 const isPageLoading = ref(true);
@@ -1594,7 +1732,11 @@ const handleResize = () => {
 const caregiverId = ref(null);
 const userEmailVerified = ref(false);
 
-const currentSection = ref(localStorage.getItem('caregiverSection') || 'dashboard');
+// Error Modal State
+const showErrorModal = ref(false);
+const errorMessages = ref([]);
+
+const currentSection = ref(localStorage.getItem('housekeeperSection') || 'dashboard');
 const contactDialog = ref(false);
 const salaryRangeDialog = ref(false);
 const savingSalaryRange = ref(false);
@@ -1822,41 +1964,54 @@ const sidebarUnreadCount = computed(() => sidebarNotifications.value.filter(n =>
 // SECURITY: Check if contractor is approved to access restricted features
 const isApproved = computed(() => applicationStatus.value === 'approved');
 
-// Navigation items with pending status restrictions
-// Pending contractors cannot access payment, job listings, or earnings features
+// Navigation items - all accessible regardless of approval status
 const navItems = computed(() => [
-  { icon: 'mdi-view-dashboard', title: 'Dashboard', value: 'dashboard' },
-  { icon: 'mdi-bell', title: 'Notifications', value: 'notifications', badge: sidebarUnreadCount.value > 0 },
+  { icon: 'mdi-view-dashboard', title: 'Dashboard', value: 'dashboard', disabled: false },
+  { icon: 'mdi-bell', title: 'Notifications', value: 'notifications', badge: sidebarUnreadCount.value > 0, disabled: false },
   { 
     icon: 'mdi-credit-card', 
     title: 'Payment Information', 
     value: 'payment', 
     category: 'FINANCIAL',
-    disabled: !isApproved.value  // Disabled until approved
+    disabled: false
   },
   { 
     icon: 'mdi-history', 
     title: 'Transaction History', 
     value: 'transactions', 
     category: 'FINANCIAL',
-    disabled: !isApproved.value  // Disabled until approved
+    disabled: false
   },
   { 
     icon: 'mdi-account-search', 
     title: 'Job Listings', 
     value: 'available-clients', 
     category: 'WORK',
-    disabled: !isApproved.value  // Disabled until approved
+    disabled: false
   },
   { 
     icon: 'mdi-chart-bar', 
     title: 'Earnings Report', 
     value: 'analytics', 
     category: 'WORK',
-    disabled: !isApproved.value  // Disabled until approved
+    disabled: false
   },
-  { icon: 'mdi-account-circle', title: 'Profile (1099 Contractors)', value: 'profile', category: 'ACCOUNT' }
+  { icon: 'mdi-account-circle', title: 'Profile (1099 Contractors)', value: 'profile', category: 'ACCOUNT', disabled: false }
 ]);
+
+const handleSectionChange = (section) => {
+  currentSection.value = section;
+};
+
+const handleDisabledNavClick = (sectionValue) => {
+  notification.value = {
+    show: true,
+    type: 'warning',
+    title: 'Approval Required',
+    message: 'This feature requires account approval. Please submit your W9 form and wait for admin approval.',
+    timeout: 5000
+  };
+};
 
 const loadSidebarNotificationCount = async () => {
   try {
@@ -2317,6 +2472,7 @@ const loadProfile = async () => {
         rn_type: typeof caregiverData.has_rn
       });
       
+      const specs = Array.isArray(caregiverData.specializations) ? caregiverData.specializations : [];
       profile.value = {
         firstName: nameParts[0] || '',
         lastName: nameParts.slice(1).join(' ') || '',
@@ -2332,14 +2488,16 @@ const loadProfile = async () => {
         trainingCenter: caregiverData.training_center_name || '',
         customTrainingCenter: '',
         trainingCertificate: null,
-        specializations: caregiverData.specializations || [],
+        specializations: specs,
+        cleaningSpecialties: specs,
         bio: caregiverData.bio || '',
         hasHHA: Boolean(caregiverData.has_hha),
         hhaNumber: caregiverData.hha_number || '',
         hasCNA: Boolean(caregiverData.has_cna),
         cnaNumber: caregiverData.cna_number || '',
         hasRN: Boolean(caregiverData.has_rn),
-        rnNumber: caregiverData.rn_number || ''
+        rnNumber: caregiverData.rn_number || '',
+        created_at: data.user.created_at || ''
       };
       
       // Load salary range
@@ -2368,6 +2526,10 @@ const loadProfile = async () => {
         caregiverId.value = data.caregiver.id;
       }
       
+      // Set W9 submitted status from user data
+      // If user is approved, W9 is considered submitted (approval requires physical W9 submission)
+      w9Submitted.value = Boolean(data.user.w9_submitted) || data.user.status === 'Active';
+      
       // Check application status
       await checkApplicationStatus();
     } else if (data.error === 'User not authenticated') {
@@ -2388,7 +2550,7 @@ const loadProfile = async () => {
         ssn: '',
         itin: '',
         experience: '5',
-        trainingCenter: 'NYC Healthcare Training Institute',
+        trainingCenter: '',
         customTrainingCenter: '',
         trainingCertificate: null,
         specializations: [],
@@ -2892,52 +3054,69 @@ const parseFormattedDate = (dateStr) => {
 
 const currentTime = ref(new Date());
 
-const weekHistory = ref([]);
+const weeklySchedule = ref([
+  { day: 'Sunday', assigned: false, client: null, start_time: null, end_time: null },
+  { day: 'Monday', assigned: false, client: null, start_time: null, end_time: null },
+  { day: 'Tuesday', assigned: false, client: null, start_time: null, end_time: null },
+  { day: 'Wednesday', assigned: false, client: null, start_time: null, end_time: null },
+  { day: 'Thursday', assigned: false, client: null, start_time: null, end_time: null },
+  { day: 'Friday', assigned: false, client: null, start_time: null, end_time: null },
+  { day: 'Saturday', assigned: false, client: null, start_time: null, end_time: null }
+]);
+const loadingWeeklySchedule = ref(false);
 
-const loadWeekHistory = async () => {
+const loadWeeklySchedule = async () => {
   try {
     if (!caregiverId.value) return;
     
-    // Use housekeeper-specific endpoint
-    const response = await fetch(`/api/time-tracking/housekeeper/weekly-history/${caregiverId.value}`);
+    loadingWeeklySchedule.value = true;
+    const response = await fetch(`/api/housekeeper/${caregiverId.value}/weekly-schedule`, {
+      credentials: 'include'
+    });
     const data = await response.json();
     
-    if (data.weekly_data) {
-      // Transform the API data to match the expected format
-      weekHistory.value = data.weekly_data.map(day => ({
-        dayName: day.day,
-        date: day.date,
-        timeIn: day.sessions.length > 0 ? day.sessions[0].clock_in : null,
-        timeOut: day.sessions.length > 0 ? day.sessions[0].clock_out : null,
-        totalHours: day.total_hours > 0 ? `${day.total_hours} hrs` : null,
-        isToday: day.date === new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-      }));
-    } else {
-      // Generate empty week if no data
-      const today = new Date();
-      const weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-      weekHistory.value = [];
-      
-      for (let i = 6; i >= 0; i--) {
-        const date = new Date(today);
-        date.setDate(today.getDate() - i);
-        const dayName = weekDays[date.getDay()];
-        const dateStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-        const isToday = i === 0;
-        
-        weekHistory.value.push({
-          dayName,
-          date: dateStr,
-          timeIn: null,
-          timeOut: null,
-          totalHours: null,
-          isToday
-        });
-      }
+    if (data.success && data.data?.weekly_schedule) {
+      weeklySchedule.value = data.data.weekly_schedule;
+    } else if (data.weekly_schedule) {
+      weeklySchedule.value = data.weekly_schedule;
     }
   } catch (error) {
-    weekHistory.value = [];
+    console.error('Error loading weekly schedule:', error);
+  } finally {
+    loadingWeeklySchedule.value = false;
   }
+};
+
+const isToday = (dayName) => {
+  const today = new Date();
+  const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  return days[today.getDay()].toLowerCase() === dayName.toLowerCase();
+};
+
+const formatTime = (time) => {
+  if (!time) return '';
+  try {
+    // Handle various time formats
+    if (time.includes('T')) {
+      const date = new Date(time);
+      return date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+    }
+    const [hours, minutes] = time.split(':');
+    const hour = parseInt(hours);
+    const ampm = hour >= 12 ? 'PM' : 'AM';
+    const displayHour = hour % 12 || 12;
+    return `${displayHour}:${minutes} ${ampm}`;
+  } catch {
+    return time;
+  }
+};
+
+// Keep weekHistory for backwards compatibility
+const weekHistory = ref([]);
+
+const loadWeekHistory = async () => {
+  // Now loading weekly schedule instead
+  await loadWeeklySchedule();
 };
 
 const loadCurrentSession = async () => {
@@ -3095,7 +3274,7 @@ const resetAvailableFilters = () => {
 const applyForClient = async (job) => {
   try {
     const bookingId = job.bookingId || job.id;
-    const response = await fetch(`/api/apply-client/${bookingId}`, {
+    const response = await fetch(`/api/housekeeper/apply-client/${bookingId}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -3167,6 +3346,35 @@ const lastPaymentAmount = ref('0.00');
 const stripeConnected = ref(false);
 const stripeOnboardingComplete = ref(false);
 const connectingBank = ref(false);
+const showRemovePayoutDialog = ref(false);
+const removingPayout = ref(false);
+
+// Onboarding progress tracking
+const w9Submitted = ref(false);
+const profileComplete = computed(() => {
+  return profile.value.firstName && profile.value.lastName && profile.value.phone;
+});
+const showOnboardingProgress = ref(true);
+
+// Handle onboarding step clicks
+const handleOnboardingStepClick = (step) => {
+  switch (step.action) {
+    case 'view-application':
+      // Already on dashboard, show status
+      break;
+    case 'submit-w9':
+      viewW9Form();
+      break;
+    case 'connect-bank':
+      currentSection.value = 'payment';
+      break;
+    case 'edit-profile':
+      currentSection.value = 'profile';
+      break;
+    default:
+      break;
+  }
+};
 
 // Stripe Connect Functions
 const connectBankAccount = async () => {
@@ -3189,6 +3397,45 @@ const reconnectBankAccount = async () => {
 const openStripeDashboard = () => {
   // Open Stripe Express Dashboard for caregiver to manage their account
   window.open('https://dashboard.stripe.com/connect/accounts', '_blank');
+};
+
+const removePayoutMethod = async () => {
+  try {
+    removingPayout.value = true;
+    
+    const response = await fetch('/api/housekeeper/payout-method', {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+        'X-Requested-With': 'XMLHttpRequest'
+      },
+      credentials: 'include'
+    });
+    
+    if (response.ok) {
+      stripeConnected.value = false;
+      stripeOnboardingComplete.value = false;
+      showRemovePayoutDialog.value = false;
+      success('Payout method removed successfully', 'Payout Method');
+    } else {
+      const data = await response.json();
+      throw new Error(data.message || 'Failed to remove payout method');
+    }
+  } catch (error) {
+    console.error('Error removing payout method:', error);
+    notification.value = {
+      show: true,
+      type: 'error',
+      title: 'Error',
+      message: error.message || 'Failed to remove payout method',
+      timeout: 5000
+    };
+  } finally {
+    removingPayout.value = false;
+    showRemovePayoutDialog.value = false;
+  }
 };
 
 const setDefaultCard = (card) => {
@@ -3386,6 +3633,35 @@ const zipCodeMap = {
 
 const profileZipLocation = ref('');
 
+/**
+ * NY ZIP Code Validation Helper
+ * Valid NY ZIPs: 10xxx-14xxx range OR special cases (00501, 00544, 06390)
+ */
+const isValidNYZip = (zip) => {
+  if (!zip) return false;
+  const nyZipRegex = /^(00501|00544|06390|1[0-4]\d{3})(-\d{4})?$/;
+  return nyZipRegex.test(zip);
+};
+
+/**
+ * Get NY region based on ZIP prefix for fallback
+ */
+const getNYRegionFromZip = (zip) => {
+  if (!zip || !isValidNYZip(zip)) return null;
+  const prefix = parseInt(zip.substring(0, 3), 10);
+  if (prefix >= 100 && prefix <= 102) return 'Manhattan, NY';
+  if (prefix === 103) return 'Staten Island, NY';
+  if (prefix === 104) return 'Bronx, NY';
+  if (prefix >= 105 && prefix <= 109) return 'Westchester, NY';
+  if (prefix >= 110 && prefix <= 111) return 'Long Island, NY';
+  if (prefix === 112) return 'Brooklyn, NY';
+  if (prefix >= 113 && prefix <= 119) return 'Long Island, NY';
+  if (prefix >= 120 && prefix <= 129) return 'Capital Region, NY';
+  if (prefix >= 130 && prefix <= 139) return 'Central NY';
+  if (prefix >= 140 && prefix <= 149) return 'Western NY';
+  return 'New York, NY';
+};
+
 const lookupProfileZipCode = async () => {
   const zip = profile.value.zip;
   
@@ -3394,7 +3670,13 @@ const lookupProfileZipCode = async () => {
     return;
   }
 
-  // Try API lookup first (supports all NY ZIP codes)
+  // Client-side NY ZIP validation FIRST
+  if (!isValidNYZip(zip)) {
+    profileZipLocation.value = 'Not a NY ZIP (must be 10xxx-14xxx)';
+    return;
+  }
+
+  // Try API lookup (supports all NY ZIP codes)
   try {
     profileZipLocation.value = 'Looking up location…';
     const response = await fetch(`/api/zipcode-lookup/${zip}`);
@@ -3407,12 +3689,12 @@ const lookupProfileZipCode = async () => {
       }
     }
     
-    // API returned error or no location found
-    profileZipLocation.value = 'ZIP not found';
+    // Fallback to region for valid NY ZIPs
+    profileZipLocation.value = zipCodeMap[zip] || getNYRegionFromZip(zip) || 'New York, NY';
   } catch (error) {
     console.error('Profile ZIP code lookup error:', error);
-    // Fallback to static map
-    profileZipLocation.value = zipCodeMap[zip] || 'ZIP not found';
+    // Fallback to static map or region
+    profileZipLocation.value = zipCodeMap[zip] || getNYRegionFromZip(zip) || 'New York, NY';
   }
 };
 
@@ -3438,37 +3720,19 @@ const loadTrainingCenters = async () => {
       },
       credentials: 'same-origin'
     });
-    
+
     if (response.ok) {
       const data = await response.json();
-      trainingCenters.value = data.trainingCenters || [];
+      // API returns centers (objects) and/or trainingCenters (names) — CAS partners only
+      const raw = data.trainingCenters || data.centers || [];
+      trainingCenters.value = Array.isArray(raw)
+        ? raw.map(c => (typeof c === 'string' ? c : (c?.name || c?.title || ''))).filter(Boolean)
+        : [];
     } else {
-      // Fallback to default list if API fails
-      trainingCenters.value = [
-        'NYC Healthcare Training Institute',
-        'American Red Cross',
-        'National Association for Home Care & Hospice',
-        'Certified Nursing Assistant Training Center',
-        'Home Health Aide Training Academy',
-        'Metropolitan Healthcare Training',
-        'Brooklyn Healthcare Institute',
-        'Queens Medical Training Center',
-        'Bronx Community Health Training'
-      ];
+      trainingCenters.value = [];
     }
   } catch (err) {
-    // Fallback to default list
-    trainingCenters.value = [
-      'NYC Healthcare Training Institute',
-      'American Red Cross',
-      'National Association for Home Care & Hospice',
-      'Certified Nursing Assistant Training Center',
-      'Home Health Aide Training Academy',
-      'Metropolitan Healthcare Training',
-      'Brooklyn Healthcare Institute',
-      'Queens Medical Training Center',
-      'Bronx Community Health Training'
-    ];
+    trainingCenters.value = [];
   }
 };
 
@@ -3477,6 +3741,11 @@ const avatarInput = ref(null);
 const userAvatar = ref('');
 const uploadingAvatar = ref(false);
 const caregiverUserId = ref(null);
+const showAvatarSuccessModal = ref(false);
+
+const closeAvatarSuccessModal = () => {
+  showAvatarSuccessModal.value = false;
+};
 
 const profile = ref({
   firstName: 'Demo',
@@ -3489,7 +3758,7 @@ const profile = ref({
   zip: '',
   birthdate: '',
   experience: '5',
-  trainingCenter: 'NYC Healthcare Training Institute',
+  trainingCenter: '',
   customTrainingCenter: '',
   trainingCertificate: null,
   specializations: [],
@@ -3500,6 +3769,20 @@ const profile = ref({
   cnaNumber: '',
   hasRN: false,
   rnNumber: ''
+});
+
+const profileDisplayName = computed(() => {
+  const first = (profile.value.firstName || '').trim();
+  const last = (profile.value.lastName || '').trim();
+  if (first && last && first === last) return first;
+  return (first + ' ' + last).trim() || 'Housekeeper';
+});
+
+const profileInitials = computed(() => {
+  const first = (profile.value.firstName || '').trim();
+  const last = (profile.value.lastName || '').trim();
+  if (first && last && first === last) return (first.slice(0, 2) || 'Hk').toUpperCase();
+  return ((first[0] || '') + (last[0] || '')).toUpperCase() || 'Hk';
 });
 
 const age = computed(() => {
@@ -3514,11 +3797,31 @@ const age = computed(() => {
   return age;
 });
 
+const memberSince = computed(() => {
+  if (profile.value.created_at) {
+    try {
+      const date = new Date(profile.value.created_at);
+      return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    } catch {
+      return 'N/A';
+    }
+  }
+  return 'N/A';
+});
+
+// City options for selected county. Always include current profile city so saved/API values display (permanent fix for city not showing after load).
 const nyCities = computed(() => {
   if (!profile.value.county) {
     return ['Select County First'];
   }
-  return getCitiesForCounty(profile.value.county);
+  const list = getCitiesForCounty(profile.value.county) || [];
+  const current = profile.value.city?.trim();
+  if (!current) return list;
+  const inList = list.some((c) => String(c).trim().toLowerCase() === current.toLowerCase());
+  if (!inList) {
+    return [current, ...list];
+  }
+  return list;
 });
 
 const showCurrentPassword = ref(false);
@@ -3573,7 +3876,7 @@ const uploadAvatar = async (event) => {
     
     if (response.ok && data.success) {
       userAvatar.value = data.avatar;
-      success('Profile picture updated successfully!');
+      showAvatarSuccessModal.value = true;
     } else {
       alert('Error: ' + (data.error || 'Failed to upload avatar'));
     }
@@ -3768,10 +4071,16 @@ if (profile.value.trainingCertificate) {
         body: formData
       });
     } else {
-      // Use JSON for non-file updates
+      // Permanent: explicitly send city/county/borough/zip so they always persist (fixes city not saving on Housekeeper/contractor profiles).
       const payload = {
         ...profile.value,
         borough: profile.value.county,
+        county: profile.value.county,
+        city: profile.value.city ?? '',
+        state: profile.value.state ?? '',
+        address: profile.value.address ?? '',
+        zip: profile.value.zip ?? '',
+        zip_code: profile.value.zip ?? profile.value.zip_code ?? '',
         hasHHA: profile.value.hasHHA,
         hhaNumber: profile.value.hhaNumber,
         hasCNA: profile.value.hasCNA,
@@ -3858,11 +4167,13 @@ if (profile.value.trainingCertificate) {
         }
       }
       
-      alert('Error: ' + errorMessage);
+      errorMessages.value = [errorMessage];
+      showErrorModal.value = true;
     }
   } catch (error) {
     const errorMessage = error?.message || error?.toString() || 'Unknown error occurred';
-    alert('Error saving profile: ' + errorMessage);
+    errorMessages.value = ['Error saving profile: ' + errorMessage];
+    showErrorModal.value = true;
   }
 };
 
@@ -3976,15 +4287,20 @@ const initCharts = () => {
   }
 };
 
-// Watch for county changes to reset city selection
+// Permanent: only reset city when user changes county and current city is not valid for the new county. Do not clear on profile load (so saved city persists).
 watch(() => profile.value.county, (newCounty) => {
-  if (newCounty) {
-    profile.value.city = ''; // Reset city when county changes
+  if (!newCounty) return;
+  const citiesForCounty = getCitiesForCounty(newCounty) || [];
+  const currentCity = profile.value.city?.trim();
+  if (!currentCity) return;
+  const cityValidForCounty = citiesForCounty.some((c) => String(c).trim().toLowerCase() === currentCity.toLowerCase());
+  if (!cityValidForCounty) {
+    profile.value.city = '';
   }
 });
 
 watch(currentSection, (newVal) => {
-  localStorage.setItem('caregiverSection', newVal);
+  localStorage.setItem('housekeeperSection', newVal);
   if (newVal === 'analytics') {
     setTimeout(initCharts, 300);
   }
@@ -4063,11 +4379,9 @@ onMounted(async () => {
   
   // Ensure progress shows 100%
   loadingProgress.value = 100;
-  
-  // Small delay to show completion, then hide overlay
-  setTimeout(() => {
-    isPageLoading.value = false;
-  }, 300);
+
+  // Hide overlay immediately
+  isPageLoading.value = false;
   
   if (currentSection.value === 'analytics') {
     setTimeout(initCharts, 500);
@@ -4128,6 +4442,28 @@ onBeforeUnmount(() => {
     min-height: 28px;
   }
 }
+
+/* Error Modal Styles */
+.error-modal-card {
+  border-radius: 16px !important;
+  overflow: hidden;
+}
+
+.error-modal-header {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+}
+
+.error-list {
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.error-item {
+  display: flex;
+  align-items: flex-start;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
 </style>
 
 <style scoped>
@@ -4155,6 +4491,28 @@ onBeforeUnmount(() => {
     min-width: 48px;
     max-width: 96px;
   }
+}
+
+/* Error Modal Styles */
+.error-modal-card {
+  border-radius: 16px !important;
+  overflow: hidden;
+}
+
+.error-modal-header {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+}
+
+.error-list {
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.error-item {
+  display: flex;
+  align-items: flex-start;
+  font-size: 0.95rem;
+  line-height: 1.5;
 }
 </style>
 
@@ -5417,82 +5775,83 @@ onBeforeUnmount(() => {
   color: #374151;
 }
 
-.week-calendar {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap: 12px;
+/* Minimalist Weekly Schedule Grid */
+.schedule-grid {
+  display: flex;
+  gap: 4px;
+  justify-content: space-between;
 }
 
-.day-card {
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
-  overflow: hidden;
-  background: white;
-  transition: all 0.2s ease;
-}
-
-.day-card:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  transform: translateY(-2px);
-}
-
-.day-header {
+.schedule-day {
+  flex: 1;
+  text-align: center;
+  padding: 8px 4px;
+  border-radius: 8px;
   background: #f8fafc;
-  padding: 8px;
-  text-align: center;
-  border-bottom: 1px solid #e5e7eb;
+  transition: all 0.15s ease;
+  min-width: 0;
 }
 
-.day-header.today {
-  background: #10b981;
-  color: white;
+.schedule-day.is-today {
+  background: #ede9fe;
+  border: 1px solid #7c3aed;
 }
 
-.day-name {
-  font-size: 0.75rem;
+.schedule-day.is-assigned {
+  background: #f5f3ff;
+}
+
+.schedule-day .day-label {
+  font-size: 11px;
   font-weight: 600;
+  color: #64748b;
   text-transform: uppercase;
+  margin-bottom: 4px;
 }
 
-.day-date {
-  font-size: 0.875rem;
-  font-weight: 700;
-  margin-top: 2px;
+.schedule-day.is-today .day-label {
+  color: #7c3aed;
 }
 
-.day-content {
-  padding: 12px 8px;
-  min-height: 80px;
+.schedule-day .day-status {
+  font-size: 11px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
 }
 
-.time-entry {
-  margin-bottom: 8px;
+.schedule-day .day-status.assigned {
+  color: #7c3aed;
+  font-weight: 500;
 }
 
-.time-label {
-  font-size: 0.7rem;
-  color: #6b7280;
-  text-transform: uppercase;
-  font-weight: 600;
+.schedule-day .day-status.off {
+  color: #cbd5e1;
 }
 
-.time-value {
-  font-size: 0.8rem;
-  font-weight: 600;
-  margin-top: 2px;
+.schedule-day .time-label {
+  font-size: 10px;
 }
 
-.total-hours {
-  text-align: center;
-  margin-top: 8px;
-}
-
-.no-data {
-  text-align: center;
-  color: #9ca3af;
-  font-size: 0.75rem;
-  font-style: italic;
-  margin-top: 20px;
+@media (max-width: 600px) {
+  .schedule-grid {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  
+  .schedule-day {
+    flex: 0 0 calc(25% - 6px);
+    padding: 6px 2px;
+  }
+  
+  .schedule-day .day-label {
+    font-size: 10px;
+  }
+  
+  .schedule-day .time-label {
+    font-size: 9px;
+  }
 }
 
 /* Fix first column width for tables WITHOUT checkboxes */
@@ -5796,4 +6155,172 @@ button:focus-visible {
   }
 }
 
+/* Avatar Success Modal Styles */
+.avatar-success-modal {
+  border-radius: 16px !important;
+  overflow: hidden;
+  animation: modalSlideIn 0.3s ease-out;
+}
+
+.success-modal-title {
+  font-size: 1.5rem !important;
+  font-weight: 700 !important;
+  color: #2e7d32 !important;
+  text-align: center;
+  margin-top: 16px;
+}
+
+.success-modal-message {
+  font-size: 1rem !important;
+  color: #616161 !important;
+  text-align: center;
+  padding: 8px 24px 0 24px;
+}
+
+.success-animation-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding-top: 20px;
+}
+
+.success-checkmark {
+  width: 80px;
+  height: 80px;
+  position: relative;
+}
+
+.success-checkmark .check-icon {
+  width: 80px;
+  height: 80px;
+  position: relative;
+  border-radius: 50%;
+  box-sizing: content-box;
+  border: 4px solid #4CAF50;
+}
+
+.success-checkmark .check-icon::before {
+  top: 3px;
+  left: -2px;
+  width: 30px;
+  transform-origin: 100% 50%;
+  border-radius: 100px 0 0 100px;
+}
+
+.success-checkmark .check-icon::after {
+  top: 0;
+  left: 30px;
+  width: 60px;
+  transform-origin: 0 50%;
+  border-radius: 0 100px 100px 0;
+  animation: rotate-circle 4.25s ease-in;
+}
+
+.success-checkmark .check-icon::before,
+.success-checkmark .check-icon::after {
+  content: '';
+  height: 100px;
+  position: absolute;
+  background: #FFFFFF;
+  transform: rotate(-45deg);
+}
+
+.success-checkmark .check-icon .icon-line {
+  height: 5px;
+  background-color: #4CAF50;
+  display: block;
+  border-radius: 2px;
+  position: absolute;
+  z-index: 10;
+}
+
+.success-checkmark .check-icon .icon-line.line-tip {
+  top: 46px;
+  left: 14px;
+  width: 25px;
+  transform: rotate(45deg);
+  animation: icon-line-tip 0.75s;
+}
+
+.success-checkmark .check-icon .icon-line.line-long {
+  top: 38px;
+  right: 8px;
+  width: 47px;
+  transform: rotate(-45deg);
+  animation: icon-line-long 0.75s;
+}
+
+.success-checkmark .check-icon .icon-circle {
+  top: -4px;
+  left: -4px;
+  z-index: 10;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  position: absolute;
+  box-sizing: content-box;
+  border: 4px solid rgba(76, 175, 80, 0.5);
+}
+
+.success-checkmark .check-icon .icon-fix {
+  top: 8px;
+  width: 5px;
+  left: 26px;
+  z-index: 1;
+  height: 85px;
+  position: absolute;
+  transform: rotate(-45deg);
+  background-color: #FFFFFF;
+}
+
+@keyframes rotate-circle {
+  0% { transform: rotate(-45deg); }
+  5% { transform: rotate(-45deg); }
+  12% { transform: rotate(-405deg); }
+  100% { transform: rotate(-405deg); }
+}
+
+@keyframes icon-line-tip {
+  0% { width: 0; left: 1px; top: 19px; }
+  54% { width: 0; left: 1px; top: 19px; }
+  70% { width: 50px; left: -8px; top: 37px; }
+  84% { width: 17px; left: 21px; top: 48px; }
+  100% { width: 25px; left: 14px; top: 46px; }
+}
+
+@keyframes icon-line-long {
+  0% { width: 0; right: 46px; top: 54px; }
+  65% { width: 0; right: 46px; top: 54px; }
+  84% { width: 55px; right: 0px; top: 35px; }
+  100% { width: 47px; right: 8px; top: 38px; }
+}
+
+@keyframes modalSlideIn {
+  0% { opacity: 0; transform: scale(0.8) translateY(-20px); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+
+/* Error Modal Styles */
+.error-modal-card {
+  border-radius: 16px !important;
+  overflow: hidden;
+}
+
+.error-modal-header {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+}
+
+.error-list {
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.error-item {
+  display: flex;
+  align-items: flex-start;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
 </style>
+

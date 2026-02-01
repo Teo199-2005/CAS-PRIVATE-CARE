@@ -4,11 +4,13 @@ namespace App\Http\Controllers;
 
 use App\Models\Housekeeper;
 use App\Models\BookingHousekeeperAssignment;
+use App\Http\Traits\ApiResponseTrait;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class HousekeeperController extends Controller
 {
+    use ApiResponseTrait;
     /**
      * Get housekeeper stats for dashboard
      */
@@ -48,14 +50,34 @@ class HousekeeperController extends Controller
             return $priority . '_' . $serviceDate;
         })->values();
         
-        // Calculate earnings (will be implemented later with time tracking)
-        $totalEarnings = 0;
-        $monthlyEarnings = 0;
-        $weeklyEarnings = 0;
-        $pendingBalance = 0;
+        // Calculate actual earnings from TimeTracking records
+        $timeTrackings = \App\Models\TimeTracking::where('housekeeper_id', $housekeeper->id)
+            ->whereNotNull('clock_out_time')
+            ->where('status', 'completed')
+            ->get();
         
-        // Get transactions (sample data for now)
-        $transactions = [];
+        $totalEarnings = $timeTrackings->sum('caregiver_earnings') ?? 0; // Using caregiver_earnings field for housekeepers too
+        $monthlyEarnings = $timeTrackings->where('work_date', '>=', now()->startOfMonth())->sum('caregiver_earnings') ?? 0;
+        $weeklyEarnings = $timeTrackings->where('work_date', '>=', now()->startOfWeek())->sum('caregiver_earnings') ?? 0;
+        $pendingBalance = $timeTrackings->whereNull('paid_at')->sum('caregiver_earnings') ?? 0;
+        
+        // Get recent transactions from TimeTracking
+        $transactions = \App\Models\TimeTracking::where('housekeeper_id', $housekeeper->id)
+            ->whereNotNull('clock_out_time')
+            ->orderBy('work_date', 'desc')
+            ->take(10)
+            ->get()
+            ->map(function($tt) {
+                return [
+                    'id' => $tt->id,
+                    'type' => $tt->paid_at ? 'payment' : 'pending',
+                    'description' => 'Earnings for ' . ($tt->work_date ? $tt->work_date->format('M d, Y') : 'Unknown date'),
+                    'amount' => $tt->caregiver_earnings ?? 0,
+                    'status' => $tt->paid_at ? 'completed' : 'pending',
+                    'method' => 'Direct Deposit',
+                    'created_at' => $tt->created_at ? $tt->created_at->toDateTimeString() : now()->toDateTimeString()
+                ];
+            })->toArray();
         
         return response()->json([
             'total_clients' => $activeAssignments->count(),
@@ -132,9 +154,8 @@ class HousekeeperController extends Controller
                 ];
             });
         
-        return response()->json([
-            'clients' => $availableBookings
-        ]);
+        // Return array directly as frontend expects array not object
+        return response()->json($availableBookings);
     }
 
     /**
@@ -149,12 +170,18 @@ class HousekeeperController extends Controller
             return response()->json(['error' => 'Housekeeper profile not found'], 404);
         }
         
-        // Create assignment
-        $assignment = BookingAssignment::create([
+        // Check if booking exists
+        $booking = \App\Models\Booking::find($bookingId);
+        if (!$booking) {
+            return response()->json(['error' => 'Booking not found'], 404);
+        }
+        
+        // Create housekeeper assignment using the correct model
+        $assignment = \App\Models\BookingHousekeeperAssignment::create([
             'booking_id' => $bookingId,
             'housekeeper_id' => $housekeeper->id,
-            'provider_type' => 'housekeeper',
             'status' => 'pending',
+            'assigned_at' => now(),
         ]);
         
         return response()->json([

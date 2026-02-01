@@ -20,9 +20,9 @@
     :user-initials="profile.firstName && profile.lastName ? `${profile.firstName[0]}${profile.lastName[0]}` : 'AS'"
     :user-avatar="userAvatar"
     :welcome-message="profile.firstName ? `Welcome Back, ${profile.firstName}` : 'Welcome Back, Admin Staff'"
-    subtitle="Manage applications, bookings, and communications"
+    subtitle="Manage applications, bookings, and communications based on your assigned areas"
     header-title="Admin Staff Panel"
-    header-subtitle="Limited administrative operations"
+    header-subtitle="Operations limited to areas assigned by your administrator (e.g. Time Tracking, Client Bookings)"
     :nav-items="navItems"
     :current-section="currentSection"
     @section-change="handleSectionChangeWithPermission"
@@ -37,8 +37,11 @@
 
     <!-- Dashboard Section -->
     <div v-if="currentSection === 'dashboard'">
+      <v-alert type="info" variant="tonal" density="compact" class="mb-4" border="start">
+        <strong>Assignment-based access.</strong> You only see and manage sections your administrator has assigned to you (e.g. Time Tracking, Client Bookings, Applications). Contact your admin to request access to other areas.
+      </v-alert>
       <v-row class="mb-4">
-        <v-col v-for="(stat, index) in stats" :key="stat.title" cols="6" sm="6" md="3">
+        <v-col v-for="(stat, index) in stats" :key="stat.title" cols="6" sm="4" md="2">
           <stat-card 
             :icon="stat.icon" 
             :value="stat.value" 
@@ -946,7 +949,7 @@
                   label="ZIP Code" 
                   variant="outlined"
                   maxlength="5"
-                  :rules="[v => !v || /^\d{5}$/.test(v) || 'Please enter a valid 5-digit ZIP code']"
+                  :rules="[v => !v || /^\d{5}$/.test(v) || 'Enter 5-digit ZIP', v => !v || /^(00501|00544|06390|1[0-4]\d{3})$/.test(v) || 'Must be NY ZIP (10xxx-14xxx)']"
                   placeholder="Enter ZIP code"
                   @input="lookupMarketingStaffZipCode"
                   @blur="lookupMarketingStaffZipCode"
@@ -1453,7 +1456,7 @@
                   label="ZIP Code" 
                   variant="outlined"
                   maxlength="5"
-                  :rules="[v => !v || /^\d{5}$/.test(v) || 'Please enter a valid 5-digit ZIP code']"
+                  :rules="[v => !v || /^\d{5}$/.test(v) || 'Enter 5-digit ZIP', v => !v || /^(00501|00544|06390|1[0-4]\d{3})$/.test(v) || 'Must be NY ZIP (10xxx-14xxx)']"
                   placeholder="Enter ZIP code"
                   @input="lookupTrainingCenterZipCode"
                   @blur="lookupTrainingCenterZipCode"
@@ -1513,6 +1516,9 @@
 
     <!-- Contractors Application Section -->
     <div v-if="currentSection === 'pending'">
+      <v-alert type="info" variant="tonal" density="compact" class="mb-4" border="start">
+        You have been assigned to manage <strong>Contractors Application</strong>. Review and approve or reject contractor applications here.
+      </v-alert>
       <v-card elevation="0">
         <v-card-title class="card-header pa-8">
           <span class="section-title error--text">Contractors Application</span>
@@ -1666,6 +1672,9 @@
 
     <!-- Password Resets Section -->
     <div v-if="currentSection === 'password-resets'">
+      <v-alert type="info" variant="tonal" density="compact" class="mb-4" border="start">
+        You have been assigned to manage <strong>Password Resets</strong>. Process password reset requests here.
+      </v-alert>
       <v-card elevation="0">
         <v-card-title class="card-header pa-8">
           <span class="section-title error--text">Password Reset Requests</span>
@@ -1687,8 +1696,11 @@
       </v-card>
     </div>
 
-    <!-- Time Tracking Section -->
+    <!-- Time Tracking Section (assigned area) -->
     <div v-if="currentSection === 'time-tracking'">
+      <v-alert type="info" variant="tonal" density="compact" class="mb-4" border="start">
+        You have been assigned to manage <strong>Time Tracking</strong>. View and manage caregiver clock-in/out for client bookings here.
+      </v-alert>
       <div class="mb-6">
         <v-row class="align-center">
           <v-col cols="12" md="3">
@@ -1816,8 +1828,11 @@
       </v-card>
     </div>
 
-    <!-- Client Bookings Section -->
+    <!-- Client Bookings Section (assigned area) -->
     <div v-if="currentSection === 'client-bookings'">
+      <v-alert type="info" variant="tonal" density="compact" class="mb-4" border="start">
+        You have been assigned to manage <strong>Client Bookings</strong>. View and manage bookings within your assigned scope here.
+      </v-alert>
       <div class="mb-6">
         <v-row class="align-center">
           <v-col cols="12" md="4">
@@ -2062,6 +2077,137 @@
       <email-marketing-panel />
     </div>
 
+    <!-- Analytics Section (read-only overview; assigned areas determine which sections you can manage) -->
+    <div v-if="currentSection === 'analytics'">
+      <v-alert type="info" variant="tonal" density="compact" class="mb-4" border="start">
+        Platform overview (read-only). Your assigned areas determine which sections you can manage (e.g. Time Tracking, Client Bookings).
+      </v-alert>
+      <div class="mb-4">
+        <h2 class="text-h5 font-weight-bold error--text mb-1">Analytics</h2>
+        <p class="text-body-2 text-medium-emphasis">Platform metrics and user distribution</p>
+      </div>
+      <v-row class="mb-4">
+        <v-col v-for="stat in analyticsStats" :key="stat.title" cols="6" sm="4" md="2">
+          <v-card elevation="0" class="compact-stat-card">
+            <v-card-text class="pa-4">
+              <div class="d-flex align-center">
+                <v-icon :color="stat.color" size="24" class="mr-3">{{ stat.icon }}</v-icon>
+                <div>
+                  <div class="stat-value" :class="stat.color + '--text'">{{ stat.value }}</div>
+                  <div class="stat-label">{{ stat.title }}</div>
+                  <div v-if="stat.change" class="stat-change">{{ stat.change }}</div>
+                </div>
+              </div>
+            </v-card-text>
+          </v-card>
+        </v-col>
+      </v-row>
+      <v-row class="mb-4">
+        <v-col cols="12" md="6">
+          <v-card elevation="0" class="compact-chart-card" style="border: 1px solid #e5e7eb;">
+            <v-card-title class="compact-header pa-4">
+              <span class="compact-title error--text">Need attention</span>
+              <v-chip v-if="parseInt(pendingApplicationsCount) > 0" color="warning" size="small">{{ pendingApplicationsCount }} pending</v-chip>
+            </v-card-title>
+            <v-card-text class="pa-4">
+              <div class="d-flex flex-wrap align-center" style="gap: 8px;">
+                <v-btn v-if="parseInt(pendingApplicationsCount) > 0 && isPageAllowed('pending')" color="warning" variant="tonal" prepend-icon="mdi-account-clock" @click="handleSectionChangeWithPermission('pending')">
+                  Review {{ pendingApplicationsCount }} application(s)
+                </v-btn>
+                <span v-else-if="parseInt(pendingApplicationsCount) === 0" class="text-body-2 text-medium-emphasis">No pending contractor applications.</span>
+                <span v-else class="text-body-2 text-medium-emphasis">You don't have access to Applications.</span>
+              </div>
+            </v-card-text>
+          </v-card>
+        </v-col>
+        <v-col cols="12" md="6">
+          <v-card elevation="0" class="compact-chart-card" style="border: 1px solid #e5e7eb;">
+            <v-card-title class="compact-header pa-4">
+              <span class="compact-title error--text">Quick links</span>
+            </v-card-title>
+            <v-card-text class="pa-4">
+              <div class="d-flex flex-wrap" style="gap: 8px;">
+                <v-btn v-if="isPageAllowed('users')" size="small" variant="outlined" @click="handleSectionChangeWithPermission('users')">Users</v-btn>
+                <v-btn v-if="isPageAllowed('caregivers')" size="small" variant="outlined" @click="handleSectionChangeWithPermission('caregivers')">Caregivers</v-btn>
+                <v-btn v-if="isPageAllowed('housekeepers')" size="small" variant="outlined" @click="handleSectionChangeWithPermission('housekeepers')">Housekeepers</v-btn>
+                <v-btn v-if="isPageAllowed('clients')" size="small" variant="outlined" @click="handleSectionChangeWithPermission('clients')">Clients</v-btn>
+                <v-btn v-if="isPageAllowed('pending')" size="small" variant="outlined" @click="handleSectionChangeWithPermission('pending')">Applications</v-btn>
+                <v-btn v-if="isPageAllowed('client-bookings')" size="small" variant="outlined" @click="handleSectionChangeWithPermission('client-bookings')">Bookings</v-btn>
+                <v-btn v-if="isPageAllowed('time-tracking')" size="small" variant="outlined" @click="handleSectionChangeWithPermission('time-tracking')">Time Tracking</v-btn>
+                <v-btn v-if="isPageAllowed('payments')" size="small" variant="outlined" @click="handleSectionChangeWithPermission('payments')">Payments</v-btn>
+              </div>
+            </v-card-text>
+          </v-card>
+        </v-col>
+      </v-row>
+      <v-row>
+        <v-col cols="12" md="4">
+          <v-card elevation="0" class="mb-3 compact-chart-card">
+            <v-card-title class="compact-header pa-4">
+              <span class="compact-title error--text">Revenue Trend</span>
+              <v-chip color="success" size="small">Monthly</v-chip>
+            </v-card-title>
+            <v-card-text class="pa-4">
+              <div class="mb-2">
+                <span class="chart-value success--text">{{ analyticsStats[0]?.value || '$0' }}</span>
+              </div>
+              <div style="height: 180px; position: relative;">
+                <canvas ref="revenueChart"></canvas>
+              </div>
+            </v-card-text>
+          </v-card>
+        </v-col>
+        <v-col cols="12" md="4">
+          <v-card elevation="0" class="mb-3 compact-chart-card">
+            <v-card-title class="compact-header pa-4">
+              <span class="compact-title error--text">User Distribution</span>
+              <v-chip color="info" size="small" class="font-weight-bold">{{ totalUsersForChart }} Total</v-chip>
+            </v-card-title>
+            <v-card-text class="pa-4">
+              <div class="mb-2 user-stats-row">
+                <div class="user-stat-item"><div class="stat-dot" style="background-color: #3b82f6;"></div><span class="stat-text">Clients: {{ clientMetrics[0].value }}</span></div>
+                <div class="user-stat-item"><div class="stat-dot" style="background-color: #10b981;"></div><span class="stat-text">Caregivers: {{ caregiverMetrics[0].value }}</span></div>
+                <div class="user-stat-item"><div class="stat-dot" style="background-color: #8b5cf6;"></div><span class="stat-text">Housekeepers: {{ housekeeperMetrics[0].value }}</span></div>
+                <div class="user-stat-item"><div class="stat-dot" style="background-color: #dc2626;"></div><span class="stat-text">Admins: {{ adminCount }}</span></div>
+                <div class="user-stat-item"><div class="stat-dot" style="background-color: #f59e0b;"></div><span class="stat-text">Marketing: {{ marketingCount }}</span></div>
+                <div class="user-stat-item"><div class="stat-dot" style="background-color: #06b6d4;"></div><span class="stat-text">Training: {{ trainingCenterCount }}</span></div>
+              </div>
+              <div style="height: 140px; position: relative;">
+                <canvas ref="userChart"></canvas>
+              </div>
+            </v-card-text>
+          </v-card>
+        </v-col>
+        <v-col cols="12" md="4">
+          <v-card elevation="0" class="mb-3 compact-chart-card">
+            <v-card-title class="compact-header pa-4">
+              <span class="compact-title error--text">Booking Status</span>
+              <v-chip color="warning" size="small" class="font-weight-bold">{{ totalBookingsForChart }} Total</v-chip>
+            </v-card-title>
+            <v-card-text class="pa-4">
+              <div class="mb-2 booking-stats-grid">
+                <div class="booking-stat-item"><div class="stat-indicator" style="background-color: #f59e0b;"></div><div class="stat-info"><div class="stat-number">{{ bookingStats.pending }}</div><div class="stat-label">Pending</div></div></div>
+                <div class="booking-stat-item"><div class="stat-indicator" style="background-color: #10b981;"></div><div class="stat-info"><div class="stat-number">{{ bookingStats.active }}</div><div class="stat-label">Active</div></div></div>
+                <div class="booking-stat-item"><div class="stat-indicator" style="background-color: #3b82f6;"></div><div class="stat-info"><div class="stat-number">{{ bookingStats.completed }}</div><div class="stat-label">Completed</div></div></div>
+                <div class="booking-stat-item"><div class="stat-indicator" style="background-color: #ef4444;"></div><div class="stat-info"><div class="stat-number">{{ bookingStats.cancelled }}</div><div class="stat-label">Cancelled</div></div></div>
+              </div>
+              <div style="height: 120px; position: relative;">
+                <canvas ref="bookingChart"></canvas>
+              </div>
+            </v-card-text>
+          </v-card>
+        </v-col>
+      </v-row>
+      <v-row>
+        <v-col cols="12" md="4"><v-card elevation="0" class="mb-3" style="border: 1px solid #c5c5c5ff;"><v-card-title class="compact-header pa-4"><span class="compact-title error--text">Client Analytics</span></v-card-title><v-card-text class="pa-4"><v-row><v-col cols="6" v-for="metric in clientMetrics" :key="metric.label"><div class="metric-box"><div class="metric-number" :class="metric.color + '--text'">{{ metric.value }}</div><div class="metric-text">{{ metric.label }}</div></div></v-col></v-row></v-card-text></v-card></v-col>
+        <v-col cols="12" md="4"><v-card elevation="0" class="mb-3" style="border: 1px solid #c5c5c5ff;"><v-card-title class="compact-header pa-4"><span class="compact-title error--text">Caregiver Analytics</span></v-card-title><v-card-text class="pa-4"><v-row><v-col cols="6" v-for="metric in caregiverMetrics" :key="metric.label"><div class="metric-box"><div class="metric-number" :class="metric.color + '--text'">{{ metric.value }}</div><div class="metric-text">{{ metric.label }}</div></div></v-col></v-row></v-card-text></v-card></v-col>
+        <v-col cols="12" md="4"><v-card elevation="0" class="mb-3" style="border: 1px solid #c5c5c5ff;"><v-card-title class="compact-header pa-4"><span class="compact-title deep-purple--text">Housekeeper Analytics</span></v-card-title><v-card-text class="pa-4"><v-row><v-col cols="6" v-for="metric in housekeeperMetrics" :key="metric.label"><div class="metric-box"><div class="metric-number" :class="metric.color + '--text'">{{ metric.value }}</div><div class="metric-text">{{ metric.label }}</div></div></v-col></v-row></v-card-text></v-card></v-col>
+        <v-col cols="12" md="4"><v-card elevation="0" class="mb-3" style="border: 1px solid #c5c5c5ff;"><v-card-title class="compact-header pa-4"><span class="compact-title error--text">Admin Staff Analytics</span></v-card-title><v-card-text class="pa-4"><v-row><v-col cols="6" v-for="metric in adminStaffMetrics" :key="metric.label"><div class="metric-box"><div class="metric-number" :class="metric.color + '--text'">{{ metric.value }}</div><div class="metric-text">{{ metric.label }}</div></div></v-col></v-row></v-card-text></v-card></v-col>
+        <v-col cols="12" md="4"><v-card elevation="0" class="mb-3" style="border: 1px solid #c5c5c5ff;"><v-card-title class="compact-header pa-4"><span class="compact-title warning--text">Marketing Partner Analytics</span></v-card-title><v-card-text class="pa-4"><v-row><v-col cols="6" v-for="metric in marketingMetrics" :key="metric.label"><div class="metric-box"><div class="metric-number" :class="metric.color + '--text'">{{ metric.value }}</div><div class="metric-text">{{ metric.label }}</div></div></v-col></v-row></v-card-text></v-card></v-col>
+        <v-col cols="12" md="4"><v-card elevation="0" class="mb-3" style="border: 1px solid #c5c5c5ff;"><v-card-title class="compact-header pa-4"><span class="compact-title info--text">Training Center Analytics</span></v-card-title><v-card-text class="pa-4"><v-row><v-col cols="6" v-for="metric in trainingCenterMetrics" :key="metric.label"><div class="metric-box"><div class="metric-number" :class="metric.color + '--text'">{{ metric.value }}</div><div class="metric-text">{{ metric.label }}</div></div></v-col></v-row></v-card-text></v-card></v-col>
+      </v-row>
+    </div>
+
     <!-- Notifications Section -->
     <div v-if="currentSection === 'notifications'">
       <notification-center ref="notificationCenter" user-type="admin" :user-id="3" @open-settings="() => {/* Add settings handler */}" @action-clicked="handleNotificationAction" />
@@ -2120,13 +2266,13 @@
             <v-card-text class="pa-8 text-center">
               <div class="position-relative d-inline-block">
                 <v-avatar size="120" color="error" class="mb-4" style="cursor: pointer;" @click="triggerAvatarUpload">
-                  <img v-if="userAvatar && userAvatar.length > 0" :src="userAvatar" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;" />
+                  <img v-if="userAvatar && userAvatar.length > 0" :src="userAvatar" :alt="`${profile.firstName} ${profile.lastName}'s profile photo`" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;" />
                   <span v-else class="text-h3 font-weight-bold">{{ profile.firstName && profile.lastName ? `${profile.firstName[0]}${profile.lastName[0]}` : 'AS' }}</span>
                 </v-avatar>
-                <v-btn icon size="small" color="error" class="position-absolute" style="bottom: 16px; right: -8px;" @click="triggerAvatarUpload" :loading="uploadingAvatar">
+                <v-btn icon size="small" color="error" class="position-absolute" style="bottom: 16px; right: -8px;" @click="triggerAvatarUpload" :loading="uploadingAvatar" aria-label="Upload profile photo">
                   <v-icon size="small">mdi-camera</v-icon>
                 </v-btn>
-                <input ref="avatarInput" type="file" accept="image/*" style="display: none;" @change="uploadAvatar" />
+                <input ref="avatarInput" type="file" accept="image/*" style="display: none;" @change="uploadAvatar" aria-label="Select profile photo" />
               </div>
               <h2 class="mb-2">{{ profile.firstName && profile.lastName ? `${profile.firstName} ${profile.lastName}` : 'Admin Staff' }}</h2>
               <p class="text-grey mb-4">{{ profile.role || 'Admin Staff' }}</p>
@@ -2360,7 +2506,7 @@
                   label="ZIP Code" 
                   variant="outlined"
                   maxlength="5"
-                  :rules="[v => !v || /^\d{5}$/.test(v) || 'Please enter a valid 5-digit ZIP code']"
+                  :rules="[v => !v || /^\d{5}$/.test(v) || 'Enter 5-digit ZIP', v => !v || /^(00501|00544|06390|1[0-4]\d{3})$/.test(v) || 'Must be NY ZIP (10xxx-14xxx)']"
                   placeholder="Enter ZIP code"
                   @input="lookupClientZipCode"
                   @blur="lookupClientZipCode"
@@ -2538,7 +2684,7 @@
                   label="ZIP Code" 
                   variant="outlined"
                   maxlength="5"
-                  :rules="[v => !v || /^\d{5}$/.test(v) || 'Please enter a valid 5-digit ZIP code']"
+                  :rules="[v => !v || /^\d{5}$/.test(v) || 'Enter 5-digit ZIP', v => !v || /^(00501|00544|06390|1[0-4]\d{3})$/.test(v) || 'Must be NY ZIP (10xxx-14xxx)']"
                   placeholder="Enter ZIP code"
                   @input="lookupCaregiverZipCode"
                   @blur="lookupCaregiverZipCode"
@@ -2593,7 +2739,7 @@
                 <v-checkbox v-model="caregiverForm.isCustomTrainingCenter" label="Custom Training Center" density="compact" hide-details />
               </v-col>
               <v-col cols="12" md="6">
-                <v-select v-if="!caregiverForm.isCustomTrainingCenter" v-model="caregiverForm.trainingCenter" :items="caregiverTrainingCenters" label="Training Center" variant="outlined" />
+                <v-select v-if="!caregiverForm.isCustomTrainingCenter" v-model="caregiverForm.trainingCenter" :items="caregiverTrainingCenterOptions" label="Training Center" variant="outlined" no-data-text="No CAS training centers. Use Custom Training Center to enter one." />
                 <v-text-field v-else v-model="caregiverForm.customTrainingCenter" label="Custom Training Center" variant="outlined" />
               </v-col>
               <v-col cols="12" md="6">
@@ -2616,24 +2762,24 @@
     </v-dialog>
 
     <!-- Confirmation Dialog -->
-    <v-dialog v-model="confirmDialog" max-width="500">
-      <v-card>
-        <v-card-title class="pa-6" style="background: #dc2626; color: white;">
+    <v-dialog v-model="confirmDialog" :max-width="isMobile ? '90%' : 500" :width="isMobile ? '90%' : undefined" class="confirm-dialog-mobile">
+      <v-card class="rounded-lg">
+        <v-card-title class="pa-4 pa-md-6" style="background: #dc2626; color: white;">
           <div class="d-flex align-center justify-space-between w-100">
             <div class="d-flex align-center">
-              <v-icon color="white" class="mr-3">{{ confirmData.buttonIcon === 'mdi-check' ? 'mdi-check-circle' : 'mdi-alert-circle' }}</v-icon>
-              <span class="section-title" style="color: white;">{{ confirmData.title }}</span>
+              <v-icon color="white" size="24" class="mr-2">{{ confirmData.buttonIcon === 'mdi-check' ? 'mdi-check-circle' : 'mdi-alert-circle' }}</v-icon>
+              <span class="text-subtitle-1 text-md-h6 font-weight-bold" style="color: white;">{{ confirmData.title }}</span>
             </div>
-            <v-btn icon="mdi-close" variant="text" style="color: white;" @click="confirmDialog = false"></v-btn>
+            <v-btn icon="mdi-close" variant="text" size="small" style="color: white;" @click="confirmDialog = false"></v-btn>
           </div>
         </v-card-title>
-        <v-card-text class="pa-6">
-          <p class="text-body-1">{{ confirmData.message }}</p>
+        <v-card-text class="pa-4 pa-md-6">
+          <p class="text-body-2 text-md-body-1">{{ confirmData.message }}</p>
         </v-card-text>
-        <v-card-actions class="pa-6 pt-0">
-          <v-spacer />
-          <v-btn color="grey" variant="outlined" @click="confirmDialog = false">Cancel</v-btn>
-          <v-btn :color="confirmData.buttonColor" variant="flat" :prepend-icon="confirmData.buttonIcon" @click="handleConfirm">{{ confirmData.buttonText }}</v-btn>
+        <v-card-actions class="pa-4 pa-md-6 pt-0 flex-column flex-sm-row ga-2">
+          <v-spacer class="d-none d-sm-flex" />
+          <v-btn color="grey" variant="outlined" :block="isMobile" @click="confirmDialog = false">Cancel</v-btn>
+          <v-btn :color="confirmData.buttonColor" variant="flat" :prepend-icon="confirmData.buttonIcon" :block="isMobile" @click="handleConfirm">{{ confirmData.buttonText }}</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -2710,7 +2856,7 @@
                 label="ZIP Code *" 
                 variant="outlined"
                 maxlength="5"
-                :rules="[v => !!v || 'ZIP code is required', v => /^\d{5}$/.test(v) || 'Please enter a valid 5-digit ZIP code']"
+                :rules="[v => !!v || 'ZIP code is required', v => /^\d{5}$/.test(v) || 'Enter 5-digit ZIP', v => /^(00501|00544|06390|1[0-4]\d{3})$/.test(v) || 'Must be NY ZIP (10xxx-14xxx)']"
                 required
                 @input="lookupBookingZipCode"
                 @blur="lookupBookingZipCode"
@@ -4673,6 +4819,44 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
+
+    <!-- Profile Picture Success Modal -->
+    <v-dialog 
+      v-model="showAvatarSuccessModal" 
+      max-width="400"
+      persistent
+    >
+      <v-card class="avatar-success-modal text-center pa-6">
+        <div class="success-animation-container">
+          <div class="success-checkmark">
+            <div class="check-icon">
+              <span class="icon-line line-tip"></span>
+              <span class="icon-line line-long"></span>
+              <div class="icon-circle"></div>
+              <div class="icon-fix"></div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="success-modal-title">Success!</div>
+        
+        <div class="success-modal-message">
+          Your profile picture has been updated successfully.
+        </div>
+        
+        <v-card-actions class="justify-center pt-6 pb-2">
+          <v-btn 
+            color="error" 
+            variant="flat" 
+            size="large"
+            min-width="150"
+            @click="closeAvatarSuccessModal"
+          >
+            Done
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </dashboard-template>
 </template>
 
@@ -4755,17 +4939,31 @@ const caregiverForm = ref({
   status: 'Active' 
 });
 
-const caregiverTrainingCenters = [
-  'NYC Healthcare Training Institute',
-  'American Red Cross',
-  'National Association for Home Care & Hospice',
-  'Certified Nursing Assistant Training Center',
-  'Home Health Aide Training Academy',
-  'Metropolitan Healthcare Training',
-  'Brooklyn Healthcare Institute',
-  'Queens Medical Training Center',
-  'Bronx Community Health Training'
-];
+// CAS training center partners only (loaded from API)
+const caregiverTrainingCenters = ref([]);
+// Include current form value so selector always shows what training center it is
+const caregiverTrainingCenterOptions = computed(() => {
+  const list = [...(caregiverTrainingCenters.value || [])];
+  const current = (caregiverForm.value?.trainingCenter || '').trim();
+  if (current && !list.includes(current)) list.unshift(current);
+  return list;
+});
+const loadCaregiverTrainingCenters = async () => {
+  try {
+    const response = await fetch('/api/training-centers?active_only=1', {
+      headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
+      credentials: 'include'
+    });
+    const data = await response.json().catch(() => ({}));
+    const centers = Array.isArray(data) ? data : (data.centers || data.training_centers || data.trainingCenters || []);
+    caregiverTrainingCenters.value = (centers || [])
+      .map(c => (typeof c === 'string' ? c : (c?.name || c?.title || '')))
+      .map(s => String(s || '').trim())
+      .filter(Boolean);
+  } catch (e) {
+    caregiverTrainingCenters.value = [];
+  }
+};
 
 const announcementData = ref({
   title: '',
@@ -4997,6 +5195,35 @@ const normalizeZip5 = (zipLike) => {
 };
 
 /**
+ * NY ZIP Code Validation Helper
+ * Valid NY ZIPs: 10xxx-14xxx range OR special cases (00501, 00544, 06390)
+ */
+const isValidNYZip = (zip) => {
+  if (!zip) return false;
+  const nyZipRegex = /^(00501|00544|06390|1[0-4]\d{3})(-\d{4})?$/;
+  return nyZipRegex.test(zip);
+};
+
+/**
+ * Get NY region based on ZIP prefix for fallback
+ */
+const getNYRegionFromZip = (zip) => {
+  if (!zip || !isValidNYZip(zip)) return null;
+  const prefix = parseInt(zip.substring(0, 3), 10);
+  if (prefix >= 100 && prefix <= 102) return 'Manhattan, NY';
+  if (prefix === 103) return 'Staten Island, NY';
+  if (prefix === 104) return 'Bronx, NY';
+  if (prefix >= 105 && prefix <= 109) return 'Westchester, NY';
+  if (prefix >= 110 && prefix <= 111) return 'Long Island, NY';
+  if (prefix === 112) return 'Brooklyn, NY';
+  if (prefix >= 113 && prefix <= 119) return 'Long Island, NY';
+  if (prefix >= 120 && prefix <= 129) return 'Capital Region, NY';
+  if (prefix >= 130 && prefix <= 139) return 'Central NY';
+  if (prefix >= 140 && prefix <= 149) return 'Western NY';
+  return 'New York, NY';
+};
+
+/**
  * Resolve a single ZIP code to "City, ST" format via /api/zipcode-lookup/{zip}
  * Uses frontend cache to avoid repeated API calls.
  */
@@ -5007,6 +5234,13 @@ const resolveZipCityState = async (zipLike) => {
   // Check cache first
   if (zipCityStateCache.has(zip5)) {
     return zipCityStateCache.get(zip5);
+  }
+  
+  // Client-side NY validation first
+  if (!isValidNYZip(zip5)) {
+    const notNY = 'Not a NY ZIP (10xxx-14xxx)';
+    zipCityStateCache.set(zip5, notNY);
+    return notNY;
   }
   
   // Prevent duplicate requests for the same ZIP
@@ -5032,8 +5266,10 @@ const resolveZipCityState = async (zipLike) => {
   }
   
   processingZips.delete(zip5);
-  zipCityStateCache.set(zip5, '');
-  return '';
+  // Fallback to region for valid NY ZIPs
+  const regionFallback = getNYRegionFromZip(zip5) || 'New York, NY';
+  zipCityStateCache.set(zip5, regionFallback);
+  return regionFallback;
 };
 
 /**
@@ -5071,6 +5307,11 @@ const userAvatar = ref('');
 const uploadingAvatar = ref(false);
 const adminUserId = ref(null);
 const avatarInput = ref(null);
+const showAvatarSuccessModal = ref(false);
+
+const closeAvatarSuccessModal = () => {
+  showAvatarSuccessModal.value = false;
+};
 
 const triggerAvatarUpload = () => {
   avatarInput.value?.click();
@@ -5093,6 +5334,7 @@ const uploadAvatar = async (event) => {
     if (response.ok) {
       const data = await response.json();
       userAvatar.value = data.avatar_url;
+      showAvatarSuccessModal.value = true;
     }
   } catch (error) {
   } finally {
@@ -5288,6 +5530,7 @@ const stats = ref([
   { title: 'Total Users', value: '0', icon: 'mdi-account-group', color: 'error', change: '+12% this month', changeColor: 'text-success', changeIcon: 'mdi-arrow-up' },
   { title: 'Active Bookings', value: '0', icon: 'mdi-calendar-check', color: 'error', change: '+8% this week', changeColor: 'text-success', changeIcon: 'mdi-arrow-up' },
   { title: 'Total Revenue', value: '$0', icon: 'mdi-currency-usd', color: 'error', change: '+15% this month', changeColor: 'text-success', changeIcon: 'mdi-arrow-up' },
+  { title: 'Pending Applications', value: '0', icon: 'mdi-account-clock', color: 'warning', change: 'Contractors', changeColor: 'text-warning', changeIcon: 'mdi-clock-outline' },
   { title: 'System Uptime', value: '98.5%', icon: 'mdi-server', color: 'error', change: 'Last 30 days', changeColor: 'text-info', changeIcon: 'mdi-information' },
 ]);
 
@@ -5301,12 +5544,16 @@ const loadAdminStats = async () => {
     const activeBookings = data.active_bookings || 0;
     const userGrowthPct = data.user_growth || 0;
     const bookingGrowthPct = data.booking_growth || 0;
-    
+    const pendingApplications = (data.pending_applications_count ?? 0);
+    pendingApplicationsCount.value = pendingApplications.toString();
+
     stats.value[0].value = totalUsers.toString();
     stats.value[0].change = userGrowthPct >= 0 ? `+${userGrowthPct}% this month` : `${userGrowthPct}% this month`;
     stats.value[1].value = activeBookings.toString();
     stats.value[1].change = bookingGrowthPct >= 0 ? `+${bookingGrowthPct}% this week` : `${bookingGrowthPct}% this week`;
     stats.value[2].value = '$' + revenue.toFixed(2);
+    if (stats.value[3]) stats.value[3].value = pendingApplications.toString();
+    if (stats.value[4]) stats.value[4].value = '98.5%'; // System Uptime
     userProgress.value = Math.min((totalUsers / 100) * 100, 100);
     userGrowth.value = totalUsers > 0 ? `${totalUsers} total users` : '+0% this month';
     revenueProgress.value = Math.min((revenue / 50000) * 100, 100);
@@ -5329,17 +5576,19 @@ const analyticsStats = ref([
   { title: 'Clients', value: '0', icon: 'mdi-account-multiple', color: 'info', change: '+8%' },
   { title: 'Caregivers', value: '0', icon: 'mdi-account-heart', color: 'success', change: '+12%' },
   { title: 'Bookings', value: '0', icon: 'mdi-calendar-check', color: 'warning', change: '+5%' },
+  { title: 'Pending Applications', value: '0', icon: 'mdi-account-clock', color: 'warning', change: '' },
 ]);
 
 const loadAnalyticsStats = async () => {
   try {
-    const response = await fetch('/api/admin/stats');
+    const response = await fetch('/api/admin/stats', { credentials: 'include' });
     if (!response.ok) throw new Error('API failed');
     const data = await response.json();
     analyticsStats.value[0].value = '$' + (data.total_revenue || 0).toFixed(2);
     analyticsStats.value[1].value = (data.total_clients || 0).toString();
     analyticsStats.value[2].value = (data.total_caregivers || 0).toString();
     analyticsStats.value[3].value = (data.active_bookings || 0).toString();
+    if (analyticsStats.value[4]) analyticsStats.value[4].value = (data.pending_applications_count ?? 0).toString();
   } catch (error) {
   }
 };
@@ -5358,7 +5607,38 @@ const caregiverMetrics = ref([
   { label: 'Avg Earnings', value: '$0', color: 'error' },
 ]);
 
+const housekeeperMetrics = ref([
+  { label: 'Total Housekeepers', value: '0', color: 'deep-purple' },
+  { label: 'Active Today', value: '0', color: 'purple' },
+  { label: 'Assigned', value: '0', color: 'purple-lighten-2' },
+  { label: 'Avg Earnings', value: '$0', color: 'deep-purple' },
+]);
+
+const adminStaffMetrics = ref([
+  { label: 'Total Admins', value: '0', color: 'error' },
+  { label: 'Active', value: '—', color: 'grey' },
+  { label: 'New This Month', value: '—', color: 'grey' },
+  { label: '—', value: '—', color: 'grey' },
+]);
+
+const marketingMetrics = ref([
+  { label: 'Total Partners', value: '0', color: 'warning' },
+  { label: 'Active', value: '—', color: 'grey' },
+  { label: 'Referrals', value: '—', color: 'grey' },
+  { label: '—', value: '—', color: 'grey' },
+]);
+
+const trainingCenterMetrics = ref([
+  { label: 'Total Centers', value: '0', color: 'info' },
+  { label: 'Active', value: '—', color: 'grey' },
+  { label: 'Caregivers Linked', value: '—', color: 'grey' },
+  { label: '—', value: '—', color: 'grey' },
+]);
+
 const adminCount = ref('0');
+const marketingCount = ref('0');
+const trainingCenterCount = ref('0');
+const pendingApplicationsCount = ref('0');
 const userProgress = ref(0);
 const userGrowth = ref('+0% this month');
 const revenueProgress = ref(0);
@@ -5380,18 +5660,39 @@ const bookingStats = ref({
 
 const loadMetrics = async () => {
   try {
-    const response = await fetch('/api/admin/stats');
+    const response = await fetch('/api/admin/stats', { credentials: 'include' });
     if (!response.ok) throw new Error('API failed');
     const data = await response.json();
     const totalUsers = data.total_users || 0;
     const totalCaregivers = data.total_caregivers || 0;
     const totalClients = data.total_clients || 0;
-    const admins = totalUsers - totalCaregivers - totalClients;
+    const totalHousekeepers = data.total_housekeepers || 0;
+    const totalAdmins = data.total_admins || 0;
+    const totalMarketing = data.total_marketing || 0;
+    const totalTraining = data.total_training || 0;
     clientMetrics.value[0].value = totalClients.toString();
     caregiverMetrics.value[0].value = totalCaregivers.toString();
-    adminCount.value = admins.toString();
+    housekeeperMetrics.value[0].value = totalHousekeepers.toString();
+    adminCount.value = totalAdmins.toString();
+    marketingCount.value = totalMarketing.toString();
+    trainingCenterCount.value = totalTraining.toString();
+    pendingApplicationsCount.value = (data.pending_applications_count ?? 0).toString();
     totalUsersForChart.value = totalUsers.toString();
-    const bookingsResp = await fetch('/api/bookings');
+    clientMetrics.value[2].value = (data.new_clients_this_week || 0).toString();
+    clientMetrics.value[3].value = '$' + (data.avg_client_spending || 0).toFixed(0);
+    caregiverMetrics.value[1].value = (data.available_caregivers || 0).toString();
+    caregiverMetrics.value[2].value = (data.top_rated_caregivers || 0).toString();
+    caregiverMetrics.value[3].value = '$' + (data.avg_caregiver_earnings || 0).toFixed(0);
+    housekeeperMetrics.value[3].value = '$' + (data.avg_housekeeper_earnings || 0).toFixed(0);
+    adminStaffMetrics.value[0].value = totalAdmins.toString();
+    marketingMetrics.value[0].value = totalMarketing.toString();
+    trainingCenterMetrics.value[0].value = totalTraining.toString();
+    analyticsStats.value[0].value = '$' + (data.total_revenue || 0).toFixed(2);
+    analyticsStats.value[1].value = totalClients.toString();
+    analyticsStats.value[2].value = totalCaregivers.toString();
+    analyticsStats.value[3].value = (data.active_bookings || 0).toString();
+    if (analyticsStats.value[4]) analyticsStats.value[4].value = (data.pending_applications_count ?? 0).toString();
+    const bookingsResp = await fetch('/api/bookings', { credentials: 'include' });
     const bookingsData = await bookingsResp.json();
     const allBookings = bookingsData.data || [];
     bookingStats.value.pending = allBookings.filter(b => b.status === 'pending').length.toString();
@@ -5399,8 +5700,10 @@ const loadMetrics = async () => {
     bookingStats.value.completed = allBookings.filter(b => b.status === 'completed').length.toString();
     bookingStats.value.cancelled = allBookings.filter(b => b.status === 'cancelled').length.toString();
     totalBookingsForChart.value = allBookings.length.toString();
+    if (analyticsStats.value[3]) analyticsStats.value[3].value = allBookings.length.toString();
     setTimeout(initCharts, 100);
   } catch (error) {
+    console.error('Error loading metrics:', error);
   }
 };
 
@@ -6894,8 +7197,12 @@ const approveApplication = async (application) => {
         const response = await fetch(`/api/admin/applications/${application.id}/approve`, {
           method: 'POST',
           headers: {
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
-          }
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+            'X-Requested-With': 'XMLHttpRequest'
+          },
+          credentials: 'include'
         });
         const result = await response.json();
         if (result.success) {
@@ -7079,20 +7386,29 @@ const calculateAge = (birthdate) => {
 const openClientDialog = (client = null) => {
   if (client) {
     editingClient.value = true;
-    // Parse name into firstName and lastName if needed
-    const nameParts = (client.name || '').split(' ');
+    // Handle both snake_case (from API) and camelCase field names
+    let firstName = client.first_name || client.firstName || '';
+    let lastName = client.last_name || client.lastName || '';
+    
+    // If first/last name not available, try to parse from combined name
+    if (!firstName && !lastName && client.name) {
+      const nameParts = client.name.split(' ');
+      firstName = nameParts[0] || '';
+      lastName = nameParts.slice(1).join(' ') || '';
+    }
+    
     clientForm.value = {
       id: client.id,
-      firstName: nameParts[0] || '',
-      lastName: nameParts.slice(1).join(' ') || '',
+      firstName: firstName,
+      lastName: lastName,
       email: client.email || '',
       phone: client.phone || '',
-      birthdate: client.date_of_birth || '',
+      birthdate: client.date_of_birth || client.birthdate || '',
       address: client.address || '',
       state: client.state || 'New York',
       county: client.county || '',
       city: client.city || client.borough || '',
-      zip_code: client.zip_code || '',
+      zip_code: client.zip_code || client.zip || '',
       password: '',
       status: client.status || 'Active'
     };
@@ -7278,18 +7594,28 @@ const viewMarketingStaffDetails = (staff) => {
 const openMarketingStaffDialog = (staff = null) => {
   if (staff) {
     editingMarketingStaff.value = staff;
-    const nameParts = (staff.name || '').split(' ');
+    // Handle both snake_case (from API) and camelCase field names
+    let firstName = staff.first_name || staff.firstName || '';
+    let lastName = staff.last_name || staff.lastName || '';
+    
+    // If first/last name not available, try to parse from combined name
+    if (!firstName && !lastName && staff.name) {
+      const nameParts = staff.name.split(' ');
+      firstName = nameParts[0] || '';
+      lastName = nameParts.slice(1).join(' ') || '';
+    }
+    
     marketingStaffFormData.value = {
-      firstName: nameParts[0] || '',
-      lastName: nameParts.slice(1).join(' ') || '',
+      firstName: firstName,
+      lastName: lastName,
       email: staff.email || '',
       phone: staff.phone || '',
-      birthdate: staff.date_of_birth || '',
+      birthdate: staff.date_of_birth || staff.birthdate || '',
       address: staff.address || '',
       state: staff.state || 'New York',
       county: staff.county || '',
       city: staff.city || '',
-      zip_code: staff.zip_code || '',
+      zip_code: staff.zip_code || staff.zip || '',
       password: '',
       status: staff.status || 'Active'
     };
@@ -7710,24 +8036,35 @@ const deleteTrainingCenter = (center) => {
 };
 
 const openCaregiverDialog = (caregiver = null) => {
+  loadCaregiverTrainingCenters(); // Populate Training Center dropdown with CAS partners
   if (caregiver) {
     editingCaregiver.value = true;
-    const nameParts = (caregiver.name || '').split(' ');
+    // Handle both snake_case (from API) and camelCase field names
+    let firstName = caregiver.first_name || caregiver.firstName || '';
+    let lastName = caregiver.last_name || caregiver.lastName || '';
+    
+    // If first/last name not available, try to parse from combined name
+    if (!firstName && !lastName && caregiver.name) {
+      const nameParts = caregiver.name.split(' ');
+      firstName = nameParts[0] || '';
+      lastName = nameParts.slice(1).join(' ') || '';
+    }
+    
     caregiverForm.value = {
-      id: caregiver.id || caregiver.userId,
-      firstName: nameParts[0] || '',
-      lastName: nameParts.slice(1).join(' ') || '',
+      id: caregiver.userId || caregiver.id,
+      firstName: firstName,
+      lastName: lastName,
       email: caregiver.email || '',
       phone: caregiver.phone || '',
-      birthdate: caregiver.date_of_birth || '',
+      birthdate: caregiver.date_of_birth || caregiver.birthdate || '',
       address: caregiver.address || '',
       state: caregiver.state || 'New York',
       county: caregiver.county || '',
       city: caregiver.city || caregiver.borough || '',
-      zip_code: caregiver.zip_code || '',
+      zip_code: caregiver.zip_code || caregiver.zip || '',
       password: '',
       experience: caregiver.years_experience || caregiver.experience || '',
-      trainingCenter: caregiver.training_center || '',
+      trainingCenter: caregiver.training_center_name || caregiver.training_center || '',
       customTrainingCenter: '',
       isCustomTrainingCenter: false,
       trainingCertificate: null,
@@ -9783,27 +10120,44 @@ const countyCityMap = {
   "Yates": ["Penn Yan", "Dresden", "Dundee", "Rushville", "Himrod", "Branchport"]
 };
 
+// Include current form city so saved values display (permanent fix for city not showing after load).
 const clientCities = computed(() => {
   if (!clientForm.value.county) return [];
-  return countyCityMap[clientForm.value.county] || [];
+  const list = countyCityMap[clientForm.value.county] || [];
+  const current = clientForm.value.city?.trim();
+  if (!current) return list;
+  const inList = list.some((c) => String(c).trim().toLowerCase() === current.toLowerCase());
+  if (!inList) return [current, ...list];
+  return list;
 });
 
 const caregiverCities = computed(() => {
   if (!caregiverForm.value.county) return [];
-  return countyCityMap[caregiverForm.value.county] || [];
+  const list = countyCityMap[caregiverForm.value.county] || [];
+  const current = caregiverForm.value.city?.trim();
+  if (!current) return list;
+  const inList = list.some((c) => String(c).trim().toLowerCase() === current.toLowerCase());
+  if (!inList) return [current, ...list];
+  return list;
 });
 
-// Watch for county changes to reset city selection
+// Permanent: only reset city when admin changes county and current city is not valid for the new county.
 watch(() => clientForm.value.county, (newCounty) => {
-  if (newCounty) {
-    clientForm.value.city = ''; // Reset city when county changes
-  }
+  if (!newCounty) return;
+  const list = countyCityMap[newCounty] || [];
+  const current = clientForm.value.city?.trim();
+  if (!current) return;
+  const valid = list.some((c) => String(c).trim().toLowerCase() === current.toLowerCase());
+  if (!valid) clientForm.value.city = '';
 });
 
 watch(() => caregiverForm.value.county, (newCounty) => {
-  if (newCounty) {
-    caregiverForm.value.city = ''; // Reset city when county changes
-  }
+  if (!newCounty) return;
+  const list = countyCityMap[newCounty] || [];
+  const current = caregiverForm.value.city?.trim();
+  if (!current) return;
+  const valid = list.some((c) => String(c).trim().toLowerCase() === current.toLowerCase());
+  if (!valid) caregiverForm.value.city = '';
 });
 
 const callCaregiver = (caregiver) => {
@@ -9926,15 +10280,19 @@ const initCharts = () => {
     const ctx = userChart.value.getContext('2d');
     const clients = parseInt(clientMetrics.value[0].value) || 0;
     const caregivers = parseInt(caregiverMetrics.value[0].value) || 0;
+    const housekeepers = parseInt(housekeeperMetrics.value[0].value) || 0;
     const admins = parseInt(adminCount.value) || 0;
-    const total = clients + caregivers + admins;
+    const marketing = parseInt(marketingCount.value) || 0;
+    const training = parseInt(trainingCenterCount.value) || 0;
+    const total = clients + caregivers + housekeepers + admins + marketing + training;
+    const sum = total || 1;
     userChartInstance = new window.Chart(ctx, {
       type: 'doughnut',
       data: {
-        labels: ['Clients', 'Caregivers', 'Admins'],
+        labels: ['Clients', 'Caregivers', 'Housekeepers', 'Admins', 'Marketing', 'Training'],
         datasets: [{ 
-          data: [clients, caregivers, admins], 
-          backgroundColor: ['#3b82f6', '#10b981', '#dc2626'], 
+          data: [clients, caregivers, housekeepers, admins, marketing, training], 
+          backgroundColor: ['#3b82f6', '#10b981', '#8b5cf6', '#dc2626', '#f59e0b', '#06b6d4'], 
           borderWidth: 2,
           borderColor: '#fff',
           hoverBorderWidth: 3
@@ -9955,7 +10313,7 @@ const initCharts = () => {
                 if (data.labels.length && data.datasets.length) {
                   return data.labels.map((label, i) => {
                     const value = data.datasets[0].data[i];
-                    const percentage = ((value / total) * 100).toFixed(1);
+                    const percentage = ((value / sum) * 100).toFixed(1);
                     return {
                       text: `${label}: ${value} (${percentage}%)`,
                       fillStyle: data.datasets[0].backgroundColor[i],
@@ -9973,7 +10331,7 @@ const initCharts = () => {
             callbacks: {
               label: function(context) {
                 const value = context.parsed;
-                const percentage = ((value / total) * 100).toFixed(1);
+                const percentage = ((value / sum) * 100).toFixed(1);
                 return `${context.label}: ${value} users (${percentage}%)`;
               }
             }
@@ -10059,10 +10417,9 @@ const initCharts = () => {
 watch(currentSection, (newVal) => {
   localStorage.setItem('adminSection', newVal);
   if (newVal === 'analytics') {
-    setTimeout(initCharts, 300);
+    loadMetrics().then(() => setTimeout(initCharts, 300));
   }
-  // Reload training centers when switching to training centers section
-  if (newVal === 'training') {
+  if (newVal === 'training-centers') {
     loadTrainingCenters();
   }
 });
@@ -13423,6 +13780,151 @@ onMounted(async () => {
 .v-data-table__wrapper {
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;
+}
+
+/* Avatar Success Modal Styles */
+.avatar-success-modal {
+  border-radius: 16px !important;
+  overflow: hidden;
+  animation: modalSlideIn 0.3s ease-out;
+}
+
+.success-modal-title {
+  font-size: 1.5rem !important;
+  font-weight: 700 !important;
+  color: #2e7d32 !important;
+  text-align: center;
+  margin-top: 16px;
+}
+
+.success-modal-message {
+  font-size: 1rem !important;
+  color: #616161 !important;
+  text-align: center;
+  padding: 8px 24px 0 24px;
+}
+
+.success-animation-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding-top: 20px;
+}
+
+.success-checkmark {
+  width: 80px;
+  height: 80px;
+  position: relative;
+}
+
+.success-checkmark .check-icon {
+  width: 80px;
+  height: 80px;
+  position: relative;
+  border-radius: 50%;
+  box-sizing: content-box;
+  border: 4px solid #4CAF50;
+}
+
+.success-checkmark .check-icon::before {
+  top: 3px;
+  left: -2px;
+  width: 30px;
+  transform-origin: 100% 50%;
+  border-radius: 100px 0 0 100px;
+}
+
+.success-checkmark .check-icon::after {
+  top: 0;
+  left: 30px;
+  width: 60px;
+  transform-origin: 0 50%;
+  border-radius: 0 100px 100px 0;
+  animation: rotate-circle 4.25s ease-in;
+}
+
+.success-checkmark .check-icon::before,
+.success-checkmark .check-icon::after {
+  content: '';
+  height: 100px;
+  position: absolute;
+  background: #FFFFFF;
+  transform: rotate(-45deg);
+}
+
+.success-checkmark .check-icon .icon-line {
+  height: 5px;
+  background-color: #4CAF50;
+  display: block;
+  border-radius: 2px;
+  position: absolute;
+  z-index: 10;
+}
+
+.success-checkmark .check-icon .icon-line.line-tip {
+  top: 46px;
+  left: 14px;
+  width: 25px;
+  transform: rotate(45deg);
+  animation: icon-line-tip 0.75s;
+}
+
+.success-checkmark .check-icon .icon-line.line-long {
+  top: 38px;
+  right: 8px;
+  width: 47px;
+  transform: rotate(-45deg);
+  animation: icon-line-long 0.75s;
+}
+
+.success-checkmark .check-icon .icon-circle {
+  top: -4px;
+  left: -4px;
+  z-index: 10;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  position: absolute;
+  box-sizing: content-box;
+  border: 4px solid rgba(76, 175, 80, 0.5);
+}
+
+.success-checkmark .check-icon .icon-fix {
+  top: 8px;
+  width: 5px;
+  left: 26px;
+  z-index: 1;
+  height: 85px;
+  position: absolute;
+  transform: rotate(-45deg);
+  background-color: #FFFFFF;
+}
+
+@keyframes rotate-circle {
+  0% { transform: rotate(-45deg); }
+  5% { transform: rotate(-45deg); }
+  12% { transform: rotate(-405deg); }
+  100% { transform: rotate(-405deg); }
+}
+
+@keyframes icon-line-tip {
+  0% { width: 0; left: 1px; top: 19px; }
+  54% { width: 0; left: 1px; top: 19px; }
+  70% { width: 50px; left: -8px; top: 37px; }
+  84% { width: 17px; left: 21px; top: 48px; }
+  100% { width: 25px; left: 14px; top: 46px; }
+}
+
+@keyframes icon-line-long {
+  0% { width: 0; right: 46px; top: 54px; }
+  65% { width: 0; right: 46px; top: 54px; }
+  84% { width: 55px; right: 0px; top: 35px; }
+  100% { width: 47px; right: 8px; top: 38px; }
+}
+
+@keyframes modalSlideIn {
+  0% { opacity: 0; transform: scale(0.8) translateY(-20px); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
 }
 
 </style>

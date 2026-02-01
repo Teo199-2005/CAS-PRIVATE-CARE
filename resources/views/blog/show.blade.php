@@ -356,7 +356,7 @@
             <div class="related-grid">
                 @foreach($relatedPosts as $related)
                 <a href="{{ route('blog.show', $related->slug) }}" class="related-card">
-                    <img src="{{ $related->image }}" alt="{{ $related->title }}" class="related-card-image">
+                    <img src="{{ $related->image }}" alt="{{ $related->title }}" class="related-card-image" loading="lazy" decoding="async">
                     <div class="related-card-content">
                         <span class="related-card-category">{{ $related->category }}</span>
                         <h3 class="related-card-title">{{ $related->title }}</h3>

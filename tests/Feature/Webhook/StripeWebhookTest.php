@@ -27,10 +27,11 @@ class StripeWebhookTest extends TestCase
     public function webhook_rejects_invalid_signature()
     {
         // Test that webhook endpoint rejects requests with invalid/missing signature
-        $response = $this->post('/api/stripe/webhook', [], [
-            'Stripe-Signature' => 'invalid_signature',
-            'Content-Type' => 'application/json',
-        ]);
+        $response = $this->withoutMiddleware(\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class)
+            ->post('/api/stripe/webhook', [], [
+                'Stripe-Signature' => 'invalid_signature',
+                'Content-Type' => 'application/json',
+            ]);
 
         // Should return 400 (bad request) for invalid signature
         $this->assertTrue(
@@ -43,7 +44,8 @@ class StripeWebhookTest extends TestCase
     public function webhook_handles_missing_payload()
     {
         // Test that webhook endpoint handles missing/empty payload
-        $response = $this->post('/api/stripe/webhook', []);
+        $response = $this->withoutMiddleware(\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class)
+            ->post('/api/stripe/webhook', []);
 
         // Should return error status for missing payload
         $this->assertTrue(

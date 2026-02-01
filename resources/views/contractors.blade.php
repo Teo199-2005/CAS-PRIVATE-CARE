@@ -47,7 +47,8 @@
             line-height: 1.6;
             color: #1e293b;
             overflow-x: hidden;
-            background: #f8fafc;
+            background-color: #ffffff;
+            background-image: url("https://www.transparenttextures.com/patterns/batthern.png");
         }
 
         /* Animations */
@@ -283,7 +284,8 @@
         /* Benefits Section */
         .benefits-section {
             padding: 6rem 2rem;
-            background: white;
+            background-color: #ffffff;
+            background-image: url("https://www.transparenttextures.com/patterns/batthern.png");
         }
 
         .container {
@@ -503,7 +505,8 @@
         /* Requirements Section */
         .requirements-section {
             padding: 6rem 2rem;
-            background: #f8fafc;
+            background-color: #dbeafe;
+            background-image: url("https://www.transparenttextures.com/patterns/dotnoise-light-grey.png");
         }
 
         .requirements-grid {
@@ -686,7 +689,7 @@
             margin-bottom: 2.5rem;
         }
 
-        .cta-btn {
+        .cta-section .cta-btn {
             background: white;
             color: #ea580c;
             padding: 1.25rem 3rem;
@@ -701,16 +704,21 @@
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
         }
 
-        .cta-btn:hover {
+        .cta-section .cta-btn:hover {
             transform: translateY(-3px) scale(1.02);
             box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
         }
 
-        /* Responsive */
+        /* =============================================================
+           MOBILE RESPONSIVE DESIGN - 1099 Contractors Page
+           ============================================================= */
+        
+        /* Tablets (769px - 1024px) */
         @media (max-width: 1024px) {
             .hero-container {
                 grid-template-columns: 1fr;
                 text-align: center;
+                padding: 3rem 1.5rem;
             }
 
             .hero-image {
@@ -746,85 +754,93 @@
             }
         }
 
+        /* Standard Mobile (768px) */
         @media (max-width: 768px) {
+            /* Hero Section */
+            .contractor-hero {
+                margin-top: 70px;
+                min-height: auto;
+            }
+            
+            .hero-container {
+                padding: 2.5rem 1.25rem;
+                gap: 2rem;
+            }
+            
             .contractor-hero h1 {
-                font-size: 2.5rem;
-            }
-
-            .section-header h2 {
                 font-size: 2rem;
-            }
-
-            .benefits-grid {
-                grid-template-columns: repeat(2, 1fr);
-                gap: 1rem;
+                line-height: 1.2;
             }
             
-            .benefit-card {
-                padding: 1.25rem;
-            }
-            
-            .benefit-card h3 {
+            .contractor-hero p {
                 font-size: 1rem;
+                line-height: 1.6;
+                margin-bottom: 1.5rem;
             }
             
-            .benefit-card p {
+            .hero-badge {
+                padding: 0.5rem 1rem;
                 font-size: 0.85rem;
+                margin-bottom: 1rem;
             }
             
-            .benefit-icon {
-                width: 50px;
-                height: 50px;
+            .hero-features {
+                gap: 0.5rem;
+                margin-bottom: 1.5rem;
             }
             
-            .benefit-icon i {
-                font-size: 1.25rem;
-            }
-
-            .info-cards {
-                grid-template-columns: 1fr;
-            }
-
-            .join-steps {
-                grid-template-columns: repeat(2, 1fr);
-                gap: 1rem;
-            }
-            
-            .step-number {
-                width: 70px;
-                height: 70px;
-                font-size: 1.75rem;
-            }
-            
-            .join-step h3 {
-                font-size: 1rem;
-            }
-            
-            .join-step p {
+            .hero-feature {
+                padding: 0.5rem 0.875rem;
                 font-size: 0.8rem;
             }
-
-            .cta-section h2 {
-                font-size: 2rem;
+            
+            .hero-buttons {
+                flex-direction: column;
+                gap: 0.75rem;
+                width: 100%;
             }
-        }
-        
-        @media (max-width: 480px) {
+            
+            .hero-buttons .cta-btn {
+                width: 100%;
+                padding: 0.875rem 1.5rem;
+                font-size: 1rem;
+                text-align: center;
+                justify-content: center;
+            }
+
+            /* Section Styles */
+            section {
+                padding: 3rem 1.25rem;
+            }
+            
+            .section-header h2 {
+                font-size: 1.5rem;
+                line-height: 1.3;
+            }
+            
+            .section-header p {
+                font-size: 0.9rem;
+            }
+
+            /* Benefits Grid - 2x2 */
             .benefits-grid {
                 grid-template-columns: repeat(2, 1fr);
                 gap: 0.75rem;
             }
             
             .benefit-card {
-                padding: 1rem;
+                padding: 1.25rem 1rem;
+                border-radius: 12px;
             }
             
             .benefit-card h3 {
                 font-size: 0.9rem;
+                margin-bottom: 0.25rem;
             }
             
             .benefit-card p {
                 font-size: 0.8rem;
+                line-height: 1.4;
                 display: -webkit-box;
                 -webkit-line-clamp: 3;
                 -webkit-box-orient: vertical;
@@ -832,8 +848,200 @@
             }
             
             .benefit-icon {
-                width: 40px;
-                height: 40px;
+                width: 44px;
+                height: 44px;
+                margin-bottom: 0.75rem;
+            }
+            
+            .benefit-icon i {
+                font-size: 1.1rem;
+            }
+
+            /* Info Cards */
+            .info-cards {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+            
+            .info-card {
+                padding: 1.5rem;
+            }
+            
+            .info-card h3 {
+                font-size: 1.1rem;
+            }
+            
+            .info-card p,
+            .info-card li {
+                font-size: 0.9rem;
+            }
+
+            /* Join Steps - 2x2 Grid */
+            .join-steps {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 0.75rem;
+            }
+            
+            .join-step {
+                padding: 1.25rem 1rem;
+                border-radius: 12px;
+                text-align: center;
+            }
+            
+            .step-number {
+                width: 55px;
+                height: 55px;
+                font-size: 1.5rem;
+                margin: 0 auto 0.75rem;
+            }
+            
+            .join-step h3 {
+                font-size: 0.9rem;
+                margin-bottom: 0.25rem;
+            }
+            
+            .join-step p {
+                font-size: 0.75rem;
+                line-height: 1.4;
+                display: -webkit-box;
+                -webkit-line-clamp: 2;
+                -webkit-box-orient: vertical;
+                overflow: hidden;
+            }
+
+            /* CTA Section */
+            .cta-section {
+                padding: 3rem 1.25rem;
+            }
+            
+            .cta-section h2 {
+                font-size: 1.75rem;
+            }
+            
+            .cta-section p {
+                font-size: 1rem;
+            }
+            
+            .cta-section .cta-btn {
+                width: 100%;
+                padding: 0.875rem 1.5rem;
+                font-size: 1rem;
+            }
+            
+            /* Requirements Section */
+            .requirements-section {
+                padding: 3rem 1.25rem;
+            }
+            
+            .requirements-grid {
+                gap: 1rem;
+            }
+            
+            .requirement-category {
+                padding: 1.5rem;
+                border-radius: 16px;
+            }
+            
+            .requirement-category h3 {
+                font-size: 1.1rem;
+                margin-bottom: 1rem;
+            }
+            
+            .requirement-list li {
+                padding: 0.75rem;
+                font-size: 0.9rem;
+            }
+            
+            /* Info Section */
+            .info-section {
+                padding: 3rem 1.25rem;
+            }
+            
+            .info-grid {
+                gap: 2rem;
+            }
+            
+            .info-content h2 {
+                font-size: 1.75rem;
+                margin-bottom: 1rem;
+            }
+            
+            .info-content > p {
+                font-size: 1rem;
+                margin-bottom: 1.5rem;
+            }
+            
+            .info-list li {
+                font-size: 0.9rem;
+                margin-bottom: 0.75rem;
+            }
+            
+            .info-card h4 {
+                font-size: 0.95rem;
+            }
+            
+            .info-card p {
+                font-size: 0.85rem;
+            }
+            
+            .info-card i {
+                font-size: 2rem;
+            }
+
+            .requirement-item {
+                padding: 1rem;
+                font-size: 0.9rem;
+            }
+        }
+        
+        /* Small Phones (480px) */
+        @media (max-width: 480px) {
+            .contractor-hero h1 {
+                font-size: 1.75rem;
+            }
+            
+            .contractor-hero p {
+                font-size: 0.9rem;
+            }
+            
+            .hero-features {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .hero-feature {
+                width: 100%;
+                justify-content: center;
+            }
+            
+            section {
+                padding: 2.5rem 1rem;
+            }
+            
+            .section-header h2 {
+                font-size: 1.35rem;
+            }
+            
+            .benefits-grid {
+                gap: 0.5rem;
+            }
+            
+            .benefit-card {
+                padding: 1rem 0.75rem;
+            }
+            
+            .benefit-card h3 {
+                font-size: 0.85rem;
+            }
+            
+            .benefit-card p {
+                font-size: 0.75rem;
+                -webkit-line-clamp: 2;
+            }
+            
+            .benefit-icon {
+                width: 38px;
+                height: 38px;
             }
             
             .benefit-icon i {
@@ -841,27 +1049,75 @@
             }
             
             .join-steps {
-                grid-template-columns: repeat(2, 1fr);
-                gap: 0.75rem;
+                gap: 0.5rem;
             }
             
             .step-number {
-                width: 55px;
-                height: 55px;
-                font-size: 1.5rem;
-                margin-bottom: 0.75rem;
+                width: 45px;
+                height: 45px;
+                font-size: 1.25rem;
             }
             
             .join-step h3 {
-                font-size: 0.85rem;
+                font-size: 0.8rem;
             }
             
             .join-step p {
+                font-size: 0.7rem;
+            }
+            
+            /* Requirements compact */
+            .requirements-section {
+                padding: 2.5rem 1rem;
+            }
+            
+            .requirement-category {
+                padding: 1.25rem;
+            }
+            
+            .requirement-category h3 {
+                font-size: 1rem;
+            }
+            
+            .requirement-list li {
+                padding: 0.625rem;
+                font-size: 0.85rem;
+            }
+            
+            /* Info section compact */
+            .info-section {
+                padding: 2.5rem 1rem;
+            }
+            
+            .info-content h2 {
+                font-size: 1.5rem;
+            }
+            
+            .info-cards {
+                gap: 0.75rem;
+            }
+            
+            .info-card {
+                padding: 1.25rem;
+            }
+        }
+        
+        /* Very Small Phones (360px) */
+        @media (max-width: 360px) {
+            .contractor-hero h1 {
+                font-size: 1.5rem;
+            }
+            
+            .section-header h2 {
+                font-size: 1.2rem;
+            }
+            
+            .benefit-card h3 {
+                font-size: 0.8rem;
+            }
+            
+            .join-step h3 {
                 font-size: 0.75rem;
-                display: -webkit-box;
-                -webkit-line-clamp: 2;
-                -webkit-box-orient: vertical;
-                overflow: hidden;
             }
         }
     </style>
@@ -909,7 +1165,7 @@
                 </div>
                 
                 <div class="hero-image">
-                    <img src="https://images.unsplash.com/photo-1594824476967-48c8b964273f?w=600&q=80" alt="Professional caregiver">
+                    <img src="https://images.unsplash.com/photo-1594824476967-48c8b964273f?w=600&q=80" alt="Professional caregiver" loading="lazy" decoding="async">
                     <div class="hero-stats-card">
                         <h4>500+</h4>
                         <p>Active Contractors</p>

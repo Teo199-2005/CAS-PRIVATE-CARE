@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Traits\ApiResponseTrait;
 use App\Models\Review;
 use App\Models\Booking;
 use App\Models\Caregiver;
@@ -11,6 +12,8 @@ use Illuminate\Support\Facades\Auth;
 
 class ReviewController extends Controller
 {
+    use ApiResponseTrait;
+
     /**
      * Get all reviews for a caregiver
      */
@@ -36,17 +39,13 @@ class ReviewController extends Controller
 
             $caregiver = Caregiver::find($caregiverId);
             
-            return response()->json([
-                'success' => true,
+            return $this->successResponse([
                 'reviews' => $reviews,
                 'average_rating' => $caregiver->rating ?? 0,
                 'total_reviews' => $caregiver->total_reviews ?? 0,
             ]);
         } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Failed to load reviews: ' . $e->getMessage()
-            ], 500);
+            return $this->serverErrorResponse('Failed to load reviews: ' . $e->getMessage());
         }
     }
 

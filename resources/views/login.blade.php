@@ -9,6 +9,7 @@
     <meta name="description" content="Login to your CAS Private Care LLC account to manage caregiving services, bookings, and more.">
     <meta name="robots" content="noindex, nofollow">
     <link rel="canonical" href="{{ url('/login') }}">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     
     <!-- Preload critical resources for performance -->
     <link rel="preload" href="{{ asset('logo flower.png') }}" as="image">
@@ -630,7 +631,7 @@
 
     <main class="auth-container" id="main-content" role="main">
         <div class="auth-logo">
-            <img src="{{ asset('logo flower.png') }}" alt="CAS Private Care LLC - Professional Home Care Services Logo" width="130" height="130">
+            <img src="{{ asset('logo flower.png') }}" alt="CAS Private Care LLC - Professional Home Care Services Logo" width="130" height="130" fetchpriority="high">
         </div>
 
         <header class="auth-header">
@@ -932,6 +933,25 @@
             }, duration);
         }
 
+        function getCsrfToken() {
+            const meta = document.querySelector('meta[name="csrf-token"]');
+            return meta ? meta.getAttribute('content') || '' : '';
+        }
+        async function refreshCsrfToken() {
+            try {
+                const r = await fetch('/csrf-token', { credentials: 'include' });
+                if (!r.ok) return '';
+                const data = await r.json();
+                const token = data && data.token;
+                const meta = document.querySelector('meta[name="csrf-token"]');
+                if (token && meta) {
+                    meta.setAttribute('content', token);
+                    return token;
+                }
+            } catch (_) {}
+            return '';
+        }
+
         function submitForgotPassword(event) {
             event.preventDefault();
             const email = document.getElementById('resetEmail').value;
@@ -941,10 +961,10 @@
             submitButton.disabled = true;
             submitButton.innerHTML = '<span>Sending...</span>';
             
-            // Create form data
+            // Create form data (use current CSRF token from meta)
             const formData = new FormData();
             formData.append('email', email);
-            formData.append('_token', '{{ csrf_token() }}');
+            formData.append('_token', getCsrfToken());
             
             // Submit to password reset endpoint
             fetch('/password/email', {
@@ -986,7 +1006,9 @@
         document.addEventListener('DOMContentLoaded', function() {
             const rememberCheckbox = document.querySelector('input[name="remember"]');
             const emailInput = document.getElementById('email');
+            const passwordInput = document.getElementById('password');
             const form = document.querySelector('form[action*="login"]');
+            const submitBtn = form.querySelector('button[type="submit"]');
             
             // Load saved email if remember me was checked
             const savedEmail = localStorage.getItem('rememberedEmail');
@@ -995,12 +1017,87 @@
                 rememberCheckbox.checked = true;
             }
             
-            // Handle form submission
-            form.addEventListener('submit', function(e) {
+            // Refresh CSRF token on load so it matches current session
+            refreshCsrfToken();
+
+            // Handle form submission with AJAX for better session handling
+            form.addEventListener('submit', async function doLogin(eOrRetry) {
+                const isRetry = eOrRetry === true;
+                if (!isRetry && eOrRetry && eOrRetry.preventDefault) eOrRetry.preventDefault();
+                
+                // Save or remove email based on remember me
                 if (rememberCheckbox.checked) {
                     localStorage.setItem('rememberedEmail', emailInput.value);
                 } else {
                     localStorage.removeItem('rememberedEmail');
+                }
+                
+                // Show loading state
+                const originalText = submitBtn.innerHTML;
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<span>Logging in...</span>';
+                
+                // Clear any existing error messages
+                const existingError = document.querySelector('.message.error');
+                if (existingError) existingError.remove();
+                
+                const csrfToken = getCsrfToken();
+                
+                try {
+                    const response = await fetch('/login', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json',
+                            'X-CSRF-TOKEN': csrfToken,
+                            'X-Requested-With': 'XMLHttpRequest'
+                        },
+                        credentials: 'include',
+                        body: JSON.stringify({
+                            email: emailInput.value,
+                            password: passwordInput.value,
+                            remember: rememberCheckbox.checked
+                        })
+                    });
+
+                    // On CSRF mismatch, refresh token and retry once
+                    if (response.status === 419 && !isRetry) {
+                        const newToken = await refreshCsrfToken();
+                        if (newToken) {
+                            submitBtn.disabled = false;
+                            submitBtn.innerHTML = originalText;
+                            return doLogin(true);
+                        }
+                    }
+                    
+                    const contentType = response.headers.get('content-type');
+                    const isJson = contentType && contentType.includes('application/json');
+                    const data = isJson ? await response.json() : {};
+                    
+                    if (response.ok && data.success) {
+                        showBanner('Login successful! Redirecting...', 'success');
+                        await new Promise(resolve => setTimeout(resolve, 500));
+                        try {
+                            await fetch('/api/profile', {
+                                headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                                credentials: 'include'
+                            });
+                        } catch (_) {}
+                        window.location.href = data.redirect || '/dashboard';
+                    } else {
+                        const errorDiv = document.createElement('div');
+                        errorDiv.className = 'message error';
+                        errorDiv.setAttribute('role', 'alert');
+                        const msg = response.status === 419 ? 'Session expired. Please try again.' : (data.message || 'Invalid credentials');
+                        errorDiv.innerHTML = `<i class="bi bi-exclamation-circle" style="margin-right: 0.5rem;"></i>${msg}`;
+                        form.insertBefore(errorDiv, form.firstChild);
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = originalText;
+                    }
+                } catch (error) {
+                    console.error('Login error:', error);
+                    form.removeEventListener('submit', doLogin);
+                    form.submit();
                 }
             });
 
@@ -1014,8 +1111,8 @@
                 });
             } catch (_) {}
 
-            // Periodic refresh to avoid CSRF/session edge cases
-            const AUTO_REFRESH_MINUTES = 3;
+            // Periodic refresh to avoid CSRF/session edge cases (extended to 5 minutes)
+            const AUTO_REFRESH_MINUTES = 5;
             setInterval(() => {
                 const active = document.activeElement;
                 const isTyping = active && (active.id === 'email' || active.id === 'password' || active.id === 'resetEmail');

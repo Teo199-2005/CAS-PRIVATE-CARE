@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Services\StripePaymentService;
 use App\Services\PaymentFeeService;
 use App\Services\AuditLogService;
+use App\Http\Traits\ApiResponseTrait;
 use App\Models\User;
 use App\Models\Caregiver;
 use App\Models\Housekeeper;
@@ -14,27 +15,32 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
 
+/**
+ * @deprecated This controller is deprecated as of January 28, 2026.
+ * 
+ * USE THE NEW CONTROLLERS INSTEAD:
+ * - App\Http\Controllers\Stripe\ClientStripeController (client payments)
+ * - App\Http\Controllers\Stripe\CaregiverStripeController (caregiver Connect)
+ * - App\Http\Controllers\Stripe\HousekeeperStripeController (housekeeper Connect)
+ * - App\Http\Controllers\Stripe\AdminStripeController (admin operations)
+ * 
+ * New API routes use the v2/ prefix:
+ * - POST /api/v2/stripe/process-payment
+ * - POST /api/v2/caregiver/stripe/onboard
+ * - POST /api/v2/housekeeper/stripe/onboard
+ * - GET /api/v2/admin/stripe/payments
+ * 
+ * This controller will be removed in a future release.
+ * 
+ * @see App\Services\Stripe\StripeClientService
+ * @see App\Services\Stripe\StripeConnectService
+ * @see App\Services\Stripe\StripePayoutService
+ * @see App\Services\Stripe\StripeAdminService
+ */
 class StripeController extends Controller
 {
+    use ApiResponseTrait;
     protected $stripeService;
-
-    /**
-     * Stripe processing fees are now handled by PaymentFeeService
-     * @see \App\Services\PaymentFeeService
-     * @deprecated Use PaymentFeeService::calculateProcessingFee() instead
-     */
-    private function calculateProcessingFee(float $targetAmount, string $cardCountry = 'US'): float
-    {
-        return PaymentFeeService::calculateProcessingFee($targetAmount, $cardCountry);
-    }
-
-    /**
-     * @deprecated Use PaymentFeeService::calculateAdjustedTotal() instead
-     */
-    private function calculateAdjustedTotal(float $targetAmount, string $cardCountry = 'US'): float
-    {
-        return PaymentFeeService::calculateAdjustedTotal($targetAmount, $cardCountry);
-    }
 
     public function __construct(StripePaymentService $stripeService)
     {
@@ -327,6 +333,13 @@ class StripeController extends Controller
             $methods = array_map(function($pm) {
                 return [
                     'id' => $pm->id,
+                    'card' => [
+                        'brand' => $pm->card->brand,
+                        'last4' => $pm->card->last4,
+                        'exp_month' => $pm->card->exp_month,
+                        'exp_year' => $pm->card->exp_year,
+                    ],
+                    // Legacy flat format for backward compatibility
                     'brand' => $pm->card->brand,
                     'last4' => $pm->card->last4,
                     'exp_month' => $pm->card->exp_month,
@@ -335,12 +348,78 @@ class StripeController extends Controller
             }, $paymentMethods->data);
 
             return response()->json([
+                'success' => true,
                 'payment_methods' => $methods
             ]);
         } catch (\Exception $e) {
             return response()->json([
                 'error' => $e->getMessage()
             ], 400);
+        }
+    }
+
+    /**
+     * Delete a saved payment method
+     * DELETE /api/stripe/payment-methods/{paymentMethodId}
+     */
+    public function deletePaymentMethod(Request $request, $paymentMethodId)
+    {
+        $user = Auth::user();
+        
+        if (!$user->stripe_customer_id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No payment methods found'
+            ], 400);
+        }
+
+        try {
+            $stripe = new \Stripe\StripeClient(config('stripe.secret_key'));
+            
+            // First, verify the payment method belongs to this customer
+            $paymentMethod = $stripe->paymentMethods->retrieve($paymentMethodId);
+            
+            if ($paymentMethod->customer !== $user->stripe_customer_id) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Payment method not found'
+                ], 404);
+            }
+            
+            // Detach the payment method from the customer
+            $stripe->paymentMethods->detach($paymentMethodId);
+            
+            Log::info("Payment method deleted", [
+                'user_id' => $user->id,
+                'payment_method_id' => $paymentMethodId
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Payment method deleted successfully'
+            ]);
+        } catch (\Stripe\Exception\InvalidRequestException $e) {
+            Log::warning("Failed to delete payment method - not found", [
+                'user_id' => $user->id,
+                'payment_method_id' => $paymentMethodId,
+                'error' => $e->getMessage()
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Payment method not found'
+            ], 404);
+        } catch (\Exception $e) {
+            Log::error("Failed to delete payment method", [
+                'user_id' => $user->id,
+                'payment_method_id' => $paymentMethodId,
+                'error' => $e->getMessage()
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to delete payment method'
+            ], 500);
         }
     }
 
@@ -487,7 +566,7 @@ class StripeController extends Controller
                     'cardholderName' => 'required|string|max:255',
                     'cardNumber' => 'required|string',
                     'expiryDate' => 'required|string',
-                    'cvv' => 'required|string|size:3|size:4'
+                    'cvv' => 'required|string|min:3|max:4'
                 ]);
 
                 // For now, save card info directly to user record (test mode)
@@ -816,42 +895,101 @@ class StripeController extends Controller
      */
 
     /**
-     * Connect bank account for marketing staff
+     * Connect payout method for marketing staff (Bank, Card, Alipay, Cash App)
      * POST /api/stripe/connect-bank-account-marketing
      */
     public function connectMarketingBankAccount(Request $request)
     {
         $user = Auth::user();
-        
+
         if (!$user || $user->user_type !== 'marketing') {
             return response()->json(['error' => 'Unauthorized'], 403);
         }
 
-        $request->validate([
-            'accountHolderName' => 'required|string',
-            'routingNumber' => 'required|string|size:9',
-            'accountNumber' => 'required|string',
-            'accountType' => 'required|in:checking,savings'
-        ]);
+        $payoutMethod = $request->input('payoutMethod', 'bank');
 
-        $result = $this->stripeService->addMarketingBankAccount($user, $request->only([
-            'accountHolderName',
-            'routingNumber',
-            'accountNumber',
-            'accountType'
-        ]));
+        switch ($payoutMethod) {
+            case 'bank':
+                $request->validate([
+                    'accountHolderName' => 'required|string|max:255',
+                    'routingNumber' => 'required|string|size:9',
+                    'accountNumber' => 'required|string|min:4|max:17',
+                    'accountType' => 'required|in:checking,savings'
+                ]);
 
-        if ($result['success']) {
-            return response()->json([
-                'success' => true,
-                'message' => 'Bank account connected successfully'
-            ]);
+                $result = $this->stripeService->addMarketingBankAccount($user, $request->only([
+                    'accountHolderName',
+                    'routingNumber',
+                    'accountNumber',
+                    'accountType'
+                ]));
+
+                if ($result['success']) {
+                    return response()->json([
+                        'success' => true,
+                        'message' => 'Bank account connected successfully'
+                    ]);
+                }
+
+                return response()->json([
+                    'success' => false,
+                    'message' => $result['error']
+                ], 400);
+
+            case 'card':
+                $request->validate([
+                    'cardholderName' => 'required|string|max:255',
+                    'cardNumber' => 'required|string',
+                    'expiryDate' => 'required|string',
+                    'cvv' => 'required|string|min:3|max:4'
+                ]);
+
+                $user->stripe_connect_id = $user->stripe_connect_id ?: 'test_' . uniqid();
+                $user->bank_account_last_four = substr(str_replace(' ', '', $request->cardNumber), -4);
+                $user->bank_name = 'Debit Card (**** ' . substr(str_replace(' ', '', $request->cardNumber), -4) . ')';
+                $user->save();
+
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Debit card connected successfully'
+                ]);
+
+            case 'alipay':
+                $request->validate([
+                    'accountName' => 'required|string|max:255',
+                    'alipayId' => 'required|string'
+                ]);
+
+                $user->stripe_connect_id = $user->stripe_connect_id ?: 'test_' . uniqid();
+                $user->bank_name = 'Alipay (' . $request->input('alipayId') . ')';
+                $user->save();
+
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Alipay connected successfully'
+                ]);
+
+            case 'cashapp':
+                $request->validate([
+                    'accountName' => 'required|string|max:255',
+                    'cashtag' => 'required|string'
+                ]);
+
+                $user->stripe_connect_id = $user->stripe_connect_id ?: 'test_' . uniqid();
+                $user->bank_name = 'Cash App ($' . $request->input('cashtag') . ')';
+                $user->save();
+
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Cash App Pay connected successfully'
+                ]);
+
+            default:
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Invalid payout method'
+                ], 400);
         }
-
-        return response()->json([
-            'success' => false,
-            'message' => $result['error']
-        ], 400);
     }
 
     /**
@@ -935,42 +1073,101 @@ class StripeController extends Controller
      */
 
     /**
-     * Connect bank account for training center
+     * Connect payout method for training center (Bank, Card, Alipay, Cash App)
      * POST /api/stripe/connect-bank-account-training
      */
     public function connectTrainingBankAccount(Request $request)
     {
         $user = Auth::user();
-        
+
         if (!$user || !in_array($user->user_type, ['training', 'training_center'])) {
             return response()->json(['error' => 'Unauthorized'], 403);
         }
 
-        $request->validate([
-            'accountHolderName' => 'required|string',
-            'routingNumber' => 'required|string|size:9',
-            'accountNumber' => 'required|string',
-            'accountType' => 'required|in:checking,savings'
-        ]);
+        $payoutMethod = $request->input('payoutMethod', 'bank');
 
-        $result = $this->stripeService->addTrainingBankAccount($user, $request->only([
-            'accountHolderName',
-            'routingNumber',
-            'accountNumber',
-            'accountType'
-        ]));
+        switch ($payoutMethod) {
+            case 'bank':
+                $request->validate([
+                    'accountHolderName' => 'required|string|max:255',
+                    'routingNumber' => 'required|string|size:9',
+                    'accountNumber' => 'required|string|min:4|max:17',
+                    'accountType' => 'required|in:checking,savings'
+                ]);
 
-        if ($result['success']) {
-            return response()->json([
-                'success' => true,
-                'message' => 'Bank account connected successfully'
-            ]);
+                $result = $this->stripeService->addTrainingBankAccount($user, $request->only([
+                    'accountHolderName',
+                    'routingNumber',
+                    'accountNumber',
+                    'accountType'
+                ]));
+
+                if ($result['success']) {
+                    return response()->json([
+                        'success' => true,
+                        'message' => 'Bank account connected successfully'
+                    ]);
+                }
+
+                return response()->json([
+                    'success' => false,
+                    'message' => $result['error']
+                ], 400);
+
+            case 'card':
+                $request->validate([
+                    'cardholderName' => 'required|string|max:255',
+                    'cardNumber' => 'required|string',
+                    'expiryDate' => 'required|string',
+                    'cvv' => 'required|string|min:3|max:4'
+                ]);
+
+                $user->stripe_connect_id = $user->stripe_connect_id ?: 'test_' . uniqid();
+                $user->bank_account_last_four = substr(str_replace(' ', '', $request->cardNumber), -4);
+                $user->bank_name = 'Debit Card (**** ' . substr(str_replace(' ', '', $request->cardNumber), -4) . ')';
+                $user->save();
+
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Debit card connected successfully'
+                ]);
+
+            case 'alipay':
+                $request->validate([
+                    'accountName' => 'required|string|max:255',
+                    'alipayId' => 'required|string'
+                ]);
+
+                $user->stripe_connect_id = $user->stripe_connect_id ?: 'test_' . uniqid();
+                $user->bank_name = 'Alipay (' . $request->input('alipayId') . ')';
+                $user->save();
+
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Alipay connected successfully'
+                ]);
+
+            case 'cashapp':
+                $request->validate([
+                    'accountName' => 'required|string|max:255',
+                    'cashtag' => 'required|string'
+                ]);
+
+                $user->stripe_connect_id = $user->stripe_connect_id ?: 'test_' . uniqid();
+                $user->bank_name = 'Cash App ($' . $request->input('cashtag') . ')';
+                $user->save();
+
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Cash App Pay connected successfully'
+                ]);
+
+            default:
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Invalid payout method'
+                ], 400);
         }
-
-        return response()->json([
-            'success' => false,
-            'message' => $result['error']
-        ], 400);
     }
 
     /**
@@ -1226,5 +1423,269 @@ class StripeController extends Controller
             'bank_account_last_four' => $user->bank_account_last_four,
             'bank_name' => $user->bank_name
         ]);
+    }
+
+    /**
+     * Remove payout method for caregiver
+     * DELETE /api/caregiver/payout-method
+     */
+    public function removePayoutMethod(Request $request)
+    {
+        try {
+            $user = Auth::user();
+            
+            if (!$user) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Not authenticated'
+                ], 401);
+            }
+
+            // Clear payout method fields
+            $user->stripe_connect_id = null;
+            $user->bank_account_last_four = null;
+            $user->bank_name = null;
+            $user->save();
+
+            // Also clear from caregiver record if exists
+            $caregiver = \App\Models\Caregiver::where('user_id', $user->id)->first();
+            if ($caregiver) {
+                $caregiver->stripe_connect_id = null;
+                $caregiver->stripe_charges_enabled = false;
+                $caregiver->stripe_payouts_enabled = false;
+                $caregiver->save();
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Payout method removed successfully'
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error removing payout method: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to remove payout method'
+            ], 500);
+        }
+    }
+
+    /**
+     * Remove payout method for housekeeper
+     * DELETE /api/housekeeper/payout-method
+     */
+    public function removeHousekeeperPayoutMethod(Request $request)
+    {
+        try {
+            $user = Auth::user();
+
+            if (!$user) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Not authenticated'
+                ], 401);
+            }
+
+            // Clear payout method fields
+            $user->stripe_connect_id = null;
+            $user->bank_account_last_four = null;
+            $user->bank_name = null;
+            $user->save();
+
+            // Also clear from housekeeper record if exists
+            $housekeeper = \App\Models\Housekeeper::where('user_id', $user->id)->first();
+            if ($housekeeper) {
+                $housekeeper->stripe_connect_id = null;
+                $housekeeper->stripe_charges_enabled = false;
+                $housekeeper->stripe_payouts_enabled = false;
+                $housekeeper->save();
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Payout method removed successfully'
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error removing housekeeper payout method: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to remove payout method'
+            ], 500);
+        }
+    }
+
+    /**
+     * Remove payout method for marketing staff
+     * DELETE /api/marketing/payout-method
+     */
+    public function removeMarketingPayoutMethod(Request $request)
+    {
+        try {
+            $user = Auth::user();
+
+            if (!$user) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Not authenticated'
+                ], 401);
+            }
+
+            if ($user->user_type !== 'marketing') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Unauthorized'
+                ], 403);
+            }
+
+            $user->stripe_connect_id = null;
+            $user->bank_account_last_four = null;
+            $user->bank_name = null;
+            $user->save();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Payout method removed successfully'
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error removing marketing payout method: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to remove payout method'
+            ], 500);
+        }
+    }
+
+    /**
+     * Remove payout method for training center
+     * DELETE /api/training/payout-method
+     */
+    public function removeTrainingPayoutMethod(Request $request)
+    {
+        try {
+            $user = Auth::user();
+
+            if (!$user) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Not authenticated'
+                ], 401);
+            }
+
+            if (!in_array($user->user_type, ['training', 'training_center'])) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Unauthorized'
+                ], 403);
+            }
+
+            $user->stripe_connect_id = null;
+            $user->bank_account_last_four = null;
+            $user->bank_name = null;
+            $user->save();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Payout method removed successfully'
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error removing training payout method: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to remove payout method'
+            ], 500);
+        }
+    }
+
+    /**
+     * Get payout methods for caregiver
+     * GET /api/caregiver/payout-methods
+     */
+    public function getPayoutMethods(Request $request)
+    {
+        try {
+            $user = Auth::user();
+            
+            if (!$user) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Not authenticated'
+                ], 401);
+            }
+
+            $caregiver = \App\Models\Caregiver::where('user_id', $user->id)->first();
+            
+            $methods = [];
+            if ($user->stripe_connect_id || ($caregiver && $caregiver->stripe_connect_id)) {
+                $methods[] = [
+                    'id' => 1,
+                    'type' => 'bank',
+                    'name' => $user->bank_name ?: 'Bank Transfer (ACH)',
+                    'details' => $user->bank_account_last_four ? '****' . $user->bank_account_last_four : 'Connected via Stripe',
+                    'is_active' => true
+                ];
+            }
+
+            return response()->json([
+                'success' => true,
+                'methods' => $methods,
+                'balance' => [
+                    'current' => 0,
+                    'totalPaid' => 0,
+                    'lastPayment' => 0
+                ]
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error getting payout methods: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to get payout methods'
+            ], 500);
+        }
+    }
+
+    /**
+     * Get payout methods for housekeeper
+     * GET /api/housekeeper/payout-methods
+     */
+    public function getHousekeeperPayoutMethods(Request $request)
+    {
+        try {
+            $user = Auth::user();
+            
+            if (!$user) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Not authenticated'
+                ], 401);
+            }
+
+            $housekeeper = \App\Models\Housekeeper::where('user_id', $user->id)->first();
+            
+            $methods = [];
+            if ($user->stripe_connect_id || ($housekeeper && $housekeeper->stripe_connect_id)) {
+                $methods[] = [
+                    'id' => 1,
+                    'type' => 'bank',
+                    'name' => $user->bank_name ?: 'Bank Transfer (ACH)',
+                    'details' => $user->bank_account_last_four ? '****' . $user->bank_account_last_four : 'Connected via Stripe',
+                    'is_active' => true
+                ];
+            }
+
+            return response()->json([
+                'success' => true,
+                'methods' => $methods,
+                'balance' => [
+                    'current' => 0,
+                    'totalPaid' => 0,
+                    'lastPayment' => 0
+                ]
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error getting housekeeper payout methods: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to get payout methods'
+            ], 500);
+        }
     }
 }

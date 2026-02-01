@@ -229,21 +229,21 @@
 
             <div class="location-grid">
                 <div class="location-card">
-                    <img src="https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=600" alt="Manhattan" class="location-image">
+                    <img src="https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=600" alt="Manhattan" class="location-image" loading="lazy" decoding="async" width="600" height="400">
                     <div class="location-content">
                         <h3>Manhattan Housekeepers</h3>
                         <p style="color: #64748b;">Expert cleaning professionals serving all Manhattan neighborhoods</p>
                     </div>
                 </div>
                 <div class="location-card">
-                    <img src="https://images.unsplash.com/photo-1527515637462-cff94eecc1ac?w=600" alt="Brooklyn" class="location-image">
+                    <img src="https://images.unsplash.com/photo-1527515637462-cff94eecc1ac?w=600" alt="Brooklyn" class="location-image" loading="lazy" decoding="async" width="600" height="400">
                     <div class="location-content">
                         <h3>Brooklyn Housekeepers</h3>
                         <p style="color: #64748b;">Trusted home cleaning services throughout Brooklyn</p>
                     </div>
                 </div>
                 <div class="location-card">
-                    <img src="https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=600" alt="Queens" class="location-image">
+                    <img src="https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=600" alt="Queens" class="location-image" loading="lazy" decoding="async" width="600" height="400">
                     <div class="location-content">
                         <h3>Queens Housekeepers</h3>
                         <p style="color: #64748b;">Reliable housekeeping across all Queens areas</p>

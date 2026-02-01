@@ -2,12 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Traits\ApiResponseTrait;
 use App\Models\Notification;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class NotificationController extends Controller
 {
+    use ApiResponseTrait;
+
     public function index(Request $request): JsonResponse
     {
         $userId = $request->input('user_id', 1);
@@ -33,7 +36,7 @@ class NotificationController extends Controller
             ->where('read', false)
             ->count();
 
-        return response()->json([
+        return $this->successResponse([
             'notifications' => $notifications,
             'unread_count' => $unreadCount
         ]);
@@ -44,7 +47,7 @@ class NotificationController extends Controller
         $notification = Notification::findOrFail($id);
         $notification->update(['read' => true]);
 
-        return response()->json(['success' => true]);
+        return $this->successResponse([], 'Notification marked as read');
     }
 
     public function markAllAsRead(Request $request): JsonResponse
@@ -54,7 +57,7 @@ class NotificationController extends Controller
             ->where('read', false)
             ->update(['read' => true]);
 
-        return response()->json(['success' => true]);
+        return $this->successResponse([], 'All notifications marked as read');
     }
 
     public function delete($id): JsonResponse
@@ -62,7 +65,7 @@ class NotificationController extends Controller
         $notification = Notification::findOrFail($id);
         $notification->delete();
 
-        return response()->json(['success' => true]);
+        return $this->successResponse([], 'Notification deleted');
     }
 
     public function deleteAll(Request $request): JsonResponse
@@ -70,7 +73,7 @@ class NotificationController extends Controller
         $userId = $request->input('user_id', 1);
         Notification::where('user_id', $userId)->delete();
 
-        return response()->json(['success' => true]);
+        return $this->successResponse([], 'All notifications deleted');
     }
 
     private function formatTime($timestamp)

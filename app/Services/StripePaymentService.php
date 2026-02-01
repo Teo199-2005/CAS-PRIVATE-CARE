@@ -744,12 +744,10 @@ class StripePaymentService
         try {
             // Create Connect account if doesn't exist
             if (!$marketingUser->stripe_connect_id) {
-                $account = $this->createConnectAccount($marketingUser);
-                if (!$account['success']) {
-                    throw new \Exception($account['error']);
+                $accountId = $this->createConnectAccountForUser($marketingUser, 'marketing');
+                if (!$accountId) {
+                    throw new \Exception('Failed to create Connect account');
                 }
-                $marketingUser->stripe_connect_id = $account['account_id'];
-                $marketingUser->save();
             }
 
             // Create bank account token
@@ -781,9 +779,17 @@ class StripePaymentService
                 'error' => $e->getMessage()
             ]);
 
+            $message = $e->getMessage();
+            if (stripos($message, 'routing') !== false || stripos($message, 'invalid') !== false) {
+                $message = 'Invalid routing number. Please enter your bank\'s 9-digit US routing number (find it on a check or in your bank app).';
+            }
+            if (stripos($message, 'test bank account') !== false || stripos($message, '000123456789') !== false || stripos($message, 'stripe.com/docs') !== false) {
+                $message = 'Invalid bank account number.';
+            }
+
             return [
                 'success' => false,
-                'error' => $e->getMessage()
+                'error' => $message
             ];
         }
     }
@@ -796,12 +802,10 @@ class StripePaymentService
         try {
             // Create Connect account if doesn't exist
             if (!$trainingUser->stripe_connect_id) {
-                $account = $this->createConnectAccount($trainingUser);
-                if (!$account['success']) {
-                    throw new \Exception($account['error']);
+                $accountId = $this->createConnectAccountForUser($trainingUser, 'training_center');
+                if (!$accountId) {
+                    throw new \Exception('Failed to create Connect account');
                 }
-                $trainingUser->stripe_connect_id = $account['account_id'];
-                $trainingUser->save();
             }
 
             // Create bank account token
@@ -833,9 +837,17 @@ class StripePaymentService
                 'error' => $e->getMessage()
             ]);
 
+            $message = $e->getMessage();
+            if (stripos($message, 'routing') !== false || stripos($message, 'invalid') !== false) {
+                $message = 'Invalid routing number. Please enter your bank\'s 9-digit US routing number (find it on a check or in your bank app).';
+            }
+            if (stripos($message, 'test bank account') !== false || stripos($message, '000123456789') !== false || stripos($message, 'stripe.com/docs') !== false) {
+                $message = 'Invalid bank account number.';
+            }
+
             return [
                 'success' => false,
-                'error' => $e->getMessage()
+                'error' => $message
             ];
         }
     }
@@ -1070,6 +1082,47 @@ class StripePaymentService
                 'success' => false,
                 'error' => $e->getMessage()
             ];
+        }
+    }
+
+    /**
+     * Create or get Stripe Connect account for a User (e.g. training center, marketing).
+     * Saves stripe_connect_id on the User model.
+     */
+    private function createConnectAccountForUser(User $user, string $providerType = 'training_center'): ?string
+    {
+        if ($user->stripe_connect_id) {
+            return $user->stripe_connect_id;
+        }
+
+        try {
+            $account = Account::create([
+                'type' => 'express',
+                'country' => 'US',
+                'email' => $user->email,
+                'capabilities' => [
+                    'card_payments' => ['requested' => true],
+                    'transfers' => ['requested' => true],
+                ],
+                'business_type' => 'individual',
+                'metadata' => [
+                    'user_id' => $user->id,
+                    'provider_type' => $providerType,
+                    'platform' => 'CAS Private Care'
+                ],
+            ]);
+
+            $user->stripe_connect_id = $account->id;
+            $user->save();
+
+            return $account->id;
+        } catch (\Exception $e) {
+            Log::error('Connect Account Creation Failed (User)', [
+                'user_id' => $user->id,
+                'provider_type' => $providerType,
+                'error' => $e->getMessage()
+            ]);
+            return null;
         }
     }
 

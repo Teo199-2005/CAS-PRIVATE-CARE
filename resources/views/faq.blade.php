@@ -101,12 +101,15 @@
             overflow-x: hidden;
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
-            background: #f9fafb;
+            background-color: #ffffff;
+            background-image: url("https://www.transparenttextures.com/patterns/batthern.png");
         }
 
         main {
             margin-top: 88px;
             padding: 4rem 2rem;
+            background-color: #ffffff;
+            background-image: url("https://www.transparenttextures.com/patterns/batthern.png");
         }
 
         :root {
@@ -381,25 +384,131 @@
             border-top: 1px solid rgba(255, 255, 255, 0.1);
         }
 
-        @media (max-width: 768px) {
+        /* =============================================================
+           MOBILE RESPONSIVE DESIGN - FAQ Page
+           ============================================================= */
+        
+        /* Tablets (769px - 1024px) */
+        @media (max-width: 1024px) {
+            main {
+                padding: 3rem 1.5rem;
+            }
+            
+            .faq-hero {
+                padding: 2.5rem 1.5rem;
+            }
+            
             .faq-hero h1 {
-                font-size: 2rem;
+                font-size: 2.5rem;
+            }
+            
+            .faq-container {
+                max-width: 100%;
+            }
+        }
+        
+        /* Standard Mobile (768px) */
+        @media (max-width: 768px) {
+            main {
+                margin-top: 70px;
+                padding: 2.5rem 1.25rem;
+            }
+            
+            /* FAQ Hero */
+            .faq-hero {
+                padding: 2rem 1.25rem;
+                margin-bottom: 2.5rem;
+                border-radius: 16px;
+            }
+            
+            .faq-hero h1 {
+                font-size: 1.75rem;
+                margin-bottom: 0.75rem;
             }
 
             .faq-hero p {
-                font-size: 1rem;
+                font-size: 0.9rem;
+                line-height: 1.6;
+            }
+            
+            .faq-meta {
+                margin-top: 1rem;
+                gap: 0.5rem;
+            }
+            
+            .faq-pill {
+                padding: 0.5rem 0.75rem;
+                font-size: 0.8rem;
+            }
+            
+            /* FAQ Sections */
+            .faq-section {
+                margin-bottom: 2rem;
+                border-radius: 14px;
             }
 
+            .faq-section-header {
+                padding: 1.25rem 1rem;
+            }
+            
             .faq-section-header h2 {
-                font-size: 1.5rem;
+                font-size: 1.2rem;
+            }
+            
+            .faq-section-header i {
+                font-size: 1.25rem;
             }
 
             .faq-item {
-                padding: 1.5rem;
+                padding: 1.25rem 1rem;
             }
 
             .faq-item:hover {
-                padding-left: 1.75rem;
+                padding-left: 1.25rem;
+            }
+            
+            .faq-question {
+                font-size: 0.95rem;
+                gap: 0.75rem;
+            }
+            
+            .faq-question i {
+                font-size: 1rem;
+            }
+            
+            .faq-answer {
+                font-size: 0.85rem;
+                line-height: 1.6;
+                padding-left: 0;
+            }
+            
+            /* CTA Section */
+            .cta-section {
+                padding: 2rem 1.25rem;
+                margin-top: 2rem;
+                border-radius: 16px;
+            }
+            
+            .cta-section h2 {
+                font-size: 1.5rem;
+                margin-bottom: 0.5rem;
+            }
+            
+            .cta-section p {
+                font-size: 0.9rem;
+            }
+            
+            .cta-buttons {
+                flex-direction: column;
+                gap: 0.75rem;
+            }
+            
+            .cta-buttons a {
+                width: 100%;
+                padding: 0.875rem 1.5rem;
+                font-size: 0.95rem;
+                text-align: center;
+                justify-content: center;
             }
 
             .footer-content {
@@ -411,6 +520,73 @@
                 flex-direction: column;
                 gap: 1rem;
                 text-align: center;
+            }
+        }
+        
+        /* Small Phones (480px) */
+        @media (max-width: 480px) {
+            main {
+                padding: 2rem 1rem;
+            }
+            
+            .faq-hero {
+                padding: 1.5rem 1rem;
+            }
+            
+            .faq-hero h1 {
+                font-size: 1.5rem;
+            }
+            
+            .faq-hero p {
+                font-size: 0.85rem;
+            }
+            
+            .faq-pill {
+                padding: 0.4rem 0.625rem;
+                font-size: 0.75rem;
+            }
+            
+            .faq-section-header h2 {
+                font-size: 1.1rem;
+            }
+            
+            .faq-item {
+                padding: 1rem;
+            }
+            
+            .faq-question {
+                font-size: 0.9rem;
+            }
+            
+            .faq-answer {
+                font-size: 0.8rem;
+            }
+            
+            .cta-section h2 {
+                font-size: 1.35rem;
+            }
+        }
+        
+        /* Very Small Phones (360px) */
+        @media (max-width: 360px) {
+            .faq-hero h1 {
+                font-size: 1.35rem;
+            }
+            
+            .faq-section-header h2 {
+                font-size: 1rem;
+            }
+            
+            .faq-question {
+                font-size: 0.85rem;
+            }
+            
+            .faq-answer {
+                font-size: 0.75rem;
+            }
+            
+            .cta-section h2 {
+                font-size: 1.2rem;
             }
         }
 
@@ -434,12 +610,35 @@
         }
 
     /* Remove old pseudo icon rules; accordion uses explicit icons */
+
+        /* Skip Link for Accessibility */
+        .skip-link {
+            position: absolute;
+            top: -40px;
+            left: 0;
+            background: #1e40af;
+            color: white;
+            padding: 8px 16px;
+            z-index: 10000;
+            text-decoration: none;
+            font-weight: 600;
+            border-radius: 0 0 4px 0;
+            transition: top 0.3s ease;
+        }
+        .skip-link:focus {
+            top: 0;
+            outline: 2px solid #fbbf24;
+            outline-offset: 2px;
+        }
     </style>
 </head>
 <body>
+    <!-- Skip Link for Accessibility -->
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+
     @include('partials.navigation')
 
-    <main>
+    <main id="main-content" role="main" tabindex="-1">
         <div class="faq-hero">
             <h1>Frequently Asked Questions</h1>
             <p>Find answers to your questions about booking, safety, and working with CAS Private Care.</p>

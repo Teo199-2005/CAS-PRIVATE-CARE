@@ -1,7 +1,8 @@
 import './bootstrap';
 import { createApp, defineAsyncComponent } from 'vue';
 import { createVuetify } from 'vuetify';
-import * as components from 'vuetify/components';
+// With vite-plugin-vuetify, components are auto-imported and tree-shaken
+// No need for: import * as components from 'vuetify/components';
 import * as directives from 'vuetify/directives';
 import 'vuetify/styles';
 import '@mdi/font/css/materialdesignicons.css';
@@ -65,28 +66,74 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-// Import components - Use lazy loading for better performance
-import ClientDashboard from './components/ClientDashboard.vue';
-import CaregiverDashboard from './components/CaregiverDashboard.vue';
-import HousekeeperDashboard from './components/HousekeeperDashboard.vue';
-import AdminDashboard from './components/AdminDashboard.vue';
-import AdminSettings from './components/AdminSettings.vue';
-import MarketingDashboard from './components/MarketingDashboard.vue';
-import TrainingDashboard from './components/TrainingDashboard.vue';
-import PaymentPage from './components/PaymentPageStripeElements.vue';
-import StripeConnectOnboarding from './components/StripeConnectOnboarding.vue';
-import CustomBankOnboarding from './components/CustomBankOnboarding.vue';
-import ClientPaymentSetup from './components/ClientPaymentSetup.vue';
-import LinkPaymentMethod from './components/LinkPaymentMethod.vue';
-import ConnectPaymentMethod from './components/ConnectPaymentMethod.vue';
-import EmailVerificationModal from './components/EmailVerificationModal.vue';
-import DashboardWrapper from './components/DashboardWrapper.vue';
-import LandingPage from './components/LandingPage.vue';
-import TaxPayrollSection from './components/TaxPayrollSection.vue';
+// Import components - Use lazy loading for better performance and code splitting
+// Heavy dashboard components are lazy loaded to reduce initial bundle size
+
+// Core shared components (always needed)
 import ErrorBoundary from './components/shared/ErrorBoundary.vue';
+import DashboardWrapper from './components/DashboardWrapper.vue';
+
+// Lazy-loaded dashboard components (loaded on demand)
+const ClientDashboard = defineAsyncComponent(() => 
+    import(/* webpackChunkName: "client-dashboard" */ './components/ClientDashboard.vue')
+);
+const CaregiverDashboard = defineAsyncComponent(() => 
+    import(/* webpackChunkName: "caregiver-dashboard" */ './components/CaregiverDashboard.vue')
+);
+const HousekeeperDashboard = defineAsyncComponent(() => 
+    import(/* webpackChunkName: "housekeeper-dashboard" */ './components/HousekeeperDashboard.vue')
+);
+const AdminDashboard = defineAsyncComponent(() => 
+    import(/* webpackChunkName: "admin-dashboard" */ './components/AdminDashboard.vue')
+);
+const AdminSettings = defineAsyncComponent(() => 
+    import(/* webpackChunkName: "admin-settings" */ './components/AdminSettings.vue')
+);
+const MarketingDashboard = defineAsyncComponent(() => 
+    import(/* webpackChunkName: "marketing-dashboard" */ './components/MarketingDashboard.vue')
+);
+const TrainingDashboard = defineAsyncComponent(() => 
+    import(/* webpackChunkName: "training-dashboard" */ './components/TrainingDashboard.vue')
+);
+
+// Lazy-loaded auth components
+const LoginPage = defineAsyncComponent(() => 
+    import(/* webpackChunkName: "login-page" */ './components/LoginPage.vue')
+);
+
+// Lazy-loaded payment components
+const PaymentPage = defineAsyncComponent(() => 
+    import(/* webpackChunkName: "payment" */ './components/PaymentPageStripeElements.vue')
+);
+const StripeConnectOnboarding = defineAsyncComponent(() => 
+    import(/* webpackChunkName: "stripe-connect" */ './components/StripeConnectOnboarding.vue')
+);
+const CustomBankOnboarding = defineAsyncComponent(() => 
+    import(/* webpackChunkName: "bank-onboarding" */ './components/CustomBankOnboarding.vue')
+);
+const ClientPaymentSetup = defineAsyncComponent(() => 
+    import(/* webpackChunkName: "payment-setup" */ './components/ClientPaymentSetup.vue')
+);
+const LinkPaymentMethod = defineAsyncComponent(() => 
+    import(/* webpackChunkName: "payment-link" */ './components/LinkPaymentMethod.vue')
+);
+const ConnectPaymentMethod = defineAsyncComponent(() => 
+    import(/* webpackChunkName: "payment-connect" */ './components/ConnectPaymentMethod.vue')
+);
+
+// Other lazy-loaded components
+const EmailVerificationModal = defineAsyncComponent(() => 
+    import(/* webpackChunkName: "email-verification" */ './components/EmailVerificationModal.vue')
+);
+const LandingPage = defineAsyncComponent(() => 
+    import(/* webpackChunkName: "landing-page" */ './components/LandingPage.vue')
+);
+const TaxPayrollSection = defineAsyncComponent(() => 
+    import(/* webpackChunkName: "tax-payroll" */ './components/TaxPayrollSection.vue')
+);
 
 const vuetify = createVuetify({
-    components,
+    // Components are now auto-imported via vite-plugin-vuetify
     directives,
     theme: {
         defaultTheme: 'light',
@@ -214,6 +261,7 @@ if (document.getElementById('app')) {
     const app = createApp({
         components: {
             StripeConnectOnboarding,
+            LoginPage,
             ErrorBoundary,
         },
     });

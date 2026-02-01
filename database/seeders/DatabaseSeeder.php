@@ -175,7 +175,7 @@ class DatabaseSeeder extends Seeder
 
             Booking::create([
                 'client_id' => $client2->id,
-                'service_type' => 'Personal Care',
+                'service_type' => 'Caregiver',
                 'duty_type' => '2 Caregivers - 12 Hours Duty',
                 'borough' => 'Brooklyn',
                 'service_date' => now()->addDays(7),

@@ -88,10 +88,10 @@ class BookingSeeder extends Seeder
             ],
             [
                 'client_id' => 2, // John Doe
-                'service_type' => 'Personal Care',
+                'service_type' => 'Caregiver',
                 'duty_type' => '8 Hours per Day',
                 'borough' => 'Bronx',
-                'service_date' => '2024-12-15',
+                'service_date' => now()->addDays(3)->format('Y-m-d'),
                 'start_time' => '09:00:00',
                 'duration_days' => 15,
                 'hourly_rate' => 25.00,
@@ -102,14 +102,14 @@ class BookingSeeder extends Seeder
                 'mobility_level' => 'independent',
                 'urgency_level' => 'scheduled',
                 'street_address' => '555 Park Avenue',
-                'status' => 'completed'
+                'status' => 'pending'
             ],
             [
                 'client_id' => 3, // Sarah Williams
-                'service_type' => 'Personal Care',
+                'service_type' => 'Caregiver',
                 'duty_type' => '12 Hours per Day',
                 'borough' => 'Manhattan',
-                'service_date' => '2025-12-24',
+                'service_date' => now()->addDays(14)->format('Y-m-d'),
                 'start_time' => '08:00:00',
                 'duration_days' => 30,
                 'hourly_rate' => 28.00,

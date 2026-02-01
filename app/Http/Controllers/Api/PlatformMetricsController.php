@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Traits\ApiResponseTrait;
 use App\Models\Booking;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
@@ -12,6 +13,8 @@ use Illuminate\Support\Facades\Log;
 
 class PlatformMetricsController extends Controller
 {
+    use ApiResponseTrait;
+
     /**
      * Get platform-wide metrics for admin dashboard
      *
@@ -31,17 +34,13 @@ class PlatformMetricsController extends Controller
                 ];
             });
 
-            return response()->json([
-                'success' => true,
-                'metrics' => $metrics
-            ]);
+            return $this->successResponse(['metrics' => $metrics]);
 
         } catch (\Exception $e) {
             Log::error('Platform metrics error: ' . $e->getMessage());
             
             // Return fallback metrics on error
-            return response()->json([
-                'success' => true,
+            return $this->successResponse([
                 'metrics' => [
                     'total_bookings' => 0,
                     'response_time' => 0,

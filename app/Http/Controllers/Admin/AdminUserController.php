@@ -10,6 +10,7 @@ use App\Models\Client;
 use App\Rules\ValidSSN;
 use App\Rules\ValidITIN;
 use App\Rules\ValidPhoneNumber;
+use App\Rules\ValidNYZipCode;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
@@ -86,7 +87,7 @@ class AdminUserController extends Controller
             'county' => 'nullable|string|max:100',
             'city' => 'nullable|string|max:100',
             'borough' => 'nullable|string|max:100',
-            'zip_code' => ['nullable', 'string', 'regex:/^\d{5}(-\d{4})?$/'],
+            'zip_code' => ['nullable', 'string', 'max:10', new ValidNYZipCode],
             'ssn' => ['nullable', new ValidSSN, 'max:11'],
             'itin' => ['nullable', new ValidITIN, 'max:11'],
             'years_experience' => 'nullable|integer|min:0|max:50',
@@ -156,7 +157,7 @@ class AdminUserController extends Controller
             'county' => 'sometimes|nullable|string|max:100',
             'city' => 'sometimes|nullable|string|max:100',
             'borough' => 'sometimes|nullable|string|max:100',
-            'zip_code' => ['sometimes', 'nullable', 'string', 'regex:/^\d{5}(-\d{4})?$/'],
+            'zip_code' => ['sometimes', 'nullable', 'string', 'max:10', new ValidNYZipCode],
             'ssn' => ['sometimes', 'nullable', new ValidSSN, 'max:11'],
             'itin' => ['sometimes', 'nullable', new ValidITIN, 'max:11'],
             'status' => 'sometimes|nullable|in:Active,Inactive,Suspended',

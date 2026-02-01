@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Traits\ApiResponseTrait;
 use App\Models\User;
 use App\Services\ZipCodeService;
 use Illuminate\Http\Request;
@@ -14,38 +15,62 @@ use Illuminate\Http\Request;
  */
 class PublicApiController extends Controller
 {
+    use ApiResponseTrait;
+
     /**
      * Look up location by ZIP code
+     * 
+     * Returns location data in the format expected by frontend:
+     * { success: true, location: "City, NY" } for successful lookups
+     * { success: false, message: "error" } for failures
+     * 
+     * NY ZIP Code Rules:
+     * - Must be 5 digits (optionally with -XXXX for ZIP+4)
+     * - First two digits must be 10-14 (standard NY range)
+     * - OR must be one of the special NY ZIPs: 00501, 00544, 06390
      */
     public function zipCodeLookup(string $zip)
     {
+        // Get the 5-digit base ZIP
+        $zip = ZipCodeService::getBaseZipCode($zip);
+        
         // Validate ZIP code format
-        if (!preg_match('/^\d{5}$/', $zip)) {
+        if (!ZipCodeService::isValidZipFormat($zip)) {
             return response()->json([
                 'success' => false,
-                'error' => 'Invalid ZIP code format'
+                'message' => 'ZIP code must be 5 digits'
             ], 400);
         }
 
-        // Use our internal ZIP service
+        // Validate NY ZIP code range (10xxx-14xxx or special cases)
+        if (!ZipCodeService::isValidNYZipCode($zip)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Not a valid New York State ZIP code'
+            ], 400);
+        }
+
+        // Use our internal ZIP service (now includes region fallback)
         $location = ZipCodeService::lookupZipCode($zip);
 
-        // Handle unknown ZIPs - try static map directly
-        if (!$location || $location === 'New York, NY') {
+        // Handle unknown ZIPs - try static map directly as fallback
+        if (!$location) {
             $location = $this->lookupFromStaticMap($zip);
         }
 
-        if (!$location || $location === 'New York, NY') {
+        if (!$location) {
             return response()->json([
                 'success' => false,
-                'error' => 'ZIP code not found'
+                'message' => 'ZIP code not found'
             ], 404);
         }
         
+        // Return flat response matching frontend expectations
         return response()->json([
             'success' => true,
             'location' => $location,
-            'zip' => $zip
+            'zip' => $zip,
+            'valid_ny' => true
         ]);
     }
 
@@ -81,7 +106,7 @@ class PublicApiController extends Controller
             return response()->json(json_decode(file_get_contents($jsonPath), true));
         }
         
-        return response()->json(['error' => 'Location data not found'], 404);
+        return $this->notFoundResponse('Location data not found');
     }
 
     /**
@@ -91,7 +116,7 @@ class PublicApiController extends Controller
     {
         $exists = User::where('email', $email)->exists();
         
-        return response()->json([
+        return $this->successResponse([
             'exists' => $exists,
             'email' => $email
         ]);
@@ -104,7 +129,7 @@ class PublicApiController extends Controller
     {
         $user = auth()->user();
         
-        return response()->json([
+        return $this->successResponse([
             'verified' => $user && $user->email_verified_at ? true : false,
             'email' => $user ? $user->email : null
         ]);

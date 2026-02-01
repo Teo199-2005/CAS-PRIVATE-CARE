@@ -6,6 +6,7 @@ use App\Models\Booking;
 use App\Models\BookingAssignment;
 use App\Models\Caregiver;
 use App\Models\ReferralCode;
+use App\Models\TimeTracking;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -15,6 +16,7 @@ use Illuminate\Support\Facades\DB;
  * MarketingStaffController
  * 
  * Handles marketing staff dashboard data and statistics.
+ * Commission is $1.00 per actual hour worked (from time_trackings).
  */
 class MarketingStaffController extends Controller
 {
@@ -44,81 +46,81 @@ class MarketingStaffController extends Controller
             ]);
         }
         
+        // Get bookings that used this referral code
         $bookings = Booking::where('referral_code_id', $referralCode->id)
             ->with('client')
             ->orderBy('created_at', 'desc')
             ->get();
         
-        $completedBookings = $bookings->where('status', 'completed');
-        $activeBookings = $bookings->whereIn('status', ['approved', 'confirmed']);
+        $activeBookings = $bookings->whereIn('status', ['approved', 'confirmed', 'assigned']);
         
-        $totalCommission = $this->calculateCommission($completedBookings);
-        $pendingCommission = $this->calculateCommission($activeBookings);
+        // Get ACTUAL commissions from time_trackings (accurate data)
+        $timeTrackings = TimeTracking::where('marketing_partner_id', $userId)
+            ->whereNotNull('marketing_partner_commission')
+            ->get();
         
-        $clients = $this->formatClients($bookings);
+        $totalCommission = $timeTrackings->sum('marketing_partner_commission') ?? 0;
+        $pendingCommission = $timeTrackings->whereNull('marketing_commission_paid_at')
+            ->sum('marketing_partner_commission') ?? 0;
+        $paidCommission = $timeTrackings->whereNotNull('marketing_commission_paid_at')
+            ->sum('marketing_partner_commission') ?? 0;
+        
+        // Get last payout info
+        $lastPayout = $timeTrackings->whereNotNull('marketing_commission_paid_at')
+            ->sortByDesc('marketing_commission_paid_at')
+            ->first();
+        
+        $clients = $this->formatClients($bookings, $userId);
         
         $thisWeekClients = $bookings->filter(function($b) {
             return $b->created_at >= now()->startOfWeek();
         })->pluck('client_id')->unique()->count();
         
+        // Monthly commission from time trackings
+        $monthlyCommission = $timeTrackings->filter(function($tt) {
+            return $tt->work_date && $tt->work_date >= now()->startOfMonth();
+        })->sum('marketing_partner_commission') ?? 0;
+        
         return response()->json([
             'my_clients' => $bookings->pluck('client_id')->unique()->count(),
             'active_bookings' => $activeBookings->count(),
-            'total_commission' => $totalCommission,
-            'pending_commission' => $pendingCommission,
-            'account_balance' => $totalCommission,
+            'total_commission' => number_format($totalCommission, 2),
+            'pending_commission' => number_format($pendingCommission, 2),
+            'paid_commission' => number_format($paidCommission, 2),
+            'monthly_commission' => number_format($monthlyCommission, 2),
+            'account_balance' => number_format($pendingCommission, 2), // Unpaid balance
             'clients' => $clients,
             'weekly_summary' => [
                 'clients_acquired' => $thisWeekClients,
                 'target' => 10,
-                'previous_payout' => $totalCommission * 0.8,
-                'previous_payout_date' => now()->subWeek()->format('M d, Y')
+                'previous_payout' => $lastPayout ? number_format($paidCommission, 2) : '0.00',
+                'previous_payout_date' => $lastPayout && $lastPayout->marketing_commission_paid_at 
+                    ? Carbon::parse($lastPayout->marketing_commission_paid_at)->format('M d, Y') 
+                    : null
             ],
             'referral_code' => $referralCode->code
         ]);
     }
 
     /**
-     * Calculate commission for bookings
+     * Format clients data with actual commission from time_trackings
      */
-    protected function calculateCommission($bookings)
+    protected function formatClients($bookings, $userId)
     {
-        return $bookings->sum(function($b) {
-            $hours = $this->extractHours($b->duty_type);
-            return $hours * $b->duration_days * 1.00;
-        });
-    }
-
-    /**
-     * Extract hours from duty type
-     */
-    protected function extractHours(?string $dutyType): int
-    {
-        if ($dutyType && preg_match('/(\d+)\s*Hours?/i', $dutyType, $matches)) {
-            return (int)$matches[1];
-        }
-        return 8;
-    }
-
-    /**
-     * Format clients data
-     */
-    protected function formatClients($bookings)
-    {
-        return $bookings->groupBy('client_id')->map(function($clientBookings, $clientId) {
+        return $bookings->groupBy('client_id')->map(function($clientBookings, $clientId) use ($userId) {
             $client = $clientBookings->first()->client;
-            $completed = $clientBookings->where('status', 'completed');
             
-            $totalHours = $completed->sum(function($b) {
-                return $this->extractHours($b->duty_type) * $b->duration_days;
-            });
+            // Get ACTUAL hours and commission from time_trackings for this client
+            $clientTimeTrackings = TimeTracking::where('marketing_partner_id', $userId)
+                ->where('client_id', $clientId)
+                ->whereNotNull('clock_out_time')
+                ->get();
             
-            $totalSpent = $completed->sum(function($b) {
-                $hours = $this->extractHours($b->duty_type);
-                return $hours * $b->duration_days * ($b->hourly_rate ?: 40);
-            });
+            $totalHours = $clientTimeTrackings->sum('hours_worked') ?? 0;
+            $commission = $clientTimeTrackings->sum('marketing_partner_commission') ?? 0;
             
-            $commission = $totalHours * 1.00;
+            // Calculate total spent by client
+            $totalSpent = $clientTimeTrackings->sum('client_charge') ?? 0;
             
             return [
                 'id' => $clientId,
@@ -126,10 +128,10 @@ class MarketingStaffController extends Controller
                 'email' => $client->email ?? '',
                 'phone' => $client->phone ?? '',
                 'borough' => $client->borough ?? 'N/A',
-                'status' => $clientBookings->whereIn('status', ['approved', 'confirmed'])->count() > 0 
+                'status' => $clientBookings->whereIn('status', ['approved', 'confirmed', 'assigned'])->count() > 0 
                     ? 'Active' 
                     : 'Inactive',
-                'totalHours' => $totalHours,
+                'totalHours' => number_format($totalHours, 1),
                 'totalSpent' => number_format($totalSpent, 2),
                 'contractDate' => $clientBookings->min('created_at') 
                     ? Carbon::parse($clientBookings->min('created_at'))->format('Y-m-d') 

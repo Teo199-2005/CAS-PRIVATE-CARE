@@ -33,6 +33,8 @@
             line-height: 1.6;
             color: #0B4FA2;
             overflow-x: hidden;
+            background-color: #ffffff;
+            background-image: url("https://www.transparenttextures.com/patterns/batthern.png");
         }
 
         /* Hero Section */
@@ -152,11 +154,13 @@
         }
 
         .section-light {
-            background: #ffffff;
+            background-color: #ffffff;
+            background-image: url("https://www.transparenttextures.com/patterns/batthern.png");
         }
 
         .section-dark {
-            background: #f8fafc;
+            background-color: #dbeafe;
+            background-image: url("https://www.transparenttextures.com/patterns/dotnoise-light-grey.png");
         }
 
         .container {
@@ -526,35 +530,395 @@
             font-size: 1.05rem;
         }
 
-        /* Responsive Design */
+        /* =============================================================
+           MOBILE RESPONSIVE DESIGN - Caregiver Page
+           ============================================================= */
+        
+        /* Tablets (769px - 1024px) */
+        @media (max-width: 1024px) {
+            .hero {
+                padding: 4rem 1.5rem;
+            }
+            
+            .location-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 1.5rem;
+            }
+            
+            .pricing-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        
+        /* Standard Mobile (768px) */
         @media (max-width: 768px) {
+            /* Hero Section */
+            .hero {
+                margin-top: 70px;
+                padding: 3rem 1.25rem;
+            }
+            
             .hero h1 {
-                font-size: 2.5rem;
+                font-size: 2rem;
+                line-height: 1.2;
+                margin-bottom: 0.75rem;
             }
 
             .hero .tagline {
-                font-size: 1.3rem;
+                font-size: 1.1rem;
+                margin-bottom: 1rem;
             }
 
             .hero p {
-                font-size: 1rem;
+                font-size: 0.95rem;
+                line-height: 1.6;
+                margin-bottom: 1.5rem;
             }
-
-            .section-header h2 {
-                font-size: 2rem;
+            
+            .hero-buttons {
+                flex-direction: column;
+                gap: 0.75rem;
+                width: 100%;
+            }
+            
+            .hero-buttons .btn-primary,
+            .hero-buttons .btn-secondary {
+                width: 100%;
+                padding: 0.875rem 1.5rem;
+                font-size: 1rem;
+                text-align: center;
+                justify-content: center;
             }
 
             .trust-badges {
                 flex-direction: column;
                 align-items: center;
+                gap: 0.75rem;
+                margin-top: 2rem;
+            }
+            
+            .trust-badge {
+                width: 100%;
+                justify-content: center;
+                padding: 0.625rem 1rem;
+                font-size: 0.85rem;
+            }
+            
+            /* Section Styles */
+            section {
+                padding: 3rem 1.25rem;
             }
 
+            .section-header h2 {
+                font-size: 1.5rem;
+                line-height: 1.3;
+                margin-bottom: 0.75rem;
+            }
+            
+            .section-header p {
+                font-size: 0.9rem;
+                line-height: 1.6;
+            }
+            
+            /* Location Grid - 2x2 on mobile */
+            .location-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 0.75rem;
+            }
+            
+            .location-card {
+                border-radius: 12px;
+            }
+            
+            .location-image {
+                height: 100px;
+            }
+            
+            .location-content {
+                padding: 1rem;
+            }
+            
+            .location-content h3 {
+                font-size: 1rem;
+                margin-bottom: 0.25rem;
+            }
+            
+            .location-content .subtitle {
+                font-size: 0.7rem;
+                margin-bottom: 0.5rem;
+            }
+            
+            .location-badge {
+                font-size: 0.65rem;
+                padding: 0.25rem 0.5rem;
+            }
+            
+            .location-content > p {
+                font-size: 0.75rem;
+                line-height: 1.4;
+                display: -webkit-box;
+                -webkit-line-clamp: 2;
+                -webkit-box-orient: vertical;
+                overflow: hidden;
+            }
+            
+            .location-link {
+                font-size: 0.8rem;
+                margin-top: 0.5rem;
+            }
+            
+            /* Pricing Cards - Stack on mobile */
+            .pricing-grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+            
+            .pricing-card {
+                padding: 1.5rem;
+            }
+            
             .pricing-card.popular {
                 transform: scale(1);
             }
 
             .pricing-card.popular:hover {
-                transform: translateY(-8px);
+                transform: translateY(-4px);
+            }
+            
+            .pricing-card h3 {
+                font-size: 1.25rem;
+            }
+            
+            .pricing-card .price {
+                font-size: 2rem;
+            }
+            
+            /* Services Grid */
+            .services-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 0.75rem;
+            }
+            
+            .service-card {
+                padding: 1.25rem;
+            }
+            
+            .service-card h4 {
+                font-size: 0.9rem;
+            }
+            
+            .service-card p {
+                font-size: 0.8rem;
+                display: -webkit-box;
+                -webkit-line-clamp: 3;
+                -webkit-box-orient: vertical;
+                overflow: hidden;
+            }
+            
+            /* FAQ Section */
+            .faq-container {
+                gap: 0.75rem;
+            }
+            
+            .faq-item {
+                padding: 1rem;
+            }
+            
+            .faq-question {
+                font-size: 0.95rem;
+            }
+            
+            .faq-answer {
+                font-size: 0.85rem;
+            }
+
+            /* Features Grid - Why Choose Us */
+            .features-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 0.75rem;
+            }
+            
+            .feature-card {
+                padding: 1.25rem 1rem;
+                border-radius: 12px;
+            }
+            
+            .feature-icon {
+                width: 44px;
+                height: 44px;
+                margin-bottom: 0.75rem;
+            }
+            
+            .feature-icon i {
+                font-size: 1.1rem;
+            }
+            
+            .feature-card h3 {
+                font-size: 0.9rem;
+                margin-bottom: 0.25rem;
+            }
+            
+            .feature-card p {
+                font-size: 0.8rem;
+                line-height: 1.4;
+                display: -webkit-box;
+                -webkit-line-clamp: 3;
+                -webkit-box-orient: vertical;
+                overflow: hidden;
+            }
+
+            /* Service Icons */
+            .service-icon {
+                width: 50px;
+                height: 50px;
+                margin-bottom: 1rem;
+            }
+            
+            .service-icon i {
+                font-size: 1.5rem;
+            }
+            
+            .service-card h3 {
+                font-size: 1rem;
+            }
+
+            /* CTA Section */
+            .cta-section {
+                padding: 3rem 1.25rem;
+            }
+            
+            .cta-section h2 {
+                font-size: 1.75rem;
+            }
+            
+            .cta-section p {
+                font-size: 1rem;
+            }
+        }
+        
+        /* Small Phones (480px) */
+        @media (max-width: 480px) {
+            .hero {
+                padding: 2.5rem 1rem;
+            }
+            
+            .hero h1 {
+                font-size: 1.75rem;
+            }
+            
+            .hero .tagline {
+                font-size: 1rem;
+            }
+            
+            .hero p {
+                font-size: 0.9rem;
+            }
+            
+            section {
+                padding: 2.5rem 1rem;
+            }
+            
+            .section-header h2 {
+                font-size: 1.35rem;
+            }
+            
+            /* Location cards compact */
+            .location-grid {
+                gap: 0.5rem;
+            }
+            
+            .location-image {
+                height: 80px;
+            }
+            
+            .location-content {
+                padding: 0.75rem;
+            }
+            
+            .location-content h3 {
+                font-size: 0.9rem;
+            }
+            
+            .location-content .subtitle,
+            .location-content > p {
+                display: none;
+            }
+            
+            .location-badge {
+                font-size: 0.6rem;
+            }
+            
+            /* Services compact */
+            .services-grid {
+                gap: 0.5rem;
+            }
+            
+            .service-card {
+                padding: 1rem;
+            }
+            
+            .service-card h4 {
+                font-size: 0.85rem;
+            }
+            
+            .service-card p {
+                font-size: 0.75rem;
+                -webkit-line-clamp: 2;
+            }
+            
+            /* Features compact */
+            .features-grid {
+                gap: 0.5rem;
+            }
+            
+            .feature-card {
+                padding: 1rem 0.75rem;
+            }
+            
+            .feature-icon {
+                width: 38px;
+                height: 38px;
+            }
+            
+            .feature-icon i {
+                font-size: 1rem;
+            }
+            
+            .feature-card h3 {
+                font-size: 0.85rem;
+            }
+            
+            .feature-card p {
+                font-size: 0.75rem;
+                -webkit-line-clamp: 2;
+            }
+            
+            /* CTA compact */
+            .cta-section {
+                padding: 2.5rem 1rem;
+            }
+            
+            .cta-section h2 {
+                font-size: 1.5rem;
+            }
+        }
+        
+        /* Very Small Phones (360px) */
+        @media (max-width: 360px) {
+            .hero h1 {
+                font-size: 1.5rem;
+            }
+            
+            .hero .tagline {
+                font-size: 0.9rem;
+            }
+            
+            .section-header h2 {
+                font-size: 1.2rem;
+            }
+            
+            .location-content h3 {
+                font-size: 0.8rem;
             }
         }
     </style>
@@ -606,7 +970,7 @@
 
             <div class="location-grid">
                 <div class="location-card">
-                    <img src="https://images.unsplash.com/photo-1546436836-07a91091f160?w=600" alt="Manhattan" class="location-image">
+                    <img src="https://images.unsplash.com/photo-1546436836-07a91091f160?w=600" alt="Manhattan" class="location-image" loading="lazy" decoding="async">
                     <div class="location-content">
                         <h3>Manhattan</h3>
                         <p class="subtitle">Upper East Side to Lower Manhattan</p>
@@ -617,7 +981,7 @@
                 </div>
 
                 <div class="location-card">
-                    <img src="https://images.unsplash.com/photo-1490644658840-3f2e3f8c5625?w=600" alt="Brooklyn" class="location-image">
+                    <img src="https://images.unsplash.com/photo-1490644658840-3f2e3f8c5625?w=600" alt="Brooklyn" class="location-image" loading="lazy" decoding="async">
                     <div class="location-content">
                         <h3>Brooklyn</h3>
                         <p class="subtitle">Park Slope to Brighton Beach</p>
@@ -628,7 +992,7 @@
                 </div>
 
                 <div class="location-card">
-                    <img src="https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=600" alt="Queens" class="location-image">
+                    <img src="https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=600" alt="Queens" class="location-image" loading="lazy" decoding="async">
                     <div class="location-content">
                         <h3>Queens</h3>
                         <p class="subtitle">Astoria, Flushing, Jamaica & More</p>

@@ -1,0 +1,361 @@
+/**
+ * CAS Private Care - Navigation CSS Module
+ * Part of the mobile-fixes modular system
+ * 
+ * Mobile-optimized navigation:
+ * - Bottom navigation bar
+ * - Hamburger menu
+ * - Drawer navigation
+ * - Tab navigation
+ */
+
+/* ==========================================================================
+   Mobile Bottom Navigation
+   ========================================================================== */
+
+@media screen and (max-width: 767px) {
+    .mobile-bottom-nav {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: calc(56px + env(safe-area-inset-bottom, 0px));
+        background: var(--bg-primary, #ffffff);
+        box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+        display: flex;
+        justify-content: space-around;
+        align-items: flex-start;
+        padding-top: 8px;
+        padding-bottom: env(safe-area-inset-bottom, 0px);
+        z-index: 1000;
+    }
+    
+    .mobile-bottom-nav__item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-width: 64px;
+        padding: 4px 8px;
+        text-decoration: none;
+        color: var(--text-secondary, #666);
+        transition: color 0.2s ease;
+    }
+    
+    .mobile-bottom-nav__item--active {
+        color: var(--brand-primary, #1e40af);
+    }
+    
+    .mobile-bottom-nav__icon {
+        font-size: 24px;
+        margin-bottom: 2px;
+    }
+    
+    .mobile-bottom-nav__label {
+        font-size: 10px;
+        font-weight: 500;
+        text-align: center;
+    }
+    
+    /* Hide desktop navigation on mobile */
+    .desktop-nav,
+    .desktop-sidebar {
+        display: none !important;
+    }
+    
+    /* Add bottom padding to content for fixed nav */
+    .has-bottom-nav {
+        padding-bottom: calc(56px + env(safe-area-inset-bottom, 0px) + 16px);
+    }
+}
+
+/* ==========================================================================
+   Mobile Header Navigation
+   ========================================================================== */
+
+@media screen and (max-width: 767px) {
+    .mobile-header {
+        position: sticky;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: calc(56px + env(safe-area-inset-top, 0px));
+        background: var(--bg-primary, #ffffff);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: env(safe-area-inset-top, 0px) 16px 0;
+        z-index: 999;
+    }
+    
+    .mobile-header__logo {
+        height: 32px;
+        width: auto;
+    }
+    
+    .mobile-header__title {
+        font-size: 1.125rem;
+        font-weight: 600;
+        flex: 1;
+        text-align: center;
+    }
+    
+    .mobile-header__action {
+        min-width: 44px;
+        min-height: 44px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+}
+
+/* ==========================================================================
+   Hamburger Menu Button
+   ========================================================================== */
+
+@media screen and (max-width: 767px) {
+    .hamburger-btn {
+        width: 44px;
+        height: 44px;
+        padding: 10px;
+        background: transparent;
+        border: none;
+        cursor: pointer;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        gap: 4px;
+    }
+    
+    .hamburger-btn__line {
+        width: 24px;
+        height: 2px;
+        background: var(--text-primary, #333);
+        border-radius: 1px;
+        transition: all 0.3s ease;
+    }
+    
+    .hamburger-btn--open .hamburger-btn__line:nth-child(1) {
+        transform: rotate(45deg) translate(4px, 4px);
+    }
+    
+    .hamburger-btn--open .hamburger-btn__line:nth-child(2) {
+        opacity: 0;
+    }
+    
+    .hamburger-btn--open .hamburger-btn__line:nth-child(3) {
+        transform: rotate(-45deg) translate(4px, -4px);
+    }
+}
+
+/* ==========================================================================
+   Navigation Drawer
+   ========================================================================== */
+
+@media screen and (max-width: 767px) {
+    .nav-drawer {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 280px;
+        height: 100vh;
+        height: 100dvh;
+        background: var(--bg-primary, #ffffff);
+        box-shadow: 2px 0 10px rgba(0, 0, 0, 0.2);
+        transform: translateX(-100%);
+        transition: transform 0.3s ease;
+        z-index: 1001;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        padding-top: env(safe-area-inset-top, 0px);
+        padding-bottom: env(safe-area-inset-bottom, 0px);
+    }
+    
+    .nav-drawer--open {
+        transform: translateX(0);
+    }
+    
+    .nav-drawer__header {
+        padding: 20px 16px;
+        border-bottom: 1px solid var(--border-light, #eee);
+    }
+    
+    .nav-drawer__menu {
+        list-style: none;
+        padding: 8px 0;
+        margin: 0;
+    }
+    
+    .nav-drawer__item {
+        display: flex;
+        align-items: center;
+        padding: 12px 16px;
+        min-height: 48px;
+        text-decoration: none;
+        color: var(--text-primary, #333);
+        transition: background 0.2s ease;
+    }
+    
+    .nav-drawer__item:active {
+        background: var(--bg-secondary, #f5f5f5);
+    }
+    
+    .nav-drawer__item--active {
+        color: var(--brand-primary, #1e40af);
+        background: var(--brand-primary-light, rgba(30, 64, 175, 0.1));
+    }
+    
+    .nav-drawer__icon {
+        margin-right: 16px;
+        font-size: 24px;
+    }
+    
+    .nav-drawer__label {
+        font-size: 1rem;
+        font-weight: 500;
+    }
+    
+    /* Drawer overlay */
+    .nav-drawer-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.3s ease, visibility 0.3s ease;
+        z-index: 1000;
+    }
+    
+    .nav-drawer-overlay--visible {
+        opacity: 1;
+        visibility: visible;
+    }
+}
+
+/* ==========================================================================
+   Tab Navigation
+   ========================================================================== */
+
+@media screen and (max-width: 767px) {
+    .mobile-tabs {
+        display: flex;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+        border-bottom: 1px solid var(--border-light, #eee);
+    }
+    
+    .mobile-tabs::-webkit-scrollbar {
+        display: none;
+    }
+    
+    .mobile-tabs__item {
+        flex-shrink: 0;
+        padding: 12px 16px;
+        min-height: 44px;
+        font-size: 0.875rem;
+        font-weight: 500;
+        text-decoration: none;
+        color: var(--text-secondary, #666);
+        border-bottom: 2px solid transparent;
+        transition: color 0.2s ease, border-color 0.2s ease;
+        white-space: nowrap;
+    }
+    
+    .mobile-tabs__item--active {
+        color: var(--brand-primary, #1e40af);
+        border-bottom-color: var(--brand-primary, #1e40af);
+    }
+    
+    /* Vuetify tabs adjustments */
+    .v-tabs {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    .v-tab {
+        min-width: auto;
+        padding: 0 12px;
+    }
+}
+
+/* ==========================================================================
+   Breadcrumb Navigation
+   ========================================================================== */
+
+@media screen and (max-width: 767px) {
+    .breadcrumb-nav {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        padding: 8px 0;
+        scrollbar-width: none;
+    }
+    
+    .breadcrumb-nav::-webkit-scrollbar {
+        display: none;
+    }
+    
+    .breadcrumb-list {
+        display: flex;
+        align-items: center;
+        white-space: nowrap;
+        padding: 0;
+        margin: 0;
+        list-style: none;
+    }
+    
+    .breadcrumb-item {
+        display: flex;
+        align-items: center;
+        font-size: 0.75rem;
+    }
+    
+    .breadcrumb-link {
+        color: var(--text-secondary, #666);
+        text-decoration: none;
+    }
+    
+    .breadcrumb-current {
+        color: var(--text-primary, #333);
+        font-weight: 500;
+    }
+    
+    .breadcrumb-separator {
+        margin: 0 4px;
+        color: var(--text-muted, #999);
+    }
+}
+
+/* ==========================================================================
+   Back Button
+   ========================================================================== */
+
+@media screen and (max-width: 767px) {
+    .back-button {
+        display: flex;
+        align-items: center;
+        padding: 8px;
+        min-height: 44px;
+        min-width: 44px;
+        background: transparent;
+        border: none;
+        color: var(--text-primary, #333);
+        font-size: 0.875rem;
+        cursor: pointer;
+    }
+    
+    .back-button__icon {
+        font-size: 24px;
+        margin-right: 4px;
+    }
+    
+    .back-button__text {
+        font-weight: 500;
+    }
+}

@@ -17,6 +17,10 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\LandingController;
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\Admin\BookingAdminController;
+use App\Http\Controllers\Admin\UserAdminController;
+use App\Http\Controllers\Admin\StaffAdminController;
+use App\Http\Controllers\Admin\ReportAdminController;
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\CaregiverController;
@@ -53,6 +57,9 @@ Route::view('/offline', 'offline')->name('offline');
 // PUBLIC ROUTES
 // ============================================
 
+// CSRF token refresh (for login and other forms when token may be stale)
+Route::get('/csrf-token', fn () => response()->json(['token' => csrf_token()]))->middleware('web');
+
 // Landing & Core Pages
 Route::get('/', [LandingController::class, 'index']);
 Route::get('/api/landing/stats', [LandingController::class, 'stats']);
@@ -84,9 +91,9 @@ Route::get('/blog', [BlogController::class, 'index'])->name('blog.index');
 Route::get('/blog/{slug}', [BlogController::class, 'show'])->name('blog.show');
 Route::get('/blog/category/{category}', [BlogController::class, 'category'])->name('blog.category');
 
-// Contact
+// Contact (with reCAPTCHA protection)
 Route::get('/contact', [ContactController::class, 'show'])->name('contact');
-Route::post('/contact', [ContactController::class, 'submit'])->middleware('throttle:3,1')->name('contact.submit');
+Route::post('/contact', [ContactController::class, 'submit'])->middleware(['throttle:3,1', 'verify.recaptcha:contact'])->name('contact.submit');
 
 // Book Service Redirect - Redirects to login if not authenticated, then to book-service
 Route::get('/book', function () {
@@ -96,15 +103,16 @@ Route::get('/book', function () {
     return redirect('/login?redirect=/book-service');
 })->name('book');
 
-// Authentication (with rate limiting for security)
+// Authentication (with smart rate limiting and reCAPTCHA for security)
+// Smart throttle adjusts limits based on environment: 50/min in testing, 10/min in production
 Route::get('/login', [PageController::class, 'login'])->name('login');
-Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:5,1');
+Route::post('/login', [AuthController::class, 'login'])->middleware(['smart.throttle:login', 'verify.recaptcha:login']);
 Route::get('/register', [PageController::class, 'register'])->name('register');
-Route::post('/register', [AuthController::class, 'register'])->middleware('throttle:5,1');
+Route::post('/register', [AuthController::class, 'register'])->middleware(['smart.throttle:register', 'verify.recaptcha:register']);
 Route::post('/logout', [AuthController::class, 'logout']);
 Route::get('/reset-password/{token}', [AuthController::class, 'showResetPasswordForm'])->name('password.reset');
-Route::post('/reset-password', [AuthController::class, 'resetPassword'])->middleware('throttle:5,1')->name('password.update');
-Route::post('/password/email', [AuthController::class, 'sendResetLinkEmail'])->middleware('throttle:5,1');
+Route::post('/reset-password', [AuthController::class, 'resetPassword'])->middleware(['smart.throttle:password-reset', 'verify.recaptcha:reset'])->name('password.update');
+Route::post('/password/email', [AuthController::class, 'sendResetLinkEmail'])->middleware(['smart.throttle:password-reset', 'verify.recaptcha:forgot']);
 
 // OAuth
 Route::get('/auth/{provider}', [AuthController::class, 'redirectToProvider']);
@@ -309,9 +317,7 @@ Route::prefix('api')->middleware(['web', 'auth'])->group(function () {
     Route::get('/referral-codes/my-code', [\App\Http\Controllers\ReferralCodeController::class, 'getMyCode']);
     Route::post('/referral-codes/validate', [\App\Http\Controllers\ReferralCodeController::class, 'validateCode']);
     
-    // Training Centers (dropdown)
-    Route::get('/training-centers', [CaregiverDataController::class, 'trainingCenters']);
-    
+    // Training Centers dropdown: handled by api.php GET /api/training-centers (no auth) so caregiver/housekeeper profile always gets the list
     // Receipts
     Route::get('/receipts/payment/{bookingId}', [\App\Http\Controllers\ReceiptController::class, 'generatePaymentReceipt'])->name('receipt.payment');
     Route::get('/receipts/payment/{bookingId}/download', [\App\Http\Controllers\ReceiptController::class, 'downloadPaymentReceipt'])->name('receipt.payment.download');
@@ -356,80 +362,85 @@ Route::prefix('api')->middleware(['web', 'auth'])->group(function () {
 // ============================================
 
 Route::prefix('api')->middleware(['web', 'auth', 'user.type:admin'])->group(function () {
+    Route::get('/admin/csrf-token', fn () => response()->json(['token' => csrf_token()]));
     Route::get('/admin/stats', [\App\Http\Controllers\DashboardController::class, 'adminStats']);
     Route::get('/admin/users', [\App\Http\Controllers\DashboardController::class, 'adminUsers']);
-    Route::post('/admin/users', [AdminController::class, 'storeUser']);
-    Route::put('/admin/users/{id}', [AdminController::class, 'updateUser']);
-    Route::put('/admin/users/{id}/status', [AdminController::class, 'updateUserStatus']);
-    Route::put('/admin/caregivers/{id}/status', [AdminController::class, 'updateCaregiverStatus']);
-    Route::delete('/admin/users/{id}', [AdminController::class, 'deleteUser']);
-    Route::get('/admin/applications', [AdminController::class, 'getApplications']);
-    Route::post('/admin/applications/{id}/approve', [AdminController::class, 'approveApplication']);
-    Route::post('/admin/applications/{id}/reject', [AdminController::class, 'rejectApplication']);
-    Route::post('/admin/applications/{id}/unapprove', [AdminController::class, 'unapproveApplication']);
     
-    // Staff Management
-    Route::get('/admin/marketing-staff', [AdminController::class, 'getMarketingStaff']);
-    Route::post('/admin/marketing-staff', [AdminController::class, 'storeMarketingStaff']);
-    Route::put('/admin/marketing-staff/{id}', [AdminController::class, 'updateMarketingStaff']);
-    Route::delete('/admin/marketing-staff/{id}', [AdminController::class, 'deleteMarketingStaff']);
+    // User Management (UserAdminController)
+    Route::post('/admin/users', [UserAdminController::class, 'storeUser']);
+    Route::put('/admin/users/{id}', [UserAdminController::class, 'updateUser']);
+    Route::put('/admin/users/{id}/status', [UserAdminController::class, 'updateUserStatus']);
+    Route::put('/admin/caregivers/{id}/status', [UserAdminController::class, 'updateCaregiverStatus']);
+    Route::delete('/admin/users/{id}', [UserAdminController::class, 'deleteUser']);
+    Route::get('/admin/applications', [UserAdminController::class, 'getApplications']);
+    Route::post('/admin/applications/{id}/approve', [UserAdminController::class, 'approveApplication']);
+    Route::post('/admin/applications/{id}/reject', [UserAdminController::class, 'rejectApplication']);
+    Route::post('/admin/applications/{id}/unapprove', [UserAdminController::class, 'unapproveApplication']);
     
-    Route::get('/admin/admin-staff', [AdminController::class, 'getAdminStaff']);
-    Route::post('/admin/admin-staff', [AdminController::class, 'storeAdminStaff']);
-    Route::put('/admin/admin-staff/{id}', [AdminController::class, 'updateAdminStaff']);
-    Route::delete('/admin/admin-staff/{id}', [AdminController::class, 'deleteAdminStaff']);
-    Route::get('/admin/admin-staff/permissions', [AdminController::class, 'getAdminStaffPermissions']);
+    // Staff Management (StaffAdminController)
+    Route::get('/admin/marketing-staff', [StaffAdminController::class, 'getMarketingStaff']);
+    Route::post('/admin/marketing-staff', [StaffAdminController::class, 'storeMarketingStaff']);
+    Route::put('/admin/marketing-staff/{id}', [StaffAdminController::class, 'updateMarketingStaff']);
+    Route::delete('/admin/marketing-staff/{id}', [StaffAdminController::class, 'deleteMarketingStaff']);
     
-    // Training Center Management
-    Route::get('/admin/training-centers', [AdminController::class, 'getTrainingCenters']);
-    Route::post('/admin/training-centers', [AdminController::class, 'storeTrainingCenter']);
-    Route::put('/admin/training-centers/{id}', [AdminController::class, 'updateTrainingCenter']);
-    Route::delete('/admin/training-centers/{id}', [AdminController::class, 'deleteTrainingCenter']);
-    Route::get('/admin/training-centers/{id}/caregivers', [AdminController::class, 'getTrainingCenterCaregivers']);
+    Route::get('/admin/admin-staff', [StaffAdminController::class, 'getAdminStaff']);
+    Route::post('/admin/admin-staff', [StaffAdminController::class, 'storeAdminStaff']);
+    Route::put('/admin/admin-staff/{id}', [StaffAdminController::class, 'updateAdminStaff']);
+    Route::delete('/admin/admin-staff/{id}', [StaffAdminController::class, 'deleteAdminStaff']);
+    Route::get('/admin/admin-staff/permissions', [StaffAdminController::class, 'getAdminStaffPermissions']);
     
-    // Password Resets
-    Route::get('/admin/password-resets', [AdminController::class, 'getPasswordResets']);
-    Route::post('/admin/password-resets/{id}/process', [AdminController::class, 'processPasswordReset']);
+    // Training Center Management (StaffAdminController)
+    Route::get('/admin/training-centers', [StaffAdminController::class, 'getTrainingCenters']);
+    Route::post('/admin/training-centers', [StaffAdminController::class, 'storeTrainingCenter']);
+    Route::put('/admin/training-centers/{id}', [StaffAdminController::class, 'updateTrainingCenter']);
+    Route::delete('/admin/training-centers/{id}', [StaffAdminController::class, 'deleteTrainingCenter']);
+    Route::get('/admin/training-centers/{id}/caregivers', [StaffAdminController::class, 'getTrainingCenterCaregivers']);
     
-    // Announcements
+    // Password Resets (UserAdminController)
+    Route::get('/admin/password-resets', [UserAdminController::class, 'getPasswordResets']);
+    Route::post('/admin/password-resets/{id}/process', [UserAdminController::class, 'processPasswordReset']);
+    
+    // Announcements (AdminController - kept in main controller)
     Route::get('/admin/announcements', [AdminController::class, 'getAnnouncements']);
     Route::post('/admin/announcements', [AdminController::class, 'storeAnnouncement']);
     Route::post('/admin/test-email', [AdminController::class, 'sendTestEmail']);
     
-    // Booking Assignments
-    Route::post('/bookings/{id}/assign', [AdminController::class, 'assignCaregivers']);
-    Route::post('/bookings/{id}/assign-housekeepers', [AdminController::class, 'assignHousekeepers']);
-    Route::post('/bookings/{id}/unassign', [AdminController::class, 'unassignCaregiver']);
-    Route::post('/bookings/{id}/unassign-housekeeper', [AdminController::class, 'unassignHousekeeper']);
-    Route::get('/bookings/{id}/housekeeper/{housekeeperId}/schedule', [AdminController::class, 'getHousekeeperSchedule']);
-    Route::post('/bookings/{id}/housekeeper/{housekeeperId}/schedule', [AdminController::class, 'updateHousekeeperSchedule']);
+    // Booking Assignments (BookingAdminController)
+    Route::post('/bookings/{id}/assign', [BookingAdminController::class, 'assignCaregivers']);
+    Route::post('/bookings/{id}/assign-housekeepers', [BookingAdminController::class, 'assignHousekeepers']);
+    Route::post('/bookings/{id}/unassign', [BookingAdminController::class, 'unassignCaregiver']);
+    Route::post('/bookings/{id}/unassign-housekeeper', [BookingAdminController::class, 'unassignHousekeeper']);
+    Route::get('/bookings/{id}/housekeeper/{housekeeperId}/schedule', [BookingAdminController::class, 'getHousekeeperSchedule']);
+    Route::post('/bookings/{id}/housekeeper/{housekeeperId}/schedule', [BookingAdminController::class, 'updateHousekeeperSchedule']);
     
-    // Payments & Analytics
-    Route::get('/admin/payment-stats', [AdminController::class, 'getPaymentStats']);
-    Route::get('/admin/transactions', [AdminController::class, 'getTransactions']);
-    Route::get('/admin/client-payments', [AdminController::class, 'getClientPayments']);
-    Route::get('/admin/caregiver-salaries', [AdminController::class, 'getCaregiverSalaries']);
-    Route::get('/admin/housekeeper-salaries', [AdminController::class, 'getHousekeeperSalaries']);
-    Route::post('/admin/pay-caregiver', [AdminController::class, 'payCaregiver']);
-    Route::post('/admin/pay-housekeeper', [AdminController::class, 'payHousekeeper']);
+    // Payments & Analytics (ReportAdminController)
+    Route::get('/admin/payment-stats', [ReportAdminController::class, 'getPaymentStats']);
+    Route::get('/admin/transactions', [ReportAdminController::class, 'getTransactions']);
+    Route::get('/admin/client-payments', [ReportAdminController::class, 'getClientPayments']);
+    Route::get('/admin/caregiver-salaries', [ReportAdminController::class, 'getCaregiverSalaries']);
+    Route::get('/admin/housekeeper-salaries', [ReportAdminController::class, 'getHousekeeperSalaries']);
+    Route::post('/admin/pay-caregiver', [ReportAdminController::class, 'payCaregiver']);
+    Route::post('/admin/pay-housekeeper', [ReportAdminController::class, 'payHousekeeper']);
     
-    // Commissions
-    Route::get('/admin/marketing-commissions', [AdminController::class, 'getMarketingCommissions']);
-    Route::post('/admin/pay-marketing-commission/{id}', [AdminController::class, 'payMarketingCommission']);
-    Route::get('/admin/training-commissions', [AdminController::class, 'getTrainingCommissions']);
-    Route::post('/admin/pay-training-commission/{id}', [AdminController::class, 'payTrainingCommission']);
+    // Commissions (ReportAdminController)
+    Route::get('/admin/marketing-commissions', [ReportAdminController::class, 'getMarketingCommissions']);
+    Route::post('/admin/pay-marketing-commission/{id}', [ReportAdminController::class, 'payMarketingCommission']);
+    Route::get('/admin/training-commissions', [ReportAdminController::class, 'getTrainingCommissions']);
+    Route::post('/admin/pay-training-commission/{id}', [ReportAdminController::class, 'payTrainingCommission']);
     
     // Payment Monitoring
     Route::get('/admin/money-flow-dashboard', [\App\Http\Controllers\PaymentMonitoringController::class, 'getMoneyFlowDashboard']);
     Route::get('/admin/verify-payout/{id}', [\App\Http\Controllers\PaymentMonitoringController::class, 'verifyPayoutDetails']);
     Route::get('/admin/reconciliation-report', [\App\Http\Controllers\PaymentMonitoringController::class, 'getReconciliationReport']);
     
-    // Reports
+    // Reports (ReportAdminController)
     Route::get('/admin/financial-report/pdf', [\App\Http\Controllers\AdminReportController::class, 'generateFinancialReport']);
-    Route::get('/admin/top-performers', [AdminController::class, 'getTopPerformers']);
-    Route::get('/admin/recent-activity', [AdminController::class, 'getRecentActivity']);
-    Route::get('/admin/bookings', [AdminController::class, 'getAllBookings']);
+    Route::get('/admin/top-performers', [ReportAdminController::class, 'getTopPerformers']);
+    Route::get('/admin/recent-activity', [ReportAdminController::class, 'getRecentActivity']);
+    Route::get('/admin/bookings', [BookingAdminController::class, 'getAllBookings']);
     Route::get('/admin/time-tracking', [\App\Http\Controllers\TimeTrackingController::class, 'getAdminTimeTracking']);
+    Route::put('/admin/time-tracking/{id}', [\App\Http\Controllers\TimeTrackingController::class, 'update']);
+    Route::delete('/admin/time-tracking/{id}', [\App\Http\Controllers\TimeTrackingController::class, 'destroy']);
     
     // Referral Codes (admin)
     Route::get('/referral-codes', [\App\Http\Controllers\ReferralCodeController::class, 'index']);

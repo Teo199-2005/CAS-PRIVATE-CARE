@@ -955,7 +955,7 @@
                 <!-- Featured Post (First Post) -->
                 @php $featured = $posts->first(); @endphp
                 <a href="{{ route('blog.show', $featured['slug']) }}" class="featured-post">
-                    <img src="{{ $featured['image'] }}" alt="{{ $featured['title'] }}" class="featured-post-image">
+                    <img src="{{ $featured['image'] }}" alt="{{ $featured['title'] }}" class="featured-post-image" loading="lazy" decoding="async">
                     <div class="featured-post-content">
                         <span class="featured-badge">FEATURED</span>
                         <h2 class="featured-post-title">{{ $featured['title'] }}</h2>
@@ -977,7 +977,7 @@
                 <div class="blog-list">
                     @foreach($posts->skip(1) as $post)
                         <div class="blog-card">
-                            <img src="{{ $post['image'] }}" alt="{{ $post['title'] }}" class="blog-card-image">
+                            <img src="{{ $post['image'] }}" alt="{{ $post['title'] }}" class="blog-card-image" loading="lazy" decoding="async">
                             <div class="blog-card-content">
                                 <span class="blog-card-category">{{ $post['category'] }}</span>
                                 <h3 class="blog-card-title">{{ $post['title'] }}</h3>
@@ -1032,7 +1032,7 @@
                 <ul class="popular-posts">
                     @foreach($posts->take(4) as $popularPost)
                         <li class="popular-post-item">
-                            <img src="{{ $popularPost['image'] }}" alt="{{ $popularPost['title'] }}" class="popular-post-image">
+                            <img src="{{ $popularPost['image'] }}" alt="{{ $popularPost['title'] }}" class="popular-post-image" loading="lazy" decoding="async">
                             <div class="popular-post-content">
                                 <span class="popular-post-category">{{ $popularPost['category'] }}</span>
                                 <div class="popular-post-title">

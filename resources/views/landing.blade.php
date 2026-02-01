@@ -102,7 +102,7 @@
         /* Critical path CSS - inlined for fastest FCP */
         body { font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif; margin: 0; }
         .hero { min-height: 100vh; display: flex; align-items: center; }
-        nav { position: fixed; top: 0; left: 0; right: 0; z-index: 1000; background: #fff; }
+        nav { position: fixed; top: 0; left: 0; right: 0; z-index: 1000; background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); }
     </style>
     
     <style>
@@ -475,24 +475,27 @@
         /* About Section Feature Cards */
         .about-features-grid {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 2rem;
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
             margin-top: 2rem;
+            width: 100%;
+            overflow: visible;
         }
 
         .about-feature-card {
             display: flex;
-            flex-direction: column;
+            flex-direction: row;
             align-items: center;
-            text-align: center;
+            text-align: left;
             background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
-            padding: 3rem 2rem;
-            border-radius: 24px;
+            padding: 1.5rem 2rem;
+            border-radius: 16px;
             box-shadow: 0 10px 40px rgba(59, 130, 246, 0.08);
             transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-            border: 2px solid transparent;
+            border: 2px solid rgba(59, 130, 246, 0.15);
             position: relative;
-            overflow: hidden;
+            overflow: visible;
+            gap: 1.5rem;
         }
 
         .about-feature-card::before {
@@ -533,15 +536,15 @@
         }
 
         .about-feature-icon {
-            width: 80px;
-            height: 80px;
+            width: 60px;
+            height: 60px;
+            min-width: 60px;
             background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
-            border-radius: 20px;
+            border-radius: 16px;
             display: flex;
             align-items: center;
             justify-content: center;
             flex-shrink: 0;
-            margin-bottom: 1.5rem;
             box-shadow: 0 10px 30px rgba(59, 130, 246, 0.3);
             transition: transform 200ms ease-out, box-shadow 200ms ease-out;
             position: relative;
@@ -583,27 +586,34 @@
 
         .about-feature-icon i {
             color: white;
-            font-size: 2rem;
+            font-size: 1.5rem;
         }
 
         .about-feature-content {
             position: relative;
             z-index: 1;
+            overflow: visible;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
         }
 
         .about-feature-content h3 {
-            font-size: 1.5rem;
-            margin: 0 0 1rem 0;
+            font-size: 1.25rem;
+            margin: 0 0 0.5rem 0;
             font-weight: 700;
             letter-spacing: -0.01em;
+            white-space: normal;
+            word-wrap: break-word;
         }
 
         .about-feature-content p {
             color: #64748b;
             margin: 0;
-            line-height: 1.7;
-            font-size: 1rem;
+            line-height: 1.6;
+            font-size: 0.95rem;
             font-weight: 400;
+            white-space: normal;
+            word-wrap: break-word;
         }
 
         .hero h1 {
@@ -1056,11 +1066,13 @@
         }
 
         .section-light {
-            background-color: var(--bg-primary);
+            background-color: #ffffff;
+            background-image: url("https://www.transparenttextures.com/patterns/batthern.png");
         }
 
         .section-dark {
-            background-color: var(--brand-primary-100, #dbeafe);
+            background-color: #dbeafe;
+            background-image: url("https://www.transparenttextures.com/patterns/dotnoise-light-grey.png");
         }
 
         .container {
@@ -1378,7 +1390,7 @@
 
         .services-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            grid-template-columns: repeat(4, 1fr);
             gap: 2.5rem;
             margin-top: 2rem;
         }
@@ -2050,6 +2062,565 @@
            WCAG 2.1 AA Compliant | Touch-Optimized | Battery-Efficient
            ============================================================= */
         
+        /* =============================================================
+           VERY SMALL PHONES (max-width: 360px) - iPhone SE, Galaxy S Mini
+           Extra compact styling for smallest screens
+           ============================================================= */
+        @media (max-width: 360px) {
+            /* =================================================================
+               VERY SMALL PHONES (320px-360px) - iPhone SE, Galaxy S Mini
+               Ultra-compact styling for smallest screens
+               ================================================================= */
+
+            /* Typography - Extra Small */
+            .hero h1 {
+                font-size: 1.35rem !important;
+                line-height: 1.15 !important;
+            }
+
+            .hero .tagline {
+                font-size: 0.85rem !important;
+            }
+
+            .hero p {
+                font-size: 0.8rem !important;
+            }
+
+            .section-header h2 {
+                font-size: 1.1rem !important;
+            }
+
+            .section-header p {
+                font-size: 0.75rem !important;
+            }
+
+            section {
+                padding: 1.25rem 0.5rem !important;
+            }
+
+            .container {
+                padding: 0 0.5rem !important;
+            }
+
+            /* Trust Bar - Ultra Compact 2x2 Grid */
+            .trust-bar-grid {
+                gap: 0.35rem !important;
+            }
+
+            .trust-bar-grid > div {
+                padding: 0.45rem 0.35rem !important;
+            }
+
+            .trust-bar-grid > div > div:first-child {
+                width: 24px !important;
+                height: 24px !important;
+                border-radius: 6px !important;
+            }
+
+            .trust-bar-grid > div > div:first-child i {
+                font-size: 0.7rem !important;
+            }
+
+            .trust-bar-grid > div > div:last-child > div:first-child {
+                font-size: 0.55rem !important;
+            }
+
+            .trust-bar-grid > div > div:last-child > div:last-child {
+                font-size: 0.45rem !important;
+            }
+
+            /* Stats Bar - Ultra Compact 2x2 Grid */
+            .section-light > .container > .fade-in[style*="display: flex"][style*="justify-content: center"] {
+                gap: 0.35rem !important;
+            }
+
+            .section-light > .container > .fade-in[style*="display: flex"][style*="justify-content: center"] > div {
+                padding: 0.5rem 0.35rem !important;
+            }
+
+            .section-light > .container > .fade-in[style*="display: flex"][style*="justify-content: center"] > div > div:first-child {
+                width: 30px !important;
+                height: 30px !important;
+                min-width: 30px !important;
+            }
+
+            .section-light > .container > .fade-in[style*="display: flex"][style*="justify-content: center"] > div > div:first-child i {
+                font-size: 0.85rem !important;
+            }
+
+            .section-light > .container > .fade-in[style*="display: flex"][style*="justify-content: center"] > div > div:last-child > div:first-child {
+                font-size: 0.85rem !important;
+            }
+
+            .section-light > .container > .fade-in[style*="display: flex"][style*="justify-content: center"] > div > div:last-child > div:last-child {
+                font-size: 0.5rem !important;
+            }
+
+            /* Review Cards - Ultra Compact */
+            .review-card > div:first-child {
+                padding: 0.625rem 0.75rem !important;
+            }
+
+            .review-card > div:first-child > div > div:first-child {
+                width: 36px !important;
+                min-width: 36px !important;
+                height: 36px !important;
+                font-size: 0.85rem !important;
+            }
+
+            .review-card > div:first-child > div > div:nth-child(2) h4 {
+                font-size: 0.8rem !important;
+            }
+
+            .review-card > div:first-child > div > div:nth-child(2) p {
+                font-size: 0.6rem !important;
+            }
+
+            .review-card > div:last-child {
+                padding: 0.75rem !important;
+            }
+
+            .review-card > div:last-child blockquote {
+                font-size: 0.7rem !important;
+                line-height: 1.45 !important;
+            }
+
+            /* Services Grid - Single Column on Tiny Phones */
+            .services-grid {
+                grid-template-columns: 1fr !important;
+                gap: 0.625rem !important;
+            }
+
+            .service-item {
+                height: 180px !important;
+            }
+
+            .service-item h4 {
+                font-size: 0.9rem !important;
+            }
+
+            .service-description {
+                font-size: 0.7rem !important;
+            }
+
+            .book-now-btn {
+                padding: 0.5rem 1rem !important;
+                font-size: 0.7rem !important;
+            }
+
+            /* Location Cards - Single Column on Tiny Phones */
+            .location-grid {
+                grid-template-columns: 1fr !important;
+                gap: 0.5rem !important;
+            }
+
+            .location-card {
+                min-height: 140px !important;
+                padding: 0.75rem !important;
+            }
+
+            .location-card-icon {
+                width: 28px !important;
+                height: 28px !important;
+                font-size: 0.8rem !important;
+            }
+
+            .location-card h4 {
+                font-size: 0.8rem !important;
+            }
+
+            .location-card p {
+                font-size: 0.6rem !important;
+            }
+
+            /* Steps - Ultra Compact */
+            .step {
+                padding: 0.625rem !important;
+                gap: 0.4rem !important;
+            }
+
+            .step-number {
+                width: 28px !important;
+                height: 28px !important;
+                min-width: 28px !important;
+                font-size: 0.7rem !important;
+            }
+
+            .step-content h3 {
+                font-size: 0.7rem !important;
+            }
+
+            .step-content p {
+                font-size: 0.6rem !important;
+            }
+
+            /* About Section - Ultra Compact */
+            #about-section video {
+                height: 120px !important;
+            }
+
+            #about-section h2 {
+                font-size: 1.1rem !important;
+            }
+
+            .about-feature-card {
+                padding: 0.625rem !important;
+            }
+
+            .about-feature-icon {
+                width: 32px !important;
+                height: 32px !important;
+                min-width: 32px !important;
+            }
+
+            .about-feature-icon i {
+                font-size: 0.9rem !important;
+            }
+
+            .about-feature-content h3 {
+                font-size: 0.7rem !important;
+            }
+
+            .about-feature-content p {
+                font-size: 0.55rem !important;
+            }
+
+            /* CEO Section - Ultra Compact */
+            .ceo-content img {
+                max-height: 160px !important;
+            }
+
+            .ceo-content > div:last-child h2 {
+                font-size: 1rem !important;
+            }
+
+            .ceo-content > div:last-child > p:last-child {
+                font-size: 0.65rem !important;
+            }
+
+            /* Feature Cards - Ultra Compact */
+            .feature-card {
+                padding: 0.75rem !important;
+            }
+
+            .feature-icon {
+                font-size: 1.5rem !important;
+            }
+
+            .feature-card h3 {
+                font-size: 0.85rem !important;
+            }
+
+            .feature-card p {
+                font-size: 0.7rem !important;
+            }
+
+            /* Hero - Ultra Compact for Very Small Phones */
+            .hero-right {
+                padding: 1rem 0.75rem 0.75rem !important;
+            }
+
+            .hero-image-container {
+                height: 160px !important;
+                min-height: 150px !important;
+                max-height: 170px !important;
+                margin-bottom: 0.75rem !important;
+            }
+
+            .hero-cover-image {
+                min-height: 150px !important;
+            }
+
+            .hero-social-icon {
+                width: 34px !important;
+                height: 34px !important;
+                font-size: 0.9rem !important;
+            }
+
+            .hero-left {
+                padding: 1.25rem 1rem 1rem !important;
+            }
+
+            .hero h1 {
+                font-size: 1.4rem !important;
+            }
+
+            .hero .tagline {
+                font-size: 0.9rem !important;
+            }
+
+            .hero-left > div[style*="display: flex"][style*="justify-content: center"] button {
+                padding: 0.5rem 0.75rem !important;
+                font-size: 0.75rem !important;
+            }
+
+            .hero-left > p#hero-description,
+            .hero p#hero-description {
+                font-size: 0.8rem !important;
+            }
+
+            .hero-buttons .btn-primary,
+            .hero-buttons .btn-secondary {
+                min-height: 42px !important;
+                padding: 0.625rem 1rem !important;
+                font-size: 0.85rem !important;
+            }
+
+            .hero-trust-badges {
+                gap: 0.35rem !important;
+            }
+
+            .trust-badge {
+                padding: 0.4rem 0.625rem !important;
+                font-size: 0.7rem !important;
+                min-height: 36px !important;
+            }
+
+            /* Join Partner Button - Ultra Compact */
+            #locations .fade-in[style*="text-align: center"] .btn-primary {
+                padding: 0.625rem 1rem !important;
+                font-size: 0.75rem !important;
+            }
+
+            #locations .fade-in[style*="text-align: center"] p {
+                font-size: 0.65rem !important;
+            }
+
+            /* Trust Banner - Ultra Compact for Very Small Phones */
+            .trust-banner {
+                margin-top: 1.5rem !important;
+                padding: 1rem 0.75rem !important;
+                border-radius: 12px !important;
+            }
+            
+            .trust-stats-container {
+                display: grid !important;
+                grid-template-columns: repeat(2, 1fr) !important;
+                gap: 0.875rem 0.5rem !important;
+            }
+            
+            .trust-stat-number {
+                font-size: 1.35rem !important;
+            }
+            
+            .trust-stat-label {
+                font-size: 0.65rem !important;
+            }
+        }
+
+        /* =============================================================
+           MEDIUM PHONES (361px-428px) - iPhone 12/13/14/15, Galaxy S Series
+           Optimized for the most popular modern smartphone sizes
+           ============================================================= */
+        @media (min-width: 361px) and (max-width: 428px) {
+            /* Slightly larger than tiny phones but still compact */
+            
+            .hero h1 {
+                font-size: 1.6rem !important;
+            }
+            
+            .hero .tagline {
+                font-size: 0.95rem !important;
+            }
+            
+            .hero-image-container {
+                height: 180px !important;
+                min-height: 170px !important;
+                max-height: 200px !important;
+            }
+            
+            .hero-cover-image {
+                min-height: 170px !important;
+            }
+            
+            .section-header h2 {
+                font-size: 1.35rem !important;
+            }
+            
+            .section-header p {
+                font-size: 0.85rem !important;
+            }
+            
+            /* Services - 2 column compact grid */
+            .services-grid {
+                grid-template-columns: repeat(2, 1fr) !important;
+                gap: 0.625rem !important;
+            }
+            
+            .service-item {
+                height: 175px !important;
+            }
+            
+            /* Location cards - 2 column */
+            .location-grid {
+                grid-template-columns: repeat(2, 1fr) !important;
+                gap: 0.5rem !important;
+            }
+            
+            .location-card {
+                min-height: 155px !important;
+            }
+            
+            /* Stats bar slightly larger */
+            .section-light > .container > .fade-in[style*="display: flex"][style*="justify-content: center"] > div > div:first-child {
+                width: 40px !important;
+                height: 40px !important;
+                min-width: 40px !important;
+            }
+            
+            /* Review cards */
+            .review-card > div:first-child > div > div:first-child {
+                width: 48px !important;
+                min-width: 48px !important;
+                height: 48px !important;
+            }
+            
+            /* Steps */
+            .step-number {
+                width: 38px !important;
+                height: 38px !important;
+                min-width: 38px !important;
+            }
+            
+            .step-content h3 {
+                font-size: 0.9rem !important;
+            }
+            
+            /* About features */
+            .about-feature-icon {
+                width: 42px !important;
+                height: 42px !important;
+                min-width: 42px !important;
+            }
+            
+            /* Trust Banner - Medium Phones */
+            .trust-banner {
+                margin-top: 1.75rem !important;
+                padding: 1.25rem 1rem !important;
+                border-radius: 14px !important;
+            }
+            
+            .trust-stats-container {
+                grid-template-columns: repeat(2, 1fr) !important;
+                gap: 1rem 0.75rem !important;
+            }
+            
+            .trust-stat-number {
+                font-size: 1.5rem !important;
+            }
+            
+            .trust-stat-label {
+                font-size: 0.7rem !important;
+            }
+        }
+
+        /* How It Works Grid - Default Desktop */
+        .how-it-works-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1.5rem;
+        }
+        
+        .how-it-works-card {
+            min-width: 0;
+        }
+        
+        .how-it-works-image {
+            height: 180px;
+        }
+
+        /* How It Works Grid Responsive */
+        @media (max-width: 1024px) {
+            .how-it-works-grid {
+                grid-template-columns: repeat(2, 1fr) !important;
+                gap: 1.25rem !important;
+            }
+            
+            .how-it-works-image {
+                height: 160px !important;
+            }
+        }
+        
+        @media (max-width: 640px) {
+            .how-it-works-grid {
+                grid-template-columns: repeat(2, 1fr) !important;
+                gap: 0.75rem !important;
+            }
+            
+            .how-it-works-card {
+                border-radius: 16px !important;
+            }
+            
+            .how-it-works-image {
+                height: 120px !important;
+            }
+            
+            .how-it-works-card h3 {
+                font-size: 1rem !important;
+            }
+            
+            .how-it-works-card p {
+                font-size: 0.8rem !important;
+                line-height: 1.5 !important;
+            }
+            
+            .how-it-works-card > div:last-child {
+                padding: 0.875rem !important;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            #how-it-works {
+                padding: 3rem 1rem !important;
+            }
+            
+            #how-it-works .section-header {
+                margin-bottom: 2rem !important;
+            }
+            
+            #how-it-works .section-header h2 {
+                font-size: 1.5rem !important;
+            }
+            
+            #how-it-works .section-header p {
+                font-size: 0.9rem !important;
+            }
+            
+            .how-it-works-grid {
+                grid-template-columns: repeat(2, 1fr) !important;
+                gap: 0.625rem !important;
+            }
+            
+            .how-it-works-card {
+                border-radius: 12px !important;
+            }
+            
+            .how-it-works-card > div:last-child {
+                padding: 0.75rem !important;
+            }
+            
+            .how-it-works-image {
+                height: 100px !important;
+            }
+            
+            .how-it-works-card h3 {
+                font-size: 0.9rem !important;
+                margin-bottom: 0.375rem !important;
+            }
+            
+            .how-it-works-card p {
+                font-size: 0.75rem !important;
+                line-height: 1.4 !important;
+            }
+            
+            /* Make step numbers smaller on mobile */
+            .how-it-works-card .step-number {
+                width: 36px !important;
+                height: 36px !important;
+                font-size: 1rem !important;
+            }
+        }
+
         /* Base Mobile Styles (max-width: 480px) */
         @media (max-width: 480px) {
             /* Typography - 16px minimum prevents iOS zoom */
@@ -2070,163 +2641,215 @@
                 overflow-x: hidden;
             }
 
+            /* =================================================================
+               HERO SECTION - Modern Mobile Redesign
+               Clean, minimal, professional look for mobile
+               ================================================================= */
             .hero {
-                margin-top: 70px;
-                padding: 1.5rem 1rem;
+                margin-top: 60px;
+                padding: 0 !important;
                 min-height: auto;
                 position: relative;
+                background: linear-gradient(180deg, #1e3a8a 0%, #3b82f6 100%) !important;
             }
 
-            /* Show background images on mobile - single image behind content */
-            .hero-bg-images {
-                display: block !important;
-                overflow: hidden;
-            }
-            
-            .hero-bg-slice {
-                position: absolute;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                transform: none;
-                margin: 0;
-            }
-            
-            .hero-bg-slice:nth-child(1) {
-                display: block;
-            }
-            
-            .hero-bg-slice:nth-child(2),
-            .hero-bg-slice:nth-child(3) {
-                display: none;
+            /* Hide background slices on mobile */
+            .hero-bg-images,
+            .hero-bg-slice,
+            #particles-container,
+            #smoke-container {
+                display: none !important;
             }
 
-            .hero::before {
-                content: '';
-                position: absolute;
-                top: 0;
-                left: 0;
-                right: 0;
-                bottom: 0;
-                background: linear-gradient(135deg, rgba(30, 58, 138, 0.7) 0%, rgba(59, 130, 246, 0.5) 100%);
-                z-index: 1;
-            }
-
+            .hero::before,
             .hero::after {
-                display: none;
+                display: none !important;
             }
 
             .hero-content {
-                grid-template-columns: 1fr;
-                gap: 1.5rem;
-                padding: 1.5rem;
-                border-radius: 20px;
-                position: relative;
-                z-index: 2;
-                background: rgba(255, 255, 255, 0.97);
-                box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15);
-                margin-top: 0.5rem;
+                display: flex !important;
+                flex-direction: column !important;
+                gap: 0 !important;
+                padding: 0 !important;
+                border-radius: 0 !important;
+                background: transparent !important;
+                box-shadow: none !important;
+                margin: 0 !important;
+                max-width: 100% !important;
             }
 
-            .hero-left {
-                text-align: center;
-            }
-
-            /* Responsive typography with clamp */
-            .hero h1 {
-                font-size: clamp(1.75rem, 7vw, 2.25rem);
-                line-height: 1.15;
-                margin-bottom: 0.5rem;
-                letter-spacing: -0.02em;
-            }
-
-            .hero .tagline {
-                font-size: clamp(1rem, 4vw, 1.15rem);
-                margin-bottom: 0.75rem;
-                line-height: 1.3;
-            }
-
-            .hero p {
-                font-size: 1rem;
-                margin-bottom: 1.25rem;
-                line-height: 1.65;
-            }
-
-            /* Full-width touch-friendly buttons - 48px min height */
-            .hero-buttons {
-                flex-direction: column;
-                gap: 0.75rem;
-                width: 100%;
-            }
-
-            .btn-primary, .btn-secondary {
-                width: 100%;
-                min-height: 48px;
-                padding: 0.875rem 1.5rem;
-                font-size: 1rem;
-                text-align: center;
-                border-radius: 12px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-            }
-
-            .hero-trust-badges {
-                grid-template-columns: 1fr;
-                gap: 0.5rem;
-            }
-
-            .trust-badge {
-                padding: 0.625rem 0.875rem;
-                font-size: 0.875rem;
-                min-height: 44px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-            }
-
-            /* Show optimized hero image on mobile */
+            /* Hero Right (Image + Social) - Top Section */
             .hero-right {
                 display: flex !important;
-                order: -1;
-                margin-bottom: 0.5rem;
+                flex-direction: column !important;
+                order: -1 !important;
+                margin: 0 !important;
+                padding: 1.25rem 1rem 1rem !important;
+                background: transparent !important;
             }
 
             .hero-image-container {
-                height: 160px !important;
                 width: 100% !important;
-                border-radius: 14px;
-                box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+                height: 200px !important;
+                min-height: 180px !important;
+                max-height: 220px !important;
+                border-radius: 12px !important;
+                box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25) !important;
+                overflow: hidden !important;
+                margin-bottom: 1rem !important;
             }
 
             .hero-cover-image {
-                width: 100%;
-                height: 100%;
-                object-fit: cover;
-                object-position: center;
+                width: 100% !important;
+                height: 100% !important;
+                min-height: 180px !important;
+                object-fit: cover !important;
+                object-position: center !important;
             }
 
-            /* Social icons - 44px touch targets */
+            /* Social Icons Row */
             .hero-social-container {
-                margin-top: 0.75rem !important;
-                flex-direction: column;
-                gap: 0.75rem;
-                align-items: center;
+                display: flex !important;
+                flex-direction: column !important;
+                align-items: center !important;
+                gap: 0.5rem !important;
+                margin: 0 !important;
             }
 
             .hero-social-text {
-                font-size: 0.75rem !important;
-            }
-
-            .hero-social-icon {
-                width: 44px !important;
-                height: 44px !important;
-                font-size: 1.1rem !important;
+                font-size: 0.7rem !important;
+                color: rgba(255, 255, 255, 0.8) !important;
+                letter-spacing: 0.1em !important;
+                font-weight: 600 !important;
             }
 
             .hero-social-icons {
+                display: flex !important;
+                gap: 0.625rem !important;
+            }
+
+            .hero-social-icon {
+                width: 38px !important;
+                height: 38px !important;
+                font-size: 1rem !important;
+                background: rgba(255, 255, 255, 0.15) !important;
+                border: 1px solid rgba(255, 255, 255, 0.3) !important;
+                color: white !important;
+                border-radius: 50% !important;
+                display: flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+                transition: all 0.2s ease !important;
+            }
+
+            .hero-social-icon:hover {
+                background: rgba(255, 255, 255, 0.25) !important;
+                transform: scale(1.05) !important;
+            }
+
+            /* Hero Left (Content) - White Card Section */
+            .hero-left {
+                background: white !important;
+                padding: 1.5rem 1.25rem 1.25rem !important;
+                border-radius: 24px 24px 0 0 !important;
+                text-align: center !important;
+                box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.1) !important;
+            }
+
+            .hero h1 {
+                font-size: 1.65rem !important;
+                line-height: 1.15 !important;
+                margin-bottom: 0.25rem !important;
+                letter-spacing: -0.02em !important;
+                text-shadow: none !important;
+            }
+
+            .hero h1 span {
+                text-shadow: none !important;
+            }
+
+            .hero .tagline {
+                font-size: 1rem !important;
+                margin-bottom: 1rem !important;
+                line-height: 1.3 !important;
+                color: #64748b !important;
+                font-weight: 500 !important;
+            }
+
+            /* Service Switcher */
+            .hero-left > div[style*="display: flex"][style*="justify-content: center"] {
+                margin: 0.875rem 0 !important;
+                padding: 0.35rem !important;
+                border-radius: 30px !important;
+                background: #f1f5f9 !important;
+                border: none !important;
+                box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.08) !important;
+            }
+
+            .hero-left > div[style*="display: flex"][style*="justify-content: center"] #slider-bg {
+                border-radius: 25px !important;
+                box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12) !important;
+            }
+
+            .hero-left > div[style*="display: flex"][style*="justify-content: center"] button {
+                padding: 0.6rem 1rem !important;
+                font-size: 0.85rem !important;
+                font-weight: 600 !important;
+            }
+
+            /* Hero Description */
+            .hero-left > p#hero-description,
+            .hero p#hero-description {
+                font-size: 0.875rem !important;
+                margin-bottom: 1rem !important;
+                line-height: 1.55 !important;
+                color: #64748b !important;
+                padding: 0 0.25rem !important;
+            }
+
+            /* Action Buttons */
+            .hero-buttons {
+                display: flex !important;
+                flex-direction: column !important;
+                gap: 0.625rem !important;
+                width: 100% !important;
+                padding: 0 !important;
+            }
+
+            .hero-buttons .btn-primary,
+            .hero-buttons .btn-secondary {
+                width: 100% !important;
+                min-height: 46px !important;
+                padding: 0.75rem 1.25rem !important;
+                font-size: 0.95rem !important;
+                font-weight: 600 !important;
+                border-radius: 12px !important;
+                display: flex !important;
+                align-items: center !important;
+                justify-content: center !important;
                 gap: 0.5rem !important;
+            }
+
+            .hero-buttons .btn-primary {
+                background: linear-gradient(135deg, #f97316 0%, #ea580c 100%) !important;
+                box-shadow: 0 4px 14px rgba(249, 115, 22, 0.35) !important;
+            }
+
+            .hero-buttons .btn-secondary {
+                background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%) !important;
+                color: white !important;
+                box-shadow: 0 4px 14px rgba(59, 130, 246, 0.3) !important;
+                border: none !important;
+            }
+
+            /* Hide trust badges in hero on mobile */
+            .hero-trust-badges {
+                display: none !important;
+            }
+
+            /* How It Works Micro-Strip - Hide on mobile (shown in full section) */
+            .hero + div[style*="background: linear-gradient(135deg, #0f172a"] {
+                display: none !important;
             }
 
             section {
@@ -2547,6 +3170,42 @@
                 border-radius: 10px !important;
             }
 
+            /* ===== TRUST BANNER (Stats Section) - Mobile Responsive ===== */
+            .trust-banner {
+                margin-top: 2rem !important;
+                padding: 1.5rem 1rem !important;
+                border-radius: 16px !important;
+            }
+            
+            .trust-stats-container {
+                display: grid !important;
+                grid-template-columns: repeat(2, 1fr) !important;
+                gap: 1.25rem 1rem !important;
+                justify-items: center !important;
+            }
+            
+            /* Hide vertical dividers on mobile */
+            .trust-stat-divider {
+                display: none !important;
+            }
+            
+            .trust-stat-item {
+                text-align: center !important;
+                padding: 0.5rem !important;
+            }
+            
+            .trust-stat-number {
+                font-size: 1.75rem !important;
+                line-height: 1.2 !important;
+                margin-bottom: 0.25rem !important;
+            }
+            
+            .trust-stat-label {
+                font-size: 0.75rem !important;
+                line-height: 1.3 !important;
+                opacity: 0.9 !important;
+            }
+
             /* Services Section - Mobile Layout (2x2 grid) */
             .services-grid {
                 grid-template-columns: repeat(2, 1fr);
@@ -2760,9 +3419,6 @@
 
             .about-feature-content h3 {
                 font-size: 1rem !important;
-            }
-
-font-size: 1.1rem !important;
                 margin-bottom: 0.4rem !important;
             }
 
@@ -2837,6 +3493,1197 @@ font-size: 1.1rem !important;
                 margin-bottom: 1.25rem !important;
             }
 
+            /* =================================================================
+               NOTE: Main widget styling is in ENHANCED MOBILE WIDGET STYLING
+               section below. Keeping structure styles here.
+               ================================================================= */
+
+            .review-card > div:last-child > div:last-child {
+                padding-top: 0.75rem !important;
+            }
+
+            .review-card > div:last-child > div:last-child > div > div:first-child {
+                font-size: 0.85rem !important;
+            }
+
+            .review-card > div:last-child > div:last-child > div > div:last-child {
+                font-size: 0.7rem !important;
+            }
+
+            /* Services Grid - SINGLE COLUMN on very small phones */
+            .services-grid {
+                grid-template-columns: 1fr !important;
+                gap: 1rem !important;
+            }
+
+            .service-item {
+                height: 280px !important;
+                border-radius: 16px !important;
+            }
+
+            .service-content {
+                padding: 1.25rem !important;
+            }
+
+            .service-item h4 {
+                font-size: 1.1rem !important;
+                margin-bottom: 0.5rem !important;
+            }
+
+            .service-description {
+                font-size: 0.8rem !important;
+                line-height: 1.5 !important;
+                -webkit-line-clamp: 2 !important;
+                margin-bottom: 1rem !important;
+            }
+
+            .book-now-btn {
+                padding: 0.75rem 1.5rem !important;
+                font-size: 0.85rem !important;
+            }
+
+            /* Location Cards - SINGLE COLUMN for better readability */
+            .location-grid {
+                grid-template-columns: 1fr !important;
+                gap: 1rem !important;
+            }
+
+            .location-card {
+                min-height: 220px !important;
+                padding: 1.25rem !important;
+                border-radius: 14px !important;
+            }
+
+            .location-card-icon {
+                width: 40px !important;
+                height: 40px !important;
+                font-size: 1.1rem !important;
+                margin-bottom: 0.75rem !important;
+                border-radius: 10px !important;
+            }
+
+            .location-card h4 {
+                font-size: 1.1rem !important;
+                margin-bottom: 0.5rem !important;
+            }
+
+            .location-card p {
+                font-size: 0.8rem !important;
+                line-height: 1.5 !important;
+                -webkit-line-clamp: 3 !important;
+                margin-bottom: 1rem !important;
+            }
+
+            .location-card-link {
+                padding: 0.5rem 1rem !important;
+                font-size: 0.8rem !important;
+            }
+
+            /* Location Section Join Button - Compact */
+            #locations .fade-in[style*="text-align: center"][style*="margin-top: 4rem"] {
+                margin-top: 2rem !important;
+            }
+
+            #locations .fade-in[style*="text-align: center"] .btn-primary {
+                padding: 1rem 2rem !important;
+                font-size: 1rem !important;
+                gap: 0.5rem !important;
+            }
+
+            #locations .fade-in[style*="text-align: center"] .btn-primary i {
+                font-size: 1.1rem !important;
+            }
+
+            #locations .fade-in[style*="text-align: center"] p {
+                font-size: 0.85rem !important;
+                margin-top: 1rem !important;
+            }
+
+            /* About Section - What is CAS Private Care */
+            #about-section {
+                padding: 2rem 1rem !important;
+            }
+
+            #about-section > div {
+                gap: 1.5rem !important;
+            }
+
+            #about-section video {
+                height: 180px !important;
+                border-radius: 14px !important;
+            }
+
+            #about-section > div > div:first-child > div {
+                bottom: -10px !important;
+                right: -10px !important;
+                padding: 0.75rem !important;
+                border-radius: 10px !important;
+            }
+
+            #about-section > div > div:first-child > div i {
+                font-size: 1.5rem !important;
+            }
+
+            #about-section > div > div:first-child > div h4 {
+                font-size: 1.1rem !important;
+            }
+
+            #about-section h2 {
+                font-size: 1.5rem !important;
+                line-height: 1.25 !important;
+            }
+
+            /* About Trust Badge */
+            #about-section > div > div:last-child > div:first-child {
+                padding: 0.4rem 0.875rem !important;
+                margin-bottom: 1rem !important;
+            }
+
+            #about-section > div > div:last-child > div:first-child i {
+                font-size: 0.9rem !important;
+            }
+
+            #about-section > div > div:last-child > div:first-child span {
+                font-size: 0.75rem !important;
+            }
+
+            #about-section > div > div:last-child > p {
+                font-size: 0.9rem !important;
+                line-height: 1.65 !important;
+                margin-bottom: 1.25rem !important;
+            }
+
+            /* About Feature Cards - Compact Grid */
+            .about-features-grid {
+                gap: 0.75rem !important;
+            }
+
+            .about-feature-card {
+                padding: 1rem !important;
+                border-radius: 12px !important;
+                flex-direction: row !important;
+                align-items: center !important;
+                gap: 0.875rem !important;
+            }
+
+            .about-feature-icon {
+                width: 44px !important;
+                height: 44px !important;
+                min-width: 44px !important;
+                margin-bottom: 0 !important;
+            }
+
+            .about-feature-icon i {
+                font-size: 1.25rem !important;
+            }
+
+            .about-feature-content {
+                text-align: left !important;
+            }
+
+            .about-feature-content h3 {
+                font-size: 0.9rem !important;
+                margin-bottom: 0.25rem !important;
+            }
+
+            .about-feature-content p {
+                font-size: 0.75rem !important;
+                line-height: 1.4 !important;
+            }
+
+            /* CEO Section - Compact Layout */
+            .ceo-section {
+                padding: 2rem 1rem !important;
+            }
+
+            .ceo-section .section-header {
+                margin-bottom: 1.5rem !important;
+            }
+
+            .ceo-section .section-header h2 {
+                font-size: 1.5rem !important;
+            }
+
+            .ceo-content {
+                grid-template-columns: 1fr !important;
+                gap: 1.5rem !important;
+                padding: 1.25rem !important;
+                border-radius: 14px !important;
+                border-width: 2px !important;
+            }
+
+            .ceo-content img {
+                max-width: 100% !important;
+                height: auto !important;
+                max-height: 280px !important;
+                object-fit: cover !important;
+                border-radius: 14px !important;
+            }
+
+            .ceo-content > div:first-child > div > div {
+                bottom: -8px !important;
+                right: -8px !important;
+                padding: 0.625rem 0.875rem !important;
+                border-radius: 10px !important;
+            }
+
+            .ceo-content > div:first-child > div > div i {
+                font-size: 1.25rem !important;
+            }
+
+            .ceo-content > div:last-child > div:first-child h3 {
+                font-size: 0.95rem !important;
+            }
+
+            .ceo-content > div:last-child > div:first-child p {
+                font-size: 0.75rem !important;
+            }
+
+            .ceo-content > div:last-child h2 {
+                font-size: 1.4rem !important;
+                margin-bottom: 0.25rem !important;
+            }
+
+            .ceo-content > div:last-child > p:nth-of-type(1) {
+                font-size: 1rem !important;
+                margin-bottom: 1rem !important;
+            }
+
+            .ceo-content > div:last-child > p:last-child {
+                font-size: 0.85rem !important;
+                line-height: 1.6 !important;
+            }
+
+            /* Steps Section - Even More Compact */
+            .steps-container {
+                gap: 0.65rem !important;
+            }
+
+            .step {
+                padding: 0.875rem !important;
+                border-radius: 12px !important;
+                gap: 0.75rem !important;
+            }
+
+            .step-number {
+                width: 36px !important;
+                height: 36px !important;
+                min-width: 36px !important;
+                font-size: 0.9rem !important;
+            }
+
+            .step-content h3 {
+                font-size: 0.9rem !important;
+            }
+
+            .step-content p {
+                font-size: 0.8rem !important;
+                line-height: 1.45 !important;
+            }
+
+            /* Section Dividers - Thinner on Mobile */
+            .section-divider {
+                padding: 0.5rem 0 !important;
+            }
+
+            .divider-line-thick {
+                height: 2px !important;
+            }
+
+            .divider-line-thin {
+                height: 1px !important;
+                margin-top: 2px !important;
+            }
+
+            /* Decorative Elements - Hide on Mobile for Performance */
+            section > div[aria-hidden="true"],
+            [aria-hidden="true"][style*="radial-gradient"] {
+                display: none !important;
+            }
+
+            /* =================================================================
+               ENHANCED MOBILE WIDGET STYLING - Proper Compact Mobile Look
+               Optimized for all phone sizes from 320px to 480px
+               ================================================================= */
+
+            /* Trust Bar - 2x2 Grid Layout (No Scroll) */
+            .landing-trust-bar {
+                padding: 0.875rem 0.75rem !important;
+                overflow: visible !important;
+            }
+
+            .trust-bar-grid {
+                display: grid !important;
+                grid-template-columns: 1fr 1fr !important;
+                gap: 0.5rem !important;
+                padding: 0 !important;
+                max-width: 100% !important;
+                min-width: unset !important;
+            }
+
+            .trust-bar-grid > div {
+                flex: unset !important;
+                width: auto !important;
+                padding: 0.6rem 0.5rem !important;
+                border-radius: 10px !important;
+                background: white !important;
+                box-shadow: 0 2px 6px rgba(0,0,0,0.05) !important;
+                gap: 0.35rem !important;
+                flex-direction: column !important;
+                text-align: center !important;
+                align-items: center !important;
+            }
+
+            .trust-bar-grid > div > div:first-child {
+                width: 28px !important;
+                height: 28px !important;
+                border-radius: 7px !important;
+                margin: 0 auto !important;
+            }
+
+            .trust-bar-grid > div > div:first-child i {
+                font-size: 0.8rem !important;
+            }
+
+            .trust-bar-grid > div > div:last-child > div:first-child {
+                font-size: 0.65rem !important;
+                font-weight: 700 !important;
+                line-height: 1.15 !important;
+                white-space: nowrap !important;
+            }
+
+            .trust-bar-grid > div > div:last-child > div:last-child {
+                font-size: 0.55rem !important;
+                line-height: 1.15 !important;
+                white-space: nowrap !important;
+            }
+
+            /* Stats Bar - 2x2 Grid Layout (No Scroll) */
+            .section-light > .container > .fade-in[style*="display: flex"][style*="justify-content: center"] {
+                display: grid !important;
+                grid-template-columns: 1fr 1fr !important;
+                gap: 0.5rem !important;
+                padding: 0 0.5rem !important;
+                overflow: visible !important;
+            }
+
+            .section-light > .container > .fade-in[style*="display: flex"][style*="justify-content: center"] > div {
+                flex: unset !important;
+                min-width: unset !important;
+                width: auto !important;
+                padding: 0.65rem 0.5rem !important;
+                border-radius: 10px !important;
+                gap: 0.4rem !important;
+                flex-direction: column !important;
+                align-items: center !important;
+                text-align: center !important;
+            }
+
+            .section-light > .container > .fade-in[style*="display: flex"][style*="justify-content: center"] > div > div:first-child {
+                width: 36px !important;
+                height: 36px !important;
+                min-width: 36px !important;
+                border-radius: 9px !important;
+                margin: 0 auto !important;
+            }
+
+            .section-light > .container > .fade-in[style*="display: flex"][style*="justify-content: center"] > div > div:first-child i {
+                font-size: 1rem !important;
+            }
+
+            .section-light > .container > .fade-in[style*="display: flex"][style*="justify-content: center"] > div > div:last-child {
+                text-align: center !important;
+            }
+
+            .section-light > .container > .fade-in[style*="display: flex"][style*="justify-content: center"] > div > div:last-child > div:first-child {
+                font-size: 1rem !important;
+            }
+
+            .section-light > .container > .fade-in[style*="display: flex"][style*="justify-content: center"] > div > div:last-child > div:last-child {
+                font-size: 0.6rem !important;
+            }
+
+            /* Review Cards - Fixed Badge Layout */
+            .reviews-grid {
+                grid-template-columns: 1fr !important;
+                gap: 0.875rem !important;
+                padding: 0 0.25rem !important;
+            }
+
+            .review-card {
+                border-radius: 14px !important;
+                overflow: hidden !important;
+            }
+
+            .review-card > div:first-child {
+                padding: 0.875rem 1rem !important;
+            }
+
+            .review-card > div:first-child > div {
+                gap: 0.625rem !important;
+                flex-wrap: nowrap !important;
+            }
+
+            .review-card > div:first-child > div > div:first-child {
+                width: 44px !important;
+                min-width: 44px !important;
+                height: 44px !important;
+                font-size: 1rem !important;
+                flex-shrink: 0 !important;
+            }
+
+            .review-card > div:first-child > div > div:nth-child(2) {
+                flex: 1 !important;
+                min-width: 0 !important;
+            }
+
+            .review-card > div:first-child > div > div:nth-child(2) h4 {
+                font-size: 0.9rem !important;
+                white-space: nowrap !important;
+                overflow: hidden !important;
+                text-overflow: ellipsis !important;
+            }
+
+            .review-card > div:first-child > div > div:nth-child(2) p {
+                font-size: 0.7rem !important;
+                white-space: nowrap !important;
+                overflow: hidden !important;
+                text-overflow: ellipsis !important;
+            }
+
+            .review-card > div:first-child > div > div:last-child {
+                padding: 0.2rem 0.35rem !important;
+                flex-shrink: 0 !important;
+            }
+
+            .review-card > div:first-child > div > div:last-child span {
+                font-size: 0.6rem !important;
+                letter-spacing: 0 !important;
+            }
+
+            .review-card > div:last-child {
+                padding: 1rem !important;
+            }
+
+            /* Fix badge row - stack vertically on mobile */
+            .review-card > div:last-child > div:first-child {
+                display: flex !important;
+                flex-direction: row !important;
+                flex-wrap: wrap !important;
+                gap: 0.35rem !important;
+                margin-bottom: 0.75rem !important;
+            }
+
+            .review-card > div:last-child > div:first-child > span {
+                font-size: 0.6rem !important;
+                padding: 0.25rem 0.5rem !important;
+                white-space: nowrap !important;
+            }
+
+            /* Quote text - ensure no overlap */
+            .review-card > div:last-child blockquote {
+                font-size: 0.8rem !important;
+                line-height: 1.55 !important;
+                padding-left: 0.625rem !important;
+                margin-bottom: 0.75rem !important;
+                margin-top: 0 !important;
+                border-left-width: 2px !important;
+                clear: both !important;
+            }
+
+            .review-card > div:last-child > div:last-child {
+                padding-top: 0.625rem !important;
+            }
+
+            .review-card > div:last-child > div:last-child > div > div:first-child {
+                font-size: 0.8rem !important;
+            }
+
+            .review-card > div:last-child > div:last-child > div > div:last-child {
+                font-size: 0.65rem !important;
+            }
+
+            /* Services Grid - Compact 2-Column Layout */
+            .services-grid {
+                grid-template-columns: repeat(2, 1fr) !important;
+                gap: 0.75rem !important;
+            }
+
+            .service-item {
+                height: 200px !important;
+                border-radius: 12px !important;
+            }
+
+            .service-content {
+                padding: 0.875rem !important;
+            }
+
+            .service-item h4 {
+                font-size: 0.85rem !important;
+                margin-bottom: 0.25rem !important;
+                line-height: 1.2 !important;
+            }
+
+            .service-description {
+                font-size: 0.65rem !important;
+                line-height: 1.35 !important;
+                -webkit-line-clamp: 2 !important;
+                margin-bottom: 0.5rem !important;
+            }
+
+            .book-now-btn {
+                padding: 0.5rem 0.875rem !important;
+                font-size: 0.7rem !important;
+                border-radius: 6px !important;
+            }
+
+            /* Location Cards - Compact 2-Column Grid */
+            .location-grid {
+                grid-template-columns: repeat(2, 1fr) !important;
+                gap: 0.625rem !important;
+            }
+
+            .location-card {
+                min-height: 160px !important;
+                padding: 0.875rem !important;
+                border-radius: 10px !important;
+            }
+
+            .location-card-icon {
+                width: 32px !important;
+                height: 32px !important;
+                font-size: 0.9rem !important;
+                margin-bottom: 0.5rem !important;
+                border-radius: 8px !important;
+            }
+
+            .location-card h4 {
+                font-size: 0.85rem !important;
+                margin-bottom: 0.35rem !important;
+                line-height: 1.2 !important;
+            }
+
+            .location-card p {
+                font-size: 0.65rem !important;
+                line-height: 1.4 !important;
+                -webkit-line-clamp: 2 !important;
+                margin-bottom: 0.5rem !important;
+            }
+
+            .location-card-link {
+                padding: 0.35rem 0.75rem !important;
+                font-size: 0.65rem !important;
+                border-radius: 4px !important;
+            }
+
+            /* Location Join Partner Button - Compact */
+            #locations .fade-in[style*="text-align: center"][style*="margin-top: 4rem"] {
+                margin-top: 1.5rem !important;
+            }
+
+            #locations .fade-in[style*="text-align: center"] .btn-primary {
+                padding: 0.75rem 1.25rem !important;
+                font-size: 0.85rem !important;
+                gap: 0.4rem !important;
+                flex-wrap: wrap !important;
+                justify-content: center !important;
+            }
+
+            #locations .fade-in[style*="text-align: center"] .btn-primary i {
+                font-size: 0.95rem !important;
+            }
+
+            #locations .fade-in[style*="text-align: center"] p {
+                font-size: 0.75rem !important;
+                margin-top: 0.75rem !important;
+            }
+
+            /* Steps Section - Compact Horizontal Layout */
+            .steps-container {
+                gap: 0.5rem !important;
+            }
+
+            .step {
+                padding: 0.75rem !important;
+                border-radius: 10px !important;
+                gap: 0.5rem !important;
+                border-width: 1.5px !important;
+            }
+
+            .step-number {
+                width: 32px !important;
+                height: 32px !important;
+                min-width: 32px !important;
+                font-size: 0.8rem !important;
+            }
+
+            .step-content h3 {
+                font-size: 0.8rem !important;
+                margin-bottom: 0.15rem !important;
+            }
+
+            .step-content h3 span {
+                font-size: 0.8rem !important;
+            }
+
+            .step-content p {
+                font-size: 0.7rem !important;
+                line-height: 1.35 !important;
+            }
+
+            /* About Section - Compact Layout */
+            #about-section {
+                padding: 1.5rem 0.75rem !important;
+            }
+
+            #about-section > div {
+                gap: 1rem !important;
+            }
+
+            #about-section video {
+                height: 140px !important;
+                border-radius: 12px !important;
+            }
+
+            #about-section h2 {
+                font-size: 1.25rem !important;
+                line-height: 1.2 !important;
+            }
+
+            #about-section > div > div:last-child > p {
+                font-size: 0.8rem !important;
+                line-height: 1.5 !important;
+                margin-bottom: 1rem !important;
+            }
+
+            /* About Feature Cards - Compact Horizontal */
+            .about-features-grid {
+                gap: 0.5rem !important;
+            }
+
+            .about-feature-card {
+                padding: 0.75rem !important;
+                border-radius: 10px !important;
+                gap: 0.625rem !important;
+            }
+
+            .about-feature-icon {
+                width: 36px !important;
+                height: 36px !important;
+                min-width: 36px !important;
+            }
+
+            .about-feature-icon i {
+                font-size: 1rem !important;
+            }
+
+            .about-feature-content h3 {
+                font-size: 0.8rem !important;
+                margin-bottom: 0.15rem !important;
+            }
+
+            .about-feature-content p {
+                font-size: 0.65rem !important;
+                line-height: 1.35 !important;
+            }
+
+            /* CEO Section - Compact */
+            .ceo-section {
+                padding: 1.5rem 0.75rem !important;
+            }
+
+            .ceo-section .section-header h2 {
+                font-size: 1.25rem !important;
+            }
+
+            .ceo-content {
+                padding: 1rem !important;
+                border-radius: 12px !important;
+                gap: 1rem !important;
+            }
+
+            .ceo-content img {
+                max-height: 200px !important;
+                border-radius: 10px !important;
+            }
+
+            .ceo-content > div:last-child h2 {
+                font-size: 1.1rem !important;
+            }
+
+            .ceo-content > div:last-child > p:last-child {
+                font-size: 0.75rem !important;
+                line-height: 1.5 !important;
+            }
+
+            /* Features Grid - Single Column Compact */
+            .features-grid {
+                gap: 0.625rem !important;
+            }
+
+            .feature-card {
+                padding: 1rem !important;
+                border-radius: 12px !important;
+            }
+
+            .feature-icon {
+                font-size: 1.75rem !important;
+                margin-bottom: 0.5rem !important;
+            }
+
+            .feature-card h3 {
+                font-size: 0.95rem !important;
+                margin-bottom: 0.35rem !important;
+            }
+
+            .feature-card p {
+                font-size: 0.8rem !important;
+                line-height: 1.5 !important;
+            }
+
+            /* Section Headers - Compact */
+            .section-header {
+                margin-bottom: 1.25rem !important;
+            }
+
+            .section-header h2 {
+                font-size: 1.35rem !important;
+                margin-bottom: 0.35rem !important;
+            }
+
+            .section-header p {
+                font-size: 0.85rem !important;
+                line-height: 1.45 !important;
+            }
+
+            /* Section Padding - Compact */
+            section {
+                padding: 1.75rem 0.75rem !important;
+            }
+
+            /* Reviews Section Badge */
+            .section-header > div[style*="inline-flex"] {
+                padding: 0.35rem 0.75rem !important;
+                margin-bottom: 0.75rem !important;
+            }
+
+            .section-header > div[style*="inline-flex"] i {
+                font-size: 0.8rem !important;
+            }
+
+            .section-header > div[style*="inline-flex"] span {
+                font-size: 0.65rem !important;
+            }
+
+            /* =================================================================
+               ENHANCED MOBILE WIDGET STYLING - Proper Proportions
+               Modern compact design for all phone sizes
+               ================================================================= */
+            
+            /* ===== TRUST BAR - Compact 2x2 Grid ===== */
+            .landing-trust-bar {
+                padding: 1rem 0.75rem !important;
+            }
+            
+            .trust-bar-grid {
+                display: grid !important;
+                grid-template-columns: repeat(2, 1fr) !important;
+                gap: 0.5rem !important;
+                max-width: 100% !important;
+            }
+            
+            .trust-bar-grid > div {
+                padding: 0.625rem 0.5rem !important;
+                background: white !important;
+                border-radius: 10px !important;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.06) !important;
+                gap: 0.5rem !important;
+            }
+            
+            .trust-bar-grid > div > div:first-child {
+                width: 32px !important;
+                height: 32px !important;
+                min-width: 32px !important;
+                border-radius: 8px !important;
+            }
+            
+            .trust-bar-grid > div > div:first-child i {
+                font-size: 0.9rem !important;
+            }
+            
+            .trust-bar-grid > div > div:last-child > div:first-child {
+                font-size: 0.7rem !important;
+                font-weight: 700 !important;
+                line-height: 1.2 !important;
+            }
+            
+            .trust-bar-grid > div > div:last-child > div:last-child {
+                font-size: 0.6rem !important;
+                line-height: 1.2 !important;
+            }
+            
+            /* ===== STATS BAR - Compact Horizontal Scroll or 2x2 ===== */
+            .section-light > .container > .fade-in[style*="display: flex"][style*="justify-content: center"] {
+                display: grid !important;
+                grid-template-columns: repeat(2, 1fr) !important;
+                gap: 0.5rem !important;
+                padding: 0 !important;
+                overflow: visible !important;
+            }
+            
+            .section-light > .container > .fade-in[style*="display: flex"][style*="justify-content: center"] > div {
+                flex: none !important;
+                min-width: unset !important;
+                padding: 0.625rem 0.5rem !important;
+                gap: 0.5rem !important;
+                border-radius: 10px !important;
+            }
+            
+            .section-light > .container > .fade-in[style*="display: flex"][style*="justify-content: center"] > div > div:first-child {
+                width: 36px !important;
+                height: 36px !important;
+                min-width: 36px !important;
+                border-radius: 10px !important;
+            }
+            
+            .section-light > .container > .fade-in[style*="display: flex"][style*="justify-content: center"] > div > div:first-child i {
+                font-size: 1rem !important;
+            }
+            
+            .section-light > .container > .fade-in[style*="display: flex"][style*="justify-content: center"] > div > div:last-child > div:first-child {
+                font-size: 1rem !important;
+                font-weight: 800 !important;
+            }
+            
+            .section-light > .container > .fade-in[style*="display: flex"][style*="justify-content: center"] > div > div:last-child > div:last-child {
+                font-size: 0.6rem !important;
+                line-height: 1.2 !important;
+            }
+            
+            /* ===== FEATURE CARDS - Compact Grid ===== */
+            .features-grid {
+                grid-template-columns: 1fr !important;
+                gap: 0.75rem !important;
+            }
+            
+            .feature-card {
+                padding: 1rem !important;
+                border-radius: 12px !important;
+                display: flex !important;
+                flex-direction: row !important;
+                align-items: flex-start !important;
+                gap: 0.75rem !important;
+                text-align: left !important;
+            }
+            
+            .feature-icon {
+                font-size: 1.5rem !important;
+                margin-bottom: 0 !important;
+                flex-shrink: 0 !important;
+                width: 44px !important;
+                height: 44px !important;
+                display: flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+                background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(59, 130, 246, 0.05) 100%) !important;
+                border-radius: 10px !important;
+            }
+            
+            .feature-card h3 {
+                font-size: 0.95rem !important;
+                margin-bottom: 0.25rem !important;
+            }
+            
+            .feature-card p {
+                font-size: 0.8rem !important;
+                line-height: 1.45 !important;
+                margin: 0 !important;
+            }
+            
+            /* ===== SERVICES GRID - Compact Cards ===== */
+            .services-grid {
+                grid-template-columns: repeat(2, 1fr) !important;
+                gap: 0.625rem !important;
+            }
+            
+            .service-item {
+                height: 160px !important;
+                border-radius: 12px !important;
+            }
+            
+            .service-content {
+                padding: 0.75rem !important;
+            }
+            
+            .service-content h4 {
+                font-size: 0.85rem !important;
+                margin-bottom: 0.25rem !important;
+                line-height: 1.2 !important;
+            }
+            
+            .service-description {
+                font-size: 0.65rem !important;
+                line-height: 1.35 !important;
+                -webkit-line-clamp: 2 !important;
+                margin-bottom: 0.5rem !important;
+            }
+            
+            .book-now-btn {
+                padding: 0.4rem 0.75rem !important;
+                font-size: 0.7rem !important;
+                border-radius: 6px !important;
+            }
+            
+            /* ===== LOCATION CARDS - Compact 2x2 Grid ===== */
+            .location-grid {
+                grid-template-columns: repeat(2, 1fr) !important;
+                gap: 0.5rem !important;
+            }
+            
+            .location-card {
+                min-height: 140px !important;
+                padding: 0.75rem !important;
+                border-radius: 10px !important;
+            }
+            
+            .location-card-icon {
+                width: 32px !important;
+                height: 32px !important;
+                font-size: 0.9rem !important;
+                margin-bottom: 0.5rem !important;
+                border-radius: 8px !important;
+            }
+            
+            .location-card h4 {
+                font-size: 0.8rem !important;
+                margin-bottom: 0.25rem !important;
+                line-height: 1.2 !important;
+            }
+            
+            .location-card p {
+                font-size: 0.65rem !important;
+                line-height: 1.35 !important;
+                -webkit-line-clamp: 2 !important;
+                margin-bottom: 0.5rem !important;
+            }
+            
+            .location-card-link {
+                padding: 0.35rem 0.6rem !important;
+                font-size: 0.65rem !important;
+            }
+            
+            /* ===== STEPS - Compact Horizontal Cards ===== */
+            .steps-container {
+                display: grid !important;
+                grid-template-columns: 1fr !important;
+                gap: 0.5rem !important;
+            }
+            
+            .step {
+                display: flex !important;
+                flex-direction: row !important;
+                align-items: center !important;
+                padding: 0.75rem !important;
+                gap: 0.625rem !important;
+                border-radius: 10px !important;
+                text-align: left !important;
+            }
+            
+            .step-number {
+                width: 36px !important;
+                height: 36px !important;
+                min-width: 36px !important;
+                font-size: 0.9rem !important;
+                margin: 0 !important;
+            }
+            
+            .step-content {
+                flex: 1 !important;
+            }
+            
+            .step-content h3 {
+                font-size: 0.85rem !important;
+                margin-bottom: 0.15rem !important;
+                line-height: 1.25 !important;
+            }
+            
+            .step-content h3 span {
+                font-size: 0.85rem !important;
+            }
+            
+            .step-content p {
+                font-size: 0.7rem !important;
+                line-height: 1.4 !important;
+                margin: 0 !important;
+            }
+            
+            /* ===== REVIEW CARDS - Compact Mobile Design ===== */
+            .reviews-grid {
+                grid-template-columns: 1fr !important;
+                gap: 0.75rem !important;
+            }
+            
+            .review-card {
+                border-radius: 14px !important;
+                overflow: hidden !important;
+            }
+            
+            /* Review card header */
+            .review-card > div:first-child {
+                padding: 0.875rem 1rem !important;
+            }
+            
+            .review-card > div:first-child > div > div:first-child {
+                width: 44px !important;
+                min-width: 44px !important;
+                height: 44px !important;
+                font-size: 1rem !important;
+            }
+            
+            .review-card > div:first-child > div > div:nth-child(2) h4 {
+                font-size: 0.9rem !important;
+            }
+            
+            .review-card > div:first-child > div > div:nth-child(2) p {
+                font-size: 0.7rem !important;
+            }
+            
+            /* Stars badge */
+            .review-card > div:first-child > div:last-child {
+                padding: 0.25rem 0.5rem !important;
+                font-size: 0.75rem !important;
+            }
+            
+            /* Review card body */
+            .review-card > div:last-child {
+                padding: 1rem !important;
+            }
+            
+            .review-card > div:last-child > div:first-child span {
+                font-size: 0.6rem !important;
+                padding: 0.25rem 0.5rem !important;
+            }
+            
+            .review-card > div:last-child blockquote,
+            .review-card > div:last-child > p {
+                font-size: 0.8rem !important;
+                line-height: 1.5 !important;
+            }
+            
+            /* ===== ABOUT SECTION - Compact Layout ===== */
+            #about-section {
+                padding: 1.5rem 0.75rem !important;
+            }
+            
+            #about-section > div {
+                gap: 1.25rem !important;
+            }
+            
+            #about-section video {
+                height: 160px !important;
+                border-radius: 12px !important;
+            }
+            
+            #about-section h2 {
+                font-size: 1.35rem !important;
+            }
+            
+            #about-section > div > div:last-child > p {
+                font-size: 0.85rem !important;
+                line-height: 1.55 !important;
+            }
+            
+            .about-features-grid {
+                gap: 0.5rem !important;
+            }
+            
+            .about-feature-card {
+                padding: 0.75rem !important;
+                border-radius: 10px !important;
+                gap: 0.625rem !important;
+            }
+            
+            .about-feature-icon {
+                width: 40px !important;
+                height: 40px !important;
+                min-width: 40px !important;
+                border-radius: 10px !important;
+            }
+            
+            .about-feature-icon i {
+                font-size: 1.1rem !important;
+            }
+            
+            .about-feature-content h3 {
+                font-size: 0.85rem !important;
+                margin-bottom: 0.15rem !important;
+            }
+            
+            .about-feature-content p {
+                font-size: 0.7rem !important;
+                line-height: 1.4 !important;
+            }
+            
+            /* ===== CEO SECTION - Compact ===== */
+            .ceo-section {
+                padding: 1.5rem 0.75rem !important;
+            }
+            
+            .ceo-section .section-header h2 {
+                font-size: 1.35rem !important;
+            }
+            
+            .ceo-content {
+                padding: 1rem !important;
+                border-radius: 14px !important;
+                gap: 1rem !important;
+            }
+            
+            .ceo-content img {
+                max-height: 180px !important;
+                border-radius: 10px !important;
+            }
+            
+            .ceo-content > div:last-child h2 {
+                font-size: 1.25rem !important;
+            }
+            
+            .ceo-content > div:last-child > p:nth-of-type(1) {
+                font-size: 0.9rem !important;
+            }
+            
+            .ceo-content > div:last-child > p:last-child {
+                font-size: 0.8rem !important;
+                line-height: 1.5 !important;
+            }
+            
+            /* ===== SECTION DIVIDERS - Minimal ===== */
+            .section-divider {
+                padding: 0.5rem 0 !important;
+            }
+            
+            .section-divider .divider-line-thick,
+            .section-divider .divider-line-thin {
+                max-width: 90% !important;
+            }
+            
+            /* ===== BUTTONS - Touch Friendly ===== */
+            .btn-primary,
+            .btn-secondary {
+                min-height: 44px !important;
+                padding: 0.625rem 1.25rem !important;
+                font-size: 0.9rem !important;
+                border-radius: 10px !important;
+            }
+            
+            /* ===== DECORATIVE ELEMENTS - Hidden on Mobile ===== */
+            section > div[aria-hidden="true"],
+            [aria-hidden="true"][style*="radial-gradient"],
+            .decorative-circle,
+            .decorative-blob {
+                display: none !important;
+            }
+
         }
 
         /* Small tablets and large phones */
@@ -2844,6 +4691,38 @@ font-size: 1.1rem !important;
             .hero {
                 margin-top: 72px;
                 padding: 3rem 1.5rem;
+            }
+            
+            /* Show single background image on tablet */
+            .hero-bg-slice {
+                transform: none;
+                margin: 0;
+            }
+            
+            .hero-bg-slice:nth-child(2),
+            .hero-bg-slice:nth-child(3) {
+                display: none;
+            }
+            
+            .hero-bg-slice:nth-child(1) {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+            }
+            
+            /* Add overlay for readability on tablet */
+            .hero::before {
+                content: '' !important;
+                display: block !important;
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: linear-gradient(135deg, rgba(30, 58, 138, 0.65) 0%, rgba(59, 130, 246, 0.45) 100%) !important;
+                z-index: 1;
             }
 
             .hero-right {
@@ -2882,6 +4761,18 @@ font-size: 1.1rem !important;
                 grid-template-columns: 1fr;
                 gap: 2.5rem;
                 padding: 2rem;
+                background: rgba(255, 255, 255, 0.97);
+                position: relative;
+                z-index: 2;
+                border-radius: 20px;
+            }
+
+            .hero-left {
+                text-align: center;
+            }
+            
+            .hero-right {
+                order: -1;
             }
 
             .hero h1 {
@@ -2990,6 +4881,123 @@ font-size: 1.1rem !important;
                 gap: 1.5rem;
             }
 
+            /* =================================================================
+               TABLET WIDGET STYLING (481-768px) - Better Proportions
+               ================================================================= */
+
+            /* Trust Bar - 2x2 Grid on Tablets */
+            .landing-trust-bar {
+                padding: 1.25rem 1rem !important;
+            }
+
+            .trust-bar-grid {
+                display: grid !important;
+                grid-template-columns: 1fr 1fr !important;
+                gap: 1rem !important;
+            }
+
+            .trust-bar-grid > div {
+                background: white !important;
+                padding: 1rem !important;
+                border-radius: 14px !important;
+                box-shadow: 0 3px 12px rgba(0,0,0,0.06) !important;
+            }
+
+            .trust-bar-grid > div > div:first-child {
+                width: 40px !important;
+                height: 40px !important;
+            }
+
+            .trust-bar-grid > div > div:last-child > div:first-child {
+                font-size: 0.85rem !important;
+            }
+
+            .trust-bar-grid > div > div:last-child > div:last-child {
+                font-size: 0.75rem !important;
+            }
+
+            /* Stats Bar - Horizontal Scroll on Tablets */
+            section.section-light > .container > .fade-in[style*="display: flex"][style*="justify-content: center"] {
+                gap: 1rem !important;
+            }
+
+            section.section-light > .container > .fade-in[style*="display: flex"][style*="justify-content: center"] > div {
+                padding: 1rem 1.5rem !important;
+            }
+
+            section.section-light > .container > .fade-in[style*="display: flex"][style*="justify-content: center"] > div > div:first-child {
+                width: 48px !important;
+                height: 48px !important;
+            }
+
+            /* Review Cards - 1 Column on Tablets for Better Readability */
+            .reviews-grid {
+                grid-template-columns: 1fr !important;
+                max-width: 600px !important;
+                margin: 0 auto !important;
+            }
+
+            .review-card {
+                border-radius: 20px !important;
+            }
+
+            /* Services Grid - 2x2 on Tablets */
+            .services-grid {
+                grid-template-columns: repeat(2, 1fr) !important;
+                gap: 1.5rem !important;
+            }
+
+            .service-item {
+                height: 340px !important;
+            }
+
+            /* Location Cards - 2 Column */
+            .location-grid {
+                grid-template-columns: repeat(2, 1fr) !important;
+            }
+
+            .location-card {
+                min-height: 300px !important;
+            }
+
+            /* About Section */
+            #about-section video {
+                height: 280px !important;
+            }
+
+            .about-features-grid {
+                grid-template-columns: 1fr !important;
+                gap: 1rem !important;
+            }
+
+            .about-feature-card {
+                flex-direction: row !important;
+                align-items: center !important;
+                padding: 1.25rem !important;
+                gap: 1rem !important;
+            }
+
+            .about-feature-icon {
+                width: 52px !important;
+                height: 52px !important;
+                min-width: 52px !important;
+                margin-bottom: 0 !important;
+            }
+
+            .about-feature-content {
+                text-align: left !important;
+            }
+
+            /* CEO Section */
+            .ceo-content {
+                grid-template-columns: 1fr !important;
+                gap: 2rem !important;
+                padding: 2rem !important;
+            }
+
+            .ceo-content img {
+                max-height: 350px !important;
+            }
 
             /* About section tablet */
             #about-section > div {
@@ -3043,111 +5051,6 @@ font-size: 1.1rem !important;
             html, body {
                 overflow-x: hidden;
                 max-width: 100vw;
-            }
-            
-            .hero {
-                padding: 2.5rem 1.25rem;
-            }
-            
-            /* Show single background image on tablet/mobile */
-            .hero-bg-slice {
-                transform: none;
-                margin: 0;
-            }
-            
-            .hero-bg-slice:nth-child(2),
-            .hero-bg-slice:nth-child(3) {
-                display: none;
-            }
-            
-            .hero-bg-slice:nth-child(1) {
-                position: absolute;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-            }
-            
-            /* Add overlay for readability */
-            .hero::before {
-                content: '' !important;
-                display: block !important;
-                position: absolute;
-                top: 0;
-                left: 0;
-                right: 0;
-                bottom: 0;
-                background: linear-gradient(135deg, rgba(30, 58, 138, 0.65) 0%, rgba(59, 130, 246, 0.45) 100%) !important;
-                z-index: 1;
-            }
-
-            .hero-content {
-                grid-template-columns: 1fr;
-                gap: 2rem;
-                padding: 1.75rem;
-                background: rgba(255, 255, 255, 0.97);
-                position: relative;
-                z-index: 2;
-                border-radius: 20px;
-            }
-
-            .hero-left {
-                text-align: center;
-            }
-
-            /* Show hero image on tablet */
-            .hero-right {
-                display: flex !important;
-                order: -1;
-            }
-            
-            .hero-image-container {
-                height: 200px !important;
-                width: 100% !important;
-                border-radius: 16px;
-            }
-
-            .hero-buttons {
-                justify-content: center;
-            }
-
-            .hero-trust-badges {
-                grid-template-columns: 1fr 1fr;
-                gap: 0.75rem;
-            }
-
-            .hero h1 {
-                font-size: clamp(2rem, 5vw, 2.5rem);
-            }
-
-            .hero .tagline {
-                font-size: clamp(1.1rem, 3vw, 1.25rem);
-            }
-
-            .hero p {
-                font-size: 1rem;
-                line-height: 1.65;
-            }
-
-            .hero-buttons {
-                flex-direction: column;
-                gap: 0.75rem;
-            }
-
-            /* Touch-friendly buttons - 48px minimum */
-            .btn-primary, .btn-secondary {
-                width: 100%;
-                text-align: center;
-                padding: 0.875rem 1.5rem;
-                font-size: 1rem;
-                min-height: 48px;
-                border-radius: 12px;
-            }
-            
-            /* Social icons - 44px touch targets */
-            .hero-social-icon {
-                width: 44px !important;
-                height: 44px !important;
             }
 
             section {
@@ -3498,7 +5401,7 @@ font-size: 1.1rem !important;
             }
 
             .services-grid {
-                grid-template-columns: repeat(3, 1fr);
+                grid-template-columns: repeat(4, 1fr);
             }
         }
 
@@ -3514,26 +5417,146 @@ font-size: 1.1rem !important;
             left: 0;
             width: 100%;
             height: 100%;
-            background: #ffffff;
+            background-color: #ffffff;
+            background-image: url("https://www.transparenttextures.com/patterns/batthern.png");
             display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
             z-index: 9999;
-            transition: opacity 0.5s ease;
+            transition: opacity 0.6s ease-out, transform 0.6s ease-out;
         }
 
         #loading-screen.fade-out {
             opacity: 0;
+            transform: scale(1.05);
             pointer-events: none;
         }
 
+        .loading-container {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2rem;
+        }
+
+        .loading-logo-wrapper {
+            position: relative;
+            width: 280px;
+            height: 280px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .loading-ring {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 3px solid rgba(11, 79, 162, 0.1);
+        }
+
+        .loading-ring-animated {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 3px solid transparent;
+            border-top-color: #0B4FA2;
+            border-right-color: #f97316;
+            animation: spin-ring 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+        }
+
+        .loading-ring-glow {
+            position: absolute;
+            width: 110%;
+            height: 110%;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(11, 79, 162, 0.08) 0%, transparent 70%);
+            animation: pulse-glow 2s ease-in-out infinite;
+        }
+
         .loading-logo {
-            animation: pulse 1.5s ease-in-out infinite;
+            position: relative;
+            z-index: 2;
+            animation: logo-float 2.5s ease-in-out infinite;
         }
 
         .loading-logo img {
-            height: 300px;
+            height: 200px;
             width: auto;
+            box-shadow: none;
+            filter: drop-shadow(0 10px 30px rgba(11, 79, 162, 0.15));
+            transition: transform 0.3s ease;
+        }
+
+        .loading-text {
+            font-family: 'Sora', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 500;
+            color: #0B4FA2;
+            letter-spacing: 0.5px;
+            opacity: 0.9;
+        }
+
+        .loading-dots {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+
+        .loading-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #0B4FA2, #f97316);
+            animation: dot-bounce 1.4s ease-in-out infinite;
+        }
+
+        .loading-dot:nth-child(1) { animation-delay: 0s; }
+        .loading-dot:nth-child(2) { animation-delay: 0.2s; }
+        .loading-dot:nth-child(3) { animation-delay: 0.4s; }
+
+        @keyframes spin-ring {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @keyframes pulse-glow {
+            0%, 100% { opacity: 0.5; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.05); }
+        }
+
+        @keyframes logo-float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+
+        @keyframes dot-bounce {
+            0%, 80%, 100% { 
+                transform: scale(0.6);
+                opacity: 0.5;
+            }
+            40% { 
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        /* Mobile responsive loading screen */
+        @media (max-width: 768px) {
+            .loading-logo-wrapper {
+                width: 220px;
+                height: 220px;
+            }
+            .loading-logo img {
+                height: 150px;
+            }
+            .loading-text {
+                font-size: 1rem;
+            }
         }
 
         /* Note: pulse keyframe is defined in global animations.css */
@@ -3576,13 +5599,392 @@ font-size: 1.1rem !important;
         .section-header p {
             color: #525252;
         }
+
+        /* =============================================================
+           DESKTOP STYLES - Ensure desktop view is preserved (1281px+)
+           These styles reset any mobile overrides for large screens
+           ============================================================= */
+        @media (min-width: 1281px) {
+            /* Hero section - restore desktop layout */
+            .hero {
+                margin-top: 90px;
+                padding: 4rem 2rem;
+                min-height: 100vh;
+            }
+
+            .hero-content {
+                grid-template-columns: 1fr 1fr;
+                gap: 4rem;
+                padding: 3rem;
+                max-width: 1400px;
+            }
+
+            .hero h1 {
+                font-size: 5rem;
+                text-align: left;
+            }
+
+            .hero .tagline {
+                font-size: 1.875rem;
+            }
+
+            .hero p {
+                font-size: 1.25rem;
+            }
+
+            .hero-buttons {
+                flex-direction: row;
+                gap: 1rem;
+            }
+
+            .btn-primary, .btn-secondary {
+                width: auto;
+                padding: 1rem 2.5rem;
+                font-size: 1.1rem;
+            }
+
+            .hero-trust-badges {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 1rem;
+            }
+
+            /* Trust Bar - Desktop layout - horizontal row */
+            .landing-trust-bar {
+                padding: 2rem 2rem;
+                overflow: visible;
+            }
+
+            .trust-bar-grid {
+                display: flex !important;
+                flex-wrap: wrap;
+                grid-template-columns: unset;
+                gap: 2rem 3.5rem;
+                justify-content: center;
+                max-width: 1200px;
+                margin: 0 auto;
+            }
+
+            .trust-bar-grid > div {
+                width: auto;
+                flex: 0 0 auto;
+                flex-direction: row;
+                padding: 0;
+                background: transparent !important;
+                box-shadow: none !important;
+                border-radius: 0;
+                gap: 0.75rem;
+            }
+
+            .trust-bar-grid > div > div:first-child {
+                width: 44px;
+                height: 44px;
+                border-radius: 12px;
+                margin: 0;
+            }
+
+            .trust-bar-grid > div > div:first-child i {
+                font-size: 1.25rem;
+            }
+
+            .trust-bar-grid > div > div:last-child {
+                text-align: left;
+            }
+
+            .trust-bar-grid > div > div:last-child > div:first-child {
+                font-size: 0.95rem;
+                font-weight: 900;
+            }
+
+            .trust-bar-grid > div > div:last-child > div:last-child {
+                font-size: 0.85rem;
+            }
+
+            /* Stats Bar - Desktop layout */
+            .section-light > .container > .fade-in[style*="display: flex"][style*="justify-content: center"] {
+                display: flex;
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 2rem;
+                overflow: visible;
+            }
+
+            .section-light > .container > .fade-in[style*="display: flex"][style*="justify-content: center"] > div {
+                flex: 0 0 auto;
+                min-width: unset;
+                padding: 1.25rem 2rem;
+                gap: 1rem;
+            }
+
+            .section-light > .container > .fade-in[style*="display: flex"][style*="justify-content: center"] > div > div:first-child {
+                width: 56px;
+                height: 56px;
+                min-width: 56px;
+            }
+
+            .section-light > .container > .fade-in[style*="display: flex"][style*="justify-content: center"] > div > div:first-child i {
+                font-size: 1.5rem;
+            }
+
+            .section-light > .container > .fade-in[style*="display: flex"][style*="justify-content: center"] > div > div:last-child > div:first-child {
+                font-size: 1.5rem;
+            }
+
+            .section-light > .container > .fade-in[style*="display: flex"][style*="justify-content: center"] > div > div:last-child > div:last-child {
+                font-size: 0.85rem;
+            }
+
+            /* Features - Desktop layout */
+            .features-grid {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 2rem;
+            }
+
+            .feature-card {
+                padding: 2rem;
+            }
+
+            .feature-icon {
+                font-size: 3rem;
+            }
+
+            .feature-card h3 {
+                font-size: 1.35rem;
+            }
+
+            .feature-card p {
+                font-size: 1rem;
+            }
+
+            /* Services - Desktop layout */
+            .services-grid {
+                grid-template-columns: repeat(4, 1fr);
+                gap: 2rem;
+            }
+
+            .service-item {
+                height: 360px;
+                border-radius: 24px;
+            }
+
+            .service-content {
+                padding: 2rem;
+            }
+
+            .service-item h4 {
+                font-size: 1.5rem;
+            }
+
+            .service-description {
+                font-size: 1rem;
+            }
+
+            .book-now-btn {
+                padding: 1rem 2rem;
+                font-size: 1rem;
+            }
+
+            /* Reviews - Desktop layout */
+            .reviews-grid {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 1.75rem;
+                max-width: unset;
+                margin: unset;
+                padding: 0;
+            }
+
+            .review-card {
+                border-radius: 24px;
+            }
+
+            .review-card > div:first-child {
+                padding: 1.5rem 1.75rem;
+            }
+
+            .review-card > div:first-child > div > div:first-child {
+                width: 64px;
+                min-width: 64px;
+                height: 64px;
+                font-size: 1.35rem;
+            }
+
+            .review-card > div:first-child > div > div:nth-child(2) h4 {
+                font-size: 1.15rem;
+            }
+
+            .review-card > div:last-child {
+                padding: 1.75rem;
+            }
+
+            .review-card > div:last-child blockquote {
+                font-size: 1rem;
+                line-height: 1.75;
+            }
+
+            /* Location Cards - Desktop layout */
+            .location-grid {
+                grid-template-columns: repeat(5, 1fr);
+                gap: 1.5rem;
+            }
+
+            .location-card {
+                min-height: 320px;
+                padding: 1.5rem;
+                border-radius: 0;
+            }
+
+            .location-card-icon {
+                width: 45px;
+                height: 45px;
+                font-size: 1.4rem;
+            }
+
+            .location-card h4 {
+                font-size: 1.2rem;
+            }
+
+            .location-card p {
+                font-size: 0.95rem;
+            }
+
+            /* Steps - Desktop layout */
+            .steps-container {
+                grid-template-columns: repeat(4, 1fr);
+                gap: 1.5rem;
+            }
+
+            .step {
+                padding: 1.5rem;
+                border-radius: 20px;
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .step-number {
+                width: 56px;
+                height: 56px;
+                min-width: 56px;
+                font-size: 1.25rem;
+                margin: 0 auto 1rem;
+            }
+
+            .step-content h3 {
+                font-size: 1.2rem;
+            }
+
+            .step-content h3 span {
+                font-size: 1.2rem;
+            }
+
+            .step-content p {
+                font-size: 0.95rem;
+            }
+
+            /* About Section - Desktop layout */
+            #about-section {
+                padding: 5rem 2rem;
+            }
+
+            #about-section video {
+                height: auto;
+            }
+
+            #about-section h2 {
+                font-size: 2.25rem;
+            }
+
+            .about-features-grid {
+                gap: 1.5rem;
+            }
+
+            .about-feature-card {
+                padding: 1.5rem;
+                border-radius: 20px;
+                flex-direction: row;
+            }
+
+            .about-feature-icon {
+                width: 70px;
+                height: 70px;
+                min-width: 70px;
+            }
+
+            .about-feature-icon i {
+                font-size: 1.75rem;
+            }
+
+            .about-feature-content h3 {
+                font-size: 1.2rem;
+            }
+
+            .about-feature-content p {
+                font-size: 0.95rem;
+            }
+
+            /* CEO Section - Desktop */
+            .ceo-section {
+                padding: 5rem 2rem;
+            }
+
+            .ceo-content {
+                padding: 2.5rem;
+                border-radius: 24px;
+            }
+
+            .ceo-content img {
+                max-height: 400px;
+            }
+
+            .ceo-content > div:last-child h2 {
+                font-size: 2rem;
+            }
+
+            .ceo-content > div:last-child > p:last-child {
+                font-size: 1.1rem;
+            }
+
+            /* Section headers - Desktop */
+            .section-header {
+                margin-bottom: 3rem;
+            }
+
+            .section-header h2 {
+                font-size: 3rem;
+            }
+
+            .section-header p {
+                font-size: 1.25rem;
+            }
+
+            section {
+                padding: 5rem 2rem;
+            }
+
+            /* Decorative Elements - Show on Desktop */
+            section > div[aria-hidden="true"],
+            [aria-hidden="true"][style*="radial-gradient"] {
+                display: block !important;
+            }
+        }
     </style>
 </head>
 <body>
-    <a href="#main-content" class="skip-link">Skip to main content</a>
+    @include('partials.accessibility')
     <div id="loading-screen">
-        <div class="loading-logo">
-            <img src="{{ asset('logo.png') }}" alt="CAS Private Care LLC Logo" width="300" height="300" fetchpriority="high">
+        <div class="loading-container">
+            <div class="loading-logo-wrapper">
+                <div class="loading-ring-glow"></div>
+                <div class="loading-ring"></div>
+                <div class="loading-ring-animated"></div>
+                <div class="loading-logo">
+                    <img src="{{ asset('logo.png') }}" alt="CAS Private Care LLC Logo" width="200" height="200" fetchpriority="high">
+                </div>
+            </div>
+            <div class="loading-text">Loading Care Services</div>
+            <div class="loading-dots">
+                <div class="loading-dot"></div>
+                <div class="loading-dot"></div>
+                <div class="loading-dot"></div>
+            </div>
         </div>
     </div>
     @include('partials.navigation')
@@ -3671,7 +6073,7 @@ font-size: 1.1rem !important;
     </div>
 
     <section class="section-light" style="padding: 6rem 2rem;" id="about-section" itemscope itemtype="https://schema.org/AboutPage">
-        <div style="max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: center;">
+        <div style="max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: center; overflow: visible;">
             <div class="fade-in" style="position: relative;">
                 <video autoplay loop muted playsinline preload="auto" style="width: 100%; height: 500px; object-fit: cover; border-radius: 20px; box-shadow: 0 20px 60px rgba(59, 130, 246, 0.2);">
                     <source src="{{ asset('what.mp4') }}" type="video/mp4">
@@ -3859,9 +6261,6 @@ font-size: 1.1rem !important;
                     </div>
                     <h4>Manhattan Partners</h4>
                     <p>Professional caregivers and housekeepers throughout Manhattan, from Upper East Side to Lower Manhattan. Available 24/7.</p>
-                    <a href="{{ url('/register?role=client&borough=manhattan') }}" style="display: inline-flex; align-items: center; gap: 0.5rem; margin-top: 1rem; padding: 0.6rem 1.2rem; background: rgba(255,255,255,0.95); color: #1e40af; font-weight: 700; border-radius: 8px; text-decoration: none; font-size: 0.9rem; transition: all 0.3s ease;">
-                        Browse Manhattan <i class="bi bi-arrow-right"></i>
-                    </a>
                 </div>
 
                 <div class="location-card fade-in" style="background-image: url('https://images.unsplash.com/photo-1505843513577-22bb7d21e455?w=800&q=80');">
@@ -3870,9 +6269,6 @@ font-size: 1.1rem !important;
                     </div>
                     <h4>Brooklyn Partners</h4>
                     <p>Trusted caregivers and housekeepers serving all Brooklyn neighborhoods. From Park Slope to Brighton Beach.</p>
-                    <a href="{{ url('/register?role=client&borough=brooklyn') }}" style="display: inline-flex; align-items: center; gap: 0.5rem; margin-top: 1rem; padding: 0.6rem 1.2rem; background: rgba(255,255,255,0.95); color: #1e40af; font-weight: 700; border-radius: 8px; text-decoration: none; font-size: 0.9rem; transition: all 0.3s ease;">
-                        Browse Brooklyn <i class="bi bi-arrow-right"></i>
-                    </a>
                 </div>
 
                 <div class="location-card fade-in" style="background-image: url('https://images.unsplash.com/photo-1500916434205-0c77489c6cf7?w=800&q=80');">
@@ -3881,9 +6277,6 @@ font-size: 1.1rem !important;
                     </div>
                     <h4>Queens Partners</h4>
                     <p>Reliable caregivers and housekeepers across Queens, including Astoria, Flushing, and Jamaica.</p>
-                    <a href="{{ url('/register?role=client&borough=queens') }}" style="display: inline-flex; align-items: center; gap: 0.5rem; margin-top: 1rem; padding: 0.6rem 1.2rem; background: rgba(255,255,255,0.95); color: #1e40af; font-weight: 700; border-radius: 8px; text-decoration: none; font-size: 0.9rem; transition: all 0.3s ease;">
-                        Browse Queens <i class="bi bi-arrow-right"></i>
-                    </a>
                 </div>
 
                 <div class="location-card fade-in" style="background-image: url('https://images.unsplash.com/photo-1514565131-fce0801e5785?w=800&q=80');">
@@ -3892,9 +6285,6 @@ font-size: 1.1rem !important;
                     </div>
                     <h4>Bronx Partners</h4>
                     <p>Professional caregivers and housekeepers serving the Bronx communities. Specialized elderly care services available.</p>
-                    <a href="{{ url('/register?role=client&borough=bronx') }}" style="display: inline-flex; align-items: center; gap: 0.5rem; margin-top: 1rem; padding: 0.6rem 1.2rem; background: rgba(255,255,255,0.95); color: #1e40af; font-weight: 700; border-radius: 8px; text-decoration: none; font-size: 0.9rem; transition: all 0.3s ease;">
-                        Browse Bronx <i class="bi bi-arrow-right"></i>
-                    </a>
                 </div>
 
                 <div class="location-card fade-in" style="background-image: url('https://www.nyhabitat.com/blog/wp-content/uploads/2014/09/New-york-nyc-borough-staten-island-ferry-manhattan-skyline.jpg');">
@@ -3903,9 +6293,6 @@ font-size: 1.1rem !important;
                     </div>
                     <h4>Staten Island Partners</h4>
                     <p>Dedicated caregivers and housekeepers for Staten Island residents. Personalized connections for your family.</p>
-                    <a href="{{ url('/register?role=client&borough=staten-island') }}" style="display: inline-flex; align-items: center; gap: 0.5rem; margin-top: 1rem; padding: 0.6rem 1.2rem; background: rgba(255,255,255,0.95); color: #1e40af; font-weight: 700; border-radius: 8px; text-decoration: none; font-size: 0.9rem; transition: all 0.3s ease;">
-                        Browse Staten Island <i class="bi bi-arrow-right"></i>
-                    </a>
                 </div>
             </div>
             
@@ -3928,39 +6315,79 @@ font-size: 1.1rem !important;
         <div class="divider-line-thin"></div>
     </div>
 
-    <section class="section-light" id="how-it-works" itemscope itemtype="https://schema.org/HowTo">
-        <div class="container">
-            <div class="section-header fade-in">
-                <h2 itemprop="name"><span style="color: #f97316;">How</span> CAS Private Care LLC Works</h2>
-                <p>Simple, fast, and secure — connecting care in four easy steps</p>
+    <section class="section-light" id="how-it-works" itemscope itemtype="https://schema.org/HowTo" style="padding: 5rem 2rem; position: relative; overflow: hidden;">
+        <!-- Decorative background elements -->
+        <div aria-hidden="true" style="position: absolute; top: -100px; right: -100px; width: 400px; height: 400px; background: radial-gradient(circle, rgba(59, 130, 246, 0.08) 0%, transparent 70%); border-radius: 50%;"></div>
+        <div aria-hidden="true" style="position: absolute; bottom: -100px; left: -100px; width: 350px; height: 350px; background: radial-gradient(circle, rgba(249, 115, 22, 0.06) 0%, transparent 70%); border-radius: 50%;"></div>
+        
+        <div class="container" style="max-width: 1200px; margin: 0 auto; position: relative; z-index: 1;">
+            <div class="section-header fade-in" style="text-align: center; margin-bottom: 4rem;">
+                <div style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.5rem 1rem; border-radius: 999px; background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(249, 115, 22, 0.1) 100%); border: 1px solid rgba(59, 130, 246, 0.2); margin-bottom: 1rem;">
+                    <i class="bi bi-diagram-3-fill" style="color: #3b82f6; font-size: 0.9rem;"></i>
+                    <span style="font-weight: 700; font-size: 0.8rem; color: #3b82f6; text-transform: uppercase; letter-spacing: 0.05em;">Our Process</span>
+                </div>
+                <h2 itemprop="name" style="font-size: clamp(2rem, 5vw, 3rem); font-weight: 900; margin: 0 0 1rem; letter-spacing: -0.02em;">
+                    <span style="color: #f97316;">How</span> 
+                    <span style="color: #0f172a;">CAS Private Care LLC Works</span>
+                </h2>
+                <p style="font-size: 1.15rem; color: #64748b; max-width: 600px; margin: 0 auto;">Simple, fast, and secure — connecting care in four easy steps</p>
             </div>
-            <div class="steps-container">
-                <div class="step fade-in">
-                    <div class="step-number">1</div>
-                    <div class="step-content">
-                        <h3><span style="color: #f97316;">Browse</span> <span style="background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">& Select</span></h3>
-                        <p>Clients search for caregivers or nannies, review their profiles, credentials, and ratings to find the perfect match.</p>
+            
+            <!-- Steps Grid with Images - 4 columns on desktop -->
+            <div class="how-it-works-grid">
+                <!-- Step 1: Browse & Select - Replace image by adding your file to public/images/browse-select.jpg -->
+                <div class="fade-in how-it-works-card" style="background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%); border-radius: 24px; overflow: hidden; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08); border: 1px solid rgba(59, 130, 246, 0.1); transition: all 0.3s ease;">
+                    <div class="how-it-works-image" style="height: 180px; background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%); position: relative; overflow: hidden;">
+                        <img src="https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=400&h=300&fit=crop" alt="Browse & Select caregivers" style="width: 100%; height: 100%; object-fit: cover; opacity: 0.9;" loading="lazy" decoding="async" width="400" height="300">
+                        <div style="position: absolute; top: 1rem; left: 1rem; width: 48px; height: 48px; background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; font-weight: 900; color: white; box-shadow: 0 8px 20px rgba(59, 130, 246, 0.4);">1</div>
+                    </div>
+                    <div style="padding: 1.5rem;">
+                        <h3 style="font-size: 1.35rem; font-weight: 800; margin: 0 0 0.75rem; color: #0f172a;">
+                            <span style="color: #f97316;">Browse</span> & Select
+                        </h3>
+                        <p style="font-size: 0.95rem; color: #64748b; line-height: 1.7; margin: 0;">Clients search for caregivers or nannies, review their profiles, credentials, and ratings to find the perfect match.</p>
                     </div>
                 </div>
-                <div class="step fade-in">
-                    <div class="step-number">2</div>
-                    <div class="step-content">
-                        <h3><span style="color: #f97316;">Book</span> <span style="background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">& Schedule</span></h3>
-                        <p>Choose your preferred schedule and book instantly. Payments are processed securely through our platform.</p>
+                
+                <!-- Step 2 -->
+                <div class="fade-in how-it-works-card" style="background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%); border-radius: 24px; overflow: hidden; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08); border: 1px solid rgba(249, 115, 22, 0.1); transition: all 0.3s ease;">
+                    <div class="how-it-works-image" style="height: 180px; background: linear-gradient(135deg, #ffedd5 0%, #fed7aa 100%); position: relative; overflow: hidden;">
+                        <img src="https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=400&h=300&fit=crop" alt="Book and schedule" style="width: 100%; height: 100%; object-fit: cover; opacity: 0.9;" loading="lazy" decoding="async" width="400" height="300">
+                        <div style="position: absolute; top: 1rem; left: 1rem; width: 48px; height: 48px; background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; font-weight: 900; color: white; box-shadow: 0 8px 20px rgba(249, 115, 22, 0.4);">2</div>
+                    </div>
+                    <div style="padding: 1.5rem;">
+                        <h3 style="font-size: 1.35rem; font-weight: 800; margin: 0 0 0.75rem; color: #0f172a;">
+                            <span style="color: #f97316;">Book</span> & Schedule
+                        </h3>
+                        <p style="font-size: 0.95rem; color: #64748b; line-height: 1.7; margin: 0;">Choose your preferred schedule and book instantly. Payments are processed securely through our platform.</p>
                     </div>
                 </div>
-                <div class="step fade-in">
-                    <div class="step-number">3</div>
-                    <div class="step-content">
-                        <h3><span style="color: #f97316;">Connect</span> <span style="background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">& Care</span></h3>
-                        <p>Partners and contractors receive bookings, connect with families, and deliver exceptional services while building their reputation.</p>
+                
+                <!-- Step 3 -->
+                <div class="fade-in how-it-works-card" style="background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%); border-radius: 24px; overflow: hidden; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08); border: 1px solid rgba(16, 185, 129, 0.1); transition: all 0.3s ease;">
+                    <div class="how-it-works-image" style="height: 180px; background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%); position: relative; overflow: hidden;">
+                        <img src="https://images.unsplash.com/photo-1576765608535-5f04d1e3f289?w=400&h=300&fit=crop" alt="Connect and care" style="width: 100%; height: 100%; object-fit: cover; opacity: 0.9;" loading="lazy" decoding="async" width="400" height="300">
+                        <div style="position: absolute; top: 1rem; left: 1rem; width: 48px; height: 48px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; font-weight: 900; color: white; box-shadow: 0 8px 20px rgba(16, 185, 129, 0.4);">3</div>
+                    </div>
+                    <div style="padding: 1.5rem;">
+                        <h3 style="font-size: 1.35rem; font-weight: 800; margin: 0 0 0.75rem; color: #0f172a;">
+                            <span style="color: #10b981;">Connect</span> & Care
+                        </h3>
+                        <p style="font-size: 0.95rem; color: #64748b; line-height: 1.7; margin: 0;">Partners and contractors receive bookings, connect with families, and deliver exceptional services while building their reputation.</p>
                     </div>
                 </div>
-                <div class="step fade-in">
-                    <div class="step-number">4</div>
-                    <div class="step-content">
-                        <h3><span style="color: #f97316;">Rate</span> <span style="background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">& Review</span></h3>
-                        <p>Share your experience and help others make informed decisions. Build trust within the community.</p>
+                
+                <!-- Step 4 -->
+                <div class="fade-in how-it-works-card" style="background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%); border-radius: 24px; overflow: hidden; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08); border: 1px solid rgba(139, 92, 246, 0.1); transition: all 0.3s ease;">
+                    <div class="how-it-works-image" style="height: 180px; background: linear-gradient(135deg, #ede9fe 0%, #ddd6fe 100%); position: relative; overflow: hidden;">
+                        <img src="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&h=300&fit=crop" alt="Rate and review" style="width: 100%; height: 100%; object-fit: cover; opacity: 0.9;" loading="lazy" decoding="async" width="400" height="300">
+                        <div style="position: absolute; top: 1rem; left: 1rem; width: 48px; height: 48px; background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%); border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; font-weight: 900; color: white; box-shadow: 0 8px 20px rgba(139, 92, 246, 0.4);">4</div>
+                    </div>
+                    <div style="padding: 1.5rem;">
+                        <h3 style="font-size: 1.35rem; font-weight: 800; margin: 0 0 0.75rem; color: #0f172a;">
+                            <span style="color: #8b5cf6;">Rate</span> & Review
+                        </h3>
+                        <p style="font-size: 0.95rem; color: #64748b; line-height: 1.7; margin: 0;">Share your experience and help others make informed decisions. Build trust within the community.</p>
                     </div>
                 </div>
             </div>
@@ -4014,318 +6441,345 @@ font-size: 1.1rem !important;
         <div class="divider-line-thin"></div>
     </div>
 
-    <!-- Reviews and Testimonials Section (Restyled) -->
-    <section class="section-light" style="padding: 6.5rem 2rem; position: relative; overflow: hidden;">
-        <div aria-hidden="true" style="position: absolute; top: -180px; right: -220px; width: 520px; height: 520px; background: radial-gradient(circle, rgba(59, 130, 246, 0.14) 0%, transparent 62%); border-radius: 50%;"></div>
-        <div aria-hidden="true" style="position: absolute; bottom: -220px; left: -240px; width: 560px; height: 560px; background: radial-gradient(circle, rgba(16, 185, 129, 0.12) 0%, transparent 62%); border-radius: 50%;"></div>
-        <div class="container" style="max-width: 1200px; margin: 0 auto; position: relative; z-index: 1;">
-            <div class="section-header fade-in" style="text-align: center; margin-bottom: 3.25rem;">
-                <div style="display: flex; justify-content: center; margin-bottom: 1rem;">
-                    <span style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.55rem 1rem; border-radius: 999px; border: 1px solid rgba(59, 130, 246, 0.25); background: rgba(59, 130, 246, 0.10); color: #1e3a8a; font-weight: 900; font-size: 0.9rem;">
-                        <i class="bi bi-patch-check-fill" style="color: #3b82f6;"></i>
-                        Verified reviews
-                    </span>
+    <!-- Reviews and Testimonials Section (Premium Redesign) -->
+    <section class="section-light" style="padding: 6rem 2rem; position: relative; overflow: hidden;">
+        <!-- Decorative Elements -->
+        <div aria-hidden="true" style="position: absolute; top: 0; left: 0; right: 0; height: 6px; background: linear-gradient(90deg, #0B4FA2 0%, #f97316 50%, #10b981 100%);"></div>
+        <div aria-hidden="true" style="position: absolute; top: 60px; right: -100px; width: 400px; height: 400px; background: radial-gradient(circle, rgba(11, 79, 162, 0.08) 0%, transparent 70%); border-radius: 50%;"></div>
+        <div aria-hidden="true" style="position: absolute; bottom: 100px; left: -150px; width: 500px; height: 500px; background: radial-gradient(circle, rgba(249, 115, 22, 0.06) 0%, transparent 70%); border-radius: 50%;"></div>
+        
+        <div class="container" style="max-width: 1280px; margin: 0 auto; position: relative; z-index: 1;">
+            <!-- Section Header -->
+            <div class="section-header fade-in" style="text-align: center; margin-bottom: 3rem;">
+                <div style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.6rem 1.25rem; border-radius: 999px; background: linear-gradient(135deg, rgba(11, 79, 162, 0.1) 0%, rgba(249, 115, 22, 0.1) 100%); border: 1px solid rgba(11, 79, 162, 0.2); margin-bottom: 1.25rem;">
+                    <i class="bi bi-patch-check-fill" style="color: #0B4FA2; font-size: 1rem;"></i>
+                    <span style="font-weight: 800; font-size: 0.85rem; color: #0B4FA2; text-transform: uppercase; letter-spacing: 0.05em;">Verified Reviews</span>
                 </div>
-                <h2 style="font-size: 3rem; font-weight: 900; margin-bottom: 0.75rem; letter-spacing: -0.02em;">
-                    <span style="color: #f97316;">Reviews</span>
-                    <span style="background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">From New York Families</span>
+                <h2 style="font-size: clamp(2rem, 5vw, 3.25rem); font-weight: 900; margin: 0 0 1rem; letter-spacing: -0.03em; line-height: 1.15;">
+                    <span style="color: #0f172a;">What </span>
+                    <span style="background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">NYC Families</span>
+                    <span style="color: #0f172a;"> Say</span>
                 </h2>
-                <p style="font-size: 1.12rem; color: #64748b; max-width: 900px; margin: 0 auto; line-height: 1.7;">Trusted caregivers and housekeepers serving NYC with 5-star ratings</p>
+                <p style="font-size: 1.15rem; color: #64748b; max-width: 650px; margin: 0 auto; line-height: 1.7;">Real stories from families across all five boroughs who trust CAS Private Care</p>
             </div>
 
-            <!-- Rating Highlights (No Personal Assistants) -->
-            <div class="rating-highlights-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.25rem; margin-bottom: 3.5rem;">
-                <div class="fade-in" style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.12) 0%, rgba(16, 185, 129, 0.06) 100%); padding: 2rem; border-radius: 18px; text-align: left; border: 1px solid rgba(16, 185, 129, 0.22); box-shadow: 0 14px 40px rgba(16, 185, 129, 0.10);">
-                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem;">
-                        <div style="display: inline-flex; align-items: center; gap: 0.5rem; font-weight: 900; color: #065f46;">
-                            <i class="bi bi-heart-pulse-fill" style="color: #10b981; font-size: 1.1rem;"></i>
-                            Caregivers
-                        </div>
-                        <span style="display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.35rem 0.6rem; border-radius: 999px; background: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.22); color: #065f46; font-weight: 900; font-size: 0.85rem;">
-                            <span style="color: #fbbf24;">★</span> 4.9/5.0
-                        </span>
+            <!-- Stats Bar -->
+            <div class="fade-in" style="display: flex; justify-content: center; gap: 2rem; flex-wrap: wrap; margin-bottom: 3.5rem;">
+                <div style="display: flex; align-items: center; gap: 1rem; padding: 1.25rem 2rem; background: white; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.06); border: 1px solid rgba(16, 185, 129, 0.15);">
+                    <div style="width: 56px; height: 56px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-radius: 14px; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 24px rgba(16, 185, 129, 0.3);">
+                        <i class="bi bi-heart-pulse-fill" style="color: white; font-size: 1.5rem;"></i>
                     </div>
-                    <div style="color: #0f172a; font-weight: 800; font-size: 1.1rem; margin-bottom: 0.15rem;">Caregivers in NYC</div>
-                    <div style="color: #64748b; font-size: 0.95rem;">1,200+ verified reviews</div>
-                </div>
-
-                <div class="fade-in" style="background: linear-gradient(135deg, rgba(59, 130, 246, 0.12) 0%, rgba(59, 130, 246, 0.06) 100%); padding: 2rem; border-radius: 18px; text-align: left; border: 1px solid rgba(59, 130, 246, 0.22); box-shadow: 0 14px 40px rgba(59, 130, 246, 0.11);">
-                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem;">
-                        <div style="display: inline-flex; align-items: center; gap: 0.5rem; font-weight: 900; color: #1e3a8a;">
-                            <i class="bi bi-house-heart-fill" style="color: #3b82f6; font-size: 1.1rem;"></i>
-                            Housekeepers
-                        </div>
-                        <span style="display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.35rem 0.6rem; border-radius: 999px; background: rgba(59, 130, 246, 0.12); border: 1px solid rgba(59, 130, 246, 0.22); color: #1e3a8a; font-weight: 900; font-size: 0.85rem;">
-                            <span style="color: #fbbf24;">★</span> 4.9/5.0
-                        </span>
-                    </div>
-                    <div style="color: #0f172a; font-weight: 800; font-size: 1.1rem; margin-bottom: 0.15rem;">Housekeepers in NY</div>
-                    <div style="color: #64748b; font-size: 0.95rem;">850+ verified reviews</div>
-                </div>
-
-                <div class="fade-in" style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.10) 0%, rgba(59, 130, 246, 0.06) 100%); padding: 2rem; border-radius: 18px; text-align: left; border: 1px solid rgba(15, 23, 42, 0.10); box-shadow: 0 14px 40px rgba(15, 23, 42, 0.08);">
-                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem;">
-                        <div style="display: inline-flex; align-items: center; gap: 0.5rem; font-weight: 900; color: #0f172a;">
-                            <i class="bi bi-star-fill" style="color: #fbbf24; font-size: 1.05rem;"></i>
-                            Top Rated
-                        </div>
-                        <span style="display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.35rem 0.6rem; border-radius: 999px; background: rgba(15, 23, 42, 0.06); border: 1px solid rgba(15, 23, 42, 0.10); color: #0f172a; font-weight: 900; font-size: 0.85rem;">
-                            <span style="color: #fbbf24;">★</span> 5-star average
-                        </span>
-                    </div>
-                    <div style="color: #0f172a; font-weight: 800; font-size: 1.1rem; margin-bottom: 0.15rem;">Verified & Reliable</div>
-                    <div style="color: #64748b; font-size: 0.95rem;">Trusted across all five boroughs</div>
-                </div>
-            </div>
-
-            <!-- Detailed Reviews Grid -->
-            <div class="reviews-grid">
-                <!-- Caregiver Review 1 -->
-                <div class="review-card fade-in" style="background: rgba(255, 255, 255, 0.92); padding: 2.1rem; border-radius: 18px; box-shadow: 0 18px 55px rgba(15, 23, 42, 0.08); border: 1px solid rgba(16, 185, 129, 0.18); position: relative; transition: transform .25s ease, box-shadow .25s ease;">
-                    <!-- Verified Badge -->
-                    <div style="position: absolute; top: 1rem; right: 1rem; background: rgba(16, 185, 129, 0.12); color: #065f46; padding: 0.35rem 0.7rem; border-radius: 999px; font-size: 0.75rem; font-weight: 900; display: inline-flex; align-items: center; gap: 0.35rem; border: 1px solid rgba(16, 185, 129, 0.22);">
-                        <i class="bi bi-patch-check-fill" style="color: #10b981;"></i>
-                        Verified
-                    </div>
-                    <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
-                        <div style="width: 58px; height: 58px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 900; font-size: 1.25rem; box-shadow: 0 12px 30px rgba(16, 185, 129, 0.25); outline: 3px solid rgba(16, 185, 129, 0.10);">EM</div>
-                        <div style="flex: 1;">
-                            <h4 style="font-size: 1.12rem; font-weight: 900; color: #0f172a; margin: 0; line-height: 1.2;">Elena Martinez</h4>
-                            <p style="color: #64748b; margin: 0.2rem 0 0; font-size: 0.88rem;">Caregiver • Manhattan, NY</p>
-                        </div>
-                    </div>
-                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.9rem;">
-                        <div style="color: #fbbf24; font-size: 1.05rem; letter-spacing: 1px;">★★★★★</div>
-                        <div style="color: #64748b; font-size: 0.85rem; font-weight: 800; display: inline-flex; align-items: center; gap: 0.35rem;">
-                            <i class="bi bi-shield-check" style="color: #10b981;"></i>
-                            Trusted partner
-                        </div>
-                    </div>
-                    <p style="color: #334155; line-height: 1.75; font-size: 0.98rem; margin-bottom: 1.05rem;">"Elena has been caring for my 82-year-old mother for 6 months. She's patient, compassionate, and incredibly professional. My mother looks forward to her visits every day. Best caregiver in Manhattan!"</p>
-                    <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.88rem; color: #64748b; padding-top: 0.9rem; border-top: 1px solid rgba(15, 23, 42, 0.08);">
-                        <span style="font-weight: 900; color: #0f172a;">- Margaret W.</span>
-                        <span style="display: inline-flex; align-items: center; gap: 0.35rem;"><i class="bi bi-geo-alt-fill" style="color: #10b981;"></i> Upper West Side</span>
+                    <div>
+                        <div style="font-size: 1.5rem; font-weight: 900; color: #0f172a; line-height: 1;">4.9<span style="font-size: 1rem; color: #fbbf24; margin-left: 0.25rem;">★</span></div>
+                        <div style="font-size: 0.85rem; color: #64748b; font-weight: 600;">1,200+ Caregiver Reviews</div>
                     </div>
                 </div>
-
-                <!-- Housekeeper Review 1 -->
-                <div class="fade-in" style="background: rgba(255, 255, 255, 0.92); padding: 2.1rem; border-radius: 18px; box-shadow: 0 18px 55px rgba(15, 23, 42, 0.08); border: 1px solid rgba(59, 130, 246, 0.18); position: relative; transition: transform .25s ease, box-shadow .25s ease;">
-                    <!-- Verified Badge -->
-                    <div style="position: absolute; top: 1rem; right: 1rem; background: rgba(59, 130, 246, 0.12); color: #1e3a8a; padding: 0.35rem 0.7rem; border-radius: 999px; font-size: 0.75rem; font-weight: 900; display: inline-flex; align-items: center; gap: 0.35rem; border: 1px solid rgba(59, 130, 246, 0.22);">
-                        <i class="bi bi-patch-check-fill" style="color: #3b82f6;"></i>
-                        Verified
+                <div style="display: flex; align-items: center; gap: 1rem; padding: 1.25rem 2rem; background: white; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.06); border: 1px solid rgba(11, 79, 162, 0.15);">
+                    <div style="width: 56px; height: 56px; background: linear-gradient(135deg, #0B4FA2 0%, #1e3a8a 100%); border-radius: 14px; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 24px rgba(11, 79, 162, 0.3);">
+                        <i class="bi bi-house-heart-fill" style="color: white; font-size: 1.5rem;"></i>
                     </div>
-                    <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
-                        <div style="width: 58px; height: 58px; background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 900; font-size: 1.25rem; box-shadow: 0 12px 30px rgba(59, 130, 246, 0.22); outline: 3px solid rgba(59, 130, 246, 0.10);">CT</div>
-                        <div style="flex: 1;">
-                            <h4 style="font-size: 1.12rem; font-weight: 900; color: #0f172a; margin: 0; line-height: 1.2;">Carmen Torres</h4>
-                            <p style="color: #64748b; margin: 0.2rem 0 0; font-size: 0.88rem;">Housekeeper • Brooklyn, NY</p>
-                        </div>
-                    </div>
-                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.9rem;">
-                        <div style="color: #fbbf24; font-size: 1.05rem; letter-spacing: 1px;">★★★★★</div>
-                        <div style="color: #64748b; font-size: 0.85rem; font-weight: 800; display: inline-flex; align-items: center; gap: 0.35rem;">
-                            <i class="bi bi-stars" style="color: #3b82f6;"></i>
-                            5-star cleaning
-                        </div>
-                    </div>
-                    <p style="color: #334155; line-height: 1.75; font-size: 0.98rem; margin-bottom: 1.05rem;">"Carmen is simply the best housekeeper in Brooklyn! Thorough, reliable, and always leaves our home spotless. She's been with us for over a year and we couldn't be happier."</p>
-                    <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.88rem; color: #64748b; padding-top: 0.9rem; border-top: 1px solid rgba(15, 23, 42, 0.08);">
-                        <span style="font-weight: 900; color: #0f172a;">- James & Lisa P.</span>
-                        <span style="display: inline-flex; align-items: center; gap: 0.35rem;"><i class="bi bi-geo-alt-fill" style="color: #3b82f6;"></i> Park Slope</span>
+                    <div>
+                        <div style="font-size: 1.5rem; font-weight: 900; color: #0f172a; line-height: 1;">4.9<span style="font-size: 1rem; color: #fbbf24; margin-left: 0.25rem;">★</span></div>
+                        <div style="font-size: 0.85rem; color: #64748b; font-weight: 600;">850+ Housekeeper Reviews</div>
                     </div>
                 </div>
-
-                <!-- Caregiver Review 3 -->
-                <div class="fade-in" style="background: rgba(255, 255, 255, 0.92); padding: 2.1rem; border-radius: 18px; box-shadow: 0 18px 55px rgba(15, 23, 42, 0.08); border: 1px solid rgba(16, 185, 129, 0.18); position: relative; transition: transform .25s ease, box-shadow .25s ease;">
-                    <!-- Verified Badge -->
-                    <div style="position: absolute; top: 1rem; right: 1rem; background: rgba(16, 185, 129, 0.12); color: #065f46; padding: 0.35rem 0.7rem; border-radius: 999px; font-size: 0.75rem; font-weight: 900; display: inline-flex; align-items: center; gap: 0.35rem; border: 1px solid rgba(16, 185, 129, 0.22);">
-                        <i class="bi bi-patch-check-fill" style="color: #10b981;"></i>
-                        Verified
+                <div style="display: flex; align-items: center; gap: 1rem; padding: 1.25rem 2rem; background: white; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.06); border: 1px solid rgba(249, 115, 22, 0.15);">
+                    <div style="width: 56px; height: 56px; background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); border-radius: 14px; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 24px rgba(249, 115, 22, 0.3);">
+                        <i class="bi bi-geo-alt-fill" style="color: white; font-size: 1.5rem;"></i>
                     </div>
-                    <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
-                        <div style="width: 58px; height: 58px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 900; font-size: 1.25rem; box-shadow: 0 12px 30px rgba(16, 185, 129, 0.25); outline: 3px solid rgba(16, 185, 129, 0.10);">AA</div>
-                        <div style="flex: 1;">
-                            <h4 style="font-size: 1.12rem; font-weight: 900; color: #0f172a; margin: 0; line-height: 1.2;">Aisha Ahmed</h4>
-                            <p style="color: #64748b; margin: 0.2rem 0 0; font-size: 0.88rem;">Caregiver • Queens, NY</p>
-                        </div>
-                    </div>
-                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.9rem;">
-                        <div style="color: #fbbf24; font-size: 1.05rem; letter-spacing: 1px;">★★★★★</div>
-                        <div style="color: #64748b; font-size: 0.85rem; font-weight: 800; display: inline-flex; align-items: center; gap: 0.35rem;">
-                            <i class="bi bi-heart-pulse" style="color: #10b981;"></i>
-                            Caring support
-                        </div>
-                    </div>
-                    <p style="color: #334155; line-height: 1.75; font-size: 0.98rem; margin-bottom: 1.05rem;">"Aisha is punctual, warm, and incredibly attentive. She helped us set a steady routine and brought so much peace to our home. We felt supported from day one."</p>
-                    <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.88rem; color: #64748b; padding-top: 0.9rem; border-top: 1px solid rgba(15, 23, 42, 0.08);">
-                        <span style="font-weight: 900; color: #0f172a;">- Rachel K.</span>
-                        <span style="display: inline-flex; align-items: center; gap: 0.35rem;"><i class="bi bi-geo-alt-fill" style="color: #10b981;"></i> Long Island City</span>
-                    </div>
-                </div>
-
-                <!-- Caregiver Review 2 -->
-                <div class="fade-in" style="background: rgba(255, 255, 255, 0.92); padding: 2.1rem; border-radius: 18px; box-shadow: 0 18px 55px rgba(15, 23, 42, 0.08); border: 1px solid rgba(16, 185, 129, 0.18); position: relative; transition: transform .25s ease, box-shadow .25s ease;">
-                    <!-- Verified Badge -->
-                    <div style="position: absolute; top: 1rem; right: 1rem; background: rgba(16, 185, 129, 0.12); color: #065f46; padding: 0.35rem 0.7rem; border-radius: 999px; font-size: 0.75rem; font-weight: 900; display: inline-flex; align-items: center; gap: 0.35rem; border: 1px solid rgba(16, 185, 129, 0.22);">
-                        <i class="bi bi-patch-check-fill" style="color: #10b981;"></i>
-                        Verified
-                    </div>
-                    <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
-                        <div style="width: 58px; height: 58px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 900; font-size: 1.25rem; box-shadow: 0 12px 30px rgba(16, 185, 129, 0.25); outline: 3px solid rgba(16, 185, 129, 0.10);">RJ</div>
-                        <div style="flex: 1;">
-                            <h4 style="font-size: 1.12rem; font-weight: 900; color: #0f172a; margin: 0; line-height: 1.2;">Robert Johnson</h4>
-                            <p style="color: #64748b; margin: 0.2rem 0 0; font-size: 0.88rem;">Caregiver • Bronx, NY</p>
-                        </div>
-                    </div>
-                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.9rem;">
-                        <div style="color: #fbbf24; font-size: 1.05rem; letter-spacing: 1px;">★★★★★</div>
-                        <div style="color: #64748b; font-size: 0.85rem; font-weight: 800; display: inline-flex; align-items: center; gap: 0.35rem;">
-                            <i class="bi bi-shield-check" style="color: #10b981;"></i>
-                            Patient & steady
-                        </div>
-                    </div>
-                    <p style="color: #334155; line-height: 1.75; font-size: 0.98rem; margin-bottom: 1.05rem;">"Robert has been wonderful with my elderly father who has dementia. He's patient, kind, and skilled at managing challenging situations. We're so grateful to have found such a caring caregiver in the Bronx."</p>
-                    <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.88rem; color: #64748b; padding-top: 0.9rem; border-top: 1px solid rgba(15, 23, 42, 0.08);">
-                        <span style="font-weight: 900; color: #0f172a;">- Thomas & Anna D.</span>
-                        <span style="display: inline-flex; align-items: center; gap: 0.35rem;"><i class="bi bi-geo-alt-fill" style="color: #10b981;"></i> Riverdale</span>
-                    </div>
-                </div>
-
-                <!-- Housekeeper Review 2 -->
-                <div class="fade-in" style="background: rgba(255, 255, 255, 0.92); padding: 2.1rem; border-radius: 18px; box-shadow: 0 18px 55px rgba(15, 23, 42, 0.08); border: 1px solid rgba(59, 130, 246, 0.18); position: relative; transition: transform .25s ease, box-shadow .25s ease;">
-                    <!-- Verified Badge -->
-                    <div style="position: absolute; top: 1rem; right: 1rem; background: rgba(59, 130, 246, 0.12); color: #1e3a8a; padding: 0.35rem 0.7rem; border-radius: 999px; font-size: 0.75rem; font-weight: 900; display: inline-flex; align-items: center; gap: 0.35rem; border: 1px solid rgba(59, 130, 246, 0.22);">
-                        <i class="bi bi-patch-check-fill" style="color: #3b82f6;"></i>
-                        Verified
-                    </div>
-                    <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
-                        <div style="width: 58px; height: 58px; background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 900; font-size: 1.25rem; box-shadow: 0 12px 30px rgba(59, 130, 246, 0.22); outline: 3px solid rgba(59, 130, 246, 0.10);">MS</div>
-                        <div style="flex: 1;">
-                            <h4 style="font-size: 1.12rem; font-weight: 900; color: #0f172a; margin: 0; line-height: 1.2;">Maria Silva</h4>
-                            <p style="color: #64748b; margin: 0.2rem 0 0; font-size: 0.88rem;">Housekeeper • Staten Island, NY</p>
-                        </div>
-                    </div>
-                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.9rem;">
-                        <div style="color: #fbbf24; font-size: 1.05rem; letter-spacing: 1px;">★★★★★</div>
-                        <div style="color: #64748b; font-size: 0.85rem; font-weight: 800; display: inline-flex; align-items: center; gap: 0.35rem;">
-                            <i class="bi bi-stars" style="color: #3b82f6;"></i>
-                            Detail-focused
-                        </div>
-                    </div>
-                    <p style="color: #334155; line-height: 1.75; font-size: 0.98rem; margin-bottom: 1.05rem;">"Maria is absolutely fantastic! She's been cleaning our home weekly for 8 months. Professional, trustworthy, and pays attention to every detail. Best housekeeper in Staten Island by far!"</p>
-                    <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.88rem; color: #64748b; padding-top: 0.9rem; border-top: 1px solid rgba(15, 23, 42, 0.08);">
-                        <span style="font-weight: 900; color: #0f172a;">- Kevin & Nicole B.</span>
-                        <span style="display: inline-flex; align-items: center; gap: 0.35rem;"><i class="bi bi-geo-alt-fill" style="color: #3b82f6;"></i> Great Kills</span>
-                    </div>
-                </div>
-
-                <!-- Housekeeper Review 3 -->
-                <div class="fade-in" style="background: rgba(255, 255, 255, 0.92); padding: 2.1rem; border-radius: 18px; box-shadow: 0 18px 55px rgba(15, 23, 42, 0.08); border: 1px solid rgba(59, 130, 246, 0.18); position: relative; transition: transform .25s ease, box-shadow .25s ease;">
-                    <div style="position: absolute; top: 1rem; right: 1rem; background: rgba(59, 130, 246, 0.12); color: #1e3a8a; padding: 0.35rem 0.7rem; border-radius: 999px; font-size: 0.75rem; font-weight: 900; display: inline-flex; align-items: center; gap: 0.35rem; border: 1px solid rgba(59, 130, 246, 0.22);">
-                        <i class="bi bi-patch-check-fill" style="color: #3b82f6;"></i>
-                        Verified
-                    </div>
-                    <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
-                        <div style="width: 58px; height: 58px; background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 900; font-size: 1.25rem; box-shadow: 0 12px 30px rgba(59, 130, 246, 0.22); outline: 3px solid rgba(59, 130, 246, 0.10);">DL</div>
-                        <div style="flex: 1;">
-                            <h4 style="font-size: 1.12rem; font-weight: 900; color: #0f172a; margin: 0; line-height: 1.2;">Diana Lopez</h4>
-                            <p style="color: #64748b; margin: 0.2rem 0 0; font-size: 0.88rem;">Housekeeper • Manhattan, NY</p>
-                        </div>
-                    </div>
-                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.9rem;">
-                        <div style="color: #fbbf24; font-size: 1.05rem; letter-spacing: 1px;">★★★★★</div>
-                        <div style="color: #64748b; font-size: 0.85rem; font-weight: 800; display: inline-flex; align-items: center; gap: 0.35rem;">
-                            <i class="bi bi-stars" style="color: #3b82f6;"></i>
-                            Consistent results
-                        </div>
-                    </div>
-                    <p style="color: #334155; line-height: 1.75; font-size: 0.98rem; margin-bottom: 1.05rem;">"Diana is consistent and detail-oriented. She leaves our apartment spotless and always checks in about priorities. The best housekeeper we've worked with in Manhattan."</p>
-                    <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.88rem; color: #64748b; padding-top: 0.9rem; border-top: 1px solid rgba(15, 23, 42, 0.08);">
-                        <span style="font-weight: 900; color: #0f172a;">- Daniel M.</span>
-                        <span style="display: inline-flex; align-items: center; gap: 0.35rem;"><i class="bi bi-geo-alt-fill" style="color: #3b82f6;"></i> Midtown East</span>
+                    <div>
+                        <div style="font-size: 1.5rem; font-weight: 900; color: #0f172a; line-height: 1;">5</div>
+                        <div style="font-size: 0.85rem; color: #64748b; font-weight: 600;">NYC Boroughs Covered</div>
                     </div>
                 </div>
             </div>
 
-            <!-- SEO-Optimized Location Summary (Restyled) -->
-            <div class="fade-in" style="position: relative; background: radial-gradient(1200px 500px at 50% 0%, rgba(59, 130, 246, 0.12) 0%, rgba(16, 185, 129, 0.08) 30%, rgba(249, 115, 22, 0.06) 55%, transparent 75%), linear-gradient(135deg, #ffffff 0%, #f9fafb 100%); padding: 4rem 3rem; border-radius: 28px; margin-top: 4rem; border: 1px solid rgba(17, 24, 39, 0.08); box-shadow: 0 24px 80px rgba(0, 0, 0, 0.10); overflow: hidden;">
-                <!-- subtle highlights -->
-                <div aria-hidden="true" style="position: absolute; top: -120px; right: -140px; width: 420px; height: 420px; background: radial-gradient(circle, rgba(59, 130, 246, 0.16) 0%, transparent 60%); border-radius: 50%; filter: blur(0px);"></div>
-                <div aria-hidden="true" style="position: absolute; bottom: -160px; left: -160px; width: 460px; height: 460px; background: radial-gradient(circle, rgba(16, 185, 129, 0.14) 0%, transparent 62%); border-radius: 50%;"></div>
-
-                <!-- Service Type Pills -->
-                <div style="position: relative; z-index: 1; display: flex; gap: 0.75rem; justify-content: center; flex-wrap: wrap; margin-bottom: 1.75rem;">
-                    <span style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.6rem 0.9rem; border-radius: 999px; background: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.25); color: #065f46; font-weight: 800; font-size: 0.95rem; letter-spacing: 0.2px;">
-                        <span style="width: 34px; height: 34px; border-radius: 12px; display: inline-flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #10b981 0%, #059669 100%); box-shadow: 0 8px 20px rgba(16, 185, 129, 0.25);">
-                            <i class="bi bi-heart-pulse-fill" style="color: #ffffff; font-size: 1.05rem;"></i>
-                        </span>
-                        Caregivers
-                    </span>
-
-                    <span style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.6rem 0.9rem; border-radius: 999px; background: rgba(59, 130, 246, 0.12); border: 1px solid rgba(59, 130, 246, 0.25); color: #1e3a8a; font-weight: 800; font-size: 0.95rem; letter-spacing: 0.2px;">
-                        <span style="width: 34px; height: 34px; border-radius: 12px; display: inline-flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); box-shadow: 0 8px 20px rgba(59, 130, 246, 0.22);">
-                            <i class="bi bi-house-heart-fill" style="color: #ffffff; font-size: 1.05rem;"></i>
-                        </span>
-                        Housekeepers
-                    </span>
-
-                    <span style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.6rem 0.9rem; border-radius: 999px; background: rgba(15, 23, 42, 0.06); border: 1px solid rgba(15, 23, 42, 0.12); color: #0f172a; font-weight: 800; font-size: 0.95rem; letter-spacing: 0.2px;">
-                        <span style="width: 34px; height: 34px; border-radius: 12px; display: inline-flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #0f172a 0%, #334155 100%); box-shadow: 0 8px 20px rgba(15, 23, 42, 0.18);">
-                            <i class="bi bi-stars" style="color: #ffffff; font-size: 1.05rem;"></i>
-                        </span>
-                        Top Rated
-                    </span>
+            <!-- Reviews Grid -->
+            <div class="reviews-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 1.75rem;">
+                
+                <!-- Review Card 1 - Elena Martinez -->
+                <div class="review-card fade-in" style="background: white; border-radius: 24px; overflow: hidden; box-shadow: 0 10px 40px rgba(0,0,0,0.08); border: 1px solid rgba(16, 185, 129, 0.12); transition: all 0.3s ease;">
+                    <!-- Card Header with Gradient -->
+                    <div style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); padding: 1.5rem 1.75rem; position: relative;">
+                        <div style="position: absolute; top: 0; right: 0; width: 120px; height: 120px; background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 70%);"></div>
+                        <div style="display: flex; align-items: center; gap: 1rem; position: relative; z-index: 1;">
+                            <div style="width: 64px; min-width: 64px; height: 64px; flex-shrink: 0; aspect-ratio: 1; background: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 1.35rem; color: #10b981; box-shadow: 0 4px 16px rgba(0,0,0,0.15); border: 3px solid rgba(255,255,255,0.5);">EM</div>
+                            <div style="flex: 1;">
+                                <h4 style="color: white; font-size: 1.15rem; font-weight: 800; margin: 0 0 0.25rem;">Elena Martinez</h4>
+                                <p style="color: rgba(255,255,255,0.9); font-size: 0.85rem; margin: 0; display: flex; align-items: center; gap: 0.35rem;">
+                                    <i class="bi bi-heart-pulse"></i> Caregiver • Manhattan, NY
+                                </p>
+                            </div>
+                            <div style="background: rgba(255,255,255,0.2); padding: 0.4rem 0.75rem; border-radius: 999px; backdrop-filter: blur(10px);">
+                                <span style="color: #fbbf24; font-size: 0.9rem; letter-spacing: 1px;">★★★★★</span>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Card Body -->
+                    <div style="padding: 1.75rem;">
+                        <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem;">
+                            <span style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(16, 185, 129, 0.05) 100%); color: #065f46; padding: 0.4rem 0.85rem; border-radius: 999px; font-size: 0.75rem; font-weight: 700; display: inline-flex; align-items: center; gap: 0.35rem; border: 1px solid rgba(16, 185, 129, 0.2);">
+                                <i class="bi bi-patch-check-fill" style="color: #10b981;"></i> Verified Review
+                            </span>
+                            <span style="background: rgba(251, 191, 36, 0.1); color: #b45309; padding: 0.4rem 0.85rem; border-radius: 999px; font-size: 0.75rem; font-weight: 700; border: 1px solid rgba(251, 191, 36, 0.2);">
+                                <i class="bi bi-shield-check"></i> Trusted Partner
+                            </span>
+                        </div>
+                        <blockquote style="font-size: 1rem; color: #334155; line-height: 1.75; margin: 0 0 1.25rem; position: relative; padding-left: 1rem; border-left: 3px solid #10b981;">
+                            "Elena has been caring for my 82-year-old mother for 6 months. She's patient, compassionate, and incredibly professional. My mother looks forward to her visits every day. Best caregiver in Manhattan!"
+                        </blockquote>
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 1rem; border-top: 1px solid #f1f5f9;">
+                            <div>
+                                <div style="font-weight: 800; color: #0f172a; font-size: 0.95rem;">Margaret W.</div>
+                                <div style="font-size: 0.8rem; color: #64748b; display: flex; align-items: center; gap: 0.35rem;">
+                                    <i class="bi bi-geo-alt-fill" style="color: #10b981;"></i> Upper West Side
+                                </div>
+                            </div>
+                            <div style="font-size: 0.75rem; color: #94a3b8;">6 months ago</div>
+                        </div>
+                    </div>
                 </div>
 
-                <h3 style="position: relative; z-index: 1; font-size: 2.2rem; font-weight: 900; color: #0f172a; margin: 0 0 0.6rem; text-align: center; line-height: 1.2; letter-spacing: -0.02em;">
-                    Across NYC
-                </h3>
-
-                <p style="position: relative; z-index: 1; max-width: 850px; margin: 0 auto 2.5rem; text-align: center; font-size: 1.05rem; line-height: 1.7; color: #475569;">
-                    Why New York Families Choose <span style="font-weight: 900; color: #111827;">CAS Private Care</span>
-                </p>
-
-                <!-- Content + Quick Benefits -->
-                <div style="position: relative; z-index: 1; max-width: 980px; margin: 0 auto; background: rgba(255, 255, 255, 0.88); backdrop-filter: blur(10px); padding: 2.5rem; border-radius: 18px; border: 1px solid rgba(17, 24, 39, 0.08); box-shadow: 0 16px 45px rgba(0, 0, 0, 0.08);">
-                    <div class="across-nyc-grid" style="display: grid; grid-template-columns: 1.35fr 0.65fr; gap: 1.5rem; align-items: start;">
-                        <div>
-                            <p style="color: #0f172a; line-height: 1.9; font-size: 1.05rem; margin: 0 0 1.25rem;">
-                                CAS Private Care connects New York families with <strong style="color: #10b981;">verified caregivers in Manhattan, Brooklyn, Queens, Bronx, and Staten Island</strong>. Our platform features <strong style="color: #3b82f6;">professional housekeepers in New York</strong> providing deep cleaning and household management.
-                            </p>
-
-                            <div style="height: 1px; background: linear-gradient(90deg, transparent 0%, rgba(148, 163, 184, 0.55) 50%, transparent 100%); margin: 1.25rem 0;"></div>
-
-                            <p style="color: #0f172a; line-height: 1.9; font-size: 1.05rem; margin: 0;">
-                                All contractors are background-checked, highly rated with verified reviews, and trusted by over <strong style="color: #3b82f6;">2,500 New York families</strong>. Whether you need a <strong style="color: #10b981;">caregiver in Manhattan</strong>, a <strong style="color: #3b82f6;">housekeeper in Brooklyn</strong>, or trusted help in any borough, we connect you with the best professionals in New York.
-                            </p>
-                        </div>
-
-                        <div style="display: grid; gap: 0.85rem;">
-                            <div style="padding: 1rem 1rem; border-radius: 14px; background: linear-gradient(135deg, rgba(59, 130, 246, 0.10) 0%, rgba(59, 130, 246, 0.04) 60%, rgba(255, 255, 255, 0.6) 100%); border: 1px solid rgba(59, 130, 246, 0.18);">
-                                <div style="display: flex; align-items: center; gap: 0.65rem; font-weight: 900; color: #0f172a; font-size: 0.98rem; margin-bottom: 0.35rem;">
-                                    <i class="bi bi-shield-check" style="color: #3b82f6;"></i>
-                                    Verified & Background-Checked
-                                </div>
-                                <div style="color: #475569; font-size: 0.92rem; line-height: 1.55;">Choose partners with verified profiles and reviews.</div>
+                <!-- Review Card 2 - Carmen Torres -->
+                <div class="review-card fade-in" style="background: white; border-radius: 24px; overflow: hidden; box-shadow: 0 10px 40px rgba(0,0,0,0.08); border: 1px solid rgba(11, 79, 162, 0.12); transition: all 0.3s ease;">
+                    <!-- Card Header with Gradient -->
+                    <div style="background: linear-gradient(135deg, #0B4FA2 0%, #1e3a8a 100%); padding: 1.5rem 1.75rem; position: relative;">
+                        <div style="position: absolute; top: 0; right: 0; width: 120px; height: 120px; background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 70%);"></div>
+                        <div style="display: flex; align-items: center; gap: 1rem; position: relative; z-index: 1;">
+                            <div style="width: 64px; min-width: 64px; height: 64px; flex-shrink: 0; aspect-ratio: 1; background: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 1.35rem; color: #0B4FA2; box-shadow: 0 4px 16px rgba(0,0,0,0.15); border: 3px solid rgba(255,255,255,0.5);">CT</div>
+                            <div style="flex: 1;">
+                                <h4 style="color: white; font-size: 1.15rem; font-weight: 800; margin: 0 0 0.25rem;">Carmen Torres</h4>
+                                <p style="color: rgba(255,255,255,0.9); font-size: 0.85rem; margin: 0; display: flex; align-items: center; gap: 0.35rem;">
+                                    <i class="bi bi-house-heart"></i> Housekeeper • Brooklyn, NY
+                                </p>
                             </div>
-
-                            <div style="padding: 1rem 1rem; border-radius: 14px; background: linear-gradient(135deg, rgba(16, 185, 129, 0.10) 0%, rgba(16, 185, 129, 0.04) 60%, rgba(255, 255, 255, 0.6) 100%); border: 1px solid rgba(16, 185, 129, 0.18);">
-                                <div style="display: flex; align-items: center; gap: 0.65rem; font-weight: 900; color: #0f172a; font-size: 0.98rem; margin-bottom: 0.35rem;">
-                                    <i class="bi bi-star-fill" style="color: #10b981;"></i>
-                                    Highly Rated Partners
-                                </div>
-                                <div style="color: #475569; font-size: 0.92rem; line-height: 1.55;">Find top-rated help across all five boroughs.</div>
-                            </div>
-
-                            <div style="padding: 1rem 1rem; border-radius: 14px; background: linear-gradient(135deg, rgba(249, 115, 22, 0.10) 0%, rgba(249, 115, 22, 0.04) 60%, rgba(255, 255, 255, 0.6) 100%); border: 1px solid rgba(249, 115, 22, 0.18);">
-                                <div style="display: flex; align-items: center; gap: 0.65rem; font-weight: 900; color: #0f172a; font-size: 0.98rem; margin-bottom: 0.35rem;">
-                                    <i class="bi bi-geo-alt" style="color: #f97316;"></i>
-                                    Borough Coverage
-                                </div>
-                                <div style="color: #475569; font-size: 0.92rem; line-height: 1.55;">Manhattan, Brooklyn, Queens, Bronx, Staten Island.</div>
+                            <div style="background: rgba(255,255,255,0.2); padding: 0.4rem 0.75rem; border-radius: 999px; backdrop-filter: blur(10px);">
+                                <span style="color: #fbbf24; font-size: 0.9rem; letter-spacing: 1px;">★★★★★</span>
                             </div>
                         </div>
+                    </div>
+                    <!-- Card Body -->
+                    <div style="padding: 1.75rem;">
+                        <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem;">
+                            <span style="background: linear-gradient(135deg, rgba(11, 79, 162, 0.1) 0%, rgba(11, 79, 162, 0.05) 100%); color: #1e3a8a; padding: 0.4rem 0.85rem; border-radius: 999px; font-size: 0.75rem; font-weight: 700; display: inline-flex; align-items: center; gap: 0.35rem; border: 1px solid rgba(11, 79, 162, 0.2);">
+                                <i class="bi bi-patch-check-fill" style="color: #0B4FA2;"></i> Verified Review
+                            </span>
+                            <span style="background: rgba(11, 79, 162, 0.08); color: #1e3a8a; padding: 0.4rem 0.85rem; border-radius: 999px; font-size: 0.75rem; font-weight: 700; border: 1px solid rgba(11, 79, 162, 0.15);">
+                                <i class="bi bi-stars"></i> 5-Star Cleaning
+                            </span>
+                        </div>
+                        <blockquote style="font-size: 1rem; color: #334155; line-height: 1.75; margin: 0 0 1.25rem; position: relative; padding-left: 1rem; border-left: 3px solid #0B4FA2;">
+                            "Carmen is simply the best housekeeper in Brooklyn! Thorough, reliable, and always leaves our home spotless. She's been with us for over a year and we couldn't be happier."
+                        </blockquote>
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 1rem; border-top: 1px solid #f1f5f9;">
+                            <div>
+                                <div style="font-weight: 800; color: #0f172a; font-size: 0.95rem;">James & Lisa P.</div>
+                                <div style="font-size: 0.8rem; color: #64748b; display: flex; align-items: center; gap: 0.35rem;">
+                                    <i class="bi bi-geo-alt-fill" style="color: #0B4FA2;"></i> Park Slope
+                                </div>
+                            </div>
+                            <div style="font-size: 0.75rem; color: #94a3b8;">1 year ago</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Review Card 3 - Aisha Ahmed -->
+                <div class="review-card fade-in" style="background: white; border-radius: 24px; overflow: hidden; box-shadow: 0 10px 40px rgba(0,0,0,0.08); border: 1px solid rgba(16, 185, 129, 0.12); transition: all 0.3s ease;">
+                    <!-- Card Header with Gradient -->
+                    <div style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); padding: 1.5rem 1.75rem; position: relative;">
+                        <div style="position: absolute; top: 0; right: 0; width: 120px; height: 120px; background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 70%);"></div>
+                        <div style="display: flex; align-items: center; gap: 1rem; position: relative; z-index: 1;">
+                            <div style="width: 64px; min-width: 64px; height: 64px; flex-shrink: 0; aspect-ratio: 1; background: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 1.35rem; color: #10b981; box-shadow: 0 4px 16px rgba(0,0,0,0.15); border: 3px solid rgba(255,255,255,0.5);">AA</div>
+                            <div style="flex: 1;">
+                                <h4 style="color: white; font-size: 1.15rem; font-weight: 800; margin: 0 0 0.25rem;">Aisha Ahmed</h4>
+                                <p style="color: rgba(255,255,255,0.9); font-size: 0.85rem; margin: 0; display: flex; align-items: center; gap: 0.35rem;">
+                                    <i class="bi bi-heart-pulse"></i> Caregiver • Queens, NY
+                                </p>
+                            </div>
+                            <div style="background: rgba(255,255,255,0.2); padding: 0.4rem 0.75rem; border-radius: 999px; backdrop-filter: blur(10px);">
+                                <span style="color: #fbbf24; font-size: 0.9rem; letter-spacing: 1px;">★★★★★</span>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Card Body -->
+                    <div style="padding: 1.75rem;">
+                        <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem;">
+                            <span style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(16, 185, 129, 0.05) 100%); color: #065f46; padding: 0.4rem 0.85rem; border-radius: 999px; font-size: 0.75rem; font-weight: 700; display: inline-flex; align-items: center; gap: 0.35rem; border: 1px solid rgba(16, 185, 129, 0.2);">
+                                <i class="bi bi-patch-check-fill" style="color: #10b981;"></i> Verified Review
+                            </span>
+                            <span style="background: rgba(16, 185, 129, 0.08); color: #065f46; padding: 0.4rem 0.85rem; border-radius: 999px; font-size: 0.75rem; font-weight: 700; border: 1px solid rgba(16, 185, 129, 0.15);">
+                                <i class="bi bi-heart-pulse"></i> Caring Support
+                            </span>
+                        </div>
+                        <blockquote style="font-size: 1rem; color: #334155; line-height: 1.75; margin: 0 0 1.25rem; position: relative; padding-left: 1rem; border-left: 3px solid #10b981;">
+                            "Aisha is punctual, warm, and incredibly attentive. She helped us set a steady routine and brought so much peace to our home. We felt supported from day one."
+                        </blockquote>
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 1rem; border-top: 1px solid #f1f5f9;">
+                            <div>
+                                <div style="font-weight: 800; color: #0f172a; font-size: 0.95rem;">Rachel K.</div>
+                                <div style="font-size: 0.8rem; color: #64748b; display: flex; align-items: center; gap: 0.35rem;">
+                                    <i class="bi bi-geo-alt-fill" style="color: #10b981;"></i> Long Island City
+                                </div>
+                            </div>
+                            <div style="font-size: 0.75rem; color: #94a3b8;">3 months ago</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Review Card 4 - Robert Johnson -->
+                <div class="review-card fade-in" style="background: white; border-radius: 24px; overflow: hidden; box-shadow: 0 10px 40px rgba(0,0,0,0.08); border: 1px solid rgba(16, 185, 129, 0.12); transition: all 0.3s ease;">
+                    <!-- Card Header with Gradient -->
+                    <div style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); padding: 1.5rem 1.75rem; position: relative;">
+                        <div style="position: absolute; top: 0; right: 0; width: 120px; height: 120px; background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 70%);"></div>
+                        <div style="display: flex; align-items: center; gap: 1rem; position: relative; z-index: 1;">
+                            <div style="width: 64px; min-width: 64px; height: 64px; flex-shrink: 0; aspect-ratio: 1; background: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 1.35rem; color: #10b981; box-shadow: 0 4px 16px rgba(0,0,0,0.15); border: 3px solid rgba(255,255,255,0.5);">RJ</div>
+                            <div style="flex: 1;">
+                                <h4 style="color: white; font-size: 1.15rem; font-weight: 800; margin: 0 0 0.25rem;">Robert Johnson</h4>
+                                <p style="color: rgba(255,255,255,0.9); font-size: 0.85rem; margin: 0; display: flex; align-items: center; gap: 0.35rem;">
+                                    <i class="bi bi-heart-pulse"></i> Caregiver • Bronx, NY
+                                </p>
+                            </div>
+                            <div style="background: rgba(255,255,255,0.2); padding: 0.4rem 0.75rem; border-radius: 999px; backdrop-filter: blur(10px);">
+                                <span style="color: #fbbf24; font-size: 0.9rem; letter-spacing: 1px;">★★★★★</span>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Card Body -->
+                    <div style="padding: 1.75rem;">
+                        <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem;">
+                            <span style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(16, 185, 129, 0.05) 100%); color: #065f46; padding: 0.4rem 0.85rem; border-radius: 999px; font-size: 0.75rem; font-weight: 700; display: inline-flex; align-items: center; gap: 0.35rem; border: 1px solid rgba(16, 185, 129, 0.2);">
+                                <i class="bi bi-patch-check-fill" style="color: #10b981;"></i> Verified Review
+                            </span>
+                            <span style="background: rgba(16, 185, 129, 0.08); color: #065f46; padding: 0.4rem 0.85rem; border-radius: 999px; font-size: 0.75rem; font-weight: 700; border: 1px solid rgba(16, 185, 129, 0.15);">
+                                <i class="bi bi-shield-check"></i> Patient & Steady
+                            </span>
+                        </div>
+                        <blockquote style="font-size: 1rem; color: #334155; line-height: 1.75; margin: 0 0 1.25rem; position: relative; padding-left: 1rem; border-left: 3px solid #10b981;">
+                            "Robert has been wonderful with my elderly father who has dementia. He's patient, kind, and skilled at managing challenging situations. We're so grateful to have found such a caring caregiver in the Bronx."
+                        </blockquote>
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 1rem; border-top: 1px solid #f1f5f9;">
+                            <div>
+                                <div style="font-weight: 800; color: #0f172a; font-size: 0.95rem;">Thomas & Anna D.</div>
+                                <div style="font-size: 0.8rem; color: #64748b; display: flex; align-items: center; gap: 0.35rem;">
+                                    <i class="bi bi-geo-alt-fill" style="color: #10b981;"></i> Riverdale
+                                </div>
+                            </div>
+                            <div style="font-size: 0.75rem; color: #94a3b8;">4 months ago</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Review Card 5 - Maria Silva -->
+                <div class="review-card fade-in" style="background: white; border-radius: 24px; overflow: hidden; box-shadow: 0 10px 40px rgba(0,0,0,0.08); border: 1px solid rgba(11, 79, 162, 0.12); transition: all 0.3s ease;">
+                    <!-- Card Header with Gradient -->
+                    <div style="background: linear-gradient(135deg, #0B4FA2 0%, #1e3a8a 100%); padding: 1.5rem 1.75rem; position: relative;">
+                        <div style="position: absolute; top: 0; right: 0; width: 120px; height: 120px; background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 70%);"></div>
+                        <div style="display: flex; align-items: center; gap: 1rem; position: relative; z-index: 1;">
+                            <div style="width: 64px; min-width: 64px; height: 64px; flex-shrink: 0; aspect-ratio: 1; background: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 1.35rem; color: #0B4FA2; box-shadow: 0 4px 16px rgba(0,0,0,0.15); border: 3px solid rgba(255,255,255,0.5);">MS</div>
+                            <div style="flex: 1;">
+                                <h4 style="color: white; font-size: 1.15rem; font-weight: 800; margin: 0 0 0.25rem;">Maria Silva</h4>
+                                <p style="color: rgba(255,255,255,0.9); font-size: 0.85rem; margin: 0; display: flex; align-items: center; gap: 0.35rem;">
+                                    <i class="bi bi-house-heart"></i> Housekeeper • Staten Island, NY
+                                </p>
+                            </div>
+                            <div style="background: rgba(255,255,255,0.2); padding: 0.4rem 0.75rem; border-radius: 999px; backdrop-filter: blur(10px);">
+                                <span style="color: #fbbf24; font-size: 0.9rem; letter-spacing: 1px;">★★★★★</span>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Card Body -->
+                    <div style="padding: 1.75rem;">
+                        <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem;">
+                            <span style="background: linear-gradient(135deg, rgba(11, 79, 162, 0.1) 0%, rgba(11, 79, 162, 0.05) 100%); color: #1e3a8a; padding: 0.4rem 0.85rem; border-radius: 999px; font-size: 0.75rem; font-weight: 700; display: inline-flex; align-items: center; gap: 0.35rem; border: 1px solid rgba(11, 79, 162, 0.2);">
+                                <i class="bi bi-patch-check-fill" style="color: #0B4FA2;"></i> Verified Review
+                            </span>
+                            <span style="background: rgba(11, 79, 162, 0.08); color: #1e3a8a; padding: 0.4rem 0.85rem; border-radius: 999px; font-size: 0.75rem; font-weight: 700; border: 1px solid rgba(11, 79, 162, 0.15);">
+                                <i class="bi bi-eye"></i> Detail-Focused
+                            </span>
+                        </div>
+                        <blockquote style="font-size: 1rem; color: #334155; line-height: 1.75; margin: 0 0 1.25rem; position: relative; padding-left: 1rem; border-left: 3px solid #0B4FA2;">
+                            "Maria is absolutely fantastic! She's been cleaning our home weekly for 8 months. Professional, trustworthy, and pays attention to every detail. Best housekeeper in Staten Island by far!"
+                        </blockquote>
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 1rem; border-top: 1px solid #f1f5f9;">
+                            <div>
+                                <div style="font-weight: 800; color: #0f172a; font-size: 0.95rem;">Kevin & Nicole B.</div>
+                                <div style="font-size: 0.8rem; color: #64748b; display: flex; align-items: center; gap: 0.35rem;">
+                                    <i class="bi bi-geo-alt-fill" style="color: #0B4FA2;"></i> Great Kills
+                                </div>
+                            </div>
+                            <div style="font-size: 0.75rem; color: #94a3b8;">8 months ago</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Review Card 6 - Diana Lopez -->
+                <div class="review-card fade-in" style="background: white; border-radius: 24px; overflow: hidden; box-shadow: 0 10px 40px rgba(0,0,0,0.08); border: 1px solid rgba(11, 79, 162, 0.12); transition: all 0.3s ease;">
+                    <!-- Card Header with Gradient -->
+                    <div style="background: linear-gradient(135deg, #0B4FA2 0%, #1e3a8a 100%); padding: 1.5rem 1.75rem; position: relative;">
+                        <div style="position: absolute; top: 0; right: 0; width: 120px; height: 120px; background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 70%);"></div>
+                        <div style="display: flex; align-items: center; gap: 1rem; position: relative; z-index: 1;">
+                            <div style="width: 64px; min-width: 64px; height: 64px; flex-shrink: 0; aspect-ratio: 1; background: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 1.35rem; color: #0B4FA2; box-shadow: 0 4px 16px rgba(0,0,0,0.15); border: 3px solid rgba(255,255,255,0.5);">DL</div>
+                            <div style="flex: 1;">
+                                <h4 style="color: white; font-size: 1.15rem; font-weight: 800; margin: 0 0 0.25rem;">Diana Lopez</h4>
+                                <p style="color: rgba(255,255,255,0.9); font-size: 0.85rem; margin: 0; display: flex; align-items: center; gap: 0.35rem;">
+                                    <i class="bi bi-house-heart"></i> Housekeeper • Manhattan, NY
+                                </p>
+                            </div>
+                            <div style="background: rgba(255,255,255,0.2); padding: 0.4rem 0.75rem; border-radius: 999px; backdrop-filter: blur(10px);">
+                                <span style="color: #fbbf24; font-size: 0.9rem; letter-spacing: 1px;">★★★★★</span>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Card Body -->
+                    <div style="padding: 1.75rem;">
+                        <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem;">
+                            <span style="background: linear-gradient(135deg, rgba(11, 79, 162, 0.1) 0%, rgba(11, 79, 162, 0.05) 100%); color: #1e3a8a; padding: 0.4rem 0.85rem; border-radius: 999px; font-size: 0.75rem; font-weight: 700; display: inline-flex; align-items: center; gap: 0.35rem; border: 1px solid rgba(11, 79, 162, 0.2);">
+                                <i class="bi bi-patch-check-fill" style="color: #0B4FA2;"></i> Verified Review
+                            </span>
+                            <span style="background: rgba(11, 79, 162, 0.08); color: #1e3a8a; padding: 0.4rem 0.85rem; border-radius: 999px; font-size: 0.75rem; font-weight: 700; border: 1px solid rgba(11, 79, 162, 0.15);">
+                                <i class="bi bi-check2-circle"></i> Consistent Results
+                            </span>
+                        </div>
+                        <blockquote style="font-size: 1rem; color: #334155; line-height: 1.75; margin: 0 0 1.25rem; position: relative; padding-left: 1rem; border-left: 3px solid #0B4FA2;">
+                            "Diana is consistent and detail-oriented. She leaves our apartment spotless and always checks in about priorities. The best housekeeper we've worked with in Manhattan."
+                        </blockquote>
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 1rem; border-top: 1px solid #f1f5f9;">
+                            <div>
+                                <div style="font-weight: 800; color: #0f172a; font-size: 0.95rem;">Daniel M.</div>
+                                <div style="font-size: 0.8rem; color: #64748b; display: flex; align-items: center; gap: 0.35rem;">
+                                    <i class="bi bi-geo-alt-fill" style="color: #0B4FA2;"></i> Midtown East
+                                </div>
+                            </div>
+                            <div style="font-size: 0.75rem; color: #94a3b8;">2 months ago</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Trust Banner -->
+            <div class="fade-in trust-banner" style="margin-top: 3.5rem; background: linear-gradient(135deg, #0B4FA2 0%, #1e3a8a 100%); border-radius: 24px; padding: 3rem; position: relative; overflow: hidden;">
+                <div aria-hidden="true" style="position: absolute; top: -50px; right: -50px; width: 200px; height: 200px; background: radial-gradient(circle, rgba(249, 115, 22, 0.3) 0%, transparent 70%); border-radius: 50%;"></div>
+                <div aria-hidden="true" style="position: absolute; bottom: -30px; left: -30px; width: 150px; height: 150px; background: radial-gradient(circle, rgba(16, 185, 129, 0.25) 0%, transparent 70%); border-radius: 50%;"></div>
+                
+                <div class="trust-stats-container" style="position: relative; z-index: 1; display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 3rem;">
+                    <div class="trust-stat-item" style="text-align: center;">
+                        <div class="trust-stat-number" style="font-size: 2.5rem; font-weight: 900; color: white; line-height: 1;">2,500+</div>
+                        <div class="trust-stat-label" style="font-size: 0.9rem; color: rgba(255,255,255,0.85); font-weight: 600;">NYC Families Served</div>
+                    </div>
+                    <div class="trust-stat-divider" style="width: 1px; height: 50px; background: rgba(255,255,255,0.2);"></div>
+                    <div class="trust-stat-item" style="text-align: center;">
+                        <div class="trust-stat-number" style="font-size: 2.5rem; font-weight: 900; color: white; line-height: 1;">4.9★</div>
+                        <div class="trust-stat-label" style="font-size: 0.9rem; color: rgba(255,255,255,0.85); font-weight: 600;">Average Rating</div>
+                    </div>
+                    <div class="trust-stat-divider" style="width: 1px; height: 50px; background: rgba(255,255,255,0.2);"></div>
+                    <div class="trust-stat-item" style="text-align: center;">
+                        <div class="trust-stat-number" style="font-size: 2.5rem; font-weight: 900; color: white; line-height: 1;">100%</div>
+                        <div class="trust-stat-label" style="font-size: 0.9rem; color: rgba(255,255,255,0.85); font-weight: 600;">Background Checked</div>
+                    </div>
+                    <div class="trust-stat-divider" style="width: 1px; height: 50px; background: rgba(255,255,255,0.2);"></div>
+                    <div class="trust-stat-item" style="text-align: center;">
+                        <div class="trust-stat-number" style="font-size: 2.5rem; font-weight: 900; color: white; line-height: 1;">5</div>
+                        <div class="trust-stat-label" style="font-size: 0.9rem; color: rgba(255,255,255,0.85); font-weight: 600;">Boroughs Covered</div>
                     </div>
                 </div>
             </div>
@@ -4581,108 +7035,189 @@ font-size: 1.1rem !important;
 
     <!-- FAQ Chatbot -->
     <div id="chatbot-container">
-        <!-- Floating Chat Button -->
-        <button id="chatbot-toggle" class="chatbot-toggle" aria-label="Open FAQ Chat" title="Ask us anything">
-            <i class="bi bi-chat-dots-fill"></i>
+        <!-- Floating Chat Button with Logo -->
+        <button id="chatbot-toggle" class="chatbot-toggle" aria-label="Open FAQ Chat" title="Chat with CAS Assistant">
+            <img src="/logo flower.png" alt="CAS" class="chatbot-toggle-logo">
             <span class="chatbot-notification">1</span>
+            <span class="chatbot-pulse-ring"></span>
         </button>
 
         <!-- Chat Window -->
         <div id="chatbot-window" class="chatbot-window hidden">
+            <!-- Enhanced Header with Logo -->
             <div class="chatbot-header">
                 <div class="chatbot-header-content">
-                    <div class="chatbot-avatar">
-                        <i class="bi bi-robot"></i>
+                    <div class="chatbot-logo-container">
+                        <img src="/logo flower.png" alt="CAS Private Care" class="chatbot-header-logo">
+                        <span class="chatbot-status-dot"></span>
                     </div>
                     <div class="chatbot-header-text">
-                        <h3>CAS Private Care Assistant</h3>
-                        <p>We're here to help!</p>
+                        <h3>CAS Private Care</h3>
+                        <p><i class="bi bi-circle-fill online-indicator"></i> Online • Ready to help</p>
                     </div>
                 </div>
-                <button id="chatbot-close" class="chatbot-close" aria-label="Close chat">
-                    <i class="bi bi-x-lg"></i>
-                </button>
+                <div class="chatbot-header-actions">
+                    <button id="chatbot-minimize" class="chatbot-action-btn" aria-label="Minimize chat" title="Minimize">
+                        <i class="bi bi-dash-lg"></i>
+                    </button>
+                    <button id="chatbot-close" class="chatbot-close" aria-label="Close chat" title="Close">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Branded Subheader -->
+            <div class="chatbot-subheader">
+                <div class="chatbot-brand-strip">
+                    <span class="brand-tag"><i class="bi bi-shield-check"></i> Verified Support</span>
+                    <span class="brand-tag"><i class="bi bi-clock"></i> Quick Response</span>
+                </div>
             </div>
             
             <div class="chatbot-body" id="chatbot-body">
-                <div class="chat-message bot-message">
+                <!-- Welcome Card -->
+                <div class="chat-welcome-card">
+                    <img src="/logo flower.png" alt="CAS Private Care" class="welcome-logo">
+                    <h4>Welcome to CAS Private Care!</h4>
+                    <p>Your trusted partner for quality home care services in NYC.</p>
+                </div>
+
+                <!-- Initial Bot Message with Timestamp -->
+                <div class="chat-message bot-message" data-time="">
                     <div class="message-avatar">
-                        <i class="bi bi-robot"></i>
+                        <img src="/logo flower.png" alt="CAS">
                     </div>
-                    <div class="message-content">
-                        <p>Hello! I'm here to help answer your questions about CAS Private Care. What would you like to know?</p>
+                    <div class="message-wrapper">
+                        <div class="message-sender">CAS Assistant</div>
+                        <div class="message-content">
+                            <p>Hello! 👋 I'm here to help answer your questions about CAS Private Care. What would you like to know?</p>
+                        </div>
+                        <div class="message-meta">
+                            <span class="message-time" id="initial-message-time"></span>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Quick FAQ Options -->
+                <!-- Quick FAQ Options with Icons -->
                 <div class="quick-questions">
+                    <p class="quick-questions-label">Popular Questions</p>
                     <button class="quick-question-btn" data-question="How do I become a partner?">
-                        How do I become a partner?
+                        <i class="bi bi-person-plus"></i>
+                        <span>How do I become a partner?</span>
+                        <i class="bi bi-chevron-right"></i>
                     </button>
                     <button class="quick-question-btn" data-question="What types of partners do you have?">
-                        What types of partners do you have?
+                        <i class="bi bi-people"></i>
+                        <span>What types of partners do you have?</span>
+                        <i class="bi bi-chevron-right"></i>
                     </button>
                     <button class="quick-question-btn" data-question="How does the platform work?">
-                        How does the platform work?
+                        <i class="bi bi-gear"></i>
+                        <span>How does the platform work?</span>
+                        <i class="bi bi-chevron-right"></i>
                     </button>
                     <button class="quick-question-btn" data-question="What are your rates?">
-                        What are your rates?
+                        <i class="bi bi-currency-dollar"></i>
+                        <span>What are your rates?</span>
+                        <i class="bi bi-chevron-right"></i>
                     </button>
                 </div>
             </div>
 
+            <!-- Enhanced Footer -->
             <div class="chatbot-footer">
                 <div class="chatbot-input-container">
-                    <input type="text" id="chatbot-input" placeholder="Type your question..." autocomplete="off">
+                    <button class="chatbot-attach-btn" aria-label="Attach file" title="Attach file (coming soon)" disabled>
+                        <i class="bi bi-paperclip"></i>
+                    </button>
+                    <input type="text" id="chatbot-input" placeholder="Type your message..." autocomplete="off">
                     <button id="chatbot-send" class="chatbot-send-btn" aria-label="Send message">
                         <i class="bi bi-send-fill"></i>
                     </button>
+                </div>
+                <div class="chatbot-footer-branding">
+                    <span>Powered by:</span>
+                    <span style="font-weight: 600; color: #0B4FA2; font-size: 0.7rem;">CAS Private Care</span>
                 </div>
             </div>
         </div>
     </div>
 
     <style>
-        /* Chatbot Styles */
+        /* ===== Enhanced Chatbot Styles ===== */
         #chatbot-container {
             position: fixed;
-            bottom: 20px;
-            right: 20px;
+            bottom: 24px;
+            right: 24px;
             z-index: 9999;
             font-family: 'Plus Jakarta Sans', sans-serif;
         }
 
+        /* Floating Toggle Button with Logo */
         .chatbot-toggle {
-            width: 60px;
-            height: 60px;
+            width: 64px;
+            height: 64px;
             border-radius: 50%;
-            background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
-            border: none;
+            background: linear-gradient(135deg, #0B4FA2 0%, #1e3a8a 100%);
+            border: 3px solid rgba(255, 255, 255, 0.3);
             color: white;
-            font-size: 1.5rem;
             cursor: pointer;
-            box-shadow: 0 4px 20px rgba(59, 130, 246, 0.4);
+            box-shadow: 0 6px 24px rgba(11, 79, 162, 0.5);
             display: flex;
             align-items: center;
             justify-content: center;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             position: relative;
+            overflow: visible;
+        }
+
+        .chatbot-toggle-logo {
+            width: 36px;
+            height: 36px;
+            object-fit: contain;
+            filter: brightness(0) invert(1);
+        }
+
+        .chatbot-toggle-icon {
+            font-size: 1.6rem;
         }
 
         .chatbot-toggle:hover {
-            transform: scale(1.1);
-            box-shadow: 0 6px 30px rgba(59, 130, 246, 0.6);
+            transform: scale(1.1) translateY(-2px);
+            box-shadow: 0 10px 36px rgba(11, 79, 162, 0.6);
+            border-color: rgba(255, 255, 255, 0.5);
         }
 
         .chatbot-toggle:active {
             transform: scale(0.95);
         }
 
+        .chatbot-pulse-ring {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 2px solid #0B4FA2;
+            animation: chatbot-pulse-ring 2s ease-out infinite;
+            pointer-events: none;
+        }
+
+        @keyframes chatbot-pulse-ring {
+            0% {
+                transform: scale(1);
+                opacity: 0.8;
+            }
+            100% {
+                transform: scale(1.6);
+                opacity: 0;
+            }
+        }
+
         .chatbot-notification {
             position: absolute;
-            top: -5px;
-            right: -5px;
-            background: #f97316;
+            top: -4px;
+            right: -4px;
+            background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
             color: white;
             border-radius: 50%;
             width: 24px;
@@ -4692,95 +7227,200 @@ font-size: 1.1rem !important;
             display: flex;
             align-items: center;
             justify-content: center;
-            border: 2px solid white;
-            animation: pulse 2s infinite;
+            border: 3px solid white;
+            box-shadow: 0 2px 8px rgba(249, 115, 22, 0.5);
+            animation: notification-bounce 2s infinite;
         }
 
-        /* Note: pulse keyframe is defined in global animations.css */
+        @keyframes notification-bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-3px); }
+        }
 
+        /* Chat Window */
         .chatbot-window {
             position: absolute;
             bottom: 80px;
             right: 0;
-            width: 380px;
-            height: 600px;
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            width: 400px;
+            height: 620px;
+            background: #ffffff;
+            border-radius: 24px;
+            box-shadow: 0 12px 48px rgba(0, 0, 0, 0.2), 0 0 0 1px rgba(11, 79, 162, 0.1);
             display: flex;
             flex-direction: column;
             overflow: hidden;
-            animation: slideUp 0.3s ease-out;
+            animation: chatbot-slideUp 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
 
-        /* Note: slideUp keyframe is defined in global animations.css */
+        @keyframes chatbot-slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px) scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
 
         .chatbot-window.hidden {
             display: none;
         }
 
+        /* Enhanced Header */
         .chatbot-header {
-            background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
+            background: linear-gradient(135deg, #0B4FA2 0%, #1e3a8a 100%);
             color: white;
-            padding: 1.25rem;
+            padding: 1rem 1.25rem;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            position: relative;
+        }
+
+        .chatbot-header::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #f97316, #fbbf24, #f97316);
         }
 
         .chatbot-header-content {
             display: flex;
             align-items: center;
-            gap: 0.75rem;
+            gap: 0.875rem;
         }
 
-        .chatbot-avatar {
-            width: 40px;
-            height: 40px;
-            background: rgba(255, 255, 255, 0.2);
+        .chatbot-logo-container {
+            position: relative;
+            width: 48px;
+            height: 48px;
+            background: white;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.25rem;
+            border: 2px solid rgba(255, 255, 255, 0.5);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        .chatbot-header-logo {
+            width: 34px;
+            height: 34px;
+            object-fit: contain;
+        }
+
+        .chatbot-avatar-fallback {
+            font-size: 1.5rem;
+        }
+
+        .chatbot-status-dot {
+            position: absolute;
+            bottom: 2px;
+            right: 2px;
+            width: 12px;
+            height: 12px;
+            background: #22c55e;
+            border-radius: 50%;
+            border: 2px solid white;
+            box-shadow: 0 0 8px rgba(34, 197, 94, 0.6);
         }
 
         .chatbot-header-text h3 {
             margin: 0;
-            font-size: 1rem;
+            font-size: 1.1rem;
             font-weight: 700;
+            letter-spacing: -0.025em;
         }
 
         .chatbot-header-text p {
             margin: 0;
-            font-size: 0.85rem;
-            opacity: 0.9;
+            font-size: 0.8rem;
+            opacity: 0.95;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
         }
 
+        .online-indicator {
+            font-size: 0.5rem;
+            color: #22c55e;
+            animation: online-pulse 2s infinite;
+        }
+
+        @keyframes online-pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .chatbot-header-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .chatbot-action-btn,
         .chatbot-close {
-            background: rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.15);
             border: none;
             color: white;
-            width: 32px;
-            height: 32px;
+            width: 34px;
+            height: 34px;
             border-radius: 50%;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: background 0.2s;
+            transition: all 0.2s;
             font-size: 1rem;
         }
 
+        .chatbot-action-btn:hover,
         .chatbot-close:hover {
-            background: rgba(255, 255, 255, 0.3);
+            background: rgba(255, 255, 255, 0.25);
+            transform: scale(1.05);
         }
 
+        /* Branded Subheader */
+        .chatbot-subheader {
+            background: linear-gradient(135deg, #dbeafe 0%, #eff6ff 100%);
+            padding: 0.625rem 1rem;
+            border-bottom: 1px solid #bfdbfe;
+        }
+
+        .chatbot-brand-strip {
+            display: flex;
+            gap: 0.75rem;
+            justify-content: center;
+        }
+
+        .brand-tag {
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+            font-size: 0.7rem;
+            color: #0B4FA2;
+            font-weight: 600;
+            background: white;
+            padding: 0.35rem 0.625rem;
+            border-radius: 20px;
+            box-shadow: 0 1px 3px rgba(11, 79, 162, 0.1);
+        }
+
+        .brand-tag i {
+            font-size: 0.75rem;
+        }
+
+        /* Chat Body */
         .chatbot-body {
             flex: 1;
             overflow-y: auto;
-            padding: 1.5rem;
-            background: #f8fafc;
+            padding: 1.25rem;
+            background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+            background-image: url("https://www.transparenttextures.com/patterns/batthern.png");
             display: flex;
             flex-direction: column;
             gap: 1rem;
@@ -4803,13 +7443,54 @@ font-size: 1.1rem !important;
             background: #94a3b8;
         }
 
-        .chat-message {
-            display: flex;
-            gap: 0.75rem;
-            animation: fadeIn 0.3s ease-out;
+        /* Welcome Card */
+        .chat-welcome-card {
+            background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+            border: 1px solid #e2e8f0;
+            border-radius: 16px;
+            padding: 1.25rem;
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            margin-bottom: 0.5rem;
         }
 
-        /* Note: fadeIn keyframe is defined in global animations.css */
+        .chat-welcome-card .welcome-logo {
+            width: 60px;
+            height: 60px;
+            object-fit: contain;
+            margin-bottom: 0.75rem;
+        }
+
+        .chat-welcome-card h4 {
+            margin: 0 0 0.35rem 0;
+            font-size: 1rem;
+            font-weight: 700;
+            color: #0B4FA2;
+        }
+
+        .chat-welcome-card p {
+            margin: 0;
+            font-size: 0.8rem;
+            color: #64748b;
+        }
+
+        /* Chat Messages */
+        .chat-message {
+            display: flex;
+            gap: 0.625rem;
+            animation: message-fadeIn 0.4s ease-out;
+        }
+
+        @keyframes message-fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
 
         .bot-message {
             align-items: flex-start;
@@ -4821,54 +7502,130 @@ font-size: 1.1rem !important;
         }
 
         .message-avatar {
-            width: 32px;
-            height: 32px;
+            width: 36px;
+            height: 36px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             flex-shrink: 0;
             font-size: 1rem;
+            overflow: hidden;
+        }
+
+        .message-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            padding: 4px;
         }
 
         .bot-message .message-avatar {
-            background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
+            background: white;
             color: white;
+            border: 2px solid #dbeafe;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
         }
 
         .user-message .message-avatar {
             background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
             color: white;
+            border: 2px solid #fed7aa;
+        }
+
+        .message-wrapper {
+            max-width: 78%;
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .message-sender {
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: #64748b;
+            margin-left: 0.5rem;
+        }
+
+        .user-message .message-sender {
+            text-align: right;
+            margin-right: 0.5rem;
+            margin-left: 0;
         }
 
         .message-content {
-            max-width: 75%;
             padding: 0.875rem 1rem;
-            border-radius: 16px;
+            border-radius: 18px;
             line-height: 1.5;
-            font-size: 0.9rem;
+            font-size: 0.875rem;
         }
 
         .bot-message .message-content {
             background: white;
             color: #1e293b;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-            border-bottom-left-radius: 4px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            border-bottom-left-radius: 6px;
+            border: 1px solid #e2e8f0;
         }
 
         .user-message .message-content {
-            background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
+            background: linear-gradient(135deg, #0B4FA2 0%, #1e3a8a 100%);
             color: white;
-            border-bottom-right-radius: 4px;
+            border-bottom-right-radius: 6px;
+            box-shadow: 0 2px 8px rgba(11, 79, 162, 0.2);
         }
 
         .message-content p {
             margin: 0;
         }
 
+        /* Message Meta (Timestamp & Read Receipt) */
+        .message-meta {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-left: 0.5rem;
+            margin-top: 0.125rem;
+        }
+
+        .user-message .message-meta {
+            justify-content: flex-end;
+            margin-right: 0.5rem;
+            margin-left: 0;
+        }
+
+        .message-time {
+            font-size: 0.65rem;
+            color: #94a3b8;
+        }
+
+        .message-status {
+            font-size: 0.75rem;
+            color: #94a3b8;
+            display: flex;
+            align-items: center;
+        }
+
+        .message-status.sent {
+            color: #94a3b8;
+        }
+
+        .message-status.delivered {
+            color: #64748b;
+        }
+
+        .message-status.read {
+            color: #0B4FA2;
+        }
+
+        .message-status i {
+            font-size: 0.85rem;
+        }
+
+        /* Typing Indicator */
         .typing-indicator {
             display: flex;
-            gap: 4px;
+            gap: 5px;
             padding: 0.875rem 1rem;
         }
 
@@ -4894,11 +7651,12 @@ font-size: 1.1rem !important;
                 opacity: 0.7;
             }
             30% {
-                transform: translateY(-10px);
+                transform: translateY(-8px);
                 opacity: 1;
             }
         }
 
+        /* Quick Questions */
         .quick-questions {
             display: flex;
             flex-direction: column;
@@ -4906,29 +7664,69 @@ font-size: 1.1rem !important;
             margin-top: 0.5rem;
         }
 
+        .quick-questions-label {
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin: 0 0 0.25rem 0.5rem;
+        }
+
         .quick-question-btn {
             background: white;
-            border: 2px solid #e2e8f0;
+            border: 1px solid #e2e8f0;
             border-radius: 12px;
             padding: 0.75rem 1rem;
-            text-align: left;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
             cursor: pointer;
-            transition: all 0.2s;
-            font-size: 0.875rem;
+            transition: all 0.25s ease;
+            font-size: 0.8rem;
             color: #1e293b;
             font-weight: 500;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        .quick-question-btn i:first-child {
+            color: #0B4FA2;
+            font-size: 1rem;
+            width: 20px;
+            text-align: center;
+        }
+
+        .quick-question-btn span {
+            flex: 1;
+            text-align: left;
+        }
+
+        .quick-question-btn i:last-child {
+            color: #cbd5e1;
+            font-size: 0.75rem;
+            transition: transform 0.2s, color 0.2s;
         }
 
         .quick-question-btn:hover {
-            border-color: #3b82f6;
-            background: #f0f9ff;
-            color: #3b82f6;
+            border-color: #0B4FA2;
+            background: linear-gradient(135deg, #f0f9ff 0%, #dbeafe 100%);
             transform: translateX(4px);
+            box-shadow: 0 4px 12px rgba(11, 79, 162, 0.15);
         }
 
+        .quick-question-btn:hover i:first-child {
+            color: #f97316;
+        }
+
+        .quick-question-btn:hover i:last-child {
+            transform: translateX(3px);
+            color: #0B4FA2;
+        }
+
+        /* Chat Footer */
         .chatbot-footer {
             border-top: 1px solid #e2e8f0;
-            padding: 1rem;
+            padding: 0.875rem 1rem;
             background: white;
         }
 
@@ -4936,27 +7734,52 @@ font-size: 1.1rem !important;
             display: flex;
             gap: 0.5rem;
             align-items: center;
+            background: #f8fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 28px;
+            padding: 0.25rem 0.35rem 0.25rem 0.75rem;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .chatbot-input-container:focus-within {
+            border-color: #0B4FA2;
+            box-shadow: 0 0 0 3px rgba(11, 79, 162, 0.1);
+        }
+
+        .chatbot-attach-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: transparent;
+            border: none;
+            color: #94a3b8;
+            cursor: not-allowed;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            opacity: 0.5;
         }
 
         #chatbot-input {
             flex: 1;
-            border: 2px solid #e2e8f0;
-            border-radius: 24px;
-            padding: 0.75rem 1rem;
-            font-size: 0.9rem;
+            border: none;
+            background: transparent;
+            padding: 0.625rem 0;
+            font-size: 0.875rem;
             outline: none;
-            transition: border-color 0.2s;
+            color: #1e293b;
         }
 
-        #chatbot-input:focus {
-            border-color: #3b82f6;
+        #chatbot-input::placeholder {
+            color: #94a3b8;
         }
 
         .chatbot-send-btn {
-            width: 44px;
-            height: 44px;
+            width: 40px;
+            height: 40px;
             border-radius: 50%;
-            background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
+            background: linear-gradient(135deg, #0B4FA2 0%, #1e3a8a 100%);
             border: none;
             color: white;
             cursor: pointer;
@@ -4964,37 +7787,86 @@ font-size: 1.1rem !important;
             align-items: center;
             justify-content: center;
             transition: all 0.2s;
-            font-size: 1.1rem;
+            font-size: 1rem;
         }
 
         .chatbot-send-btn:hover {
-            transform: scale(1.1);
-            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+            transform: scale(1.08);
+            box-shadow: 0 4px 12px rgba(11, 79, 162, 0.4);
         }
 
         .chatbot-send-btn:active {
             transform: scale(0.95);
         }
 
+        /* Footer Branding */
+        .chatbot-footer-branding {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.3rem;
+            margin-top: 0.625rem;
+            padding-top: 0.625rem;
+            border-top: 1px solid #f1f5f9;
+            width: 100%;
+            text-align: center;
+        }
+
+        .chatbot-footer-branding span {
+            font-size: 0.65rem;
+            color: #94a3b8;
+            flex-shrink: 0;
+            line-height: 14px;
+        }
+
+        .chatbot-footer-branding .footer-logo {
+            height: 14px;
+            width: 14px;
+            object-fit: contain;
+            opacity: 0.85;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        .chatbot-footer-branding strong {
+            font-size: 0.7rem;
+            color: #0B4FA2;
+            font-weight: 600;
+        }
+
         /* Mobile Responsive */
         @media (max-width: 768px) {
             #chatbot-container {
-                bottom: 15px;
-                right: 15px;
+                bottom: 16px;
+                right: 16px;
             }
 
             .chatbot-window {
-                width: calc(100vw - 30px);
-                height: calc(100vh - 100px);
-                max-height: 600px;
-                bottom: 75px;
+                width: calc(100vw - 32px);
+                height: calc(100vh - 120px);
+                max-height: 620px;
+                bottom: 78px;
                 right: 0;
+                border-radius: 20px;
             }
 
             .chatbot-toggle {
-                width: 56px;
-                height: 56px;
-                font-size: 1.35rem;
+                width: 58px;
+                height: 58px;
+            }
+
+            .chatbot-toggle-logo {
+                width: 30px;
+                height: 30px;
+            }
+
+            .chatbot-subheader {
+                padding: 0.5rem;
+            }
+
+            .brand-tag {
+                font-size: 0.6rem;
+                padding: 0.25rem 0.5rem;
             }
         }
     </style>
@@ -5041,12 +7913,31 @@ font-size: 1.1rem !important;
         const chatbotToggle = document.getElementById('chatbot-toggle');
         const chatbotWindow = document.getElementById('chatbot-window');
         const chatbotClose = document.getElementById('chatbot-close');
+        const chatbotMinimize = document.getElementById('chatbot-minimize');
         const chatbotBody = document.getElementById('chatbot-body');
         const chatbotInput = document.getElementById('chatbot-input');
         const chatbotSend = document.getElementById('chatbot-send');
         const notificationBadge = document.querySelector('.chatbot-notification');
+        const pulseRing = document.querySelector('.chatbot-pulse-ring');
 
         let isChatOpen = false;
+
+        // Format time helper
+        function formatTime(date) {
+            return date.toLocaleTimeString('en-US', { 
+                hour: 'numeric', 
+                minute: '2-digit',
+                hour12: true 
+            });
+        }
+
+        // Set initial message time on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            const initialTimeEl = document.getElementById('initial-message-time');
+            if (initialTimeEl) {
+                initialTimeEl.textContent = formatTime(new Date());
+            }
+        });
 
         // Toggle chatbot
         chatbotToggle.addEventListener('click', () => {
@@ -5058,6 +7949,9 @@ font-size: 1.1rem !important;
         });
 
         chatbotClose.addEventListener('click', closeChatbot);
+        if (chatbotMinimize) {
+            chatbotMinimize.addEventListener('click', closeChatbot);
+        }
 
         function openChatbot() {
             chatbotWindow.classList.remove('hidden');
@@ -5065,6 +7959,9 @@ font-size: 1.1rem !important;
             chatbotInput.focus();
             if (notificationBadge) {
                 notificationBadge.style.display = 'none';
+            }
+            if (pulseRing) {
+                pulseRing.style.display = 'none';
             }
         }
 
@@ -5077,7 +7974,7 @@ font-size: 1.1rem !important;
         function sendMessage(message) {
             if (!message.trim()) return;
 
-            // Add user message
+            // Add user message with timestamp and status
             addMessage(message, 'user');
             chatbotInput.value = '';
 
@@ -5089,6 +7986,9 @@ font-size: 1.1rem !important;
                 removeTypingIndicator(typingId);
                 const answer = findAnswer(message);
                 addMessage(answer, 'bot', true);
+                
+                // Update user message status to "read" after bot responds
+                updateLastUserMessageStatus('read');
             }, 800 + Math.random() * 500);
         }
 
@@ -5098,7 +7998,18 @@ font-size: 1.1rem !important;
 
             const avatar = document.createElement('div');
             avatar.className = 'message-avatar';
-            avatar.innerHTML = sender === 'bot' ? '<i class="bi bi-robot"></i>' : '<i class="bi bi-person-fill"></i>';
+            if (sender === 'bot') {
+                avatar.innerHTML = '<img src="/logo flower.png" alt="CAS">';
+            } else {
+                avatar.innerHTML = '<i class="bi bi-person-fill"></i>';
+            }
+
+            const wrapper = document.createElement('div');
+            wrapper.className = 'message-wrapper';
+
+            const senderLabel = document.createElement('div');
+            senderLabel.className = 'message-sender';
+            senderLabel.textContent = sender === 'bot' ? 'CAS Assistant' : 'You';
 
             const content = document.createElement('div');
             content.className = 'message-content';
@@ -5106,8 +8017,34 @@ font-size: 1.1rem !important;
             p.textContent = text;
             content.appendChild(p);
 
+            const meta = document.createElement('div');
+            meta.className = 'message-meta';
+            
+            const timeSpan = document.createElement('span');
+            timeSpan.className = 'message-time';
+            timeSpan.textContent = formatTime(new Date());
+            meta.appendChild(timeSpan);
+
+            // Add status indicator for user messages
+            if (sender === 'user') {
+                const statusSpan = document.createElement('span');
+                statusSpan.className = 'message-status sent';
+                statusSpan.innerHTML = '<i class="bi bi-check2"></i>';
+                meta.appendChild(statusSpan);
+                
+                // Simulate "delivered" after a moment
+                setTimeout(() => {
+                    statusSpan.className = 'message-status delivered';
+                    statusSpan.innerHTML = '<i class="bi bi-check2-all"></i>';
+                }, 300);
+            }
+
+            wrapper.appendChild(senderLabel);
+            wrapper.appendChild(content);
+            wrapper.appendChild(meta);
+
             messageDiv.appendChild(avatar);
-            messageDiv.appendChild(content);
+            messageDiv.appendChild(wrapper);
 
             chatbotBody.appendChild(messageDiv);
             scrollToBottom();
@@ -5116,6 +8053,20 @@ font-size: 1.1rem !important;
             if (withTyping && sender === 'bot') {
                 p.textContent = '';
                 typeMessage(p, text);
+            }
+        }
+
+        function updateLastUserMessageStatus(status) {
+            const userMessages = chatbotBody.querySelectorAll('.user-message');
+            if (userMessages.length > 0) {
+                const lastUserMessage = userMessages[userMessages.length - 1];
+                const statusEl = lastUserMessage.querySelector('.message-status');
+                if (statusEl) {
+                    statusEl.className = `message-status ${status}`;
+                    if (status === 'read') {
+                        statusEl.innerHTML = '<i class="bi bi-check2-all"></i>';
+                    }
+                }
             }
         }
 
@@ -5129,7 +8080,7 @@ font-size: 1.1rem !important;
                 } else {
                     clearInterval(typingInterval);
                 }
-            }, 20 + Math.random() * 10);
+            }, 15 + Math.random() * 8);
         }
 
         function showTypingIndicator() {
@@ -5139,7 +8090,14 @@ font-size: 1.1rem !important;
 
             const avatar = document.createElement('div');
             avatar.className = 'message-avatar';
-            avatar.innerHTML = '<i class="bi bi-robot"></i>';
+            avatar.innerHTML = '<img src="/logo flower.png" alt="CAS">';
+
+            const wrapper = document.createElement('div');
+            wrapper.className = 'message-wrapper';
+
+            const senderLabel = document.createElement('div');
+            senderLabel.className = 'message-sender';
+            senderLabel.textContent = 'CAS Assistant';
 
             const content = document.createElement('div');
             content.className = 'message-content';
@@ -5152,8 +8110,11 @@ font-size: 1.1rem !important;
             }
             content.appendChild(typingIndicator);
 
+            wrapper.appendChild(senderLabel);
+            wrapper.appendChild(content);
+
             typingDiv.appendChild(avatar);
-            typingDiv.appendChild(content);
+            typingDiv.appendChild(wrapper);
             chatbotBody.appendChild(typingDiv);
             scrollToBottom();
 
@@ -5463,16 +8424,6 @@ font-size: 1.1rem !important;
 
     @include('partials.mobile-action-bar')
     @include('partials.cookie-consent')
-    
-    <!-- Back to Top Button (P2-03) -->
-    <button 
-        id="back-to-top"
-        onclick="window.scrollTo({top: 0, behavior: 'smooth'})"
-        class="back-to-top-btn"
-        aria-label="Back to top"
-    >
-        <i class="bi bi-chevron-up"></i>
-    </button>
     
     <!-- Service Worker Registration -->
     <script>

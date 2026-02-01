@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use App\Models\Booking;
 use App\Models\User;
+use App\Models\StripeWebhookLog;
 use Illuminate\Support\Facades\Mail;
 use Stripe\Webhook;
 use Stripe\Exception\SignatureVerificationException;
@@ -46,10 +47,25 @@ class StripeWebhookController extends Controller
             return response()->json(['error' => 'Invalid signature'], 400);
         }
 
+        // Idempotency check - skip if already processed
+        if (StripeWebhookLog::hasBeenProcessed($event->id)) {
+            Log::info('Stripe webhook already processed, skipping', ['event_id' => $event->id]);
+            return response()->json(['message' => 'Event already processed'], 200);
+        }
+
+        // Log the webhook event
+        $webhookLog = StripeWebhookLog::logEvent(
+            $event->id,
+            $event->type,
+            json_decode($payload, true)
+        );
+
         // Handle the event
         Log::info('Stripe webhook received: ' . $event->type, ['event_id' => $event->id]);
 
         try {
+            $webhookLog->markProcessing();
+            
             switch ($event->type) {
                 case 'invoice.payment_succeeded':
                     $this->handleInvoicePaymentSucceeded($event->data->object);
@@ -89,13 +105,21 @@ class StripeWebhookController extends Controller
 
                 default:
                     Log::info('Unhandled webhook event type: ' . $event->type);
+                    $webhookLog->markSkipped('Unhandled event type');
             }
+
+            // Mark as successfully processed
+            $webhookLog->markProcessed();
+            
         } catch (\Exception $e) {
             Log::error('Error processing webhook: ' . $e->getMessage(), [
                 'event_type' => $event->type,
                 'event_id' => $event->id,
                 'trace' => $e->getTraceAsString()
             ]);
+
+            // Mark webhook as failed
+            $webhookLog->markFailed($e->getMessage());
 
             // Queue for retry if processing failed
             $this->retryService->queueForRetry(

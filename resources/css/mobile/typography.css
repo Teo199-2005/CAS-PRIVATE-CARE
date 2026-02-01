@@ -1,0 +1,307 @@
+/**
+ * CAS Private Care - Typography CSS Module
+ * Part of the mobile-fixes modular system
+ * 
+ * Mobile-optimized typography settings:
+ * - Responsive font sizes
+ * - Readable line heights
+ * - Proper text scaling
+ */
+
+/* ==========================================================================
+   Base Typography Settings
+   ========================================================================== */
+
+@media screen and (max-width: 767px) {
+    /* Root font size for mobile */
+    html {
+        font-size: 16px; /* Base size for rem calculations */
+        -webkit-text-size-adjust: 100%;
+        text-size-adjust: 100%;
+    }
+    
+    body {
+        font-size: 1rem;
+        line-height: 1.6;
+        letter-spacing: 0.01em;
+    }
+}
+
+/* ==========================================================================
+   Heading Sizes - Mobile
+   ========================================================================== */
+
+@media screen and (max-width: 767px) {
+    h1,
+    .text-h1,
+    .v-card-title.text-h1 {
+        font-size: 1.75rem; /* 28px */
+        line-height: 1.2;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+    }
+    
+    h2,
+    .text-h2,
+    .v-card-title.text-h2 {
+        font-size: 1.5rem; /* 24px */
+        line-height: 1.25;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+    }
+    
+    h3,
+    .text-h3,
+    .v-card-title.text-h3 {
+        font-size: 1.25rem; /* 20px */
+        line-height: 1.3;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+    }
+    
+    h4,
+    .text-h4,
+    .v-card-title {
+        font-size: 1.125rem; /* 18px */
+        line-height: 1.35;
+        font-weight: 600;
+        margin-bottom: 0.25rem;
+    }
+    
+    h5,
+    .text-h5 {
+        font-size: 1rem; /* 16px */
+        line-height: 1.4;
+        font-weight: 600;
+        margin-bottom: 0.25rem;
+    }
+    
+    h6,
+    .text-h6 {
+        font-size: 0.875rem; /* 14px */
+        line-height: 1.45;
+        font-weight: 600;
+        margin-bottom: 0.25rem;
+    }
+}
+
+/* ==========================================================================
+   Body Text Sizes - Mobile
+   ========================================================================== */
+
+@media screen and (max-width: 767px) {
+    .text-body-1,
+    .body-text {
+        font-size: 1rem; /* 16px */
+        line-height: 1.6;
+    }
+    
+    .text-body-2 {
+        font-size: 0.875rem; /* 14px */
+        line-height: 1.5;
+    }
+    
+    .text-caption,
+    .caption {
+        font-size: 0.75rem; /* 12px */
+        line-height: 1.4;
+    }
+    
+    .text-overline {
+        font-size: 0.625rem; /* 10px */
+        line-height: 1.3;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+    }
+    
+    .text-subtitle-1 {
+        font-size: 1rem;
+        line-height: 1.5;
+        font-weight: 500;
+    }
+    
+    .text-subtitle-2 {
+        font-size: 0.875rem;
+        line-height: 1.4;
+        font-weight: 500;
+    }
+}
+
+/* ==========================================================================
+   Readable Content
+   ========================================================================== */
+
+@media screen and (max-width: 767px) {
+    /* Optimal reading width on mobile */
+    .readable-content,
+    article,
+    .blog-content {
+        max-width: 100%;
+        padding: 0 16px;
+    }
+    
+    /* Paragraph spacing */
+    p {
+        margin-bottom: 1rem;
+    }
+    
+    /* List styling */
+    ul,
+    ol {
+        padding-left: 1.5rem;
+        margin-bottom: 1rem;
+    }
+    
+    li {
+        margin-bottom: 0.5rem;
+        line-height: 1.5;
+    }
+}
+
+/* ==========================================================================
+   Text Utilities - Mobile
+   ========================================================================== */
+
+@media screen and (max-width: 767px) {
+    /* Word breaking for long text */
+    .break-word {
+        word-break: break-word;
+        overflow-wrap: break-word;
+        hyphens: auto;
+    }
+    
+    /* Text truncation */
+    .text-truncate {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    
+    .text-truncate-2 {
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+    
+    .text-truncate-3 {
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+    
+    /* Center text on mobile */
+    .text-center-mobile {
+        text-align: center;
+    }
+    
+    /* Font weight utilities */
+    .font-weight-mobile-bold {
+        font-weight: 700;
+    }
+    
+    .font-weight-mobile-normal {
+        font-weight: 400;
+    }
+}
+
+/* ==========================================================================
+   Table Text - Mobile
+   ========================================================================== */
+
+@media screen and (max-width: 767px) {
+    table,
+    .v-data-table {
+        font-size: 0.875rem;
+    }
+    
+    th {
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+    
+    td {
+        font-size: 0.875rem;
+        line-height: 1.4;
+    }
+}
+
+/* ==========================================================================
+   Button Text - Mobile
+   ========================================================================== */
+
+@media screen and (max-width: 767px) {
+    button,
+    .btn,
+    .v-btn {
+        font-size: 0.875rem;
+        font-weight: 500;
+        letter-spacing: 0.02em;
+    }
+    
+    .btn-lg,
+    .v-btn--size-large {
+        font-size: 1rem;
+    }
+    
+    .btn-sm,
+    .v-btn--size-small {
+        font-size: 0.75rem;
+    }
+}
+
+/* ==========================================================================
+   Form Text - Mobile
+   ========================================================================== */
+
+@media screen and (max-width: 767px) {
+    label,
+    .v-label {
+        font-size: 0.875rem;
+        font-weight: 500;
+        margin-bottom: 0.25rem;
+    }
+    
+    input,
+    textarea,
+    select,
+    .v-field input {
+        font-size: 1rem; /* 16px to prevent zoom on iOS */
+    }
+    
+    .form-hint,
+    .v-messages {
+        font-size: 0.75rem;
+        line-height: 1.3;
+    }
+    
+    .error-message,
+    .v-messages.error--text {
+        font-size: 0.75rem;
+        color: var(--color-error);
+    }
+}
+
+/* ==========================================================================
+   Chip & Badge Text - Mobile
+   ========================================================================== */
+
+@media screen and (max-width: 767px) {
+    .v-chip,
+    .chip,
+    .tag {
+        font-size: 0.75rem;
+        font-weight: 500;
+    }
+    
+    .badge,
+    .notification-badge {
+        font-size: 0.625rem;
+        font-weight: 700;
+    }
+}

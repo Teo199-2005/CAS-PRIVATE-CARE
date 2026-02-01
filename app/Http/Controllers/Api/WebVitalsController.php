@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Traits\ApiResponseTrait;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -28,6 +29,8 @@ use Illuminate\Support\Facades\Validator;
  */
 class WebVitalsController extends Controller
 {
+    use ApiResponseTrait;
+
     /**
      * Google's recommended thresholds for Core Web Vitals
      */
@@ -59,10 +62,7 @@ class WebVitalsController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return response()->json([
-                'success' => false,
-                'errors' => $validator->errors()
-            ], 422);
+            return $this->validationErrorResponse($validator->errors()->toArray());
         }
 
         $data = $validator->validated();
@@ -80,10 +80,7 @@ class WebVitalsController extends Controller
             $this->alertPoorPerformance($data);
         }
 
-        return response()->json([
-            'success' => true,
-            'received' => $data['name'],
-        ]);
+        return $this->successResponse(['received' => $data['name']]);
     }
 
     /**

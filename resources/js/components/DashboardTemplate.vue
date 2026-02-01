@@ -121,7 +121,7 @@
       </v-list>
     </v-navigation-drawer>
 
-    <v-main class="main-content">
+    <v-main id="main-content" class="main-content" tabindex="-1" role="main" aria-label="Main content">
       <div class="main-wrapper">
         <v-container fluid class="py-6 px-4 content-container">
           <!-- Desktop Header -->
@@ -136,7 +136,7 @@
                 <div class="user-info-inner d-flex align-center">
                   <div class="avatar-wrapper">
                     <v-avatar :color="roleAvatarColor" size="60" class="user-avatar elevation-3">
-                      <img v-if="userAvatar && userAvatar.length > 0" :src="userAvatar" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;" />
+                      <img v-if="userAvatar && userAvatar.length > 0" :src="userAvatar" :alt="`${userName}'s profile photo`" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;" />
                       <span v-else class="avatar-initials">{{ userInitials }}</span>
                     </v-avatar>
                     <div class="avatar-status-dot" :class="roleStatusClass"></div>
@@ -160,7 +160,7 @@
             <div class="mobile-header-content mb-4">
               <div class="d-flex align-center mb-3">
                 <v-avatar :color="roleAvatarColor" size="48" class="mr-3">
-                  <img v-if="userAvatar && userAvatar.length > 0" :src="userAvatar" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;" />
+                  <img v-if="userAvatar && userAvatar.length > 0" :src="userAvatar" :alt="`${userName}'s profile photo`" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;" />
                   <span v-else class="text-white font-weight-bold">{{ userInitials }}</span>
                 </v-avatar>
                 <div class="flex-grow-1">

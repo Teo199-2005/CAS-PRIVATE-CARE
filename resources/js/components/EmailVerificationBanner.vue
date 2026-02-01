@@ -81,12 +81,24 @@ const sendVerificationEmail = async () => {
   try {
     const response = await fetch('/email/verification-notification', {
       method: 'POST',
+      credentials: 'include',
       headers: {
         'Content-Type': 'application/json',
         'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+        'X-Requested-With': 'XMLHttpRequest',
         'Accept': 'application/json'
       }
     });
+
+    // Handle non-JSON responses (like 419 CSRF errors)
+    const contentType = response.headers.get('content-type');
+    if (!contentType || !contentType.includes('application/json')) {
+      if (response.status === 419) {
+        notification('Session expired. Please refresh the page and try again.', 'error');
+        return;
+      }
+      throw new Error('Server returned non-JSON response');
+    }
 
     const data = await response.json();
 
@@ -96,7 +108,8 @@ const sendVerificationEmail = async () => {
       notification(data.message || 'Failed to send verification email', 'error');
     }
   } catch (error) {
-    notification('Failed to send verification email. Please try again later.', 'error');
+    console.error('Verification email error:', error);
+    notification('Something went wrong. Please refresh the page and try again.', 'error');
   } finally {
     sending.value = false;
   }
