@@ -61,7 +61,7 @@
                 <div class="form-row">
                     <div class="form-group">
                         <label>Email</label>
-                        <input type="email" name="email" value="caregiver@demo.com" required>
+                        <input type="email" name="email" value="caregiver@demo.com" required readonly>
                     </div>
                     <div class="form-group">
                         <label>Phone</label>

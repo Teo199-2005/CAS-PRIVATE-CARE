@@ -413,7 +413,7 @@
                   </div>
                 </v-col>
                 <v-col cols="12" md="6">
-                  <v-text-field v-model="profile.email" label="Email" variant="outlined" type="email">
+                  <v-text-field v-model="profile.email" label="Email" variant="outlined" type="email" readonly>
                     <template v-slot:append-inner>
                       <v-tooltip :text="userEmailVerified ? 'Email Verified' : 'Email Not Verified'" location="top">
                         <template v-slot:activator="{ props }">

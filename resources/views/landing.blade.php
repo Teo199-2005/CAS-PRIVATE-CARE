@@ -233,15 +233,15 @@
         }
 
         .hero {
-            margin-top: 88px;
-            padding: var(--section-padding-lg, 6rem) var(--space-8, 2rem);
+            margin-top: 72px; /* Match nav height to remove white gap */
+            padding: 3rem var(--space-8, 2rem) var(--section-padding-lg, 6rem);
             text-align: center;
             position: relative;
             overflow: hidden; /* Critical: prevents horizontal scroll */
             overflow-x: clip; /* Enhanced overflow prevention */
             min-height: 90vh;
             display: flex;
-            align-items: center;
+            align-items: flex-start;
             justify-content: center;
             background: transparent !important;
             contain: layout style paint; /* Performance optimization */
@@ -330,12 +330,179 @@
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: var(--grid-gap-lg, 2rem);
-            align-items: center;
-            background: rgba(255, 255, 255, 0.92);
+            align-items: start;
+            background: rgba(255, 255, 255, 0.98);
             border-radius: var(--card-radius-lg, 24px);
-            padding: var(--card-padding-lg, 2rem);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            box-shadow: var(--shadow-card-elevated);
+            padding: var(--card-padding-lg, 2.5rem);
+            border: 1px solid rgba(59, 130, 246, 0.12);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 24px 48px -12px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(0, 0, 0, 0.04);
+            overflow: hidden;
+        }
+        /* Gradient circle effects on hero card – more noticeable */
+        .hero-content::before {
+            content: '';
+            position: absolute;
+            top: -60px;
+            right: -60px;
+            width: 280px;
+            height: 280px;
+            background: radial-gradient(circle, rgba(249, 115, 22, 0.35) 0%, rgba(249, 115, 22, 0.1) 50%, transparent 70%);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 0;
+        }
+        .hero-content::after {
+            content: '';
+            position: absolute;
+            bottom: -40px;
+            left: -40px;
+            width: 220px;
+            height: 220px;
+            background: radial-gradient(circle, rgba(59, 130, 246, 0.32) 0%, rgba(59, 130, 246, 0.08) 50%, transparent 70%);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 0;
+        }
+        .hero-content > * {
+            position: relative;
+            z-index: 1;
+        }
+
+        /* CEO / Founder section – gradient circle effects (same style as hero card) */
+        .ceo-content {
+            position: relative;
+            overflow: hidden;
+        }
+        .ceo-content::before {
+            content: '';
+            position: absolute;
+            top: -60px;
+            right: -60px;
+            width: 280px;
+            height: 280px;
+            background: radial-gradient(circle, rgba(249, 115, 22, 0.35) 0%, rgba(249, 115, 22, 0.1) 50%, transparent 70%);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 0;
+        }
+        .ceo-content::after {
+            content: '';
+            position: absolute;
+            bottom: -40px;
+            left: -40px;
+            width: 220px;
+            height: 220px;
+            background: radial-gradient(circle, rgba(59, 130, 246, 0.32) 0%, rgba(59, 130, 246, 0.08) 50%, transparent 70%);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 0;
+        }
+        .ceo-content > * {
+            position: relative;
+            z-index: 1;
+        }
+
+        /* CEO Section – prestige styling */
+        .ceo-section {
+            background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 50%, #e2e8f0 100%) !important;
+            position: relative;
+        }
+        .ceo-section .section-header h2 {
+            font-size: clamp(2rem, 4vw, 3.25rem);
+            font-weight: 800;
+            letter-spacing: -0.02em;
+        }
+        .ceo-content {
+            background: #ffffff !important;
+            padding: 3.5rem 4rem !important;
+            border-radius: 24px !important;
+            border: 1px solid rgba(59, 130, 246, 0.15) !important;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.02), 0 25px 50px -12px rgba(0, 0, 0, 0.12), 0 0 0 1px rgba(0, 0, 0, 0.03) !important;
+            display: grid !important;
+            grid-template-columns: 1fr 1.5fr !important;
+            gap: 4rem !important;
+            align-items: center !important;
+        }
+        .ceo-content .ceo-company {
+            margin-bottom: 2rem;
+        }
+        .ceo-content .ceo-company h3 {
+            font-size: 0.85rem;
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            color: #1e40af;
+            margin: 0 0 0.25rem 0;
+            text-transform: uppercase;
+        }
+        .ceo-content .ceo-company p {
+            color: #64748b;
+            margin: 0;
+            font-size: 0.95rem;
+            font-weight: 500;
+        }
+        .ceo-content .ceo-name {
+            font-size: clamp(2rem, 3.5vw, 2.75rem);
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+            letter-spacing: -0.02em;
+            line-height: 1.15;
+            color: #0f172a;
+        }
+        .ceo-content .ceo-title {
+            display: inline-block;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #fff;
+            background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
+            padding: 0.5rem 1.25rem;
+            border-radius: 50px;
+            margin-bottom: 1.75rem;
+            letter-spacing: 0.02em;
+            box-shadow: 0 4px 14px rgba(59, 130, 246, 0.35);
+        }
+        .ceo-content .ceo-bio {
+            font-size: 1.1rem;
+            color: #475569;
+            line-height: 1.85;
+            margin: 0;
+            max-width: 42em;
+            padding-left: 1.5rem;
+            border-left: 4px solid rgba(59, 130, 246, 0.35);
+        }
+        .ceo-content .ceo-image-wrap {
+            position: relative;
+            display: inline-block;
+        }
+        .ceo-content .ceo-image-wrap::before {
+            content: '';
+            position: absolute;
+            inset: -12px;
+            border: 2px solid rgba(59, 130, 246, 0.2);
+            border-radius: 24px;
+            z-index: 0;
+        }
+        .ceo-content .ceo-image-wrap img {
+            position: relative;
+            z-index: 1;
+            border-radius: 20px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(0, 0, 0, 0.04);
+            width: 100%;
+            max-width: 100%;
+            height: auto;
+        }
+        .ceo-content .ceo-badge {
+            position: absolute;
+            bottom: -12px;
+            right: -12px;
+            background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
+            padding: 1rem 1.5rem;
+            border-radius: 16px;
+            box-shadow: 0 12px 28px rgba(59, 130, 246, 0.4);
+            z-index: 2;
+        }
+        .ceo-content .ceo-badge i {
+            font-size: 1.75rem;
+            color: white;
         }
         
         /* Tablet breakpoint - stack hero content earlier */
@@ -357,15 +524,16 @@
             gap: var(--grid-gap-md, 1.5rem);
         }
 
+        /* Push promotional card down so it aligns with description/CTAs on the left */
         .hero-image-container {
             position: relative;
             height: 350px;
             width: 100%;
             max-width: 610px;
-            border-radius: var(--card-radius-md, 16px);
+            margin-top: 6rem;
+            border-radius: 20px;
             overflow: hidden;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-            /* Optimized animation - GPU accelerated, no box-shadow animation */
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(0, 0, 0, 0.04);
             transition: transform var(--duration-fast, 150ms) var(--ease-out, ease-out);
             will-change: transform;
         }
@@ -399,6 +567,91 @@
             /* Removed transform animation - saves battery on mobile */
         }
 
+        .hero-service-toggle {
+            position: relative;
+            display: flex;
+            justify-content: center;
+            margin: 2rem 0;
+            background: rgba(30, 64, 175, 0.08);
+            padding: 0.5rem;
+            border-radius: 50px;
+            border: 1px solid rgba(30, 64, 175, 0.2);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+        }
+        .hero-toggle-slider {
+            position: absolute;
+            top: 0.5rem;
+            left: 0.5rem;
+            width: calc(50% - 0.5rem);
+            height: calc(100% - 1rem);
+            background: white;
+            border-radius: 25px;
+            transition: transform 0.3s ease;
+            z-index: 1;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        }
+        .hero-toggle-btn {
+            position: relative;
+            z-index: 2;
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 25px;
+            background: transparent;
+            color: #64748b;
+            font-weight: 600;
+            cursor: pointer;
+            transition: color 0.25s ease, transform 0.2s ease;
+            flex: 1;
+        }
+        .hero-toggle-btn[aria-selected="true"] {
+            color: #1e40af;
+        }
+        .hero-toggle-btn:hover {
+            color: #1e40af;
+        }
+        .hero-toggle-btn:focus-visible {
+            outline: 2px solid #3b82f6;
+            outline-offset: 2px;
+        }
+        .hero-call-cta {
+            margin-top: 1.5rem;
+            margin-bottom: 0;
+            font-size: 0.95rem;
+            color: var(--text-secondary, #475569);
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 0.35rem;
+        }
+        .hero-call-label {
+            font-weight: 600;
+            color: var(--brand-primary-darker, #1e40af);
+        }
+        .hero-call-number {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.35rem 0.75rem;
+            background: rgba(249, 115, 22, 0.1);
+            color: #ea580c;
+            font-weight: 700;
+            text-decoration: none;
+            border-radius: 50px;
+            transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease;
+        }
+        .hero-call-number i {
+            font-size: 0.95em;
+        }
+        .hero-call-number:hover {
+            background: rgba(249, 115, 22, 0.18);
+            color: #c2410c;
+            text-decoration: none;
+            transform: translateY(-1px);
+        }
+        .hero-call-number:focus-visible {
+            outline: 2px solid #f97316;
+            outline-offset: 2px;
+        }
         .hero-social-container {
             display: flex;
             align-items: center;
@@ -408,11 +661,11 @@
         }
 
         .hero-social-text {
-            color: rgba(255, 255, 255, 0.8);
-            font-size: 0.85rem;
+            color: #64748b;
+            font-size: 0.8rem;
             margin: 0;
-            font-weight: 500;
-            letter-spacing: 1px;
+            font-weight: 600;
+            letter-spacing: 0.08em;
             white-space: nowrap;
         }
 
@@ -429,26 +682,25 @@
         .hero-social-icon {
             width: 42px;
             height: 42px;
-            background: rgba(15, 23, 42, 0.55);
+            background: rgba(30, 64, 175, 0.08);
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            color: #ffffff;
+            color: #1e40af;
             text-decoration: none;
-            transition: all 0.3s;
+            transition: background 0.25s ease, color 0.25s ease, transform 0.25s ease, box-shadow 0.25s ease;
             font-size: 1.1rem;
-            border: 1px solid rgba(255, 255, 255, 0.45);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            box-shadow: 0 10px 24px rgba(15, 23, 42, 0.18);
+            border: 1px solid rgba(30, 64, 175, 0.2);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
         }
 
         .hero-social-icon:hover {
-            background: rgba(15, 23, 42, 0.75);
-            transform: translateY(-3px);
-            border-color: rgba(255, 255, 255, 0.5);
-            box-shadow: 0 14px 34px rgba(15, 23, 42, 0.28);
+            background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
+            color: #fff;
+            transform: translateY(-2px);
+            border-color: transparent;
+            box-shadow: 0 8px 20px rgba(59, 130, 246, 0.35);
         }
 
         /* Keep "CONNECT WITH US" perfectly aligned with icon row */
@@ -818,19 +1070,24 @@
             font-size: var(--text-3xl, 1.875rem);
             color: var(--brand-primary-darker, #1e40af);
             margin-bottom: var(--space-4);
-            font-weight: var(--font-bold, 700);
-            letter-spacing: var(--tracking-tight, -0.025em);
+            padding-bottom: 1rem;
+            font-weight: 700;
+            letter-spacing: 0.02em;
             text-shadow: 2px 2px 4px rgba(255, 255, 255, 0.9);
             animation: fadeInUp var(--duration-slower) var(--ease-out) 0.15s both;
+            border-bottom: 2px solid rgba(59, 130, 246, 0.2);
         }
 
         .hero p {
             font-size: var(--text-lg, 1.125rem);
             color: var(--text-secondary, #475569);
             margin-bottom: var(--space-6);
-            line-height: var(--leading-relaxed, 1.625);
+            line-height: 1.7;
             font-weight: var(--font-medium, 500);
             animation: fadeInUp var(--duration-slower) var(--ease-out) 0.25s both;
+        }
+        .hero #hero-description {
+            max-width: 32em;
         }
 
         .hero-trust-badges {
@@ -873,6 +1130,12 @@
             gap: 1.5rem;
             flex-wrap: wrap;
             animation: fadeInUp 1s cubic-bezier(0.4, 0, 0.2, 1) 0.6s both;
+        }
+        .hero-content .hero-buttons .btn-secondary:hover {
+            box-shadow: 0 10px 28px rgba(249, 115, 22, 0.4);
+        }
+        .hero-content .hero-buttons .btn-primary:hover {
+            box-shadow: 0 8px 24px rgba(30, 64, 175, 0.25);
         }
 
         /* ============================================================
@@ -2348,7 +2611,7 @@
                 font-size: 0.9rem !important;
             }
 
-            .hero-left > div[style*="display: flex"][style*="justify-content: center"] button {
+            .hero-left .hero-service-toggle .hero-toggle-btn {
                 padding: 0.5rem 0.75rem !important;
                 font-size: 0.75rem !important;
             }
@@ -2695,6 +2958,7 @@
                 border-radius: 12px !important;
                 box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25) !important;
                 overflow: hidden !important;
+                margin-top: 0 !important;
                 margin-bottom: 1rem !important;
             }
 
@@ -2776,7 +3040,7 @@
             }
 
             /* Service Switcher */
-            .hero-left > div[style*="display: flex"][style*="justify-content: center"] {
+            .hero-left .hero-service-toggle {
                 margin: 0.875rem 0 !important;
                 padding: 0.35rem !important;
                 border-radius: 30px !important;
@@ -2785,12 +3049,12 @@
                 box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.08) !important;
             }
 
-            .hero-left > div[style*="display: flex"][style*="justify-content: center"] #slider-bg {
+            .hero-left .hero-service-toggle .hero-toggle-slider {
                 border-radius: 25px !important;
                 box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12) !important;
             }
 
-            .hero-left > div[style*="display: flex"][style*="justify-content: center"] button {
+            .hero-left .hero-service-toggle .hero-toggle-btn {
                 padding: 0.6rem 1rem !important;
                 font-size: 0.85rem !important;
                 font-weight: 600 !important;
@@ -2829,12 +3093,15 @@
                 gap: 0.5rem !important;
             }
 
-            .hero-buttons .btn-primary {
+            /* Hero: Find a Caregiver = primary (orange), Become a Partner = secondary (blue) */
+            .hero-buttons .btn-secondary {
                 background: linear-gradient(135deg, #f97316 0%, #ea580c 100%) !important;
+                color: white !important;
                 box-shadow: 0 4px 14px rgba(249, 115, 22, 0.35) !important;
+                border: none !important;
             }
 
-            .hero-buttons .btn-secondary {
+            .hero-buttons .btn-primary {
                 background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%) !important;
                 color: white !important;
                 box-shadow: 0 4px 14px rgba(59, 130, 246, 0.3) !important;
@@ -5601,11 +5868,12 @@
            These styles reset any mobile overrides for large screens
            ============================================================= */
         @media (min-width: 1281px) {
-            /* Hero section - restore desktop layout */
+            /* Hero section - restore desktop layout, container near top */
             .hero {
-                margin-top: 90px;
-                padding: 4rem 2rem;
+                margin-top: 72px; /* Match nav height to remove white gap */
+                padding: 3rem 2rem 4rem;
                 min-height: 100vh;
+                align-items: flex-start;
             }
 
             .hero-content {
@@ -6008,18 +6276,22 @@
                 <h1 style="text-shadow: 2px 2px 4px rgba(255, 255, 255, 1), -1px -1px 0 rgba(255, 255, 255, 1), 1px -1px 0 rgba(255, 255, 255, 1), -1px 1px 0 rgba(255, 255, 255, 1), 1px 1px 0 rgba(255, 255, 255, 1);"><span style="color: #f97316;">CAS Private Care</span> <span style="color: #3b82f6;">LLC</span></h1>
                 <p class="tagline">Comfort and Support</p>
                 
-                <div style="position: relative; display: flex; justify-content: center; margin: 2rem 0; background: rgba(30, 64, 175, 0.15); padding: 0.5rem; border-radius: 50px; backdrop-filter: blur(10px); border: 1px solid rgba(30, 64, 175, 0.3); box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);">
-                    <div id="slider-bg" style="position: absolute; top: 0.5rem; left: 0.5rem; width: calc(50% - 0.5rem); height: calc(100% - 1rem); background: white; border-radius: 25px; transition: transform 0.3s ease; z-index: 1; box-shadow: 0 2px 8px rgba(0,0,0,0.15);"></div>
-                    <button onclick="switchService('caregiver')" id="btn-caregiver" style="position: relative; z-index: 2; padding: 0.75rem 1.5rem; border: none; border-radius: 25px; background: transparent; color: #1e40af; font-weight: 600; cursor: pointer; transition: color 0.3s; flex: 1;">Caregiver</button>
-                    <button onclick="switchService('housekeeping')" id="btn-housekeeping" style="position: relative; z-index: 2; padding: 0.75rem 1.5rem; border: none; border-radius: 25px; background: transparent; color: #1e40af; font-weight: 600; cursor: pointer; transition: color 0.3s; flex: 1;">Housekeeping</button>
+                <div class="hero-service-toggle" role="tablist" aria-label="Service type">
+                    <div id="slider-bg" class="hero-toggle-slider" aria-hidden="true"></div>
+                    <button type="button" role="tab" id="btn-caregiver" aria-selected="true" aria-controls="hero-description" onclick="switchService('caregiver')" class="hero-toggle-btn">Caregiver</button>
+                    <button type="button" role="tab" id="btn-housekeeping" aria-selected="false" aria-controls="hero-description" onclick="switchService('housekeeping')" class="hero-toggle-btn">Housekeeping</button>
                 </div>
                 
                 <p id="hero-description" style="transition: opacity 0.5s ease;">A modern and trustworthy platform connecting families with verified caregivers and housekeepers. Background-checked professionals ready to support your family across all NYC boroughs.</p>
                 
                 <div class="hero-buttons">
-                    <a href="{{ url('/register') }}" class="btn-primary" id="find-btn" style="transition: opacity 0.5s ease;">Find a Caregiver</a>
-                    <a href="{{ url('/register') }}" class="btn-secondary">Become a Partner</a>
+                    <a href="{{ url('/register') }}" class="btn-secondary" id="find-btn" style="transition: opacity 0.5s ease;">Find a Caregiver</a>
+                    <a href="{{ url('/register') }}" class="btn-primary">Become a Partner</a>
                 </div>
+                <p class="hero-call-cta">
+                    <span class="hero-call-label">Call Us Today!</span>
+                    <a href="tel:{{ config('app.phone', '16462828282') }}" class="hero-call-number" aria-label="Call CAS Private Care"><i class="bi bi-telephone-fill" aria-hidden="true"></i> (646) 282-8282</a>
+                </p>
             </div>
             <div class="hero-right">
                 <div class="hero-image-container">
@@ -6127,29 +6399,29 @@
     <section class="section-dark ceo-section" style="padding: 6rem 2rem;">
         <div class="container" style="max-width: 1200px; margin: 0 auto;">
             <div class="section-header fade-in" style="text-align: center; margin-bottom: 4rem;">
-                <h2 style="font-size: 3rem; font-weight: 700; margin-bottom: 1rem;">
-                    <span style="color: #f97316;">Meet</span> <span style="background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Our Founder</span>
+                <h2>
+                    <span style="color: #f97316;">Meet</span> <span style="background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">Our Founder</span>
                 </h2>
             </div>
-            <div class="ceo-content" style="display: grid; grid-template-columns: 1fr 1.5fr; gap: 4rem; align-items: center; background: white; padding: 3rem; border-radius: 0; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1); border: 3px solid #3b82f6;">
+            <div class="ceo-content">
                 <div class="fade-in" style="text-align: center;">
-                    <div style="position: relative; display: inline-block;">
-                        <img src="{{ asset('CEO.jpg') }}" alt="Charles Andrew Santiago - CEO and Founder of CAS Private Care LLC" style="width: 100%; max-width: 700px; height: auto; border-radius: 20px; box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);" loading="lazy" decoding="async">
-                        <div style="position: absolute; bottom: -15px; right: -15px; background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); padding: 1rem 1.5rem; border-radius: 15px; box-shadow: 0 10px 30px rgba(59, 130, 246, 0.3);">
-                            <i class="bi bi-award-fill" style="font-size: 2rem; color: white;" aria-hidden="true"></i>
+                    <div class="ceo-image-wrap">
+                        <img src="{{ asset('CEO.jpg') }}" alt="Charles Andrew Santiago - CEO and Founder of CAS Private Care LLC" loading="lazy" decoding="async">
+                        <div class="ceo-badge" aria-hidden="true">
+                            <i class="bi bi-award-fill" aria-hidden="true"></i>
                         </div>
                     </div>
                 </div>
                 <div class="fade-in">
-                    <div style="margin-bottom: 2rem;">
-                        <h3 style="font-size: 1.5rem; color: #1e293b; margin: 0 0 0.5rem 0; font-weight: 600;">CAS PRIVATE CARE LLC</h3>
-                        <p style="color: #64748b; margin: 0; font-size: 0.9rem;">Professional Caregiving Services</p>
+                    <div class="ceo-company">
+                        <h3>CAS PRIVATE CARE LLC</h3>
+                        <p>Professional Caregiving Services</p>
                     </div>
-                    <h2 style="font-size: 2.5rem; font-weight: 700; margin-bottom: 0.5rem; color: #1e293b;">
+                    <h2 class="ceo-name">
                         <span style="color: #f97316;">Charles Andrew</span> <span style="color: #1e40af;">Santiago</span>
                     </h2>
-                    <p style="font-size: 1.3rem; color: #3b82f6; font-weight: 600; margin-bottom: 1.5rem;">CEO / Founder</p>
-                    <p style="font-size: 1.1rem; color: #64748b; line-height: 1.8; margin-bottom: 0;">
+                    <p class="ceo-title">CEO / Founder</p>
+                    <p class="ceo-bio">
                         With a vision to transform the caregiving industry, Charles Andrew Santiago is dedicated to building a trusted platform that connects families with exceptional contractors. His goal is to ensure every family receives quality, compassionate care while creating meaningful opportunities for professional contractors. Through CAS Private Care LLC, he strives to make professional caregiving services accessible, reliable, and safe for everyone, fostering stronger communities one connection at a time.
                     </p>
                 </div>
@@ -6999,7 +7271,7 @@
             const description = document.getElementById('hero-description');
             const findBtn = document.getElementById('find-btn');
             const sliderBg = document.getElementById('slider-bg');
-            const buttons = ['btn-caregiver', 'btn-housekeeping', 'btn-personal'];
+            const buttons = ['btn-caregiver', 'btn-housekeeping'];
             
             // Fade out
             description.style.transition = 'opacity 0.3s ease';
@@ -7009,16 +7281,21 @@
             
             buttons.forEach(id => {
                 const el = document.getElementById(id);
-                if (el) el.style.color = 'white';
+                if (el) {
+                    el.style.color = '#64748b';
+                    el.setAttribute('aria-selected', 'false');
+                }
             });
             
             if (type === 'caregiver') {
                 sliderBg.style.transform = 'translateX(0%)';
-                document.getElementById('btn-caregiver').style.color = '#1e40af';
+                const btnCaregiver = document.getElementById('btn-caregiver');
+                if (btnCaregiver) { btnCaregiver.style.color = '#1e40af'; btnCaregiver.setAttribute('aria-selected', 'true'); }
                 currentService = 0;
             } else if (type === 'housekeeping') {
                 sliderBg.style.transform = 'translateX(100%)';
-                document.getElementById('btn-housekeeping').style.color = '#1e40af';
+                const btnHousekeeping = document.getElementById('btn-housekeeping');
+                if (btnHousekeeping) { btnHousekeeping.style.color = '#1e40af'; btnHousekeeping.setAttribute('aria-selected', 'true'); }
                 currentService = 1;
             }
             

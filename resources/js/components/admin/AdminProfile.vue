@@ -35,6 +35,7 @@
                   label="Email" 
                   variant="outlined" 
                   type="email"
+                  readonly
                   :error-messages="errors.email"
                 >
                   <template v-slot:append-inner>
