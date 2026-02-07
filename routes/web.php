@@ -38,6 +38,7 @@ use App\Http\Controllers\MarketingStaffController;
 use App\Http\Controllers\TrainingCenterController;
 use App\Http\Controllers\DebugController;
 use App\Http\Controllers\AvatarController;
+use App\Http\Controllers\FeaturedPostController;
 use App\Http\Controllers\HealthController;
 
 // ============================================
@@ -258,6 +259,9 @@ Route::prefix('api')->middleware(['web', 'auth'])->group(function () {
     Route::post('/bookings/{id}/approve', [BookingController::class, 'approve']);
     Route::post('/bookings/{id}/add-payment-data', [PricingController::class, 'addPaymentData']);
     
+    // Featured Posts (client dashboard widget)
+    Route::get('/featured-posts', [FeaturedPostController::class, 'index']);
+
     // Client Data
     Route::get('/client/stats', [\App\Http\Controllers\DashboardController::class, 'clientStats']);
     Route::get('/client/available-years', [\App\Http\Controllers\DashboardController::class, 'clientAvailableYears']);
@@ -404,6 +408,12 @@ Route::prefix('api')->middleware(['web', 'auth', 'user.type:admin'])->group(func
     Route::get('/admin/announcements', [AdminController::class, 'getAnnouncements']);
     Route::post('/admin/announcements', [AdminController::class, 'storeAnnouncement']);
     Route::post('/admin/test-email', [AdminController::class, 'sendTestEmail']);
+
+    // Featured Posts (admin: upload, edit, delete)
+    Route::get('/admin/featured-posts', [FeaturedPostController::class, 'adminIndex']);
+    Route::post('/admin/featured-posts', [FeaturedPostController::class, 'store']);
+    Route::put('/admin/featured-posts/{id}', [FeaturedPostController::class, 'update']);
+    Route::delete('/admin/featured-posts/{id}', [FeaturedPostController::class, 'destroy']);
     
     // Booking Assignments (BookingAdminController)
     Route::post('/bookings/{id}/assign', [BookingAdminController::class, 'assignCaregivers']);

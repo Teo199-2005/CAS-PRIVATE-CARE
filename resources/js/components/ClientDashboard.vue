@@ -149,7 +149,7 @@
           </v-row>
 
           <v-row class="mt-2">
-            <v-col cols="12">
+            <v-col cols="12" md="8">
               <v-card class="mb-6" elevation="0">
                 <v-card-title class="card-header pa-6">
                   <div class="d-flex align-center justify-space-between">
@@ -528,6 +528,63 @@
                     >
                       View All {{ allClientBookings.length }} Bookings
                     </v-btn>
+                  </div>
+                </v-card-text>
+              </v-card>
+            </v-col>
+            <!-- Featured Posts Widget -->
+            <v-col cols="12" md="4">
+              <v-card class="mb-6" elevation="0">
+                <v-card-title class="card-header pa-6">
+                  <span class="section-title primary--text">Featured</span>
+                  <p class="text-caption text-grey ma-0 mt-1">Updates and highlights from CAS Private Care</p>
+                </v-card-title>
+                <v-card-text class="pa-4">
+                  <div v-if="loadingFeaturedPosts" class="text-center py-6">
+                    <v-progress-circular indeterminate color="primary" size="32"></v-progress-circular>
+                  </div>
+                  <div v-else-if="featuredPosts.length === 0" class="text-center py-6 text-grey">
+                    <v-icon size="40" color="grey-lighten-1">mdi-image-multiple-outline</v-icon>
+                    <p class="mt-2 mb-0 text-body-2">No featured posts yet</p>
+                  </div>
+                  <div v-else class="featured-posts-slideshow">
+                    <div class="featured-slide-outer">
+                      <Transition name="featured-fade" mode="out-in">
+                        <a
+                          :key="currentFeaturedPost?.id ?? featuredSlideIndex"
+                          :href="currentFeaturedPost?.link_url || '#'"
+                          :target="currentFeaturedPost?.link_url ? '_blank' : '_self'"
+                          rel="noopener noreferrer"
+                          class="featured-post-item d-block rounded-lg overflow-hidden"
+                          :class="{ 'no-link': !currentFeaturedPost?.link_url }"
+                          @click="!currentFeaturedPost?.link_url && $event.preventDefault()"
+                        >
+                          <div class="featured-post-image-wrap rounded-lg overflow-hidden elevation-1">
+                            <img
+                              :src="currentFeaturedPost?.image_url"
+                              :alt="currentFeaturedPost?.title || currentFeaturedPost?.caption || 'Featured post'"
+                              class="featured-post-image"
+                            />
+                          </div>
+                          <div v-if="currentFeaturedPost?.title || currentFeaturedPost?.caption" class="featured-post-caption mt-2 pa-2">
+                            <div v-if="currentFeaturedPost?.title" class="text-subtitle-2 font-weight-bold primary--text">{{ currentFeaturedPost.title }}</div>
+                            <div v-if="currentFeaturedPost?.caption" class="text-caption text-grey">{{ currentFeaturedPost.caption }}</div>
+                          </div>
+                        </a>
+                      </Transition>
+                    </div>
+                    <!-- Dots when 2+ slides -->
+                    <div v-if="featuredPosts.length > 1" class="featured-slide-dots mt-3 d-flex justify-center align-center" style="gap: 8px;">
+                      <button
+                        v-for="(_, i) in featuredPosts.length"
+                        :key="i"
+                        type="button"
+                        class="featured-dot"
+                        :class="{ 'featured-dot-active': i === featuredSlideIndex }"
+                        :aria-label="`Go to slide ${i + 1}`"
+                        @click="featuredSlideIndex = i"
+                      ></button>
+                    </div>
                   </div>
                 </v-card-text>
               </v-card>
@@ -1739,97 +1796,6 @@
           </v-row>
         </div>
 
-<!-- Analytics Section -->
-        <div v-if="currentSection === 'analytics'">
-          <v-card elevation="0" class="mb-6">
-            <v-card-text class="pa-8">
-              <div class="d-flex justify-between align-center mb-4">
-                <div class="transaction-stats" style="flex: 1;">
-                  <div class="stat-item">
-                    <div class="stat-amount primary--text">${{ analyticsData.totalSpent.toLocaleString() }}</div>
-                    <div class="stat-label-text">Total Spent</div>
-                  </div>
-                  <v-divider vertical />
-                  <div class="stat-item">
-                    <div class="stat-amount info--text">${{ analyticsData.thisMonth.toLocaleString() }}</div>
-                    <div class="stat-label-text">This Month</div>
-                  </div>
-                  <v-divider vertical />
-                  <div class="stat-item">
-                    <div class="stat-amount primary--text">${{ analyticsData.avgPerMonth.toLocaleString() }}</div>
-                    <div class="stat-label-text">Avg per Month</div>
-                  </div>
-                </div>
-                <v-btn color="primary" variant="flat" @click="exportAnalyticsPdf" :loading="exportingAnalytics">
-                  <v-icon start>mdi-file-pdf-box</v-icon>
-                  Export to PDF
-                </v-btn>
-              </div>
-            </v-card-text>
-          </v-card>
-
-          <v-row>
-            <v-col cols="12" md="9">
-              <v-card elevation="0" class="mb-6">
-                <v-card-title class="card-header pa-8 d-flex justify-between align-center">
-                  <span class="section-title primary--text">Spending Over Time</span>
-                  <v-btn-toggle v-model="spendingChartPeriod" mandatory color="primary" size="small">
-                    <v-btn value="week">Week</v-btn>
-                    <v-btn value="month">Month</v-btn>
-                    <v-btn value="year">Year</v-btn>
-                  </v-btn-toggle>
-                  <v-select
-                    v-model="selectedYear"
-                    :items="availableYears"
-                    variant="outlined"
-                    density="compact"
-                    style="width: 100px; margin-left: 16px;"
-                    hide-details
-                  />
-                </v-card-title>
-                <v-card-text class="pa-8">
-                  <div style="height: 300px; position: relative;">
-                    <canvas ref="spendingChart"></canvas>
-                  </div>
-                </v-card-text>
-              </v-card>
-            </v-col>
-
-            <v-col cols="12" md="3">
-              <v-card elevation="0">
-                <v-card-title class="card-header pa-8">
-                  <span class="section-title primary--text">Quick Stats</span>
-                </v-card-title>
-                <v-card-text class="pa-8">
-                  <div class="quick-stat-item">
-                    <v-icon color="primary" class="mr-3">mdi-calendar-check</v-icon>
-                    <div>
-                      <div class="quick-stat-value">{{ analyticsData.totalBookings }}</div>
-                      <div class="quick-stat-label">Total Bookings</div>
-                    </div>
-                  </div>
-                  <v-divider class="my-4" />
-                  <div class="quick-stat-item">
-                    <v-icon color="info" class="mr-3">mdi-clock-outline</v-icon>
-                    <div>
-                      <div class="quick-stat-value">{{ analyticsData.totalHours }} hrs</div>
-                      <div class="quick-stat-label">Total Hours</div>
-                    </div>
-                  </div>
-                  <v-divider class="my-4" />
-                  <div class="quick-stat-item">
-                    <v-icon color="warning" class="mr-3">mdi-account-multiple</v-icon>
-                    <div>
-                      <div class="quick-stat-value">{{ analyticsData.activeCaregivers }}</div>
-                      <div class="quick-stat-label">Active Caregivers</div>
-                    </div>
-                  </div>
-                </v-card-text>
-              </v-card>
-            </v-col>
-          </v-row>
-        </div>
-
         <!-- Payment Section -->
         <div v-if="currentSection === 'payment' && selectedBooking">
           <v-card elevation="0" class="mb-6">
@@ -2812,10 +2778,10 @@
     />
 
     <!-- Pending Booking Restriction Modal -->
-    <v-dialog v-model="showPendingRestrictionModal" max-width="600" persistent>
+    <v-dialog v-model="showPendingRestrictionModal" max-width="600" content-class="restriction-dialog-content">
       <v-card class="restriction-modal-card" style="border-radius: 16px; overflow: hidden;">
         <!-- Header with Branding - Dynamic color based on booking type -->
-        <v-card-title :class="bookingRestrictionType === 'approved' ? 'approved-restriction-header' : 'pending-restriction-header'">
+        <v-card-title :class="bookingRestrictionType === 'approved' ? 'approved-restriction-header' : 'pending-restriction-header'" class="restriction-header-with-close">
           <div class="d-flex align-center gap-3 restriction-header-content">
             <img src="/logo flower.png" alt="CAS Private Care" class="restriction-logo" />
             <div>
@@ -2825,6 +2791,16 @@
               <p class="restriction-subtitle">One booking at a time policy</p>
             </div>
           </div>
+          <v-btn
+            icon
+            variant="plain"
+            size="default"
+            class="restriction-close-btn"
+            aria-label="Close"
+            @click="showPendingRestrictionModal = false"
+          >
+            <v-icon size="24">mdi-close</v-icon>
+          </v-btn>
         </v-card-title>
 
         <!-- Content -->
@@ -2921,22 +2897,6 @@
             </p>
           </div>
         </v-card-text>
-
-        <!-- Actions -->
-        <v-card-actions class="pa-4 pa-sm-6 pt-0 restriction-actions">
-          <v-spacer></v-spacer>
-          <v-btn
-            variant="flat"
-            :size="$vuetify.display.xs ? 'default' : 'large'"
-            color="primary"
-            @click="showPendingRestrictionModal = false"
-            class="restriction-btn-close"
-          >
-            <v-icon start>mdi-check</v-icon>
-            Got It
-          </v-btn>
-          <v-spacer></v-spacer>
-        </v-card-actions>
       </v-card>
     </v-dialog>
 
@@ -2981,7 +2941,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted, nextTick } from 'vue';
+import { ref, computed, watch, onMounted, onBeforeUnmount, nextTick } from 'vue';
 import DashboardTemplate from './DashboardTemplate.vue';
 import StatCard from './shared/StatCard.vue';
 import BrowseCaregivers from './BrowseCaregivers.vue';
@@ -3597,7 +3557,7 @@ const navItems = computed(() => [
   { icon: 'mdi-calendar-plus', title: 'Book Service', value: 'book-form', category: 'SERVICES' },
   { icon: 'mdi-account-multiple', title: 'Browse Caregivers', value: 'book', category: 'SERVICES' },
   // Removed: My Bookings (accessible from dashboard)
-  { icon: 'mdi-chart-bar', title: 'Analytics Reports', value: 'analytics', category: 'SERVICES' },
+  // Removed: Analytics Reports
   { icon: 'mdi-account-circle', title: 'Profile', value: 'profile', category: 'ACCOUNT' }
 ]);
 
@@ -3954,8 +3914,17 @@ const getCardBrandColor = (brand) => {
   return colors[brand?.toLowerCase()] || '#667eea';
 };
 
-const logout = () => {
-  window.location.href = '/login';
+const logout = async () => {
+  try {
+    const csrf = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+    await fetch('/logout', {
+      method: 'POST',
+      headers: { 'X-CSRF-TOKEN': csrf, 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({})
+    });
+  } catch (_) {}
+  window.location.href = '/login?refresh=' + Date.now();
 };
 
 const applyFilters = () => {
@@ -3975,6 +3944,19 @@ const viewCaregiverDetails = (caregiver) => {
 const pendingBookings = ref([]);
 const confirmedBookings = ref([]);
 const loadingBookings = ref(true);
+
+// Featured posts (dashboard widget)
+const featuredPosts = ref([]);
+const loadingFeaturedPosts = ref(true);
+const featuredSlideIndex = ref(0);
+let featuredSlideshowInterval = null;
+
+const currentFeaturedPost = computed(() => {
+  const posts = featuredPosts.value;
+  if (!posts.length) return null;
+  const idx = featuredSlideIndex.value % Math.max(1, posts.length);
+  return posts[idx] ?? posts[0];
+});
 
 // Prevent accidental double-submit of booking requests (double click / slow network)
 const isSubmittingBooking = ref(false);
@@ -4020,6 +4002,43 @@ const loadBookingMaintenanceStatus = async () => {
   } catch (error) {
     console.error('Failed to load booking maintenance status:', error);
     bookingMaintenanceEnabled.value = false;
+  }
+};
+
+const startFeaturedSlideshow = () => {
+  if (featuredSlideshowInterval) return;
+  featuredSlideshowInterval = setInterval(() => {
+    const n = featuredPosts.value.length;
+    if (n < 2) return;
+    featuredSlideIndex.value = (featuredSlideIndex.value + 1) % n;
+  }, 4500);
+};
+
+const stopFeaturedSlideshow = () => {
+  if (featuredSlideshowInterval) {
+    clearInterval(featuredSlideshowInterval);
+    featuredSlideshowInterval = null;
+  }
+};
+
+const loadFeaturedPosts = async () => {
+  loadingFeaturedPosts.value = true;
+  stopFeaturedSlideshow();
+  featuredSlideIndex.value = 0;
+  try {
+    const response = await fetch('/api/featured-posts', { credentials: 'include' });
+    if (response.ok) {
+      const data = await response.json();
+      featuredPosts.value = data.featured_posts || [];
+      if (featuredPosts.value.length >= 2) {
+        startFeaturedSlideshow();
+      }
+    }
+  } catch (error) {
+    console.warn('Failed to load featured posts:', error);
+    featuredPosts.value = [];
+  } finally {
+    loadingFeaturedPosts.value = false;
   }
 };
 
@@ -5731,7 +5750,8 @@ onMounted(async () => {
     { fn: loadCaregivers, weight: 15 },
     { fn: loadNotificationCount, weight: 5 },
     { fn: loadTopCaregivers, weight: 7 },
-    { fn: loadBookingMaintenanceStatus, weight: 3 }
+    { fn: loadBookingMaintenanceStatus, weight: 3 },
+    { fn: loadFeaturedPosts, weight: 2 }
   ];
   
   const totalWeight = loadingTasks.reduce((sum, task) => sum + task.weight, 0);
@@ -5819,6 +5839,10 @@ onMounted(async () => {
     loadMyBookings();
     loadCompletedBookings();
   }, 15000);
+});
+
+onBeforeUnmount(() => {
+  stopFeaturedSlideshow();
 });
 
 const availableYears = ref([]);
@@ -6793,6 +6817,69 @@ const initSpendingChart = () => {
   font-size: 1rem;
   color: #6b7280;
   margin-top: 4px;
+}
+
+/* Featured posts widget – slideshow */
+.featured-posts-slideshow {
+  min-height: 120px;
+}
+.featured-slide-outer {
+  position: relative;
+  min-height: 140px;
+}
+/* Fade transition between slides */
+.featured-fade-enter-active,
+.featured-fade-leave-active {
+  transition: opacity 0.4s ease;
+}
+.featured-fade-enter-from,
+.featured-fade-leave-to {
+  opacity: 0;
+}
+.featured-fade-enter-to,
+.featured-fade-leave-from {
+  opacity: 1;
+}
+.featured-post-item {
+  text-decoration: none;
+  color: inherit;
+  display: block;
+}
+.featured-post-item.no-link {
+  cursor: default;
+  pointer-events: none;
+}
+.featured-post-image-wrap {
+  aspect-ratio: 16 / 10;
+  background: #f1f5f9;
+}
+.featured-post-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.featured-post-caption {
+  background: #f8fafc;
+  border-radius: 8px;
+}
+/* Slide dots */
+.featured-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  border: none;
+  padding: 0;
+  background: #cbd5e1;
+  cursor: pointer;
+  transition: background 0.25s ease, transform 0.2s ease;
+}
+.featured-dot:hover {
+  background: #94a3b8;
+}
+.featured-dot-active {
+  background: rgb(var(--v-theme-primary));
+  transform: scale(1.2);
 }
 
 .booking-tab {
@@ -8563,6 +8650,27 @@ const initSpendingChart = () => {
 /* Pending Booking Restriction Modal */
 .restriction-modal-card {
   animation: modalSlideIn 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  overflow-x: hidden;
+}
+
+.restriction-header-with-close {
+  position: relative;
+  padding-right: 48px;
+}
+.restriction-header-with-close .restriction-close-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  min-width: 40px;
+  width: 40px;
+  height: 40px;
+  color: white;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.restriction-dialog-content {
+  overflow-x: hidden !important;
 }
 
 @keyframes modalSlideIn {
@@ -8840,10 +8948,6 @@ const initSpendingChart = () => {
   }
 }
 
-.restriction-actions {
-  animation: actionsFadeIn 0.5s ease 1.2s both;
-}
-
 @keyframes actionsFadeIn {
   0% {
     opacity: 0;
@@ -8855,14 +8959,8 @@ const initSpendingChart = () => {
   }
 }
 
-.restriction-btn-close,
 .restriction-btn-view {
   transition: all 0.3s ease;
-}
-
-.restriction-btn-close:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 .restriction-btn-view:hover {
@@ -8915,14 +9013,6 @@ const initSpendingChart = () => {
     padding: 12px !important;
   }
 
-  .restriction-actions {
-    padding: 16px !important;
-  }
-
-  .restriction-btn-close {
-    width: 100%;
-    max-width: 200px;
-  }
 }
 
 @media (max-width: 400px) {

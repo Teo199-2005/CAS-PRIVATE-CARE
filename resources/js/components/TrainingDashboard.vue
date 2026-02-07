@@ -1509,8 +1509,17 @@ const saveProfile = async () => {
   }
 };
 
-const logout = () => {
-  window.location.href = '/login';
+const logout = async () => {
+  try {
+    const csrf = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+    await fetch('/logout', {
+      method: 'POST',
+      headers: { 'X-CSRF-TOKEN': csrf, 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({})
+    });
+  } catch (_) {}
+  window.location.href = '/login?refresh=' + Date.now();
 };
 
 const removePayoutMethod = async () => {

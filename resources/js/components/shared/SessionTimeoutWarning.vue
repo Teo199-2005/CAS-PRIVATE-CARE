@@ -217,33 +217,27 @@ const handleSessionExpired = () => {
   showWarning.value = false;
   emit('session-expired');
   
-  // Redirect to login with message
-  window.location.href = '/login?expired=1';
+  // Redirect to login with message and refresh so login page loads clean
+  window.location.href = '/login?expired=1&refresh=' + Date.now();
 };
 
 /**
  * Log out immediately
  */
-const logout = () => {
+const logout = async () => {
   showWarning.value = false;
   emit('logout');
   
-  // Submit logout form
-  const form = document.createElement('form');
-  form.method = 'POST';
-  form.action = '/logout';
-  
-  const csrfToken = document.querySelector('meta[name="csrf-token"]');
-  if (csrfToken) {
-    const input = document.createElement('input');
-    input.type = 'hidden';
-    input.name = '_token';
-    input.value = csrfToken.content;
-    form.appendChild(input);
-  }
-  
-  document.body.appendChild(form);
-  form.submit();
+  try {
+    const csrf = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+    await fetch('/logout', {
+      method: 'POST',
+      headers: { 'X-CSRF-TOKEN': csrf, 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({})
+    });
+  } catch (_) {}
+  window.location.href = '/login?refresh=' + Date.now();
 };
 
 /**

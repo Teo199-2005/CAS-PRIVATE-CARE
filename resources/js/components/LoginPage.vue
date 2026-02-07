@@ -193,6 +193,16 @@ const handleLogoError = () => {
 
 // Get CSRF token on mount
 onMounted(async () => {
+  // If we landed here after logout with ?refresh=, do a full page reload for a clean state (avoids stale form/session issues)
+  const urlParams = new URLSearchParams(window.location.search);
+  if (urlParams.has('refresh')) {
+    urlParams.delete('refresh');
+    const q = urlParams.toString();
+    history.replaceState(null, '', '/login' + (q ? '?' + q : ''));
+    window.location.reload();
+    return;
+  }
+
   // Get CSRF token from meta tag or fetch it
   const metaToken = document.querySelector('meta[name="csrf-token"]');
   if (metaToken) {
@@ -218,6 +228,9 @@ onMounted(async () => {
   }
   if (urlParams.get('password_reset')) {
     successMessage.value = 'Password reset successful! Please login with your new password.';
+  }
+  if (urlParams.get('expired')) {
+    errorMessage.value = 'Your session has expired. Please log in again.';
   }
 });
 

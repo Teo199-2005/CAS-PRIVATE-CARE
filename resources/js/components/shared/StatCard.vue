@@ -1,7 +1,7 @@
 <template>
   <v-card 
     class="stat-card" 
-    :class="{ 'is-loaded': !loading, 'animate-in': isVisible }"
+    :class="['stat-card-accent-' + (iconClass || 'primary'), { 'is-loaded': !loading, 'animate-in': isVisible }]"
     :style="{ '--stagger-delay': `${staggerIndex * 0.1}s` }"
     elevation="0"
   >
@@ -14,18 +14,29 @@
     </div>
     
     <!-- Actual Content -->
-    <v-card-text v-else class="pa-8">
-      <div class="stat-icon mb-5" :class="iconClass">
-        <v-icon color="white" size="36">{{ icon }}</v-icon>
+    <v-card-text v-else class="stat-card-content pa-0">
+      <!-- Top section: icon -->
+      <div class="stat-card-header pa-6 pb-4">
+        <div class="stat-icon" :class="iconClass">
+          <v-icon color="white" size="36">{{ icon }}</v-icon>
+        </div>
       </div>
-      <div class="stat-value mb-2">
-        <span class="value-text">{{ displayValue }}</span>
+      <v-divider class="stat-divider mx-4" />
+      <!-- Main section: value & label left, change/date right -->
+      <div class="stat-card-body pa-6 py-4 d-flex align-start justify-space-between gap-3">
+        <div class="stat-body-left flex-grow-1 min-width-0">
+          <div class="stat-value mb-1">
+            <span class="value-text">{{ displayValue }}</span>
+          </div>
+          <div class="stat-label">{{ label }}</div>
+        </div>
+        <div v-if="change || date" class="stat-body-right flex-shrink-0 text-end">
+          <div v-if="change" class="stat-change" :class="changeColor">
+            <v-icon size="small">{{ changeIcon }}</v-icon> {{ change }}
+          </div>
+          <div v-if="date" class="stat-date">{{ date }}</div>
+        </div>
       </div>
-      <div class="stat-label mb-3">{{ label }}</div>
-      <div v-if="change" class="stat-change" :class="changeColor">
-        <v-icon size="small">{{ changeIcon }}</v-icon> {{ change }}
-      </div>
-      <div v-if="date" class="stat-date">{{ date }}</div>
     </v-card-text>
   </v-card>
 </template>
@@ -194,8 +205,7 @@ onMounted(() => {
 
 /* ========================================
    Stat Card Base Styles
-   - Uses design tokens for consistency
-   - Simplified hover effects (single transform)
+   - Simple card, metallic on icons only
    ======================================== */
 .stat-card {
   border-radius: var(--card-radius-lg, 20px) !important;
@@ -207,6 +217,31 @@ onMounted(() => {
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
   opacity: 0;
   transform: translateY(20px);
+}
+
+.stat-card::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, rgba(59, 130, 246, 0.5) 0%, rgba(59, 130, 246, 0.15) 100%);
+  border-radius: var(--card-radius-lg, 20px) var(--card-radius-lg, 20px) 0 0;
+}
+
+.stat-card-accent-success::after {
+  background: linear-gradient(90deg, rgba(5, 150, 105, 0.5) 0%, rgba(5, 150, 105, 0.15) 100%);
+}
+.stat-card-accent-error::after {
+  background: linear-gradient(90deg, rgba(185, 28, 28, 0.5) 0%, rgba(185, 28, 28, 0.15) 100%);
+}
+.stat-card-accent-deep-purple::after,
+.stat-card-accent-purple::after {
+  background: linear-gradient(90deg, rgba(106, 27, 154, 0.5) 0%, rgba(106, 27, 154, 0.15) 100%);
+}
+.stat-card-accent-grey-darken-2::after {
+  background: linear-gradient(90deg, rgba(71, 85, 105, 0.5) 0%, rgba(71, 85, 105, 0.15) 100%);
 }
 
 .stat-card.animate-in {
@@ -231,55 +266,140 @@ onMounted(() => {
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08) !important;
 }
 
-/* Removed excessive hover animations on child elements */
 .stat-card:hover .stat-value {
   color: var(--primary, #3b82f6);
 }
 
+/* Dividers */
+.stat-divider {
+  border-color: rgba(0, 0, 0, 0.06) !important;
+  opacity: 1;
+}
+
+.stat-card-header {
+  background: linear-gradient(to bottom, rgba(248, 250, 252, 0.5) 0%, transparent 100%);
+}
+
+.stat-card-body {
+  min-height: 72px;
+}
+
+.stat-body-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: flex-start;
+  gap: 2px;
+}
+
+.stat-body-right .stat-change {
+  text-align: right;
+  line-height: 1.3;
+}
+
 /* ========================================
-   Stat Icon Styles
-   - Simplified transitions
+   Stat Icon Styles - Metallic by color scheme
+   - Brushed metal with colored metallic sheen
    ======================================== */
+.stat-card-header .stat-icon {
+  margin-bottom: 0;
+}
+
 .stat-icon {
   width: 64px;
   height: 64px;
-  background: linear-gradient(135deg, var(--primary, #3b82f6), var(--primary-600, #2563eb));
+  background: linear-gradient(145deg, #5b9cf5 0%, #2563eb 30%, #1d4ed8 70%, #1e40af 100%);
   border-radius: var(--card-radius-sm, 12px);
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+  box-shadow: 
+    0 4px 12px rgba(37, 99, 235, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.35),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.2);
   transition: box-shadow 200ms ease-out;
 }
 
-/* Removed rotation + scale transform on hover */
 .stat-icon:hover {
-  box-shadow: 0 6px 16px rgba(59, 130, 246, 0.25);
+  box-shadow: 
+    0 6px 18px rgba(37, 99, 235, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.25);
 }
 
 .stat-icon.success {
-  background: linear-gradient(135deg, #10b981, #059669);
-  box-shadow: 0 4px 16px rgba(16, 185, 129, 0.2);
+  background: linear-gradient(145deg, #34d399 0%, #059669 30%, #047857 70%, #065f46 100%);
+  box-shadow: 
+    0 4px 16px rgba(5, 150, 105, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.35),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.2);
+}
+
+.stat-icon.success:hover {
+  box-shadow: 
+    0 6px 18px rgba(5, 150, 105, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.25);
 }
 
 .stat-icon.deep-purple {
-  background: linear-gradient(135deg, #7B1FA2, #6A1B9A);
-  box-shadow: 0 4px 16px rgba(123, 31, 162, 0.2);
+  background: linear-gradient(145deg, #a855f7 0%, #6A1B9A 30%, #5b21b6 70%, #4c1d95 100%);
+  box-shadow: 
+    0 4px 16px rgba(106, 27, 154, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.35),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.2);
+}
+
+.stat-icon.deep-purple:hover {
+  box-shadow: 
+    0 6px 18px rgba(106, 27, 154, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.25);
 }
 
 .stat-icon.purple {
-  background: linear-gradient(135deg, #9C27B0, #7B1FA2);
-  box-shadow: 0 4px 16px rgba(156, 39, 176, 0.2);
+  background: linear-gradient(145deg, #c084fc 0%, #7B1FA2 30%, #6b21a8 70%, #581c87 100%);
+  box-shadow: 
+    0 4px 16px rgba(123, 31, 162, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.35),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.2);
+}
+
+.stat-icon.purple:hover {
+  box-shadow: 
+    0 6px 18px rgba(123, 31, 162, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.25);
 }
 
 .stat-icon.error {
-  background: linear-gradient(135deg, #dc2626, #b91c1c);
-  box-shadow: 0 4px 16px rgba(220, 38, 38, 0.2);
+  background: linear-gradient(145deg, #f87171 0%, #b91c1c 30%, #991b1b 70%, #7f1d1d 100%);
+  box-shadow: 
+    0 4px 16px rgba(185, 28, 28, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.35),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.2);
+}
+
+.stat-icon.error:hover {
+  box-shadow: 
+    0 6px 18px rgba(185, 28, 28, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.25);
 }
 
 .stat-icon.grey-darken-2 {
-  background: linear-gradient(135deg, #616161, #424242);
-  box-shadow: 0 4px 16px rgba(97, 97, 97, 0.2);
+  background: linear-gradient(145deg, #94a3b8 0%, #475569 30%, #334155 70%, #1e293b 100%);
+  box-shadow: 
+    0 4px 16px rgba(71, 85, 105, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.35),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.25);
+}
+
+.stat-icon.grey-darken-2:hover {
+  box-shadow: 
+    0 6px 18px rgba(71, 85, 105, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.3);
 }
 
 .stat-value {
@@ -308,18 +428,19 @@ onMounted(() => {
 }
 
 .stat-change {
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   display: flex;
   align-items: center;
+  justify-content: flex-end;
   gap: 4px;
 }
 
 .stat-date {
   font-size: 0.8rem;
-  color: #888;
+  color: #94a3b8;
   font-weight: 500;
-  margin-top: 2px;
+  letter-spacing: 0.02em;
 }
 
 /* Mobile Responsive Styles */
@@ -328,8 +449,14 @@ onMounted(() => {
     border-radius: 16px !important;
   }
 
-  .stat-card .v-card-text {
-    padding: 1rem !important;
+  .stat-card-header,
+  .stat-card-body {
+    padding: 1rem 1.25rem !important;
+  }
+
+  .stat-divider {
+    margin-left: 1rem !important;
+    margin-right: 1rem !important;
   }
 
   .stat-icon {
@@ -349,7 +476,6 @@ onMounted(() => {
 
   .stat-label {
     font-size: 0.8125rem !important;
-    margin-bottom: 0.5rem !important;
   }
 
   .stat-change {
@@ -362,14 +488,14 @@ onMounted(() => {
 }
 
 @media (max-width: 480px) {
-  .stat-card .v-card-text {
-    padding: 0.875rem !important;
+  .stat-card-header,
+  .stat-card-body {
+    padding: 0.875rem 1rem !important;
   }
 
   .stat-icon {
     width: 40px !important;
     height: 40px !important;
-    margin-bottom: 0.75rem !important;
   }
 
   .stat-icon .v-icon {
@@ -383,7 +509,6 @@ onMounted(() => {
 
   .stat-label {
     font-size: 0.75rem !important;
-    margin-bottom: 0.375rem !important;
   }
 
   .stat-change {

@@ -1433,6 +1433,13 @@
             border-radius: 2px;
         }
 
+        .ready-get-started-section .section-header h2 .ready-white {
+            color: #ffffff !important;
+        }
+        .ready-get-started-section .section-header h2 .ready-orange {
+            color: #f97316 !important;
+        }
+
         /* ============================================================
            FEATURE CARDS - Consistent styling
            ============================================================ */
@@ -7050,19 +7057,18 @@
         <div class="divider-line-thin"></div>
     </div>
 
-    <section class="section-dark" style="padding: 7rem 2rem; position: relative; overflow: hidden;">
+    <section class="section-dark ready-get-started-section" style="padding: 7rem 2rem; position: relative; overflow: hidden; background-image: url('{{ asset('images/ready-get-started-bg.png') }}'); background-size: cover; background-position: center; background-repeat: no-repeat;">
+        <div style="position: absolute; inset: 0; background: linear-gradient(to bottom, rgba(15, 23, 42, 0.45) 0%, rgba(15, 23, 42, 0.35) 100%); pointer-events: none;"></div>
         <div class="container" style="max-width: 1200px; margin: 0 auto; position: relative; z-index: 1;">
             <div class="section-header fade-in">
-                <h2><span style="color: #f97316;">Ready</span> to Get Started?</h2>
-                <p style="color: #64748b;">Join CAS Private Care LLC today and experience the future of caregiving services</p>
+                <h2><span class="ready-orange">Ready</span> <span class="ready-white">to Get Started?</span></h2>
+                <p style="color: rgba(255, 255, 255, 0.9);">Join CAS Private Care LLC today and experience the future of caregiving services</p>
             </div>
             <div class="hero-buttons" style="margin-top: 3rem; justify-content: center;">
                 <a href="{{ url('/register') }}" class="btn-primary">Sign Up Now</a>
                 <a href="#how-it-works" class="btn-secondary">Learn More</a>
             </div>
         </div>
-        <div style="position: absolute; top: -100px; right: -100px; width: 400px; height: 400px; background: radial-gradient(circle, rgba(59, 130, 246, 0.1) 0%, transparent 70%); border-radius: 50%; pointer-events: none;"></div>
-        <div style="position: absolute; bottom: -100px; left: -100px; width: 400px; height: 400px; background: radial-gradient(circle, rgba(249, 115, 22, 0.1) 0%, transparent 70%); border-radius: 50%; pointer-events: none;"></div>
     </section>
 
     </main>

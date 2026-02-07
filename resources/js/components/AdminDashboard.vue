@@ -195,24 +195,27 @@
               <v-card elevation="0" class="mb-3 compact-card d-flex flex-column">
                 <v-card-title class="card-header pa-4">
                   <div class="d-flex justify-space-between align-center">
-                    <span class="section-title-compact error--text">Caregiver Contacts</span>
-                    <v-btn size="small" color="error" variant="flat" prepend-icon="mdi-eye" @click="caregiverContactsDialog = true">View All</v-btn>
+                    <span class="section-title-compact error--text">Contractors Contacts</span>
+                    <v-btn size="small" color="error" variant="flat" prepend-icon="mdi-eye" @click="openContractorsContactsDialog">View All</v-btn>
                   </div>
                 </v-card-title>
                 <v-card-text class="pa-4 flex-grow-1">
                   <div class="caregiver-contacts">
-                    <div v-for="caregiver in quickCaregivers.slice(0, 3)" :key="caregiver.id" class="caregiver-contact-item">
+                    <div v-for="contractor in quickContractors" :key="contractor.id" class="caregiver-contact-item">
                       <div class="d-flex align-center mb-2">
-                        <v-avatar size="32" :color="caregiver.available ? 'success' : 'grey'" class="mr-3">
-                          <span class="text-white font-weight-bold">{{ caregiver.initials }}</span>
+                        <v-avatar size="32" :color="contractor.available ? 'success' : 'grey'" class="mr-3">
+                          <span class="text-white font-weight-bold">{{ contractor.initials }}</span>
                         </v-avatar>
                         <div class="flex-grow-1">
-                          <div class="caregiver-name">{{ caregiver.name }}</div>
-                          <div class="caregiver-status" :class="caregiver.available ? 'success--text' : 'grey--text'">
-                            {{ caregiver.available ? 'Available' : 'Busy' }}
+                          <div class="caregiver-name">{{ contractor.name }}</div>
+                          <div class="d-flex align-center gap-1">
+                            <v-chip size="x-small" density="compact" color="error" variant="tonal">{{ contractor.contractorType }}</v-chip>
+                            <span class="caregiver-status" :class="contractor.available ? 'success--text' : 'grey--text'">
+                              {{ contractor.available ? 'Available' : 'Busy' }}
+                            </span>
                           </div>
                         </div>
-                        <div class="caregiver-phone">{{ caregiver.phone }}</div>
+                        <div class="caregiver-phone">{{ contractor.phone }}</div>
                       </div>
                     </div>
                   </div>
@@ -4223,6 +4226,102 @@
       </v-row>
     </div>
 
+    <!-- Featured Posts Section -->
+    <div v-if="currentSection === 'featured-posts'">
+      <v-card elevation="0" class="mb-6">
+        <v-card-title class="card-header pa-8 d-flex justify-space-between align-center flex-wrap gap-2">
+          <span class="section-title primary--text">Featured Posts</span>
+          <v-btn color="primary" prepend-icon="mdi-plus" @click="openFeaturedPostDialog()">Add Featured Post</v-btn>
+        </v-card-title>
+        <v-card-text class="pa-8">
+          <p class="text-body-2 text-grey mb-4">These images appear in the client dashboard beside "My Bookings". Upload images and optionally add a title, caption, and link.</p>
+          <div v-if="loadingFeaturedPosts" class="text-center py-8">
+            <v-progress-circular indeterminate color="primary" size="48"></v-progress-circular>
+          </div>
+          <v-row v-else-if="adminFeaturedPosts.length === 0">
+            <v-col cols="12" class="text-center py-8 text-grey">
+              <v-icon size="64" color="grey-lighten-1">mdi-image-multiple-outline</v-icon>
+              <p class="mt-3 mb-0">No featured posts yet. Click "Add Featured Post" to upload an image.</p>
+            </v-col>
+          </v-row>
+          <v-row v-else>
+            <v-col v-for="post in adminFeaturedPosts" :key="post.id" cols="12" sm="6" md="4">
+              <v-card elevation="1" class="rounded-lg overflow-hidden">
+                <div class="featured-admin-image-wrap">
+                  <img :src="post.image_url" :alt="post.title || 'Featured post'" class="featured-admin-image" />
+                  <div class="featured-admin-actions pa-2">
+                    <v-btn icon size="small" color="primary" variant="flat" @click="openFeaturedPostDialog(post)" title="Edit">
+                      <v-icon>mdi-pencil</v-icon>
+                    </v-btn>
+                    <v-btn icon size="small" color="error" variant="flat" @click="confirmDeleteFeaturedPost(post)" title="Delete">
+                      <v-icon>mdi-delete</v-icon>
+                    </v-btn>
+                  </div>
+                </div>
+                <v-card-text class="pa-3">
+                  <div v-if="post.title" class="text-subtitle-2 font-weight-bold">{{ post.title }}</div>
+                  <div v-if="post.caption" class="text-caption text-grey text-truncate">{{ post.caption }}</div>
+                  <v-chip v-if="!post.is_active" size="x-small" color="grey" class="mt-2">Inactive</v-chip>
+                </v-card-text>
+              </v-card>
+            </v-col>
+          </v-row>
+        </v-card-text>
+      </v-card>
+      <!-- Add/Edit Featured Post Dialog -->
+      <v-dialog v-model="featuredPostDialog" max-width="500" persistent>
+        <v-card>
+          <v-card-title class="pa-6 featured-post-modal-header">
+            <span class="section-title">{{ editingFeaturedPostId ? 'Edit Featured Post' : 'Add Featured Post' }}</span>
+          </v-card-title>
+          <v-card-text class="pa-6 pt-0">
+            <v-file-input
+              v-model="featuredPostForm.imageFile"
+              label="Image"
+              accept="image/jpeg,image/png,image/gif,image/webp"
+              prepend-icon=""
+              prepend-inner-icon="mdi-camera"
+              variant="outlined"
+              density="comfortable"
+              class="mb-4"
+              :hint="editingFeaturedPostId ? 'Leave empty to keep current image. Max 5MB.' : 'JPEG, PNG, GIF or WebP. Max 5MB.'"
+              persistent-hint
+            ></v-file-input>
+            <v-text-field v-model="featuredPostForm.title" label="Title (optional)" variant="outlined" class="mb-4" />
+            <v-textarea v-model="featuredPostForm.caption" label="Caption (optional)" variant="outlined" rows="2" class="mb-4" />
+            <v-text-field
+              v-model="featuredPostForm.link_url"
+              label="URL (optional)"
+              variant="outlined"
+              hide-details
+            />
+            <div v-if="editingFeaturedPostId" class="mt-4">
+              <v-checkbox v-model="featuredPostForm.is_active" label="Visible on client dashboard" hide-details density="compact" />
+            </div>
+          </v-card-text>
+          <v-card-actions class="pa-6 pt-0">
+            <v-spacer></v-spacer>
+            <v-btn variant="text" @click="featuredPostDialog = false">Cancel</v-btn>
+            <v-btn color="primary" :loading="savingFeaturedPost" @click="saveFeaturedPost">Save</v-btn>
+          </v-card-actions>
+        </v-card>
+      </v-dialog>
+      <!-- Delete confirmation -->
+      <v-dialog v-model="featuredPostDeleteDialog" max-width="400" persistent>
+        <v-card>
+          <v-card-title class="pa-6 featured-post-modal-header">
+            <span class="section-title">Delete Featured Post?</span>
+          </v-card-title>
+          <v-card-text class="pa-6 pt-0">This will remove the image from the client dashboard. This action cannot be undone.</v-card-text>
+          <v-card-actions class="pa-6 pt-0">
+            <v-spacer></v-spacer>
+            <v-btn variant="text" @click="featuredPostDeleteDialog = false">Cancel</v-btn>
+            <v-btn color="error" :loading="deletingFeaturedPost" @click="deleteFeaturedPost">Delete</v-btn>
+          </v-card-actions>
+        </v-card>
+      </v-dialog>
+    </div>
+
     <!-- Email Marketing Section -->
     <div v-if="currentSection === 'email-marketing'">
       <email-marketing-panel />
@@ -6257,25 +6356,35 @@
       </v-card>
     </v-dialog>
 
-    <!-- Caregiver Contacts Dialog -->
-    <v-dialog v-model="caregiverContactsDialog" :max-width="isMobile ? undefined : 900" :fullscreen="isMobile" scrollable>
+    <!-- Contractors Contacts Dialog (Caregivers + Housekeepers) -->
+    <v-dialog v-model="contractorsContactsDialog" :max-width="isMobile ? undefined : 900" :fullscreen="isMobile" scrollable>
       <v-card>
         <v-card-title class="pa-6" style="background: #dc2626; color: white;">
-          <span class="section-title" style="color: white;">All Caregiver Contacts</span>
+          <span class="section-title" style="color: white;">All Contractors Contacts</span>
         </v-card-title>
         <v-card-text class="pa-6">
           <v-row class="mb-4">
-            <v-col cols="12" md="4">
+            <v-col cols="12" md="3">
               <v-text-field 
-                v-model="caregiverSearch" 
-                placeholder="Search caregivers..." 
+                v-model="contractorSearch" 
+                placeholder="Search contractors..." 
                 prepend-inner-icon="mdi-magnify" 
                 variant="outlined" 
                 density="compact" 
                 hide-details
               />
             </v-col>
-            <v-col cols="12" md="4">
+            <v-col cols="12" md="3">
+              <v-select
+                v-model="contractorTypeFilter"
+                :items="contractorTypeOptions"
+                label="Type"
+                variant="outlined"
+                density="compact"
+                hide-details
+              />
+            </v-col>
+            <v-col cols="12" md="3">
               <v-select
                 v-model="boroughFilter"
                 :items="boroughs"
@@ -6285,7 +6394,7 @@
                 hide-details
               />
             </v-col>
-            <v-col cols="12" md="4">
+            <v-col cols="12" md="3">
               <v-select
                 v-model="sortBy"
                 :items="sortOptions"
@@ -6293,32 +6402,34 @@
                 variant="outlined"
                 density="compact"
                 hide-details
-                @update:model-value="handleSortChange"
               />
             </v-col>
           </v-row>
           <div class="caregiver-list">
-            <div v-for="caregiver in filteredAndSortedCaregivers" :key="caregiver.id" class="caregiver-contact-row">
+            <div v-for="contractor in filteredAndSortedContractors" :key="contractor.id" class="caregiver-contact-row">
               <div class="d-flex align-center pa-3">
-                <v-avatar size="40" :color="caregiver.status === 'Active' ? 'success' : 'grey'" class="mr-4">
-                  <span class="text-white font-weight-bold">{{ caregiver.name.split(' ').map(n => n[0]).join('') }}</span>
+                <v-avatar size="40" :color="(contractor.status === 'Active' || contractor.status === 'Available') ? 'success' : 'grey'" class="mr-4">
+                  <span class="text-white font-weight-bold">{{ (contractor.name || '').split(' ').map(n => n[0]).join('').slice(0, 2) }}</span>
                 </v-avatar>
                 <div class="flex-grow-1">
-                  <div class="caregiver-name-large">{{ caregiver.name }}</div>
-                  <div class="caregiver-details">{{ caregiver.email }} • {{ caregiver.phone || '(646) 282-8282' }}</div>
-                  <div class="caregiver-location">{{ caregiver.zip_code }} - {{ caregiver.location }}</div>
+                  <div class="d-flex align-center gap-2 flex-wrap">
+                    <div class="caregiver-name-large">{{ contractor.name }}</div>
+                    <v-chip size="small" density="compact" :color="contractor.contractorType === 'Caregiver' ? 'error' : 'deep-purple'" variant="tonal">{{ contractor.contractorType }}</v-chip>
+                  </div>
+                  <div class="caregiver-details">{{ contractor.email }} • {{ contractor.phone || 'N/A' }}</div>
+                  <div class="caregiver-location">{{ contractor.zip_code || '' }}{{ contractor.zip_code && contractor.location ? ' - ' : '' }}{{ contractor.location || contractor.borough || '' }}</div>
                 </div>
               </div>
             </div>
           </div>
-          <div v-if="filteredAndSortedCaregivers.length === 0" class="text-center py-8">
+          <div v-if="filteredAndSortedContractors.length === 0" class="text-center py-8">
             <v-icon size="48" color="grey-lighten-1" class="mb-2">mdi-account-search</v-icon>
-            <div class="text-grey">No caregivers found matching your criteria</div>
+            <div class="text-grey">No contractors found matching your criteria</div>
           </div>
         </v-card-text>
         <v-card-actions class="pa-6 pt-0">
           <v-spacer />
-          <v-btn color="grey" variant="outlined" @click="caregiverContactsDialog = false">Close</v-btn>
+          <v-btn color="grey" variant="outlined" @click="contractorsContactsDialog = false">Close</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -9004,8 +9115,8 @@ const forceLogout = async () => {
     console.error('Error clearing session:', err);
   }
   
-  // Redirect to login
-  window.location.href = '/login';
+  // Redirect to login and force refresh so login page loads clean
+  window.location.href = '/login?refresh=' + Date.now();
 };
 
 // Start session heartbeat
@@ -9140,6 +9251,23 @@ const announcementData = ref({
 // Recent announcements loaded dynamically
 const recentAnnouncements = ref([]);
 
+// Featured posts (admin)
+const adminFeaturedPosts = ref([]);
+const loadingFeaturedPosts = ref(false);
+const featuredPostDialog = ref(false);
+const featuredPostForm = ref({
+  title: '',
+  caption: '',
+  link_url: '',
+  imageFile: null,
+  is_active: true
+});
+const editingFeaturedPostId = ref(null);
+const savingFeaturedPost = ref(false);
+const featuredPostDeleteDialog = ref(false);
+const featuredPostToDelete = ref(null);
+const deletingFeaturedPost = ref(false);
+
 const getAnnouncementTypeColor = (type) => {
   const colors = {
     'info': 'info',
@@ -9166,6 +9294,128 @@ const loadRecentAnnouncements = async () => {
   } catch (error) {
     console.warn('Could not load recent announcements:', error);
     recentAnnouncements.value = [];
+  }
+};
+
+const loadAdminFeaturedPosts = async () => {
+  loadingFeaturedPosts.value = true;
+  try {
+    const response = await fetch('/api/admin/featured-posts', { credentials: 'include' });
+    if (response.ok) {
+      const data = await response.json();
+      adminFeaturedPosts.value = data.featured_posts || [];
+    }
+  } catch (error) {
+    console.warn('Could not load featured posts:', error);
+    adminFeaturedPosts.value = [];
+  } finally {
+    loadingFeaturedPosts.value = false;
+  }
+};
+
+const openFeaturedPostDialog = (post = null) => {
+  editingFeaturedPostId.value = post ? post.id : null;
+  featuredPostForm.value = {
+    title: post?.title ?? '',
+    caption: post?.caption ?? '',
+    link_url: post?.link_url ?? '',
+    imageFile: null,
+    is_active: post?.is_active ?? true
+  };
+  featuredPostDialog.value = true;
+};
+
+const getFeaturedPostImageFile = () => {
+  const f = featuredPostForm.value.imageFile;
+  if (f instanceof File) return f;
+  if (Array.isArray(f) && f.length > 0 && f[0] instanceof File) return f[0];
+  return null;
+};
+
+const saveFeaturedPost = async () => {
+  const id = editingFeaturedPostId.value;
+  const isCreate = !id;
+  if (isCreate && !getFeaturedPostImageFile()) {
+    warning('Please select an image to upload.', 'Image required');
+    return;
+  }
+  savingFeaturedPost.value = true;
+  try {
+    const csrf = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+    if (isCreate) {
+      const formData = new FormData();
+      formData.append('image', getFeaturedPostImageFile());
+      if (featuredPostForm.value.title) formData.append('title', featuredPostForm.value.title);
+      if (featuredPostForm.value.caption) formData.append('caption', featuredPostForm.value.caption);
+      if (featuredPostForm.value.link_url) formData.append('link_url', featuredPostForm.value.link_url);
+      const response = await fetch('/api/admin/featured-posts', {
+        method: 'POST',
+        headers: { 'X-CSRF-TOKEN': csrf },
+        credentials: 'include',
+        body: formData
+      });
+      if (!response.ok) {
+        const err = await response.json();
+        throw new Error(err.message || 'Failed to create');
+      }
+      success('Featured post added.');
+    } else {
+      const formData = new FormData();
+      formData.append('_method', 'PUT');
+      const file = getFeaturedPostImageFile();
+      if (file) formData.append('image', file);
+      if (featuredPostForm.value.title !== undefined) formData.append('title', featuredPostForm.value.title);
+      if (featuredPostForm.value.caption !== undefined) formData.append('caption', featuredPostForm.value.caption);
+      if (featuredPostForm.value.link_url !== undefined) formData.append('link_url', featuredPostForm.value.link_url);
+      formData.append('is_active', featuredPostForm.value.is_active ? '1' : '0');
+      const response = await fetch(`/api/admin/featured-posts/${id}`, {
+        method: 'POST',
+        headers: { 'X-CSRF-TOKEN': csrf },
+        credentials: 'include',
+        body: formData
+      });
+      if (!response.ok) {
+        const err = await response.json();
+        throw new Error(err.message || 'Failed to update');
+      }
+      success('Featured post updated.');
+    }
+    featuredPostDialog.value = false;
+    await loadAdminFeaturedPosts();
+  } catch (e) {
+    notification.value = { show: true, type: 'error', title: 'Error', message: e.message || 'Save failed', timeout: 5000 };
+  } finally {
+    savingFeaturedPost.value = false;
+  }
+};
+
+const confirmDeleteFeaturedPost = (post) => {
+  featuredPostToDelete.value = post;
+  featuredPostDeleteDialog.value = true;
+};
+
+const deleteFeaturedPost = async () => {
+  const post = featuredPostToDelete.value;
+  if (!post) return;
+  deletingFeaturedPost.value = true;
+  try {
+    const response = await fetch(`/api/admin/featured-posts/${post.id}`, {
+      method: 'DELETE',
+      headers: {
+        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+        'Content-Type': 'application/json'
+      },
+      credentials: 'include'
+    });
+    if (!response.ok) throw new Error('Delete failed');
+    success('Featured post deleted.');
+    featuredPostDeleteDialog.value = false;
+    featuredPostToDelete.value = null;
+    await loadAdminFeaturedPosts();
+  } catch (e) {
+    notification.value = { show: true, type: 'error', title: 'Error', message: e.message || 'Delete failed', timeout: 5000 };
+  } finally {
+    deletingFeaturedPost.value = false;
   }
 };
 
@@ -9635,6 +9885,7 @@ const navItems = ref([
   { icon: 'mdi-clock-time-four', title: 'Time Tracking', value: 'time-tracking', category: 'BOOKINGS' },
   { icon: 'mdi-star', title: 'Reviews & Ratings', value: 'reviews', category: 'FEEDBACK' },
   { icon: 'mdi-bullhorn', title: 'Announcements', value: 'announcements', category: 'COMMUNICATIONS' },
+  { icon: 'mdi-image-multiple', title: 'Featured Posts', value: 'featured-posts', category: 'COMMUNICATIONS' },
   { icon: 'mdi-email-newsletter', title: 'Email Marketing', value: 'email-marketing', category: 'COMMUNICATIONS' },
   { icon: 'mdi-credit-card', title: 'Payments', value: 'payments', category: 'FINANCIAL' },
   { icon: 'mdi-chart-line', title: 'Analytics', value: 'analytics', category: 'REPORTS' },
@@ -9745,7 +9996,7 @@ const stats = ref([
   { title: 'Total Users', value: '0', icon: 'mdi-account-group', color: 'error', change: '+12% this month', changeColor: 'text-success', changeIcon: 'mdi-arrow-up' },
   { title: 'Active Bookings', value: '0', icon: 'mdi-calendar-check', color: 'error', change: '+8% this week', changeColor: 'text-success', changeIcon: 'mdi-arrow-up' },
   { title: 'Total Revenue', value: '$0', icon: 'mdi-currency-usd', color: 'error', change: '+15% this month', changeColor: 'text-success', changeIcon: 'mdi-arrow-up' },
-  { title: 'Total Staff', value: '0', icon: 'mdi-account-hard-hat', color: 'error', change: 'Caregivers & Housekeepers', changeColor: 'text-info', changeIcon: 'mdi-information' },
+  { title: 'Total Contractors', value: '0', icon: 'mdi-account-hard-hat', color: 'error', change: 'Caregivers & Housekeepers', changeColor: 'text-info', changeIcon: 'mdi-information' },
 ]);
 
 const loadAdminStats = async () => {
@@ -10034,11 +10285,12 @@ const loadMetrics = async () => {
     // Housekeeper metrics
     housekeeperMetrics.value[3].value = '$' + (data.avg_housekeeper_earnings || 0).toFixed(0); // Avg Earnings
     
-    const bookingsResp = await fetch('/api/bookings', {
+    // Use admin bookings API to get ALL bookings (api/bookings filters by current user's client_id)
+    const bookingsResp = await fetch('/api/admin/bookings?per_page=9999', {
       credentials: 'include'
     });
-    const bookingsData = await bookingsResp.json();
-    const allBookings = bookingsData.data || [];
+    const bookingsResult = await bookingsResp.json();
+    const allBookings = bookingsResult.success ? (bookingsResult.data || []) : [];
     bookingStats.value.pending = allBookings.filter(b => b.status === 'pending').length.toString();
     bookingStats.value.active = allBookings.filter(b => b.status === 'confirmed').length.toString();
     bookingStats.value.completed = allBookings.filter(b => b.status === 'completed').length.toString();
@@ -12268,8 +12520,17 @@ const changePassword = async () => {
   }
 };
 
-const logout = () => {
-  window.location.href = '/login';
+const logout = async () => {
+  try {
+    const csrf = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+    await fetch('/logout', {
+      method: 'POST',
+      headers: { 'X-CSRF-TOKEN': csrf, 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({})
+    });
+  } catch (_) {}
+  window.location.href = '/login?refresh=' + Date.now();
 };
 
 const editUser = (user) => {
@@ -15947,7 +16208,14 @@ const exportFinancialReportPDF = () => {
   window.open('/api/admin/financial-report/pdf?period=all', '_blank');
 };
 
-const caregiverContactsDialog = ref(false);
+const contractorsContactsDialog = ref(false);
+const contractorSearch = ref('');
+const contractorTypeFilter = ref('All');
+const contractorTypeOptions = [
+  { title: 'All', value: 'All' },
+  { title: 'Caregivers', value: 'Caregivers' },
+  { title: 'Housekeepers', value: 'Housekeepers' }
+];
 const boroughFilter = ref('All');
 const sortBy = ref('name');
 const sortOrder = ref('asc');
@@ -15972,6 +16240,33 @@ const loadQuickCaregivers = async () => {
     }
   } catch (error) {
   }
+};
+
+// Combined contractors (caregivers + housekeepers) for dashboard widget - first 3
+const quickContractors = computed(() => {
+  const cg = (quickCaregivers.value || []).slice(0, 3).map(c => ({
+    ...c,
+    id: 'cg-' + (c.id ?? c.userId ?? Math.random()),
+    contractorType: 'Caregiver',
+    initials: c.initials || (c.name || ' ').split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2),
+    available: c.available !== false
+  }));
+  const hk = (housekeepers.value || []).slice(0, 3).map(h => ({
+    id: 'hk-' + h.id,
+    name: h.name,
+    phone: h.phone || 'N/A',
+    contractorType: 'Housekeeper',
+    initials: (h.name || ' ').split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2),
+    available: h.status === 'Available' || h.status === 'Active'
+  }));
+  return [...cg, ...hk].slice(0, 3);
+});
+
+const openContractorsContactsDialog = () => {
+  if (housekeepers.value.length === 0) {
+    loadHousekeepers();
+  }
+  contractorsContactsDialog.value = true;
 };
 
 // Add phone numbers and boroughs to existing caregivers data
@@ -16017,6 +16312,53 @@ const filteredAndSortedCaregivers = computed(() => {
     }
   });
   
+  return filtered;
+});
+
+// Combined contractors list for Contractors Contacts dialog (caregivers + housekeepers)
+const filteredAndSortedContractors = computed(() => {
+  const cgList = (caregivers.value || []).map(c => ({
+    ...c,
+    id: 'cg-' + (c.id ?? c.userId),
+    contractorType: 'Caregiver'
+  }));
+  const hkList = (housekeepers.value || []).map(h => ({
+    ...h,
+    id: 'hk-' + h.id,
+    contractorType: 'Housekeeper'
+  }));
+  let filtered = [...cgList, ...hkList].filter(contractor => {
+    const matchesType = contractorTypeFilter.value === 'All' || contractor.contractorType === contractorTypeFilter.value;
+    const matchesSearch = !contractorSearch.value ||
+      (contractor.name || '').toLowerCase().includes(contractorSearch.value.toLowerCase()) ||
+      (contractor.email || '').toLowerCase().includes(contractorSearch.value.toLowerCase());
+    const loc = contractor.location || contractor.borough || '';
+    const matchesBorough = boroughFilter.value === 'All' || loc === boroughFilter.value;
+    return matchesType && matchesSearch && matchesBorough;
+  });
+
+  const [sortField, order] = sortBy.value.split('-');
+  filtered.sort((a, b) => {
+    let aVal, bVal;
+    if (sortField === 'name') {
+      aVal = (a.name || '').toLowerCase();
+      bVal = (b.name || '').toLowerCase();
+    } else if (sortField === 'joined') {
+      const dateMap = { 'Jan': '01', 'Feb': '02', 'Mar': '03', 'Apr': '04', 'May': '05', 'Jun': '06',
+                       'Jul': '07', 'Aug': '08', 'Sep': '09', 'Oct': '10', 'Nov': '11', 'Dec': '12' };
+      const parseJoined = (j) => {
+        if (!j) return new Date(0);
+        const m = (j + '').match(/([A-Za-z]+)\s+(\d+)/);
+        return m ? new Date(`${m[2]}-${dateMap[m[1]] || '01'}-01`) : new Date(0);
+      };
+      aVal = parseJoined(a.joined);
+      bVal = parseJoined(b.joined);
+    } else {
+      return 0;
+    }
+    if (order === 'asc') return aVal < bVal ? -1 : aVal > bVal ? 1 : 0;
+    return aVal > bVal ? -1 : aVal < bVal ? 1 : 0;
+  });
   return filtered;
 });
 
@@ -16644,6 +16986,12 @@ watch(currentSection, (newVal) => {
   if (newVal === 'training-centers') {
     loadTrainingCenters();
   }
+  if (newVal === 'featured-posts') {
+    loadAdminFeaturedPosts();
+  }
+  if (newVal === 'announcements') {
+    loadRecentAnnouncements();
+  }
   // Load bookings when opening Clients/Caregivers/Housekeepers so contract filter (Ongoing/No contract) has data
   if ((newVal === 'clients' || newVal === 'caregivers' || newVal === 'housekeepers') && clientBookings.value.length === 0 && !loadingBookings.value) {
     loadClientBookings();
@@ -16839,7 +17187,7 @@ watch([caregivers, clients, pendingApplications, passwordResets, marketingStaff,
   }, 300);
 }, { deep: true });
 
-// Update Total Staff stat when caregivers or housekeepers change
+// Update Total Contractors stat when caregivers or housekeepers change
 watch([caregivers, housekeepers], () => {
   const totalStaff = caregivers.value.length + housekeepers.value.length;
   stats.value[3].value = totalStaff.toString();
@@ -17784,6 +18132,38 @@ setInterval(() => {
 
 .announcement-item:last-child {
   border-bottom: none;
+}
+
+.featured-admin-image-wrap {
+  position: relative;
+  aspect-ratio: 16 / 10;
+  background: #f1f5f9;
+}
+.featured-admin-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.featured-admin-actions {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(transparent, rgba(0,0,0,0.6));
+  display: flex;
+  gap: 4px;
+  justify-content: flex-end;
+}
+
+/* Featured Post modal: white header background, dark header font */
+.featured-post-modal-header {
+  background: #ffffff !important;
+  color: #1a1a1a !important;
+  border-bottom: 1px solid #e5e7eb;
+}
+.featured-post-modal-header .section-title {
+  color: #1a1a1a !important;
 }
 
 .announcement-title {
