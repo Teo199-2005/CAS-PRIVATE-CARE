@@ -30,9 +30,10 @@
           </div>
           <div class="stat-label">{{ label }}</div>
         </div>
-        <div v-if="change || date" class="stat-body-right flex-shrink-0 text-end">
+        <div v-if="change || date" class="stat-body-right text-end">
           <div v-if="change" class="stat-change" :class="changeColor">
-            <v-icon size="small">{{ changeIcon }}</v-icon> {{ change }}
+            <v-icon size="small" class="stat-change-icon">{{ changeIcon }}</v-icon>
+            <span class="stat-change-text">{{ change }}</span>
           </div>
           <div v-if="date" class="stat-date">{{ date }}</div>
         </div>
@@ -290,11 +291,28 @@ onMounted(() => {
   align-items: flex-end;
   justify-content: flex-start;
   gap: 2px;
+  min-width: 0;
+  max-width: 55%;
 }
 
 .stat-body-right .stat-change {
   text-align: right;
   line-height: 1.3;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: flex-end;
+  gap: 4px;
+}
+
+.stat-change-icon {
+  flex-shrink: 0;
+}
+
+.stat-change-text {
+  overflow-wrap: break-word;
+  word-break: break-word;
+  min-width: 0;
 }
 
 /* ========================================
@@ -430,10 +448,6 @@ onMounted(() => {
 .stat-change {
   font-size: 0.8125rem;
   font-weight: 600;
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 4px;
 }
 
 .stat-date {
@@ -441,6 +455,9 @@ onMounted(() => {
   color: #94a3b8;
   font-weight: 500;
   letter-spacing: 0.02em;
+  overflow-wrap: break-word;
+  word-break: break-word;
+  min-width: 0;
 }
 
 /* Mobile Responsive Styles */
