@@ -899,8 +899,16 @@ const getShortTitle = (title) => {
   background: #f5f5f5 !important;
 }
 
+.sidebar-nav .nav-item :deep(.v-list-item__content) {
+  min-width: 0 !important;
+}
+
 .nav-item :deep(.v-list-item-title) {
   font-weight: 500 !important;
+  white-space: normal !important;
+  word-wrap: break-word !important;
+  overflow-wrap: break-word !important;
+  line-height: 1.35 !important;
 }
 
 .active-nav {
