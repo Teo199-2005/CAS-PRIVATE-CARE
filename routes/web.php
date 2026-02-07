@@ -285,6 +285,7 @@ Route::prefix('api')->middleware(['web', 'auth'])->group(function () {
     
     // Caregiver Data
     Route::get('/caregivers', [\App\Http\Controllers\DashboardController::class, 'caregivers']);
+    Route::get('/housekeepers', [\App\Http\Controllers\DashboardController::class, 'housekeepers']);
     Route::get('/caregiver/{id}/stats', [\App\Http\Controllers\DashboardController::class, 'caregiverStats']);
     Route::get('/caregiver/{id}/earnings-report', [CaregiverController::class, 'getEarningsReport']);
     Route::post('/caregiver/earnings-report-pdf', [CaregiverController::class, 'generateEarningsReportPdf']);

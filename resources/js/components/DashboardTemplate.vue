@@ -741,6 +741,7 @@ const getShortTitle = (title) => {
     'More': 'More',
     'Book Service': 'Book',
     'Browse Caregivers': 'Browse',
+    'Browse Caregivers & Housekeepers': 'Browse',
     'Payment Information': 'Payment',
     'Transaction History': 'History',
     'Job Listings': 'Jobs',

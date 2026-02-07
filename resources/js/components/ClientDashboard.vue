@@ -2041,7 +2041,7 @@
                 <v-card-text class="pa-8 text-center">
                   <div class="position-relative d-inline-block mb-4">
                     <v-avatar size="120" color="primary">
-                      <img v-if="userAvatar && userAvatar.length > 0" :src="userAvatar" :alt="`${profile.firstName} ${profile.lastName}'s profile photo`" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;" @error="userAvatar = ''" />
+                      <img v-if="userAvatar && userAvatar.length > 0" :src="userAvatar" :alt="`${[profileData.firstName, profileData.lastName].filter(Boolean).join(' ') || userName}'s profile photo`" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;" @error="userAvatar = ''" />
                       <span v-else class="text-h3 font-weight-bold text-white">{{ userInitials }}</span>
                     </v-avatar>
                     <v-btn 
@@ -3555,7 +3555,7 @@ const navItems = computed(() => [
   { icon: 'mdi-bell', title: 'Notifications', value: 'notifications', badge: unreadNotifications.value > 0 },
   { icon: 'mdi-credit-card', title: 'Payment Information', value: 'payment' },
   { icon: 'mdi-calendar-plus', title: 'Book Service', value: 'book-form', category: 'SERVICES' },
-  { icon: 'mdi-account-multiple', title: 'Browse Caregivers', value: 'book', category: 'SERVICES' },
+  { icon: 'mdi-account-multiple', title: 'Browse Caregivers & Housekeepers', value: 'book', category: 'SERVICES' },
   // Removed: My Bookings (accessible from dashboard)
   // Removed: Analytics Reports
   { icon: 'mdi-account-circle', title: 'Profile', value: 'profile', category: 'ACCOUNT' }

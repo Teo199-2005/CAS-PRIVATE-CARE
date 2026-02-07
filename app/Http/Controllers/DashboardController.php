@@ -300,6 +300,7 @@ class DashboardController extends Controller
     public function caregivers(): JsonResponse
     {
         $caregivers = Caregiver::with('user')
+            ->withCount('bookingAssignments')
             ->get()
             ->map(function($caregiver) {
                 // Use user's uploaded avatar if available, otherwise use stock image
@@ -312,25 +313,56 @@ class DashboardController extends Controller
                     }
                 }
                 
+                $name = $caregiver->user->name ?? '';
+                $nameParts = explode(' ', trim($name), 2);
+                $firstName = $caregiver->first_name ?? $nameParts[0] ?? '';
+                $lastName = $caregiver->last_name ?? ($nameParts[1] ?? '');
+                $dob = $caregiver->user->date_of_birth ?? null;
+                $age = $dob ? now()->diffInYears(\Carbon\Carbon::parse($dob)) : null;
+                $joined = $caregiver->user->created_at ? $caregiver->user->created_at->format('n/j/Y') : null;
+                $certs = is_array($caregiver->certifications) ? $caregiver->certifications : [];
+                if (empty($certs) && $caregiver->certifications) {
+                    $certs = is_string($caregiver->certifications) ? array_map('trim', explode(',', $caregiver->certifications)) : [ 'Licensed Caregiver' ];
+                }
+                if (empty($certs)) {
+                    $certs = [ 'Licensed Caregiver' ];
+                }
                 return [
                     'id' => $caregiver->id,
                     'user_id' => $caregiver->user_id,
-                    'name' => $caregiver->user->name,
+                    'name' => $name,
+                    'first_name' => $firstName,
+                    'last_name' => $lastName,
                     'specialty' => is_array($caregiver->specializations) ? implode(' & ', $caregiver->specializations) : 'General Care',
                     'rating' => (float) $caregiver->rating,
                     'reviews' => $caregiver->total_reviews,
                     'experience' => $caregiver->years_experience,
                     'certifications' => is_array($caregiver->certifications) ? implode(', ', $caregiver->certifications) : 'Licensed Caregiver',
+                    'certifications_list' => $certs,
                     'availability' => $caregiver->availability_status,
                     'image' => $avatar ?: $this->getCaregiverImage($caregiver->gender, $caregiver->id),
                     'avatar' => $avatar,
                     'hasCustomAvatar' => !empty($avatar),
-                    'initials' => $this->getInitials($caregiver->user->name),
+                    'initials' => $this->getInitials($name),
                     'phone' => $caregiver->user->phone ?: '(212) 555-' . str_pad($caregiver->id, 4, '0', STR_PAD_LEFT),
                     'email' => $caregiver->user->email,
                     'bio' => $caregiver->bio,
                     'skills' => $caregiver->skills,
-                    'hourly_rate' => $caregiver->hourly_rate
+                    'hourly_rate' => $caregiver->hourly_rate,
+                    'preferred_hourly_rate_min' => $caregiver->preferred_hourly_rate_min ?? $caregiver->hourly_rate ?? 20,
+                    'preferred_hourly_rate_max' => $caregiver->preferred_hourly_rate_max ?? $caregiver->hourly_rate ?? 50,
+                    'birthdate' => $dob ? \Carbon\Carbon::parse($dob)->format('Y-m-d') : null,
+                    'age' => $age,
+                    'address' => $caregiver->user->address ?? null,
+                    'state' => $caregiver->user->state ?? 'New York',
+                    'county' => $caregiver->user->county ?? $caregiver->user->borough ?? null,
+                    'city' => $caregiver->user->city ?? null,
+                    'zip_code' => $caregiver->user->zip_code ?? null,
+                    'location' => $caregiver->user->city && $caregiver->user->state ? $caregiver->user->city . ', ' . $caregiver->user->state : null,
+                    'clients_served' => $caregiver->booking_assignments_count ?? 0,
+                    'joined' => $joined,
+                    'verification_status' => $caregiver->background_check_completed ? 'Verified' : 'Pending',
+                    'training_certificate' => $caregiver->training_certificate ?? null
                 ];
             });
             
@@ -344,35 +376,59 @@ class DashboardController extends Controller
         $housekeepers = \App\Models\Housekeeper::with('user')
             ->get()
             ->map(function($housekeeper) {
-                // Use user's uploaded avatar if available, otherwise use stock image
                 $avatar = null;
                 if ($housekeeper->user && $housekeeper->user->avatar) {
                     $avatar = $housekeeper->user->avatar;
-                    // Ensure proper path format
                     if (!str_starts_with($avatar, '/') && !str_starts_with($avatar, 'http')) {
                         $avatar = '/storage/' . $avatar;
                     }
                 }
-                
+                $name = $housekeeper->user->name ?? '';
+                $nameParts = explode(' ', trim($name), 2);
+                $dob = $housekeeper->user->date_of_birth ?? null;
+                $age = $dob ? now()->diffInYears(\Carbon\Carbon::parse($dob)) : null;
+                $joined = $housekeeper->user->created_at ? $housekeeper->user->created_at->format('n/j/Y') : null;
+                $certs = is_array($housekeeper->certifications) ? $housekeeper->certifications : [];
+                if (empty($certs) && $housekeeper->certifications) {
+                    $certs = is_string($housekeeper->certifications) ? array_map('trim', explode(',', $housekeeper->certifications)) : [ 'Licensed Housekeeper' ];
+                }
+                if (empty($certs)) {
+                    $certs = [ 'Licensed Housekeeper' ];
+                }
                 return [
                     'id' => $housekeeper->id,
                     'user_id' => $housekeeper->user_id,
-                    'name' => $housekeeper->user->name,
+                    'name' => $name,
+                    'first_name' => $nameParts[0] ?? '',
+                    'last_name' => $nameParts[1] ?? '',
                     'specialty' => is_array($housekeeper->specializations) ? implode(' & ', $housekeeper->specializations) : 'General Cleaning',
                     'rating' => (float) $housekeeper->rating,
                     'reviews' => $housekeeper->total_reviews,
                     'experience' => $housekeeper->years_experience,
                     'certifications' => is_array($housekeeper->certifications) ? implode(', ', $housekeeper->certifications) : 'Licensed Housekeeper',
+                    'certifications_list' => $certs,
                     'availability' => $housekeeper->availability_status,
                     'image' => $avatar ?: $this->getHousekeeperImage($housekeeper->gender, $housekeeper->id),
                     'avatar' => $avatar,
                     'hasCustomAvatar' => !empty($avatar),
-                    'initials' => $this->getInitials($housekeeper->user->name),
+                    'initials' => $this->getInitials($name),
                     'phone' => $housekeeper->user->phone ?: '(212) 555-' . str_pad($housekeeper->id, 4, '0', STR_PAD_LEFT),
                     'email' => $housekeeper->user->email,
                     'bio' => $housekeeper->bio,
                     'skills' => $housekeeper->skills,
-                    'hourly_rate' => $housekeeper->hourly_rate
+                    'hourly_rate' => $housekeeper->hourly_rate,
+                    'birthdate' => $dob ? \Carbon\Carbon::parse($dob)->format('Y-m-d') : null,
+                    'age' => $age,
+                    'address' => $housekeeper->user->address ?? null,
+                    'state' => $housekeeper->user->state ?? 'New York',
+                    'county' => $housekeeper->user->county ?? $housekeeper->user->borough ?? null,
+                    'city' => $housekeeper->user->city ?? null,
+                    'zip_code' => $housekeeper->user->zip_code ?? null,
+                    'location' => $housekeeper->user->city && $housekeeper->user->state ? $housekeeper->user->city . ', ' . $housekeeper->user->state : null,
+                    'clients_served' => 0,
+                    'joined' => $joined,
+                    'verification_status' => $housekeeper->background_check_completed ? 'Verified' : 'Pending',
+                    'training_certificate' => null
                 ];
             });
             
