@@ -222,14 +222,14 @@ onMounted(async () => {
   }
 
   // Check for success message in URL
-  const urlParams = new URLSearchParams(window.location.search);
-  if (urlParams.get('registered')) {
+  const searchParams = new URLSearchParams(window.location.search);
+  if (searchParams.get('registered')) {
     successMessage.value = 'Registration successful! Please login.';
   }
-  if (urlParams.get('password_reset')) {
+  if (searchParams.get('password_reset')) {
     successMessage.value = 'Password reset successful! Please login with your new password.';
   }
-  if (urlParams.get('expired')) {
+  if (searchParams.get('expired')) {
     errorMessage.value = 'Your session has expired. Please log in again.';
   }
 });
