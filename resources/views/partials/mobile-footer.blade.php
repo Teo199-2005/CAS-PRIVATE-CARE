@@ -117,7 +117,7 @@
     }
 
     .mobile-footer-logo p {
-        color: #cbd5e1;
+        color: #ffffff !important;
         font-size: 0.95rem;
         margin: 0;
         font-weight: 500;
@@ -147,8 +147,16 @@
         gap: 0.75rem;
     }
 
+    /* Force white text on all footer links (override global blue link styles) */
+    .mobile-footer-only a,
+    .mobile-footer-only .mobile-links-grid a,
+    .mobile-footer-only .mobile-contact-item,
+    .mobile-footer-only .mobile-contact-item span {
+        color: #ffffff !important;
+    }
+
     .mobile-links-grid a {
-        color: #cbd5e1;
+        color: #ffffff !important;
         text-decoration: none;
         font-size: 0.95rem;
         padding: 0.75rem 1rem;
@@ -165,7 +173,7 @@
 
     .mobile-links-grid a:active {
         background: rgba(249, 115, 22, 0.2);
-        color: #f97316;
+        color: #f97316 !important;
         transform: scale(0.98);
     }
 
@@ -174,7 +182,7 @@
         align-items: center;
         gap: 0.875rem;
         padding: 0.875rem 0;
-        color: #cbd5e1;
+        color: #ffffff !important;
         text-decoration: none;
         font-size: 0.95rem;
         line-height: 1.6;
@@ -189,8 +197,9 @@
         text-align: center;
     }
 
-    .mobile-contact-item:active {
-        color: #f97316;
+    .mobile-contact-item:active,
+    .mobile-contact-item:active span {
+        color: #f97316 !important;
     }
 
     .mobile-social-icons {
@@ -208,7 +217,7 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        color: white;
+        color: #ffffff !important;
         text-decoration: none;
         font-size: 1.5rem;
         transition: all 0.3s ease;
@@ -241,7 +250,7 @@
     }
 
     .mobile-legal-links a {
-        color: #94a3b8;
+        color: #e2e8f0 !important;
         text-decoration: none;
         font-size: 0.875rem;
         padding: 0.5rem 1rem;
@@ -255,7 +264,7 @@
     }
 
     .mobile-legal-links a:active {
-        color: #f97316;
+        color: #f97316 !important;
     }
 }
 

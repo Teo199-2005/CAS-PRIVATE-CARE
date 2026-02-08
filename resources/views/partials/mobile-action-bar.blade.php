@@ -39,7 +39,11 @@
 
     .mobile-action-btn.primary {
         background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
-        color: white;
+        color: #ffffff;
+    }
+    .mobile-action-btn.primary span,
+    .mobile-action-btn.primary i {
+        color: #ffffff;
     }
 
     .mobile-action-btn.primary:hover {
@@ -49,8 +53,12 @@
 
     .mobile-action-btn.secondary {
         background: rgba(255, 255, 255, 0.15);
-        color: white;
+        color: #ffffff;
         border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+    .mobile-action-btn.secondary span,
+    .mobile-action-btn.secondary i {
+        color: #ffffff;
     }
 
     .mobile-action-btn.secondary:hover {
@@ -59,6 +67,13 @@
 
     .mobile-action-btn i {
         font-size: 1.1rem;
+    }
+
+    /* Force white text on mobile bar (override any global link color) */
+    .mobile-action-bar .mobile-action-btn,
+    .mobile-action-bar .mobile-action-btn span,
+    .mobile-action-bar .mobile-action-btn i {
+        color: #ffffff !important;
     }
 
     /* Only show on mobile/tablet */

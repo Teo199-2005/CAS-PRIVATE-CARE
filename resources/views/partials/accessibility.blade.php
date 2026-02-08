@@ -13,14 +13,14 @@
     @date January 28, 2026
 --}}
 
-{{-- Skip Links - Must be first focusable element in DOM --}}
-<a href="#main-content" class="skip-link" id="skip-to-main">
+{{-- Skip Links - Must be first focusable element in DOM (tabindex="0" ensures keyboard focusability) --}}
+<a href="#main-content" class="skip-link" id="skip-to-main" tabindex="0">
     Skip to main content
 </a>
-<a href="#primary-navigation" class="skip-link">
+<a href="#primary-navigation" class="skip-link" tabindex="0">
     Skip to navigation
 </a>
-<a href="#footer" class="skip-link">
+<a href="#footer" class="skip-link" tabindex="0">
     Skip to footer
 </a>
 

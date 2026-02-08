@@ -1,4 +1,4 @@
- <nav>
+ <nav id="primary-navigation" aria-label="Main navigation">
     <div class="nav-container">
         <div class="logo-section">
             <a href="{{ url('/') }}">

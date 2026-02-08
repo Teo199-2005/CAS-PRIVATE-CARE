@@ -83,7 +83,8 @@
     @endif
     <!-- Single combined Google Fonts request (display=swap for faster text render) -->
     <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;600;700&family=Montserrat:wght@700;800&display=swap" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet" media="print" onload="this.media='all'">
+<noscript><link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet"></noscript>
 
     <!-- Preload only LCP image to reduce initial requests -->
     <link rel="preload" as="image" href="{{ asset('cover.jpg') }}" fetchpriority="high">
@@ -6305,7 +6306,7 @@
             </div>
             <div class="hero-right">
                 <div class="hero-image-container">
-                    <img src="{{ asset('cover.jpg') }}" alt="CAS Private Care LLC Cover" class="hero-cover-image" fetchpriority="high" decoding="async">
+                    <img src="{{ asset('cover.jpg') }}" alt="CAS Private Care LLC Cover" class="hero-cover-image" fetchpriority="high" decoding="async" width="800" height="600">
                 </div>
                 <div class="hero-social-container">
                     <p class="hero-social-text">CONNECT WITH US:</p>
@@ -6353,8 +6354,9 @@
     <section class="section-light" style="padding: 6rem 2rem;" id="about-section" itemscope itemtype="https://schema.org/AboutPage">
         <div style="max-width: 1400px; margin: 0 auto; display: grid; grid-template-columns: 1.15fr 1fr; gap: 4rem; align-items: center; overflow: visible;">
             <div class="fade-in" style="position: relative;">
-                <video id="about-section-video" autoplay loop muted playsinline preload="metadata" style="width: 100%; height: 620px; object-fit: cover; box-shadow: 0 20px 60px rgba(59, 130, 246, 0.2);">
+                <video id="about-section-video" autoplay loop muted playsinline preload="metadata" style="width: 100%; height: 620px; object-fit: cover; box-shadow: 0 20px 60px rgba(59, 130, 246, 0.2);" aria-label="CAS Private Care introduction video">
                     <source src="{{ asset('what.mp4') }}" type="video/mp4">
+                    <track kind="captions" srclang="en" label="English" default>
                     Your browser does not support the video tag.
                 </video>
             </div>
@@ -6416,7 +6418,7 @@
             <div class="ceo-content">
                 <div class="fade-in" style="text-align: center;">
                     <div class="ceo-image-wrap">
-                        <img src="{{ asset('CEO.jpg') }}" alt="Charles Andrew Santiago - CEO and Founder of CAS Private Care LLC" loading="lazy" decoding="async">
+                        <img src="{{ asset('CEO.jpg') }}" alt="Charles Andrew Santiago - CEO and Founder of CAS Private Care LLC" loading="lazy" decoding="async" width="400" height="400">
                         <div class="ceo-badge" aria-hidden="true">
                             <i class="bi bi-award-fill" aria-hidden="true"></i>
                         </div>
@@ -7077,7 +7079,7 @@
     </main>
 
     <!-- Desktop Footer -->
-    <footer>
+    <footer id="footer">
         <div class="footer-content">
             <div class="footer-brand">
                 <div class="footer-logo">
@@ -7137,7 +7139,7 @@
                     <button class="newsletter-btn">Subscribe</button>
                 </div>
                 <div style="margin-top: 1.5rem;">
-                    <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d387190.27991608967!2d-74.25987368715493!3d40.69767006377258!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x89c24fa5d33f083b%3A0xc80b8f06e177fe62!2sNew%20York%2C%20NY%2C%20USA!5e0!3m2!1sen!2sus!4v1234567890" width="100%" height="120" style="border:0; border-radius: 8px;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                    <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d387190.27991608967!2d-74.25987368715493!3d40.69767006377258!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x89c24fa5d33f083b%3A0xc80b8f06e177fe62!2sNew%20York%2C%20NY%2C%20USA!5e0!3m2!1sen!2sus!4v1234567890" width="100%" height="120" style="border:0; border-radius: 8px;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade" title="Map of New York area"></iframe>
                 </div>
             </div>
         </div>
@@ -7338,7 +7340,7 @@
     <div id="chatbot-container">
         <!-- Floating Chat Button with Logo -->
         <button id="chatbot-toggle" class="chatbot-toggle" aria-label="Open FAQ Chat" title="Chat with CAS Assistant">
-            <img src="{{ asset('logo flower.png') }}" alt="CAS" class="chatbot-toggle-logo">
+            <img src="{{ asset('logo flower.png') }}" alt="CAS" class="chatbot-toggle-logo" width="48" height="48">
             <span class="chatbot-notification">1</span>
             <span class="chatbot-pulse-ring"></span>
         </button>
@@ -7349,7 +7351,7 @@
             <div class="chatbot-header">
                 <div class="chatbot-header-content">
                     <div class="chatbot-logo-container">
-                        <img src="{{ asset('logo flower.png') }}" alt="CAS Private Care" class="chatbot-header-logo">
+                        <img src="{{ asset('logo flower.png') }}" alt="CAS Private Care" class="chatbot-header-logo" width="40" height="40">
                         <span class="chatbot-status-dot"></span>
                     </div>
                     <div class="chatbot-header-text">
@@ -7378,7 +7380,7 @@
             <div class="chatbot-body" id="chatbot-body">
                 <!-- Welcome Card -->
                 <div class="chat-welcome-card">
-                    <img src="{{ asset('logo flower.png') }}" alt="CAS Private Care" class="welcome-logo">
+                    <img src="{{ asset('logo flower.png') }}" alt="CAS Private Care" class="welcome-logo" width="64" height="64">
                     <h4>Welcome to CAS Private Care!</h4>
                     <p>Your trusted partner for quality home care services in NYC.</p>
                 </div>
@@ -7386,7 +7388,7 @@
                 <!-- Initial Bot Message with Timestamp -->
                 <div class="chat-message bot-message" data-time="">
                     <div class="message-avatar">
-                        <img src="{{ asset('logo flower.png') }}" alt="CAS">
+                        <img src="{{ asset('logo flower.png') }}" alt="CAS" width="40" height="40">
                     </div>
                     <div class="message-wrapper">
                         <div class="message-sender">CAS Assistant</div>
@@ -8300,7 +8302,7 @@
             const avatar = document.createElement('div');
             avatar.className = 'message-avatar';
             if (sender === 'bot') {
-                avatar.innerHTML = '<img src="' + (window.__CAS_LOGO_URL__ || '/logo flower.png') + '" alt="CAS">';
+                avatar.innerHTML = '<img src="' + (window.__CAS_LOGO_URL__ || '/logo flower.png') + '" alt="CAS" width="40" height="40">';
             } else {
                 avatar.innerHTML = '<i class="bi bi-person-fill"></i>';
             }
@@ -8391,7 +8393,7 @@
 
             const avatar = document.createElement('div');
             avatar.className = 'message-avatar';
-            avatar.innerHTML = '<img src="' + (window.__CAS_LOGO_URL__ || '/logo flower.png') + '" alt="CAS">';
+            avatar.innerHTML = '<img src="' + (window.__CAS_LOGO_URL__ || '/logo flower.png') + '" alt="CAS" width="40" height="40">';
 
             const wrapper = document.createElement('div');
             wrapper.className = 'message-wrapper';
@@ -8952,8 +8954,8 @@
                         }
                     });
                 }
-            } catch (error) {
-                console.error('Failed to check maintenance status:', error);
+            } catch (_) {
+                // Maintenance status check failed (e.g. network); use defaults
             }
         }
         
