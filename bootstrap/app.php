@@ -24,6 +24,8 @@ return Application::configure(basePath: dirname(__DIR__))
         },
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // Redirect HTTP to HTTPS in production when APP_URL is https (run first)
+        $middleware->prepend(\App\Http\Middleware\ForceHttps::class);
         // Register global middleware
         $middleware->append(\App\Http\Middleware\SecurityHeaders::class);
         $middleware->append(\App\Http\Middleware\SanitizeInput::class);

@@ -64,7 +64,7 @@
 </IfModule>
 
 # =========================================
-# COMPRESSION (Gzip)
+# COMPRESSION (Gzip) - reduces response size ~70%
 # =========================================
 
 <IfModule mod_deflate.c>
@@ -82,6 +82,13 @@
     AddOutputFilterByType DEFLATE image/svg+xml
     AddOutputFilterByType DEFLATE font/woff
     AddOutputFilterByType DEFLATE font/woff2
+</IfModule>
+
+# Required for correct caching of gzip responses (proxies/browsers)
+<IfModule mod_headers.c>
+    <IfModule mod_deflate.c>
+        Header append Vary Accept-Encoding
+    </IfModule>
 </IfModule>
 
 # =========================================
@@ -112,6 +119,9 @@
     ExpiresByType text/css "access plus 1 year"
     ExpiresByType application/javascript "access plus 1 year"
     ExpiresByType text/javascript "access plus 1 year"
+    
+    # JSON (manifest, etc.) - 1 week
+    ExpiresByType application/json "access plus 1 week"
     
     # HTML - no cache
     ExpiresByType text/html "access plus 0 seconds"

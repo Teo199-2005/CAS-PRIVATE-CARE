@@ -73,19 +73,20 @@
     @endphp
     </script>
 
-    <!-- Preconnect to external resources for faster loading -->
+    <!-- DNS prefetch / preconnect: reduce DNS lookups by starting early (fewer hostnames = fonts + icons + stripe) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
-    <link rel="preconnect" href="https://js.stripe.com" crossorigin>
-    
-    <!-- Google Fonts for the landing page (no preload: avoids CORS/scanner issues and outdated font URLs) -->
+    <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
+    <link rel="dns-prefetch" href="https://js.stripe.com">
+    @if(config('app.asset_url'))
+    <link rel="dns-prefetch" href="{{ parse_url(config('app.asset_url'), PHP_URL_SCHEME) }}://{{ parse_url(config('app.asset_url'), PHP_URL_HOST) }}">
+    @endif
+    <!-- Single combined Google Fonts request (display=swap for faster text render) -->
     <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;600;700&family=Montserrat:wght@700;800&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
 
-    <!-- Preload critical images for LCP -->
+    <!-- Preload only LCP image to reduce initial requests -->
     <link rel="preload" as="image" href="{{ asset('cover.jpg') }}" fetchpriority="high">
-    <link rel="preload" as="image" href="{{ asset('logo.png') }}" fetchpriority="high">
     
     @include('partials.nav-footer-styles')
     
@@ -6352,7 +6353,7 @@
     <section class="section-light" style="padding: 6rem 2rem;" id="about-section" itemscope itemtype="https://schema.org/AboutPage">
         <div style="max-width: 1400px; margin: 0 auto; display: grid; grid-template-columns: 1.15fr 1fr; gap: 4rem; align-items: center; overflow: visible;">
             <div class="fade-in" style="position: relative;">
-                <video id="about-section-video" autoplay loop muted playsinline preload="auto" style="width: 100%; height: 620px; object-fit: cover; box-shadow: 0 20px 60px rgba(59, 130, 246, 0.2);">
+                <video id="about-section-video" autoplay loop muted playsinline preload="metadata" style="width: 100%; height: 620px; object-fit: cover; box-shadow: 0 20px 60px rgba(59, 130, 246, 0.2);">
                     <source src="{{ asset('what.mp4') }}" type="video/mp4">
                     Your browser does not support the video tag.
                 </video>
@@ -7143,6 +7144,7 @@
         <div class="footer-divider"></div>
         <div class="footer-bottom">
             <p>&copy; 2026 CAS Private Care LLC. All rights reserved.</p>
+            <p class="footer-trust-line" style="font-size: 0.85rem; color: #94a3b8; margin-top: 0.5rem;">CAS Private Care LLC is a legitimate care marketplace based in New York, USA. Contact: {{ config('app.phone', '+1 (646) 282-8282') }} · {{ config('app.email', 'contact@casprivatecare.online') }}</p>
             <div class="footer-bottom-links">
                 <a href="{{ url('/privacy') }}">Privacy Policy</a>
                 <a href="{{ url('/terms') }}">Terms of Service</a>
@@ -7245,7 +7247,7 @@
 
             progressBars.forEach(bar => progressObserver.observe(bar));
 
-            // About section video: unmute when in view, mute when scrolled past; ensure autoplay (works on hosting)
+            // About section video: always muted for performance and faster load; play when in view
             const aboutVideo = document.getElementById('about-section-video');
             const aboutSection = document.getElementById('about-section');
             if (aboutVideo && aboutSection) {
@@ -7253,7 +7255,6 @@
                     aboutVideo.muted = true;
                     aboutVideo.play().catch(() => {});
                 }
-                // On hosting the video often isn't ready at DOMContentLoaded — wait for it to load
                 aboutVideo.addEventListener('loadeddata', tryPlayVideo, { once: true });
                 aboutVideo.addEventListener('canplay', tryPlayVideo, { once: true });
                 if (aboutVideo.readyState >= 2) tryPlayVideo();
@@ -7261,10 +7262,11 @@
                 const videoSectionObserver = new IntersectionObserver((entries) => {
                     entries.forEach(entry => {
                         if (entry.isIntersecting) {
-                            aboutVideo.muted = false;
+                            aboutVideo.muted = true;
                             aboutVideo.play().catch(() => {});
                         } else {
                             aboutVideo.muted = true;
+                            aboutVideo.pause();
                         }
                     });
                 }, { threshold: 0.25, rootMargin: '0px' });
@@ -7331,11 +7333,12 @@
         }, 6000);
     </script>
 
-    <!-- FAQ Chatbot -->
+    <!-- FAQ Chatbot (logo URL for dynamic messages - supports cookie-free domain when ASSET_CDN_URL is set) -->
+    <script>window.__CAS_LOGO_URL__ = "{{ addslashes(asset('logo flower.png')) }}";</script>
     <div id="chatbot-container">
         <!-- Floating Chat Button with Logo -->
         <button id="chatbot-toggle" class="chatbot-toggle" aria-label="Open FAQ Chat" title="Chat with CAS Assistant">
-            <img src="/logo flower.png" alt="CAS" class="chatbot-toggle-logo">
+            <img src="{{ asset('logo flower.png') }}" alt="CAS" class="chatbot-toggle-logo">
             <span class="chatbot-notification">1</span>
             <span class="chatbot-pulse-ring"></span>
         </button>
@@ -7346,7 +7349,7 @@
             <div class="chatbot-header">
                 <div class="chatbot-header-content">
                     <div class="chatbot-logo-container">
-                        <img src="/logo flower.png" alt="CAS Private Care" class="chatbot-header-logo">
+                        <img src="{{ asset('logo flower.png') }}" alt="CAS Private Care" class="chatbot-header-logo">
                         <span class="chatbot-status-dot"></span>
                     </div>
                     <div class="chatbot-header-text">
@@ -7375,7 +7378,7 @@
             <div class="chatbot-body" id="chatbot-body">
                 <!-- Welcome Card -->
                 <div class="chat-welcome-card">
-                    <img src="/logo flower.png" alt="CAS Private Care" class="welcome-logo">
+                    <img src="{{ asset('logo flower.png') }}" alt="CAS Private Care" class="welcome-logo">
                     <h4>Welcome to CAS Private Care!</h4>
                     <p>Your trusted partner for quality home care services in NYC.</p>
                 </div>
@@ -7383,7 +7386,7 @@
                 <!-- Initial Bot Message with Timestamp -->
                 <div class="chat-message bot-message" data-time="">
                     <div class="message-avatar">
-                        <img src="/logo flower.png" alt="CAS">
+                        <img src="{{ asset('logo flower.png') }}" alt="CAS">
                     </div>
                     <div class="message-wrapper">
                         <div class="message-sender">CAS Assistant</div>
@@ -8297,7 +8300,7 @@
             const avatar = document.createElement('div');
             avatar.className = 'message-avatar';
             if (sender === 'bot') {
-                avatar.innerHTML = '<img src="/logo flower.png" alt="CAS">';
+                avatar.innerHTML = '<img src="' + (window.__CAS_LOGO_URL__ || '/logo flower.png') + '" alt="CAS">';
             } else {
                 avatar.innerHTML = '<i class="bi bi-person-fill"></i>';
             }
@@ -8388,7 +8391,7 @@
 
             const avatar = document.createElement('div');
             avatar.className = 'message-avatar';
-            avatar.innerHTML = '<img src="/logo flower.png" alt="CAS">';
+            avatar.innerHTML = '<img src="' + (window.__CAS_LOGO_URL__ || '/logo flower.png') + '" alt="CAS">';
 
             const wrapper = document.createElement('div');
             wrapper.className = 'message-wrapper';

@@ -56,6 +56,25 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Asset URL (cookie-free domain for static files)
+    |--------------------------------------------------------------------------
+    | Set ASSET_CDN_URL to a subdomain that serves only static assets and
+    | does not set cookies (e.g. https://static.casprivatecare.online).
+    | Reduces unnecessary cookie traffic and can improve performance.
+    */
+    'asset_url' => env('ASSET_CDN_URL', null),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Business Contact (for footer, trust signals, and crawlers)
+    |--------------------------------------------------------------------------
+    */
+    'address' => env('APP_ADDRESS', 'New York, USA'),
+    'phone' => env('APP_PHONE', '+1 (646) 282-8282'),
+    'email' => env('APP_EMAIL', 'contact@casprivatecare.online'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Application Timezone
     |--------------------------------------------------------------------------
     |

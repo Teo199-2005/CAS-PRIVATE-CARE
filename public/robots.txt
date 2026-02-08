@@ -48,8 +48,5 @@ Allow: /training-center
 Allow: /contractors
 Allow: /housekeeping-personal-assistant
 
-# Crawl delay for polite crawling
-Crawl-delay: 1
-
 # Sitemap location
 Sitemap: https://casprivatecare.online/sitemap.xml
