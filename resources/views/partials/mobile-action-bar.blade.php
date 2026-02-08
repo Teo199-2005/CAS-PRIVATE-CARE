@@ -91,7 +91,7 @@
 
 <div class="mobile-action-bar">
     <div class="mobile-action-bar-inner">
-        <a href="tel:+13479947331" class="mobile-action-btn secondary">
+        <a href="tel:+16462828282" class="mobile-action-btn secondary">
             <i class="bi bi-telephone-fill"></i>
             <span>Call Now</span>
         </a>

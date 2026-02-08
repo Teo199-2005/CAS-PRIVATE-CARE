@@ -812,7 +812,7 @@
                 <h3 style="font-family: 'Sora', sans-serif; font-size: 1.75rem; font-weight: 700; color: white; margin-bottom: 0.75rem;">Still Have Questions?</h3>
                 <p style="color: rgba(255, 255, 255, 0.85); font-size: 1rem; margin-bottom: 1.5rem; max-width: 500px; margin-left: auto; margin-right: auto;">Our team is here to help. Reach out and we'll get back to you within 24 hours.</p>
                 <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
-                    <a href="tel:+13479947331" style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.875rem 1.5rem; background: rgba(255, 255, 255, 0.15); border: 1px solid rgba(255, 255, 255, 0.3); color: white; text-decoration: none; border-radius: 12px; font-weight: 600; transition: background 0.2s;">
+                    <a href="tel:+16462828282" style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.875rem 1.5rem; background: rgba(255, 255, 255, 0.15); border: 1px solid rgba(255, 255, 255, 0.3); color: white; text-decoration: none; border-radius: 12px; font-weight: 600; transition: background 0.2s;">
                         <i class="bi bi-telephone-fill"></i>
                         Call Us
                     </a>
