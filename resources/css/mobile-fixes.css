@@ -3732,15 +3732,61 @@ nav.active *:focus-visible,
     color: #374151 !important; /* Darker for better contrast */
 }
 
-/* Links must be distinguishable */
-a:not(.v-btn):not([class*="nav-"]) {
-    color: #1d4ed8 !important; /* Darker blue */
+/* Links must be distinguishable - ONLY in .section-light (excludes nav, hero, footer, .section-dark) */
+.section-light a:not(.v-btn):not(.cta-btn) {
+    color: #1d4ed8 !important; /* Darker blue for WCAG contrast */
     text-decoration: underline !important;
     text-underline-offset: 2px !important;
 }
 
-a:not(.v-btn):not([class*="nav-"]):hover {
+.section-light a:not(.v-btn):not(.cta-btn):hover {
     color: #1e40af !important;
+}
+
+/* Nav, hero, footer links stay white/light (dark backgrounds) - explicit overrides */
+nav a,
+nav .nav-links a,
+nav .dropdown-menu a,
+.hero a,
+.hero-content a,
+.hero-social-icon,
+.hero-call-number,
+footer .footer-section a,
+footer .footer-bottom-links a,
+footer .social-icon,
+footer .footer-location a,
+.logo-section a {
+    color: #e2e8f0 !important;
+    text-decoration: none !important;
+}
+
+nav .nav-links a:hover,
+nav .nav-links a:not(.cta-btn):hover,
+nav .dropdown-menu a:hover {
+    color: #ffffff !important;
+}
+
+.hero a,
+.hero-content a,
+.hero-social-icon,
+.hero-call-number {
+    color: #ffffff !important;
+}
+
+/* Hero buttons: exclude from white link override - they have their own bg/color */
+.hero-buttons .btn-primary,
+.hero-buttons .btn-secondary {
+    color: #ffffff !important;
+    background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%) !important;
+    border: none !important;
+}
+
+.hero-buttons .btn-secondary {
+    background: linear-gradient(135deg, #f97316 0%, #ea580c 100%) !important;
+}
+
+.hero-call-number:hover {
+    color: #fbbf24 !important;
 }
 
 /* Placeholder text contrast */

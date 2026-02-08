@@ -46,8 +46,8 @@ class SecurityHeaders
         $response->headers->set('X-XSS-Protection', '1; mode=block');
         $response->headers->set('Referrer-Policy', 'strict-origin-when-cross-origin');
         
-        // Permissions Policy (formerly Feature-Policy)
-        $response->headers->set('Permissions-Policy', 'geolocation=(self), camera=(), microphone=(), payment=(self), usb=(), magnetometer=(), gyroscope=(), accelerometer=()');
+        // Permissions Policy (only widely-supported features; usb/sensors removed to avoid "Unrecognized feature" console errors)
+        $response->headers->set('Permissions-Policy', 'geolocation=(self), camera=(), microphone=(), payment=(self)');
         
         // Cross-Origin policies for additional security
         $response->headers->set('Cross-Origin-Opener-Policy', 'same-origin-allow-popups');

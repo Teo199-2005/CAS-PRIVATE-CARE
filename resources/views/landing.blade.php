@@ -79,11 +79,7 @@
     <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
     <link rel="preconnect" href="https://js.stripe.com" crossorigin>
     
-    <!-- Preload critical fonts for LCP optimization -->
-    <link rel="preload" as="font" type="font/woff2" href="https://fonts.gstatic.com/s/plusjakartasans/v8/LDIbaomQNQcsA88c7O9yZ4KMCoOg4IA6-91aHEjcWuA_KU7NSg.woff2" crossorigin>
-    <link rel="preload" as="font" type="font/woff2" href="https://fonts.gstatic.com/s/sora/v12/xMQOuFFYT72X5wkB_18qmnndmSdSnk-DKQJRBg.woff2" crossorigin>
-    
-    <!-- Google Fonts for the landing page -->
+    <!-- Google Fonts for the landing page (no preload: avoids CORS/scanner issues and outdated font URLs) -->
     <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;600;700&family=Montserrat:wght@700;800&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
 
@@ -93,8 +89,8 @@
     
     @include('partials.nav-footer-styles')
     
-    <!-- Mobile-first fixes -->
-    <link rel="stylesheet" href="{{ asset('build/assets/mobile-fixes.css') }}" media="screen">
+    <!-- Mobile-first fixes (built by Vite for correct MIME type and path) -->
+    @vite(['resources/css/mobile-fixes.css'])
     
     <!-- Critical CSS for above-the-fold content -->
     <style>
@@ -331,11 +327,13 @@
             grid-template-columns: 1fr 1fr;
             gap: var(--grid-gap-lg, 2rem);
             align-items: start;
-            background: rgba(255, 255, 255, 0.98);
+            background: rgba(255, 255, 255, 0.22);
+            -webkit-backdrop-filter: blur(20px);
+            backdrop-filter: blur(20px);
             border-radius: var(--card-radius-lg, 24px);
             padding: var(--card-padding-lg, 2.5rem);
-            border: 1px solid rgba(59, 130, 246, 0.12);
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 24px 48px -12px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(0, 0, 0, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.5);
             overflow: hidden;
         }
         /* Gradient circle effects on hero card – more noticeable */
@@ -1080,7 +1078,7 @@
 
         .hero p {
             font-size: var(--text-lg, 1.125rem);
-            color: var(--text-secondary, #475569);
+            color: #ffffff;
             margin-bottom: var(--space-6);
             line-height: 1.7;
             font-weight: var(--font-medium, 500);
@@ -1088,6 +1086,10 @@
         }
         .hero #hero-description {
             max-width: 32em;
+            background: rgba(0, 0, 0, 0.35);
+            backdrop-filter: blur(8px);
+            padding: 1rem 1.25rem;
+            border-radius: 12px;
         }
 
         .hero-trust-badges {
