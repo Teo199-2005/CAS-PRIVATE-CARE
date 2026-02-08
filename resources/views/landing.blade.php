@@ -1086,8 +1086,8 @@
         }
         .hero #hero-description {
             max-width: 32em;
-            background: rgba(0, 0, 0, 0.35);
-            backdrop-filter: blur(8px);
+            background: rgba(0, 0, 0, 0.12);
+            backdrop-filter: blur(4px);
             padding: 1rem 1.25rem;
             border-radius: 12px;
         }
