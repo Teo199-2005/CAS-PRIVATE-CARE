@@ -88,6 +88,12 @@
         margin-left: 0.75rem;
     }
 
+    /* Hide nav icons on desktop - shown only on mobile */
+    .nav-links .nav-icon,
+    .dropdown-menu .nav-icon {
+        display: none;
+    }
+
     .nav-links a {
         text-decoration: none;
         color: #e2e8f0;
@@ -571,9 +577,17 @@
             border-color: transparent;
         }
 
-        /* Hide the chevron icon on mobile for cleaner look */
-        .nav-links .dropdown-toggle i {
+        /* Hide only the chevron on mobile (keep nav icons visible) */
+        .nav-links .dropdown-toggle .bi-chevron-down {
             display: none;
+        }
+
+        /* Nav icons - show on mobile only */
+        .nav-links .nav-icon,
+        .dropdown-menu .nav-icon {
+            display: inline-block !important;
+            margin-right: 0.5rem;
+            font-size: 1rem;
         }
 
         .dropdown-menu {
@@ -680,11 +694,6 @@
             border-color: rgba(59, 130, 246, 0.4) !important;
             position: relative;
         }
-        .nav-links li:first-child a::before {
-            content: "🏠";
-            margin-right: 0.5rem;
-            font-size: 1rem;
-        }
         .nav-links li:first-child a:hover,
         .nav-links li:first-child a:active {
             background: linear-gradient(135deg, rgba(59, 130, 246, 0.45) 0%, rgba(37, 99, 235, 0.55) 100%) !important;
@@ -695,11 +704,6 @@
         .nav-links li.dropdown > a {
             background: linear-gradient(135deg, rgba(139, 92, 246, 0.25) 0%, rgba(124, 58, 237, 0.35) 100%) !important;
             border-color: rgba(139, 92, 246, 0.4) !important;
-        }
-        .nav-links li.dropdown > a::before {
-            content: "📋";
-            margin-right: 0.5rem;
-            font-size: 1rem;
         }
         .nav-links li.dropdown > a:hover,
         .nav-links li.dropdown > a:active {
@@ -712,11 +716,6 @@
             background: linear-gradient(135deg, rgba(20, 184, 166, 0.2) 0%, rgba(13, 148, 136, 0.3) 100%) !important;
             border-color: rgba(20, 184, 166, 0.35) !important;
         }
-        .dropdown-menu a[href*="caregiver"]::before {
-            content: "💚";
-            margin-right: 0.5rem;
-            font-size: 0.9rem;
-        }
         .dropdown-menu a[href*="caregiver"]:hover,
         .dropdown-menu a[href*="caregiver"]:active {
             background: linear-gradient(135deg, rgba(20, 184, 166, 0.4) 0%, rgba(13, 148, 136, 0.5) 100%) !important;
@@ -727,11 +726,6 @@
         .dropdown-menu a[href*="housekeeper"] {
             background: linear-gradient(135deg, rgba(245, 158, 11, 0.2) 0%, rgba(217, 119, 6, 0.3) 100%) !important;
             border-color: rgba(245, 158, 11, 0.35) !important;
-        }
-        .dropdown-menu a[href*="housekeeper"]::before {
-            content: "✨";
-            margin-right: 0.5rem;
-            font-size: 0.9rem;
         }
         .dropdown-menu a[href*="housekeeper"]:hover,
         .dropdown-menu a[href*="housekeeper"]:active {
@@ -744,11 +738,6 @@
             background: linear-gradient(135deg, rgba(249, 115, 22, 0.25) 0%, rgba(234, 88, 12, 0.35) 100%) !important;
             border-color: rgba(249, 115, 22, 0.4) !important;
         }
-        .nav-links a[href*="contractors"]::before {
-            content: "💼";
-            margin-right: 0.5rem;
-            font-size: 1rem;
-        }
         .nav-links a[href*="contractors"]:hover,
         .nav-links a[href*="contractors"]:active {
             background: linear-gradient(135deg, rgba(249, 115, 22, 0.45) 0%, rgba(234, 88, 12, 0.55) 100%) !important;
@@ -759,11 +748,6 @@
         .nav-links a[href*="training"] {
             background: linear-gradient(135deg, rgba(16, 185, 129, 0.25) 0%, rgba(5, 150, 105, 0.35) 100%) !important;
             border-color: rgba(16, 185, 129, 0.4) !important;
-        }
-        .nav-links a[href*="training"]::before {
-            content: "🎓";
-            margin-right: 0.5rem;
-            font-size: 1rem;
         }
         .nav-links a[href*="training"]:hover,
         .nav-links a[href*="training"]:active {
@@ -776,11 +760,6 @@
             background: linear-gradient(135deg, rgba(14, 165, 233, 0.25) 0%, rgba(2, 132, 199, 0.35) 100%) !important;
             border-color: rgba(14, 165, 233, 0.4) !important;
         }
-        .nav-links a[href*="about"]:not([href*="caregiver"]):not([href*="housekeeper"])::before {
-            content: "ℹ️";
-            margin-right: 0.5rem;
-            font-size: 1rem;
-        }
         .nav-links a[href*="about"]:not([href*="caregiver"]):not([href*="housekeeper"]):hover,
         .nav-links a[href*="about"]:not([href*="caregiver"]):not([href*="housekeeper"]):active {
             background: linear-gradient(135deg, rgba(14, 165, 233, 0.45) 0%, rgba(2, 132, 199, 0.55) 100%) !important;
@@ -791,11 +770,6 @@
         .nav-links a[href*="blog"] {
             background: linear-gradient(135deg, rgba(244, 63, 94, 0.25) 0%, rgba(225, 29, 72, 0.35) 100%) !important;
             border-color: rgba(244, 63, 94, 0.4) !important;
-        }
-        .nav-links a[href*="blog"]::before {
-            content: "📝";
-            margin-right: 0.5rem;
-            font-size: 1rem;
         }
         .nav-links a[href*="blog"]:hover,
         .nav-links a[href*="blog"]:active {
@@ -808,11 +782,6 @@
             background: linear-gradient(135deg, rgba(99, 102, 241, 0.25) 0%, rgba(79, 70, 229, 0.35) 100%) !important;
             border-color: rgba(99, 102, 241, 0.4) !important;
         }
-        .nav-links a[href*="contact"]::before {
-            content: "📧";
-            margin-right: 0.5rem;
-            font-size: 1rem;
-        }
         .nav-links a[href*="contact"]:hover,
         .nav-links a[href*="contact"]:active {
             background: linear-gradient(135deg, rgba(99, 102, 241, 0.45) 0%, rgba(79, 70, 229, 0.55) 100%) !important;
@@ -823,11 +792,6 @@
         .nav-links a[href*="faq"] {
             background: linear-gradient(135deg, rgba(234, 179, 8, 0.25) 0%, rgba(202, 138, 4, 0.35) 100%) !important;
             border-color: rgba(234, 179, 8, 0.4) !important;
-        }
-        .nav-links a[href*="faq"]::before {
-            content: "❓";
-            margin-right: 0.5rem;
-            font-size: 1rem;
         }
         .nav-links a[href*="faq"]:hover,
         .nav-links a[href*="faq"]:active {
@@ -842,24 +806,13 @@
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
         }
-        .nav-links a[href*="login"]::before {
-            content: "🔐";
-            margin-right: 0.5rem;
-            font-size: 1rem;
-        }
         .nav-links a[href*="login"]:hover,
         .nav-links a[href*="login"]:active {
             background: linear-gradient(135deg, rgba(255, 255, 255, 0.25) 0%, rgba(255, 255, 255, 0.35) 100%) !important;
             border-color: rgba(255, 255, 255, 0.5) !important;
         }
         
-        /* Register CTA - Premium gradient with star icon */
-        .nav-links .cta-btn::before {
-            content: "⭐" !important;
-            margin-right: 0.5rem;
-            font-size: 1rem;
-            display: inline !important;
-        }
+        /* Register CTA - Premium gradient with star icon (icon is in HTML) */
 
         /* Footer Mobile Styles */
         footer {
@@ -1128,17 +1081,17 @@
             border-radius: 6px;
         }
         
-        /* Smaller icons on very small screens */
-        .nav-links a::before,
-        .dropdown-menu a::before {
+        /* Smaller nav icons on very small screens */
+        .nav-links .nav-icon,
+        .dropdown-menu .nav-icon {
             font-size: 0.85rem !important;
             margin-right: 0.35rem !important;
         }
         
         /* Hide icons completely on tiny screens for space */
         @media (max-width: 360px) {
-            .nav-links a::before,
-            .dropdown-menu a::before {
+            .nav-links .nav-icon,
+            .dropdown-menu .nav-icon {
                 display: none !important;
             }
         }

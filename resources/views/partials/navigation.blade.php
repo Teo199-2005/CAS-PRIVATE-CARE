@@ -9,24 +9,24 @@
             <span aria-hidden="true">☰</span>
         </button>
         <ul class="nav-links" id="navLinks">
-            <li><a href="{{ url('/') }}">Home</a></li>
+            <li><a href="{{ url('/') }}"><i class="bi bi-house-fill nav-icon"></i> Home</a></li>
             <li class="dropdown" id="servicesDropdown">
                 <a href="{{ url('/services') }}" class="dropdown-toggle" onclick="toggleDropdown(event)">
-                    Services <i class="bi bi-chevron-down" style="font-size: 0.8rem; margin-left: 0.5rem;"></i>
+                    <i class="bi bi-grid-3x3-gap-fill nav-icon"></i> Services <i class="bi bi-chevron-down" style="font-size: 0.8rem; margin-left: 0.5rem;"></i>
                 </a>
                 <div class="dropdown-menu" id="servicesMenu">
-                    <a href="{{ url('/caregiver-new-york') }}">Caregiver</a>
-                    <a href="{{ url('/housekeeper-new-york') }}">Housekeeper</a>
+                    <a href="{{ url('/caregiver-new-york') }}"><i class="bi bi-heart-fill nav-icon"></i> Caregiver</a>
+                    <a href="{{ url('/housekeeper-new-york') }}"><i class="bi bi-stars nav-icon"></i> Housekeeper</a>
                 </div>
             </li>
-            <li><a href="{{ url('/contractors') }}">1099 Contractors</a></li>
-            <li><a href="{{ url('/training-center') }}">Accredited Training Center</a></li>
-            <li><a href="{{ url('/about') }}">About</a></li>
-            <li><a href="{{ url('/blog') }}">Blog</a></li>
-            <li><a href="{{ url('/contact') }}">Contact Us</a></li>
-            <li><a href="{{ url('/faq') }}">FAQ</a></li>
-            <li><a href="{{ url('/login') }}">Login</a></li>
-            <li><a href="{{ url('/register') }}" class="cta-btn">Register</a></li>
+            <li><a href="{{ url('/contractors') }}"><i class="bi bi-briefcase-fill nav-icon"></i> 1099 Contractors</a></li>
+            <li><a href="{{ url('/training-center') }}"><i class="bi bi-mortarboard-fill nav-icon"></i> Accredited Training Center</a></li>
+            <li><a href="{{ url('/about') }}"><i class="bi bi-info-circle-fill nav-icon"></i> About</a></li>
+            <li><a href="{{ url('/blog') }}"><i class="bi bi-journal-text nav-icon"></i> Blog</a></li>
+            <li><a href="{{ url('/contact') }}"><i class="bi bi-envelope-fill nav-icon"></i> Contact Us</a></li>
+            <li><a href="{{ url('/faq') }}"><i class="bi bi-question-circle-fill nav-icon"></i> FAQ</a></li>
+            <li><a href="{{ url('/login') }}"><i class="bi bi-lock-fill nav-icon"></i> Login</a></li>
+            <li><a href="{{ url('/register') }}" class="cta-btn"><i class="bi bi-star-fill nav-icon"></i> Register</a></li>
         </ul>
     </div>
 </nav>
