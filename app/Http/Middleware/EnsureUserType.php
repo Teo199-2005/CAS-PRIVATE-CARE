@@ -27,13 +27,15 @@ class EnsureUserType
 
         $user = auth()->user();
         
-        // Normalize user types (handle training vs training_center)
+        // Normalize user types (handle training vs training_center, and case-insensitive match)
         $userType = $user->user_type;
         if ($userType === 'training_center') {
             $userType = 'training';
         }
+        $userTypeLower = is_string($userType) ? strtolower($userType) : (string) $userType;
+        $typesLower = array_map('strtolower', $types);
         
-        if (!in_array($userType, $types) && !in_array($user->user_type, $types)) {
+        if (!in_array($userTypeLower, $typesLower) && !in_array(is_string($user->user_type) ? strtolower($user->user_type) : (string) $user->user_type, $typesLower)) {
             if ($request->expectsJson()) {
                 return response()->json(['error' => 'Unauthorized. Required role: ' . implode(' or ', $types)], 403);
             }

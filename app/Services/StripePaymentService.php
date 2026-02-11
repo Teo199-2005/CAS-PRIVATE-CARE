@@ -14,6 +14,8 @@ use App\Models\TimeTracking;
 use App\Models\User;
 use App\Models\Caregiver;
 use App\Models\Booking;
+use App\Services\MarketingTierService;
+use App\Services\PricingService;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -920,11 +922,12 @@ class StripePaymentService
         $caregiverEarnings = $this->calculatePaymentByMinute($minutes, 28.00);
         
         $marketingCommission = 0;
-        $clientRate = 45.00;
+        $clientRate = PricingService::CLIENT_RATE_NO_REFERRAL;
         
         if ($timeTracking->marketing_partner_id) {
-            $marketingCommission = $this->calculatePaymentByMinute($minutes, 1.00);
-            $clientRate = 40.00;
+            $marketingRate = MarketingTierService::getCommissionRateForUser($timeTracking->marketing_partner_id);
+            $marketingCommission = $this->calculatePaymentByMinute($minutes, $marketingRate);
+            $clientRate = PricingService::CLIENT_RATE_WITH_REFERRAL;
         }
 
         $trainingCommission = 0;

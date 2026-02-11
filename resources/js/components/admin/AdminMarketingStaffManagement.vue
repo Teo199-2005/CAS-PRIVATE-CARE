@@ -106,6 +106,12 @@
           <v-chip color="info" size="small">{{ item.clientsAcquired }}</v-chip>
         </template>
         
+        <template #item.tier="{ item }">
+          <v-chip :color="getTierChipColor(item.tier)" size="small" class="font-weight-medium">
+            {{ item.tierLabel || item.tier || 'Silver Partner' }} · ${{ (item.commissionPerHour ?? 1).toFixed(2) }}/hr
+          </v-chip>
+        </template>
+        
         <template #item.commissionEarned="{ item }">
           <span class="font-weight-bold text-success">${{ item.commissionEarned }}</span>
         </template>
@@ -248,6 +254,10 @@
                 <span class="mobile-card-label text-grey-darken-1">Clients:</span>
                 <v-chip color="info" size="small">{{ item.clientsAcquired }}</v-chip>
               </div>
+              <div class="mobile-card-row d-flex justify-space-between py-2" style="border-bottom: 1px solid #f3f4f6;">
+                <span class="mobile-card-label text-grey-darken-1">Tier:</span>
+                <v-chip :color="getTierChipColor(item.tier)" size="small" class="font-weight-medium">{{ item.tierLabel || item.tier || 'Silver Partner' }} · ${{ (item.commissionPerHour ?? 1).toFixed(2) }}/hr</v-chip>
+              </div>
               <div class="mobile-card-row d-flex justify-space-between py-2">
                 <span class="mobile-card-label text-grey-darken-1">Commission:</span>
                 <span class="font-weight-bold text-success">${{ item.commissionEarned }}</span>
@@ -376,6 +386,7 @@ const headers = [
   { title: 'Location', key: 'location', sortable: true },
   { title: 'Referral Code', key: 'referralCode', sortable: true },
   { title: 'Clients', key: 'clientsAcquired', sortable: true, align: 'center' },
+  { title: 'Tier', key: 'tier', sortable: true, align: 'center' },
   { title: 'Commission', key: 'commissionEarned', sortable: true, align: 'end' },
   { title: 'Status', key: 'status', sortable: true },
   { title: 'Actions', key: 'actions', sortable: false, align: 'center', width: '160px' }
@@ -432,6 +443,11 @@ function getStatusIcon(status) {
     pending: 'mdi-clock-outline'
   };
   return map[(status || '').toLowerCase()] || 'mdi-circle';
+}
+
+function getTierChipColor(tier) {
+  const colors = { Silver: 'grey', Gold: 'amber', Platinum: 'indigo' };
+  return colors[tier] || 'grey';
 }
 
 function getInitials(firstName, lastName) {

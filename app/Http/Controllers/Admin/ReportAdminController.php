@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Models\Caregiver;
 use App\Models\Housekeeper;
 use App\Models\Booking;
+use App\Services\MarketingTierService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -773,13 +774,9 @@ class ReportAdminController extends Controller
             
             $referralCode = $user->referralCode ? $user->referralCode->code : 'N/A';
             
-            // Count how many unique clients used their referral code (via bookings)
-            $referralCodeId = $user->referralCode?->id;
-            $clientsReferred = $referralCodeId 
-                ? Booking::where('referral_code_id', $referralCodeId)
-                    ->distinct('client_id')
-                    ->count('client_id')
-                : 0;
+            // Active clients (approved/confirmed/completed) for tier
+            $clientsReferred = MarketingTierService::getActiveClientCountForUser($user->id);
+            $tierData = MarketingTierService::getTierAndRateForUser($user->id);
             
             $bankConnected = !empty($user->stripe_connect_id);
             
@@ -789,6 +786,9 @@ class ReportAdminController extends Controller
                 'email' => $user->email,
                 'referral_code' => $referralCode,
                 'clients_referred' => $clientsReferred,
+                'tier' => $tierData['tier'],
+                'tier_label' => $tierData['label'],
+                'commission_per_hour' => (float) $tierData['rate'],
                 'total_commission' => $totalCommission,
                 'pending_commission' => $pendingCommission,
                 'paid_commission' => $paidCommission,

@@ -8,7 +8,6 @@
                         <div class="loading-ring"></div>
                         <div class="loading-ring-animated"></div>
                         <div class="loading-logo">
-                            <!-- Primary logo with fallback chain -->
                             <img
                                 v-if="!imageError"
                                 :src="logoSrc"
@@ -17,7 +16,6 @@
                                 @load="imageLoaded = true"
                                 class="logo-image"
                             />
-                            <!-- Fallback text logo when image fails -->
                             <div v-else class="fallback-logo">
                                 <div class="fallback-logo-text">CAS</div>
                                 <div class="fallback-logo-tagline">Private Care</div>
@@ -55,6 +53,10 @@ export default {
         context: {
             type: String,
             default: 'default'
+        },
+        progress: {
+            type: Number,
+            default: null
         }
     },
     data() {
@@ -376,4 +378,5 @@ export default {
     opacity: 0;
     transform: scale(1.05);
 }
+
 </style>

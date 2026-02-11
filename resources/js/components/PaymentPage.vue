@@ -408,7 +408,7 @@ const discountAmount = computed(() => {
   if (!hasDiscount.value) return 0;
   const hours = extractHours(booking.value.duty_type);
   const days = booking.value.duration_days || 15;
-  const discount = booking.value.referral_discount_applied || 5;
+  const discount = booking.value.referral_discount_applied || 3;
   return hours * days * discount;
 });
 

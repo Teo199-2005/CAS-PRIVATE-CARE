@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Booking;
 use App\Models\ReferralCode;
 use App\Models\User;
+use App\Services\MarketingTierService;
 use Illuminate\Http\Request;
 
 class ReferralCodeController extends Controller
@@ -29,21 +31,41 @@ class ReferralCodeController extends Controller
             $referralCode = ReferralCode::create([
                 'user_id' => $user->id,
                 'code' => ReferralCode::generateCode($user->id),
-                'discount_per_hour' => 5.00, // Client gets $5/hr discount
+                'discount_per_hour' => 3.00, // Client gets $3/hr discount
                 'commission_per_hour' => 1.00, // Marketing earns $1/hr
                 'is_active' => true,
             ]);
         }
+
+        $tierData = MarketingTierService::getTierAndRateForUser($user->id);
+
+        // Only count paid bookings (client used referral code and paid = counts as "times used")
+        // Match same rule as marketing stats: paid status, payment_date, or has payment record; exclude failed/refunded
+        $usageCount = Booking::where('referral_code_id', $referralCode->id)
+            ->where(function ($q) {
+                $q->where('payment_status', 'paid')
+                    ->orWhere('payment_status', 'Paid')
+                    ->orWhereNotNull('payment_date')
+                    ->orWhereHas('payments');
+            })
+            ->where(function ($q) {
+                $q->whereNull('payment_status')
+                    ->orWhereNotIn('payment_status', ['failed', 'refunded', 'partially_refunded', 'disputed']);
+            })
+            ->count();
 
         return response()->json([
             'success' => true,
             'data' => [
                 'code' => $referralCode->code,
                 'discount_per_hour' => $referralCode->discount_per_hour,
-                'commission_per_hour' => $referralCode->commission_per_hour,
-                'usage_count' => $referralCode->usage_count,
+                'commission_per_hour' => (float) $tierData['rate'],
+                'usage_count' => $usageCount,
                 'total_commission_earned' => $referralCode->total_commission_earned,
                 'is_active' => $referralCode->is_active,
+                'tier' => $tierData['tier'],
+                'tier_label' => $tierData['label'],
+                'paid_client_count' => $tierData['active_client_count'] ?? 0,
             ]
         ]);
     }
@@ -123,7 +145,7 @@ class ReferralCodeController extends Controller
         $referralCode = ReferralCode::create([
             'user_id' => $request->user_id,
             'code' => strtoupper($code),
-            'discount_per_hour' => 5.00,
+            'discount_per_hour' => 3.00,
             'commission_per_hour' => 1.00,
             'is_active' => true,
         ]);

@@ -58,6 +58,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'tax_classification',
         'business_name',
         'ein',
+        'last_login_at',
     ];
 
     /**
@@ -98,6 +99,7 @@ class User extends Authenticatable implements MustVerifyEmail
             'onboarding_completed_at' => 'datetime',
             'payout_minimum_amount' => 'decimal:2',
             'session_started_at' => 'datetime',
+            'last_login_at' => 'datetime',
         ];
     }
 

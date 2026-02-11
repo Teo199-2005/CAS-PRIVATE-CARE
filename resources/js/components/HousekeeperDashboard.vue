@@ -167,12 +167,12 @@
 
           <v-row class="mt-1">
             <v-col cols="12">
-              <v-row>
+              <v-row align="stretch">
                 <v-col cols="12" lg="6">
-                  <v-card elevation="2" class="mb-3 enhanced-card d-flex flex-column">
-                    <v-card-title class="enhanced-card-header pa-6">
-                      <v-icon color="deep-purple" class="mr-3">mdi-clock-time-four</v-icon>
-                      <span class="section-title deep-purple--text">Time Tracking</span>
+                  <v-card elevation="1" class="mb-3 enhanced-card d-flex flex-column h-100">
+                    <v-card-title class="enhanced-card-header pa-4">
+                      <v-icon color="deep-purple" size="22" class="mr-2">mdi-clock-time-four</v-icon>
+                      <span class="section-title-compact deep-purple--text">Time Tracking</span>
                     </v-card-title>
                     <v-card-text class="pa-4 flex-grow-1 d-flex flex-column justify-space-between">
                       <div>
@@ -243,26 +243,24 @@
                   </v-card>
                 </v-col>
                 <v-col cols="12" lg="6">
-                  <v-card class="mb-3 enhanced-card d-flex flex-column" elevation="2">
-                    <v-card-title class="enhanced-card-header pa-6">
-                      <v-icon color="deep-purple" class="mr-3">mdi-chart-line</v-icon>
-                      <span class="section-title deep-purple--text">Previous Week Summary</span>
+                  <v-card class="mb-3 enhanced-card d-flex flex-column" elevation="1">
+                    <v-card-title class="enhanced-card-header pa-4">
+                      <v-icon color="deep-purple" size="22" class="mr-2">mdi-chart-line</v-icon>
+                      <span class="section-title-compact deep-purple--text">Previous Week Summary</span>
                     </v-card-title>
-                    <v-card-text class="pa-4 flex-grow-1 d-flex flex-column justify-space-between">
-                      <div>
-                        <div class="mb-3">
-                          <div class="d-flex justify-space-between mb-1">
+                    <v-card-text class="pa-4 pt-0 flex-grow-1">
+                      <div class="dashboard-summary-grid">
+                        <div class="summary-block summary-block--full">
+                          <div class="summary-row summary-row--inline">
                             <span class="summary-label-compact">Hours Worked</span>
-                            <span class="summary-value-compact">{{ previousWeekHours }} hrs</span>
+                            <span class="summary-value-compact font-weight-medium">{{ previousWeekHours }} hrs</span>
                           </div>
-                          <v-progress-linear :model-value="previousWeekProgress" color="info" height="6" rounded />
-                          <div class="text-caption text-grey mt-1">Target: 40 hrs/week</div>
+                          <v-progress-linear :model-value="previousWeekProgress" color="info" height="6" rounded class="mb-1 mt-1" />
+                          <div class="text-caption text-grey">Target: 40 hrs/week</div>
                         </div>
-                        <div class="mb-3">
-                          <div class="d-flex justify-space-between mb-1">
-                            <span class="summary-label-compact">Previous Payout</span>
-                            <span class="summary-value-compact info--text">${{ previousWeekPayout }} - {{ previousPayoutDate }}</span>
-                          </div>
+                        <div class="summary-row">
+                          <span class="summary-label-compact">Previous Payout</span>
+                          <span class="summary-value-compact summary-value--right info--text font-weight-bold">${{ (Number(previousWeekPayout) || 0).toFixed(2) }} <span class="text-caption text-disabled">· {{ previousPayoutDate }}</span></span>
                         </div>
                       </div>
                     </v-card-text>
@@ -5748,6 +5746,36 @@ onBeforeUnmount(() => {
   background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
   border-bottom: 1px solid #e2e8f0;
   border-radius: 20px 20px 0 0 !important;
+}
+
+.dashboard-summary-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+.dashboard-summary-grid .summary-block--full {
+  padding-bottom: 12px;
+  margin-bottom: 4px;
+  border-bottom: 1px solid #f1f5f9;
+}
+.dashboard-summary-grid .summary-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid #f1f5f9;
+  font-size: 0.875rem;
+}
+.dashboard-summary-grid .summary-row:last-child {
+  border-bottom: none;
+}
+.dashboard-summary-grid .summary-value--right {
+  min-width: 5rem;
+  text-align: right;
+  white-space: nowrap;
+}
+.h-100 {
+  height: 100%;
 }
 
 .enhanced-label {

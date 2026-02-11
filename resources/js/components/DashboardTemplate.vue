@@ -114,8 +114,12 @@
         <v-list-item 
           prepend-icon="mdi-logout" 
           title="Logout" 
-          @click="handleLogout"
+          @click.stop.prevent="handleLogout"
           class="nav-item logout-nav-item mb-1"
+          role="button"
+          tabindex="0"
+          @keydown.enter.prevent="handleLogout"
+          @keydown.space.prevent="handleLogout"
         >
         </v-list-item>
       </v-list>
@@ -143,11 +147,18 @@
                   </div>
                   <div class="ml-4 user-details">
                     <div class="user-name-styled" :class="roleTextClass">{{ userName }}</div>
-                    <div class="user-role-badge">
+                    <div class="user-role-badge d-flex flex-wrap align-center ga-1">
                       <v-chip :color="roleBadgeColor" size="x-small" variant="flat" class="role-chip">
                         <v-icon start size="x-small">{{ roleIcon }}</v-icon>
                         {{ roleDisplayName }}
                       </v-chip>
+                      <v-chip v-if="showTierChip" :color="tierChipColor" size="x-small" variant="flat" class="tier-chip">
+                        <v-icon start size="x-small">mdi-medal</v-icon>
+                        {{ tierLabel }} · ${{ tierCommissionDisplay }}/hr
+                      </v-chip>
+                      <v-btn v-if="showTierChip" icon size="x-small" variant="text" class="tier-help-btn ml-1" aria-label="Tier and commission info" @click="showTierHelpModal = true">
+                        <v-icon size="16" color="grey">mdi-help-circle-outline</v-icon>
+                      </v-btn>
                     </div>
                   </div>
                 </div>
@@ -165,10 +176,19 @@
                 </v-avatar>
                 <div class="flex-grow-1">
                   <div class="mobile-user-name" :class="roleTextClass">{{ userName }}</div>
-                  <v-chip :color="roleBadgeColor" size="x-small" variant="flat" class="role-chip-mobile mt-1">
-                    <v-icon start size="x-small">{{ roleIcon }}</v-icon>
-                    {{ roleDisplayName }}
-                  </v-chip>
+                  <div class="d-flex flex-wrap align-center ga-1 mt-1">
+                    <v-chip :color="roleBadgeColor" size="x-small" variant="flat" class="role-chip-mobile">
+                      <v-icon start size="x-small">{{ roleIcon }}</v-icon>
+                      {{ roleDisplayName }}
+                    </v-chip>
+                    <v-chip v-if="showTierChip" :color="tierChipColor" size="x-small" variant="flat" class="tier-chip-mobile">
+                      <v-icon start size="x-small">mdi-medal</v-icon>
+                      {{ tierLabel }} · ${{ tierCommissionDisplay }}/hr
+                    </v-chip>
+                    <v-btn v-if="showTierChip" icon size="x-small" variant="text" class="tier-help-btn-mobile ml-1" aria-label="Tier and commission info" @click="showTierHelpModal = true">
+                      <v-icon size="14" color="grey">mdi-help-circle-outline</v-icon>
+                    </v-btn>
+                  </div>
                 </div>
               </div>
               <div class="mobile-header-text">
@@ -207,6 +227,93 @@
         <Footer />
       </div>
     </v-main>
+
+    <!-- Tier & Commission Info Modal (Marketing) -->
+    <v-dialog v-model="showTierHelpModal" max-width="520" persistent content-class="tier-help-dialog" transition="dialog-transition">
+      <v-card class="tier-help-card">
+        <div class="tier-help-header-wrap">
+          <v-card-title class="tier-help-header d-flex align-center">
+            <v-icon color="white" size="26" class="mr-2">mdi-medal-outline</v-icon>
+            <span>Partner Tiers & Commission</span>
+            <v-spacer />
+            <v-btn icon variant="text" size="small" class="tier-help-close" @click="showTierHelpModal = false" aria-label="Close">
+              <v-icon color="white" size="20">mdi-close</v-icon>
+            </v-btn>
+          </v-card-title>
+          <p class="tier-help-header-subtitle">Earn more per hour as you refer more paid clients.</p>
+        </div>
+        <v-card-text class="tier-help-body">
+          <div class="tier-help-section">
+            <h3 class="tier-help-subtitle">Commission by tier</h3>
+            <div class="tier-list">
+              <div class="tier-block tier-block-silver">
+                <div class="tier-block-inner">
+                  <div class="tier-block-header">
+                    <div class="tier-badge-wrap">
+                      <v-icon class="tier-medal tier-medal-silver" size="28">mdi-medal</v-icon>
+                      <span class="tier-name">Silver</span>
+                    </div>
+                    <span class="tier-rate">$1.00/hr</span>
+                  </div>
+                  <p class="tier-desc">1–5 paid clients</p>
+                </div>
+              </div>
+              <div class="tier-block tier-block-gold">
+                <div class="tier-block-inner">
+                  <div class="tier-block-header">
+                    <div class="tier-badge-wrap">
+                      <v-icon class="tier-medal tier-medal-gold" size="28">mdi-medal</v-icon>
+                      <span class="tier-name">Gold</span>
+                    </div>
+                    <span class="tier-rate">$1.25/hr</span>
+                  </div>
+                  <p class="tier-desc">6–10 paid clients</p>
+                </div>
+              </div>
+              <div class="tier-block tier-block-platinum">
+                <div class="tier-block-inner">
+                  <div class="tier-block-header">
+                    <div class="tier-badge-wrap">
+                      <v-icon class="tier-medal tier-medal-platinum" size="28">mdi-medal</v-icon>
+                      <span class="tier-name">Platinum</span>
+                    </div>
+                    <span class="tier-rate">$1.50/hr</span>
+                  </div>
+                  <p class="tier-desc">11+ paid clients</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="tier-help-divider" aria-hidden="true"></div>
+          <div class="tier-help-section">
+            <h3 class="tier-help-subtitle">FAQ</h3>
+            <div class="faq-list">
+              <div class="faq-item">
+                <div class="faq-q">
+                  <v-icon size="18" class="faq-q-icon">mdi-help-circle-outline</v-icon>
+                  What counts as a “paid” client?
+                </div>
+                <p class="faq-a">A client counts when they have either paid for at least one session (charge recorded) or have a booking with payment status “paid”. This ensures only real clients affect your tier.</p>
+              </div>
+              <div class="faq-item">
+                <div class="faq-q">
+                  <v-icon size="18" class="faq-q-icon">mdi-clock-outline</v-icon>
+                  When is my commission rate applied?
+                </div>
+                <p class="faq-a">Your current tier rate is applied to each hour of care worked by clients you referred. Commission is calculated at clock-out and when payments are processed.</p>
+              </div>
+              <div class="faq-item">
+                <div class="faq-q">
+                  <v-icon size="18" class="faq-q-icon">mdi-trending-up</v-icon>
+                  How do I move up a tier?
+                </div>
+                <p class="faq-a">Refer more clients who complete and pay for care. Your tier updates automatically based on your paid client count.</p>
+              </div>
+            </div>
+          </div>
+        </v-card-text>
+      </v-card>
+    </v-dialog>
   </v-app>
 </template>
 
@@ -238,7 +345,11 @@ const props = defineProps({
   headerTitle: { type: String, required: true },
   headerSubtitle: { type: String, required: true },
   navItems: { type: Array, required: true },
-  currentSection: { type: String, required: true }
+  currentSection: { type: String, required: true },
+  // Marketing tier (optional) – shown in top bar when userRole is marketing
+  tierLabel: { type: String, default: '' },
+  tier: { type: String, default: '' },
+  tierCommissionPerHour: { type: Number, default: null }
 });
 
 const emit = defineEmits(['section-change', 'logout', 'toggle-click', 'disabled-click']);
@@ -247,6 +358,7 @@ const emit = defineEmits(['section-change', 'logout', 'toggle-click', 'disabled-
 // Refs
 // ==========================================
 const drawer = ref(true);
+const showTierHelpModal = ref(false);
 const drawerRef = ref(null);
 const ariaAnnouncer = ref(null);
 const isMobile = ref(typeof window !== 'undefined' ? window.innerWidth <= 960 : false);
@@ -472,11 +584,12 @@ const handleNavItemClick = (item) => {
   handleSectionChange(item.value);
 };
 
-// Handle logout and close drawer on mobile
+// Handle logout and close drawer on mobile (emit first so parent runs logout before drawer closes)
 const handleLogout = () => {
   emit('logout');
+  // Close drawer after a tick so the emit is fully processed first
   if (isMobile.value) {
-    drawer.value = false;
+    setTimeout(() => { drawer.value = false; }, 0);
   }
 };
 
@@ -607,6 +720,23 @@ const roleDisplayName = computed(() => {
     'training': 'Training Center'
   };
   return names[props.userRole] || 'User';
+});
+
+const showTierChip = computed(() => {
+  return props.userRole === 'marketing' && (props.tierLabel || props.tier);
+});
+
+const tierChipColor = computed(() => {
+  const colors = { Silver: 'grey', Gold: 'amber', Platinum: 'indigo' };
+  return colors[props.tier] || 'grey';
+});
+
+const tierCommissionDisplay = computed(() => {
+  const rate = props.tierCommissionPerHour;
+  // When 0 paid clients, backend returns 0; show tier's potential rate for display
+  const tierRates = { Silver: 1, Gold: 1.25, Platinum: 1.5 };
+  const displayRate = (rate != null && rate > 0) ? rate : (tierRates[props.tier] ?? 1);
+  return Number(displayRate).toFixed(2);
 });
 
 // Header styling computed properties
@@ -1933,6 +2063,178 @@ const getShortTitle = (title) => {
   box-shadow: none !important;
 }
 
+.tier-help-btn,
+.tier-help-btn-mobile {
+  opacity: 0.75;
+  min-width: 24px !important;
+  width: 24px !important;
+  height: 24px !important;
+}
+.tier-help-btn:hover,
+.tier-help-btn-mobile:hover {
+  opacity: 1;
+}
+.tier-help-btn-mobile {
+  min-width: 22px !important;
+  width: 22px !important;
+  height: 22px !important;
+}
+
+/* Tier help modal */
+.tier-help-dialog .v-overlay__content {
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 28px 56px rgba(0, 0, 0, 0.2), 0 12px 24px rgba(99, 102, 241, 0.08);
+}
+.tier-help-card {
+  border-radius: 20px;
+  overflow: hidden;
+}
+.tier-help-header-wrap {
+  background: linear-gradient(145deg, #4f46e5 0%, #6366f1 50%, #818cf8 100%);
+  color: white;
+  padding-bottom: 14px;
+}
+.tier-help-header {
+  color: white !important;
+  font-size: 1.15rem;
+  font-weight: 700;
+  padding: 20px 24px 6px !important;
+  letter-spacing: -0.01em;
+}
+.tier-help-header-subtitle {
+  font-size: 0.8125rem;
+  opacity: 0.95;
+  margin: 0 24px 0;
+  padding: 0;
+  font-weight: 400;
+  line-height: 1.4;
+}
+.tier-help-close {
+  opacity: 0.9;
+}
+.tier-help-close:hover {
+  opacity: 1;
+  background: rgba(255, 255, 255, 0.2) !important;
+  border-radius: 8px;
+}
+.tier-help-body {
+  background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+  max-height: 70vh;
+  overflow-y: auto;
+  padding: 24px !important;
+}
+.tier-help-section {
+  margin-bottom: 0;
+}
+.tier-help-section:last-child {
+  margin-bottom: 0;
+}
+.tier-help-subtitle {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #64748b;
+  margin: 0 0 14px 0;
+}
+.tier-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.tier-block {
+  border-radius: 12px;
+  overflow: hidden;
+  background: white;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+.tier-block-inner {
+  padding: 14px 16px;
+}
+.tier-block-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.tier-badge-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.tier-medal {
+  flex-shrink: 0;
+}
+.tier-medal-silver { color: #64748b; }
+.tier-medal-gold { color: #d97706; }
+.tier-medal-platinum { color: #4338ca; }
+.tier-name {
+  font-size: 0.875rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: #1e293b;
+}
+.tier-rate {
+  font-weight: 700;
+  font-size: 1rem;
+  color: #1e293b;
+}
+.tier-block-silver .tier-rate { color: #475569; }
+.tier-block-gold .tier-rate { color: #b45309; }
+.tier-block-platinum .tier-rate { color: #4338ca; }
+.tier-desc {
+  font-size: 0.8125rem;
+  color: #64748b;
+  margin: 6px 0 0 0;
+  padding: 0;
+  line-height: 1.35;
+}
+.tier-help-divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #e2e8f0, transparent);
+  margin: 22px 0 20px;
+}
+.faq-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.faq-item {
+  background: white;
+  border-radius: 12px;
+  padding: 14px 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  border: 1px solid #e2e8f0;
+}
+.faq-q {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #334155;
+  margin-bottom: 6px;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  line-height: 1.4;
+}
+.faq-q-icon {
+  flex-shrink: 0;
+  margin-top: 2px;
+  color: #6366f1;
+}
+.faq-a {
+  font-size: 0.8125rem;
+  line-height: 1.55;
+  color: #64748b;
+  margin: 0;
+  padding-left: 26px;
+}
+@media (max-width: 600px) {
+  .tier-help-body { padding: 18px !important; }
+  .faq-a { padding-left: 0; }
+}
+
 /* Role-specific card accents */
 .role-caregiver {
   background: linear-gradient(145deg, #ffffff 0%, #f0fdf4 30%, #dcfce7 100%) !important;
@@ -2480,6 +2782,41 @@ const getShortTitle = (title) => {
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3) !important;
   overflow: hidden !important;
 }
+
+/* Tier help modal (marketing) - ensure overrides apply */
+.tier-help-dialog.v-dialog > .v-overlay__content {
+  border-radius: 20px !important;
+  overflow: hidden;
+  box-shadow: 0 28px 56px rgba(0, 0, 0, 0.2), 0 12px 24px rgba(99, 102, 241, 0.08) !important;
+}
+.tier-help-card.v-card {
+  border-radius: 20px !important;
+}
+.tier-help-header-wrap {
+  background: linear-gradient(145deg, #4f46e5 0%, #6366f1 50%, #818cf8 100%) !important;
+}
+.tier-help-header.v-card-title {
+  padding: 20px 24px 6px !important;
+  font-size: 1.15rem !important;
+  font-weight: 700 !important;
+}
+.tier-help-body.v-card-text {
+  background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%) !important;
+  max-height: 70vh;
+  overflow-y: auto;
+  padding: 24px !important;
+}
+.tier-help-subtitle {
+  font-size: 0.7rem !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.08em !important;
+  color: #64748b !important;
+  margin: 0 0 14px 0 !important;
+}
+.tier-rate { font-weight: 700 !important; font-size: 1rem !important; }
+.faq-q { font-size: 0.9rem !important; font-weight: 600 !important; color: #334155 !important; }
+.faq-a { line-height: 1.55 !important; font-size: 0.8125rem !important; color: #64748b !important; }
 
 /* Force all dialog headers to have gradient - fallback */
 .v-dialog > .v-overlay__content > .v-card > .v-card-item:first-child,

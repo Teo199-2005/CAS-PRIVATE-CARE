@@ -15,61 +15,6 @@ use Dompdf\Options;
 class CaregiverController extends Controller
 {
     use ApiResponseTrait;
-    public function availableClients()
-    {
-        // Fetch all pending bookings with client user data
-        $bookings = \App\Models\Booking::where('status', 'pending')
-            ->with('client')
-            ->orderBy('created_at', 'desc')
-            ->get();
-
-        // Transform bookings for the view
-        $clients = $bookings->map(function($booking) {
-            $client = $booking->client;
-            $clientName = $client ? $client->name : 'Unknown Client';
-            $nameParts = explode(' ', $clientName);
-            $initials = count($nameParts) >= 2 ?
-                substr($nameParts[0], 0, 1) . substr($nameParts[1], 0, 1) :
-                substr($clientName, 0, 2);
-            // Prefer client's profile_photo (clients table) then user's avatar (users.avatar)
-            $avatar = null;
-            if ($client) {
-                // clients.profile_photo may be stored on related client model as 'profile_photo'
-                $profilePhoto = isset($client->profile_photo) ? $client->profile_photo : null;
-                $userAvatar = isset($client->avatar) ? $client->avatar : null; // if client is a User model this will work
-
-                $stored = $profilePhoto ?: $userAvatar;
-                if ($stored) {
-                    $stored = ltrim($stored, '/');
-                    if (strpos($stored, 'avatars/') === 0 || strpos($stored, 'profile_photos/') === 0) {
-                        $avatar = asset('storage/' . $stored);
-                    } else {
-                        // default folder for avatars/profile photos
-                        $avatar = asset('storage/avatars/' . $stored);
-                    }
-                }
-            }
-            return [
-                'name' => $clientName,
-                'initials' => strtoupper($initials),
-                'avatar' => $avatar,
-                'age' => $booking->client_age ?? rand(65, 85),
-                'careType' => ucwords(str_replace('_', ' ', $booking->service_type)),
-                'location' => ucfirst($booking->borough),
-                'payRate' => '$' . number_format($booking->hourly_rate ?? 0, 2) . '/hr',
-                'urgency' => $booking->urgency_level ?? 'scheduled',
-                'serviceDate' => $booking->service_date,
-                'startTime' => $booking->start_time,
-                'duration' => $booking->duration_days . ' days',
-                'mobilityLevel' => $booking->mobility_level ?? 'independent',
-            ];
-        });
-
-    // Return only actual booking data - no supplementary fake data
-    $clients = $clients->unique('name')->values();
-
-    return view('available-clients', ['clients' => $clients]);
-    }
 
     public function getAvailableClients(Request $request)
     {

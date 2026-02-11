@@ -23,6 +23,9 @@
     subtitle="Manage client acquisition and commissions"
     header-title="Marketing Dashboard"
     header-subtitle="Client management and discount tracking"
+    :tier-label="marketingTierLabel"
+    :tier="marketingTier"
+    :tier-commission-per-hour="marketingTierCommissionPerHour"
     :nav-items="navItems"
     :current-section="currentSection"
     @section-change="currentSection = $event"
@@ -89,7 +92,7 @@
             <v-card-text class="pa-4 flex-grow-1 d-flex flex-column justify-space-between">
               <div>
                 <div class="text-center mb-3">
-                  <div class="balance-amount grey--text text--darken-2">${{ accountBalance.toFixed(2) }}</div>
+                  <div class="balance-amount grey--text text--darken-2">${{ (Number(accountBalance) || 0).toFixed(2) }}</div>
                   <div class="text-caption text-grey">Available Balance</div>
                 </div>
                 <div class="d-flex justify-space-between text-caption mb-1">
@@ -130,98 +133,56 @@
         </v-col>
       </v-row>
 
-      <v-row>
+      <!-- Summary + Referral: two equal-width cards, compact grid inside -->
+      <v-row align="stretch">
         <v-col cols="12" md="6">
-          <v-card class="mb-3 enhanced-card d-flex flex-column" elevation="2">
-            <v-card-title class="enhanced-card-header pa-6">
-              <v-icon color="grey-darken-2" class="mr-3">mdi-chart-line</v-icon>
-              <span class="section-title grey--text text--darken-2">Previous Week Summary</span>
+          <v-card class="dashboard-summary-card h-100" elevation="1">
+            <v-card-title class="dashboard-summary-header pa-4">
+              <v-icon color="grey-darken-2" size="22" class="mr-2">mdi-chart-line</v-icon>
+              <span class="section-title-compact grey--text text--darken-2">Previous Week Summary</span>
             </v-card-title>
-            <v-card-text class="pa-4 flex-grow-1 d-flex flex-column justify-space-between">
-              <div>
-                <div class="mb-3">
-                  <div class="d-flex justify-space-between mb-1">
+            <v-card-text class="pa-4 pt-0">
+              <div class="dashboard-summary-grid">
+                <div class="summary-block summary-block--full">
+                  <div class="summary-row summary-row--inline">
                     <span class="summary-label-compact">Clients Acquired</span>
-                    <span class="summary-value-compact">{{ weeklySummary.clients_acquired }} clients</span>
+                    <span class="summary-value-compact font-weight-medium">{{ weeklySummary.clients_acquired }} clients</span>
                   </div>
-                  <v-progress-linear :model-value="(weeklySummary.clients_acquired / weeklySummary.target) * 100" color="info" height="6" rounded />
-                  <div class="text-caption text-grey mt-1">Target: {{ weeklySummary.target }} clients/week</div>
+                  <v-progress-linear :model-value="Math.min((weeklySummary.clients_acquired / (weeklySummary.target || 1)) * 100, 100)" color="info" height="6" rounded class="mb-1 mt-1" />
+                  <div class="text-caption text-grey">Target: {{ weeklySummary.target }} clients/week</div>
                 </div>
-                <div class="mb-3">
-                  <div class="d-flex justify-space-between mb-1">
-                    <span class="summary-label-compact">Previous Payout</span>
-                    <span class="summary-value-compact info--text">${{ weeklySummary.previous_payout?.toFixed(2) || '0.00' }} - {{ weeklySummary.previous_payout_date || 'N/A' }}</span>
-                  </div>
-                </div>
-              </div>
-              <div>
-                <v-divider class="my-2" />
-                <div class="summary-item-compact">
+                <div class="summary-row">
                   <span class="summary-label-compact">Previous Payout</span>
-                  <span class="summary-value-compact font-weight-bold">${{ weeklySummary.previous_payout?.toFixed(2) || '0.00' }} - {{ weeklySummary.previous_payout_date || 'N/A' }}</span>
+                  <span class="summary-value-compact summary-value--right info--text">${{ (Number(weeklySummary.previous_payout) || 0).toFixed(2) }} <span class="text-caption text-disabled">· {{ weeklySummary.previous_payout_date || 'N/A' }}</span></span>
+                </div>
+                <div class="summary-row">
+                  <span class="summary-label-compact">Total Commission</span>
+                  <span class="summary-value-compact summary-value--right success--text font-weight-bold">${{ totalCommission }}</span>
+                </div>
+                <div class="summary-row">
+                  <span class="summary-label-compact">This Month</span>
+                  <span class="summary-value-compact summary-value--right primary--text font-weight-bold">${{ monthlyCommission }}</span>
+                </div>
+                <div class="summary-row">
+                  <span class="summary-label-compact">Active Clients</span>
+                  <span class="summary-value-compact summary-value--right font-weight-bold">{{ activeClients }}</span>
                 </div>
               </div>
             </v-card-text>
           </v-card>
         </v-col>
-
         <v-col cols="12" md="6">
-          <v-card class="earning-container mb-3" elevation="0">
-            <v-card-text class="pa-3">
-              <div class="d-flex justify-space-between mb-1">
-                <span class="earning-label">Total Commission</span>
-                <span class="earning-value grey--text text--darken-2">${{ totalCommission }}</span>
-              </div>
-              <v-progress-linear :model-value="commissionProgress" color="success" height="6" rounded />
-            </v-card-text>
-          </v-card>
-          
-          <v-card class="earning-container mb-3" elevation="0">
-            <v-card-text class="pa-3">
-              <div class="d-flex justify-space-between mb-1">
-                <span class="earning-label">This Month</span>
-                <span class="earning-value">${{ monthlyCommission }}</span>
-              </div>
-              <v-progress-linear :model-value="monthlyProgress" color="info" height="6" rounded />
-            </v-card-text>
-          </v-card>
-          
-          <v-card class="earning-container mb-3" elevation="0">
-            <v-card-text class="pa-3">
-              <div class="d-flex justify-space-between mb-1">
-                <span class="earning-label">Active Clients</span>
-                <span class="earning-value">{{ activeClients }}</span>
-              </div>
-              <v-progress-linear :model-value="clientsProgress" color="warning" height="6" rounded />
-            </v-card-text>
-          </v-card>
-          
-          <!-- Referral Code & Link Card -->
-          <v-card class="earning-container referral-card" elevation="0">
-            <v-card-text class="pa-3">
-              <div class="referral-label mb-2">
-                <v-icon size="16" class="mr-1">mdi-link-variant</v-icon>
-                My Referral Code
-              </div>
+          <v-card class="referral-card h-100" elevation="1">
+            <v-card-title class="dashboard-summary-header pa-4">
+              <v-icon color="grey-darken-2" size="22" class="mr-2">mdi-link-variant</v-icon>
+              <span class="section-title-compact grey--text text--darken-2">My Referral Code</span>
+            </v-card-title>
+            <v-card-text class="pa-4 pt-0">
               <div class="referral-code-box mb-3">
                 <div class="referral-code">{{ referralCode }}</div>
-                <v-btn icon="mdi-content-copy" size="small" variant="text" @click="copyReferralCode" class="copy-btn" title="Copy Code"></v-btn>
+                <v-btn icon="mdi-content-copy" size="small" variant="text" @click="copyReferralCode" class="copy-btn" title="Copy Code" aria-label="Copy code"></v-btn>
               </div>
-              
-              <!-- Full Referral Link -->
-              <div class="referral-link-section">
-                <div class="referral-link-label mb-1">
-                  <v-icon size="14" class="mr-1">mdi-share-variant</v-icon>
-                  Shareable Link
-                </div>
-                <div class="referral-link-box">
-                  <div class="referral-link-text">{{ referralLink }}</div>
-                  <v-btn icon="mdi-content-copy" size="x-small" variant="text" @click="copyReferralLink" class="copy-btn-small" title="Copy Link"></v-btn>
-                </div>
-              </div>
-              
-              <!-- Quick Share Buttons -->
-              <div class="share-buttons mt-3">
+              <div class="share-buttons mb-3">
                 <v-btn size="x-small" color="success" variant="tonal" @click="shareViaWhatsApp" class="mr-1">
                   <v-icon size="14">mdi-whatsapp</v-icon>
                 </v-btn>
@@ -232,26 +193,24 @@
                   <v-icon size="14">mdi-message-text</v-icon>
                 </v-btn>
               </div>
-              
-              <!-- Stats -->
-              <div class="referral-stats mt-3 pt-2" style="border-top: 1px solid #e5e7eb;">
-                <div class="d-flex justify-space-between text-caption">
-                  <span class="text-grey">Times Used:</span>
-                  <span class="font-weight-bold">{{ referralCodeStats.usageCount }}</span>
-                </div>
-                <div class="d-flex justify-space-between text-caption">
-                  <span class="text-grey">Total Earned:</span>
-                  <span class="font-weight-bold" style="color: #616161;">${{ referralCodeStats.totalEarned }}</span>
-                </div>
+              <v-divider class="my-2" />
+              <div class="d-flex justify-space-between text-body-2">
+                <span class="text-grey">Times Used</span>
+                <span class="font-weight-bold">{{ referralCodeStats.usageCount }}</span>
+              </div>
+              <div class="d-flex justify-space-between text-body-2 mt-1">
+                <span class="text-grey">Total Earned</span>
+                <span class="font-weight-bold grey--text text--darken-2">${{ referralCodeStats.totalEarned }}</span>
               </div>
             </v-card-text>
           </v-card>
         </v-col>
       </v-row>
 
-      <v-row class="mt-1">
+      <!-- My Clients Performance: full width -->
+      <v-row class="mt-4">
         <v-col cols="12">
-          <v-card elevation="0" class="mb-3 compact-card">
+          <v-card elevation="0" class="compact-card">
             <v-card-title class="card-header pa-4">
               <span class="section-title-compact grey--text text--darken-2">My Clients Performance</span>
             </v-card-title>
@@ -310,17 +269,61 @@
     </div>
 
     <!-- Analytics Section -->
-    <div v-if="currentSection === 'analytics'">
+    <div v-if="currentSection === 'analytics'" class="marketing-analytics">
+      <!-- Summary Header (like Client Analytics) -->
+      <v-card elevation="0" class="mb-6 analytics-summary-card">
+        <v-card-text class="pa-6 pa-md-8">
+          <div class="d-flex flex-column flex-md-row justify-space-between align-start align-md-center gap-4">
+            <div class="analytics-summary-stats">
+              <div class="summary-stat-item">
+                <div class="summary-stat-amount primary--text">${{ analyticsSummary.totalCommission }}</div>
+                <div class="summary-stat-label">Total Commission</div>
+              </div>
+              <v-divider vertical class="d-none d-md-block mx-4" />
+              <div class="summary-stat-item">
+                <div class="summary-stat-amount info--text">${{ analyticsSummary.thisMonth }}</div>
+                <div class="summary-stat-label">This Month</div>
+              </div>
+              <v-divider vertical class="d-none d-md-block mx-4" />
+              <div class="summary-stat-item">
+                <div class="summary-stat-amount success--text">{{ analyticsSummary.clientsReferred }}</div>
+                <div class="summary-stat-label">Clients Referred</div>
+              </div>
+              <v-divider vertical class="d-none d-md-block mx-4" />
+              <div class="summary-stat-item tier-summary-cell" :class="'tier-summary-cell--' + tierKey.toLowerCase()">
+                <div class="tier-summary-content">
+                  <v-icon class="tier-summary-medal" size="22">{{ tierKey === 'Platinum' ? 'mdi-medal' : tierKey === 'Gold' ? 'mdi-medal' : 'mdi-medal' }}</v-icon>
+                  <div>
+                    <div class="summary-stat-amount tier-summary-amount">{{ marketingTierLabel || 'Silver Partner' }} · ${{ displayCommissionRate }}/hr</div>
+                    <div class="summary-stat-label">Current Tier</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </v-card-text>
+      </v-card>
+
+      <!-- Top metric cards -->
       <v-row class="mb-4">
         <v-col v-for="metric in analyticsMetrics" :key="metric.title" cols="12" sm="6" md="3">
-          <v-card elevation="0" class="compact-stat-card">
+          <v-card
+            elevation="0"
+            class="compact-stat-card analytics-stat-card"
+            :class="metric.tierKey ? 'tier-stat-card tier-stat-card--' + metric.tierKey.toLowerCase() : ''"
+          >
             <v-card-text class="pa-4">
               <div class="d-flex align-center">
-                <v-icon :color="metric.color" size="24" class="mr-3">{{ metric.icon }}</v-icon>
-                <div>
-                  <div class="stat-value" :class="metric.color + '--text'">{{ metric.value }}</div>
+                <v-icon
+                  :color="metric.tierKey ? undefined : metric.color"
+                  :class="metric.tierKey ? 'tier-stat-icon tier-stat-icon--' + metric.tierKey.toLowerCase() : ''"
+                  size="28"
+                  class="mr-3"
+                >{{ metric.icon }}</v-icon>
+                <div class="flex-grow-1">
+                  <div class="stat-value" :class="metric.tierKey ? 'tier-stat-value' : metric.color + '--text'">{{ metric.value }}</div>
                   <div class="stat-label">{{ metric.title }}</div>
-                  <div class="stat-change" :class="metric.changeColor">{{ metric.change }}</div>
+                  <div v-if="metric.change" class="stat-change" :class="metric.changeColor">{{ metric.change }}</div>
                 </div>
               </div>
             </v-card-text>
@@ -329,51 +332,74 @@
       </v-row>
 
       <v-row>
-        <v-col cols="12" md="4">
-          <v-card elevation="0" class="mb-3">
-            <v-card-title class="card-header pa-4">
-              <span class="section-title-compact grey--text text--darken-2">Monthly Performance</span>
+        <!-- Commission Over Time -->
+        <v-col cols="12" md="8">
+          <v-card elevation="0" class="mb-3 compact-chart-card">
+            <v-card-title class="compact-header pa-4">
+              <div class="d-flex justify-space-between align-center flex-wrap gap-2">
+                <span class="compact-title primary--text">Commission Over Time</span>
+                <span class="text-caption text-grey">Last 6 months</span>
+              </div>
             </v-card-title>
             <v-card-text class="pa-4">
-              <div style="height: 200px; position: relative;">
+              <div class="chart-container" style="height: 220px; position: relative;">
                 <canvas ref="performanceChart"></canvas>
               </div>
             </v-card-text>
           </v-card>
         </v-col>
 
+        <!-- Quick Stats -->
         <v-col cols="12" md="4">
-          <v-card elevation="0" class="mb-3">
-            <v-card-title class="card-header pa-4">
-              <span class="section-title-compact grey--text text--darken-2">Client Status</span>
+          <v-card elevation="0" class="mb-3 h-100">
+            <v-card-title class="compact-header pa-4">
+              <span class="compact-title primary--text">Quick Stats</span>
             </v-card-title>
             <v-card-text class="pa-4">
-              <div style="height: 200px; position: relative;">
-                <canvas ref="statusChart"></canvas>
-              </div>
-            </v-card-text>
-          </v-card>
-        </v-col>
-
-        <v-col cols="12" md="4">
-          <v-card elevation="0" class="mb-3">
-            <v-card-title class="card-header pa-4">
-              <span class="section-title-compact grey--text text--darken-2">Top Clients</span>
-            </v-card-title>
-            <v-card-text class="pa-4">
-              <div v-for="client in topClients" :key="client.id" class="d-flex justify-space-between align-center mb-3">
+              <div class="quick-stat-item mb-4">
+                <v-icon color="primary" class="mr-3" size="28">mdi-account-multiple</v-icon>
                 <div>
-                  <div class="font-weight-bold">{{ client.name }}</div>
-                  <div class="text-caption text-grey">{{ client.bookings }} bookings</div>
+                  <div class="quick-stat-value">{{ myClients.length }}</div>
+                  <div class="quick-stat-label">Total Clients</div>
                 </div>
-                <div class="text-right">
-                  <div class="font-weight-bold">${{ client.commission }}</div>
+              </div>
+              <v-divider class="my-3" />
+              <div class="quick-stat-item mb-4">
+                <v-icon color="info" class="mr-3" size="28">mdi-clock-outline</v-icon>
+                <div>
+                  <div class="quick-stat-value">{{ analyticsQuickStats.totalHours }}h</div>
+                  <div class="quick-stat-label">Total Hours</div>
+                </div>
+              </div>
+              <v-divider class="my-3" />
+              <div class="quick-stat-item mb-4">
+                <v-icon color="success" class="mr-3" size="28">mdi-account-check</v-icon>
+                <div>
+                  <div class="quick-stat-value">{{ activeClients }}</div>
+                  <div class="quick-stat-label">Active Clients</div>
+                </div>
+              </div>
+              <v-divider class="my-3" />
+              <div class="quick-stat-item">
+                <v-icon color="warning" class="mr-3" size="28">mdi-tag</v-icon>
+                <div>
+                  <div class="quick-stat-value">{{ referralCodeStats.usageCount }}</div>
+                  <div class="quick-stat-label">Referral Code Uses</div>
+                </div>
+              </div>
+              <v-divider class="my-3" />
+              <div class="quick-stat-item">
+                <v-icon color="indigo" class="mr-3" size="28">mdi-currency-usd</v-icon>
+                <div>
+                  <div class="quick-stat-value">${{ displayCommissionRate }}/hr</div>
+                  <div class="quick-stat-label">Your Commission Rate ({{ marketingTierLabel || 'Silver' }})</div>
                 </div>
               </div>
             </v-card-text>
           </v-card>
         </v-col>
       </v-row>
+
     </div>
 
     <!-- Payment Information Section -->
@@ -454,7 +480,7 @@
                     
                     <div class="d-flex justify-space-between align-center mb-3">
                       <span class="text-body-2 text-grey">Commission Rate:</span>
-                      <span class="font-weight-medium">$1.00 per hour referred</span>
+                      <span class="font-weight-medium">{{ marketingTierLabel }} · ${{ displayCommissionRate }}/hr</span>
                     </div>
                     
                     <div class="d-flex justify-space-between align-center mb-3">
@@ -568,7 +594,7 @@
               </div>
               <div class="d-flex align-center mb-3">
                 <v-icon color="primary" class="mr-3">mdi-clock-outline</v-icon>
-                <span class="text-body-2">Earn $1 for every hour of service</span>
+                <span class="text-body-2">Earn ${{ displayCommissionRate }}/hr (Silver $1.00, Gold $1.25, Platinum $1.50)</span>
               </div>
               <div class="d-flex align-center mb-3">
                 <v-icon color="primary" class="mr-3">mdi-calendar-check</v-icon>
@@ -934,7 +960,7 @@ const weeklySummary = ref({
 // - Agency (net): $10.50/hr
 // - Marketing Associate (referral commission): $1.00/hr
 // - Training Center: $0.50/hr
-// Total Client Rate: $40/hr (with referral)
+// Total Client Rate: $42/hr (with $3 referral discount)
 //
 // Pricing breakdown (without referral code):
 // - Caregiver: $28.00/hr
@@ -945,29 +971,31 @@ const myClients = ref([]);
 
 const loadMarketingStats = async () => {
   try {
-    const response = await fetch(`/api/marketing/stats?user_id=${marketingUserId.value}`);
-    const data = await response.json();
-    
-    // Update stats
+    const url = `${window.location.origin}/api/marketing/stats?user_id=${marketingUserId.value || ''}`;
+    const response = await fetch(url, {
+      credentials: 'include',
+      headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok || (data && typeof data.my_clients === 'undefined' && !Array.isArray(data.clients))) {
+      return;
+    }
+    const clientsList = Array.isArray(data.clients) ? data.clients : [];
+    const myClientsCount = data.my_clients != null ? Number(data.my_clients) : clientsList.length;
     stats.value = [
-      { title: 'My Clients', value: data.my_clients?.toString() || '0', icon: 'mdi-account-multiple', color: 'grey-darken-2', change: `+${data.weekly_summary?.clients_acquired || 0} this week`, changeColor: 'text-success', changeIcon: 'mdi-arrow-up' },
-      { title: 'Active Bookings', value: data.active_bookings?.toString() || '0', icon: 'mdi-calendar-check', color: 'grey-darken-2', change: '+' + (data.active_bookings || 0) + ' active', changeColor: 'text-success', changeIcon: 'mdi-arrow-up' },
-      { title: 'Total Commission', value: '$' + (data.total_commission?.toFixed(2) || '0.00'), icon: 'mdi-currency-usd', color: 'grey-darken-2', change: '+$' + (data.pending_commission?.toFixed(2) || '0.00') + ' pending', changeColor: 'text-success', changeIcon: 'mdi-arrow-up', date: new Date().toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) },
+      { title: 'My Clients', value: String(myClientsCount), icon: 'mdi-account-multiple', color: 'grey-darken-2', change: `+${data.weekly_summary?.clients_acquired ?? 0} this week`, changeColor: 'text-success', changeIcon: 'mdi-arrow-up' },
+      { title: 'Active Bookings', value: String(data.active_bookings ?? 0), icon: 'mdi-calendar-check', color: 'grey-darken-2', change: '+' + (data.active_bookings ?? 0) + ' active', changeColor: 'text-success', changeIcon: 'mdi-arrow-up' },
+      { title: 'Total Commission', value: '$' + (typeof data.total_commission === 'number' ? data.total_commission.toFixed(2) : (data.total_commission ?? '0.00')), icon: 'mdi-currency-usd', color: 'grey-darken-2', change: '+$' + (data.pending_commission ?? '0.00') + ' pending', changeColor: 'text-success', changeIcon: 'mdi-arrow-up', date: new Date().toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) },
     ];
-    
-    // Update clients list
-    myClients.value = data.clients || [];
-    
-    // Update account balance
-    accountBalance.value = data.account_balance || 0;
-    
-    // Update weekly summary
-    weeklySummary.value = data.weekly_summary || {
+    myClients.value = clientsList;
+    accountBalance.value = parseFloat(data.account_balance) || 0;
+    weeklySummary.value = data.weekly_summary ?? {
       clients_acquired: 0,
       target: 10,
       previous_payout: 0,
       previous_payout_date: null
     };
+    if (data.monthly_commission != null) monthlyCommission.value = parseFloat(data.monthly_commission).toFixed(2);
   } catch (error) {
   }
 };
@@ -992,12 +1020,32 @@ const clientManagementHeaders = [
   { title: 'Actions', key: 'actions', sortable: false },
 ];
 
-const analyticsMetrics = ref([
-  { title: 'Recruitment Rate', value: '85%', icon: 'mdi-account-plus', color: 'success', change: '+5%' },
-  { title: 'Retention Rate', value: '92%', icon: 'mdi-account-check', color: 'info', change: '+3%' },
-  { title: 'Avg Hours/Caregiver', value: '105h', icon: 'mdi-clock', color: 'warning', change: '+8h' },
-  { title: 'Performance Score', value: '4.7/5', icon: 'mdi-trophy', color: 'primary', change: '+0.1' },
+const analyticsSummary = computed(() => ({
+  totalCommission: totalCommission.value,
+  thisMonth: monthlyCommission.value,
+  clientsReferred: myClients.value.length,
+  tierLabel: marketingTierLabel.value || 'Silver Partner'
+}));
+
+const analyticsMetrics = computed(() => [
+  { title: 'Total Commission', value: '$' + totalCommission.value, icon: 'mdi-currency-usd', color: 'success', change: '', changeColor: '' },
+  { title: 'Clients Referred', value: String(myClients.value.length), icon: 'mdi-account-multiple', color: 'info', change: '', changeColor: '' },
+  { title: 'Code Uses', value: String(referralCodeStats.value.usageCount || 0), icon: 'mdi-tag-multiple', color: 'primary', change: '', changeColor: '' },
+  { title: 'Tier', value: marketingTierLabel.value || 'Silver', icon: 'mdi-medal', color: 'warning', change: marketingTierCommissionPerHour.value != null ? '$' + Number(marketingTierCommissionPerHour.value).toFixed(2) + '/hr' : '', changeColor: 'text-grey', tierKey: tierKey.value }
 ]);
+
+const analyticsQuickStats = computed(() => {
+  const hours = myClients.value.reduce((sum, c) => sum + parseFloat(c.totalHours) || 0, 0);
+  return { totalHours: hours.toFixed(1) };
+});
+
+const statusChartActive = computed(() => myClients.value.filter(c => c.status === 'Active').length);
+const statusChartInactive = computed(() => myClients.value.filter(c => c.status !== 'Active').length);
+
+function getTopClientColor(index) {
+  const colors = ['primary', 'info', 'success', 'warning'];
+  return colors[index % colors.length];
+}
 
 const totalCommission = computed(() => {
   return myClients.value.reduce((sum, client) => sum + parseFloat(client.commission), 0).toFixed(2);
@@ -1019,8 +1067,8 @@ const topClients = computed(() => {
   return myClients.value
     .filter(c => c.status === 'Active')
     .sort((a, b) => parseFloat(b.commission) - parseFloat(a.commission))
-    .slice(0, 4)
-    .map(c => ({ ...c, bookings: c.totalBookings }));
+    .slice(0, 5)
+    .map(c => ({ ...c, totalBookings: c.totalBookings ?? 0, totalHours: c.totalHours ?? 0 }));
 });
 
 const filteredClients = computed(() => {
@@ -1051,11 +1099,30 @@ const monthlyProgress = computed(() => Math.min((parseFloat(monthlyCommission.va
 const clientsProgress = computed(() => Math.min((activeClients.value / 20) * 100, 100));
 
 const referralCode = ref('Loading...');
+const marketingTierLabel = ref('');
+const marketingTier = ref('');
+const marketingTierCommissionPerHour = ref(null);
 const referralCodeStats = ref({
-  discount_per_hour: 5.00,
+  discount_per_hour: 3.00,
   commission_per_hour: 1.00,
   usageCount: 0,
   totalEarned: '0.00',
+});
+
+// Tier key for styling (Silver | Gold | Platinum)
+const tierKey = computed(() => {
+  const t = (marketingTier.value || marketingTierLabel.value || '').toLowerCase();
+  if (t.includes('platinum')) return 'Platinum';
+  if (t.includes('gold')) return 'Gold';
+  return 'Silver';
+});
+
+// Display rate: when backend returns 0 (no paid clients yet), show tier's potential rate
+const displayCommissionRate = computed(() => {
+  const rate = marketingTierCommissionPerHour.value;
+  const tierRates = { Silver: '1.00', Gold: '1.25', Platinum: '1.50' };
+  if (rate != null && rate > 0) return Number(rate).toFixed(2);
+  return tierRates[marketingTier.value] || '1.00';
 });
 
 // Computed property for the full referral link
@@ -1073,8 +1140,11 @@ const loadReferralCode = async () => {
     const data = await response.json();
     if (data.success && data.data) {
       referralCode.value = data.data.code;
+      marketingTierLabel.value = data.data.tier_label || data.data.tierLabel || '';
+      marketingTier.value = data.data.tier || '';
+      marketingTierCommissionPerHour.value = data.data.commission_per_hour != null ? parseFloat(data.data.commission_per_hour) : 1.00;
       referralCodeStats.value = {
-        discount_per_hour: parseFloat(data.data.discount_per_hour) || 5.00,
+        discount_per_hour: parseFloat(data.data.discount_per_hour) || 3.00,
         commission_per_hour: parseFloat(data.data.commission_per_hour) || 1.00,
         usageCount: data.data.usage_count || 0,
         totalEarned: parseFloat(data.data.total_commission_earned || 0).toFixed(2),
@@ -1164,8 +1234,8 @@ const loadProfile = async () => {
       const hasPayout = !!(data.user.stripe_connect_id || (data.user.bank_name && data.user.bank_name.trim()));
       stripeConnected.value = hasPayout;
       payoutMethodName.value = (data.user.bank_name && data.user.bank_name.trim()) ? data.user.bank_name.trim() : 'Bank Transfer (ACH)';
-      // Load marketing stats after we have the user ID
-      loadMarketingStats();
+      // Load marketing stats after we have the user ID (await so initial load includes stats)
+      await loadMarketingStats();
     }
   } catch (error) {
   }
@@ -1377,20 +1447,20 @@ const copyReferralLink = () => {
 
 // Share via WhatsApp
 const shareViaWhatsApp = () => {
-  const message = encodeURIComponent(`Book professional caregiving services with CAS Private Care! Use my referral link to get $5/hour discount: ${referralLink.value}`);
+  const message = encodeURIComponent(`Book professional caregiving services with CAS Private Care! Use my referral link to get $3/hour discount: ${referralLink.value}\n\nI earn commission when you book.`);
   window.open(`https://wa.me/?text=${message}`, '_blank');
 };
 
 // Share via Email
 const shareViaEmail = () => {
   const subject = encodeURIComponent('Professional Caregiving Services - CAS Private Care');
-  const body = encodeURIComponent(`Hi,\n\nI'd like to recommend CAS Private Care for professional caregiving services in New York.\n\nUse my referral link to get $5/hour discount on your first booking:\n${referralLink.value}\n\nThey offer verified caregivers, housekeeping services, and more!\n\nBest regards`);
+  const body = encodeURIComponent(`Hi,\n\nI'd like to recommend CAS Private Care for professional caregiving services in New York.\n\nUse my referral link to get $3/hour discount on your first booking:\n${referralLink.value}\n\nI earn commission when you book.\n\nThey offer verified caregivers, housekeeping services, and more!\n\nBest regards`);
   window.open(`mailto:?subject=${subject}&body=${body}`, '_blank');
 };
 
 // Share via SMS
 const shareViaSMS = () => {
-  const message = encodeURIComponent(`Get $5/hour off caregiving services with CAS Private Care! Use my link: ${referralLink.value}`);
+  const message = encodeURIComponent(`Get $3/hour off caregiving services with CAS Private Care! Use my link: ${referralLink.value} I earn commission when you book.`);
   window.open(`sms:?body=${message}`, '_blank');
 };
 
@@ -1636,24 +1706,43 @@ const formatITIN = (event) => {
 
 const performanceChart = ref(null);
 const statusChart = ref(null);
+let performanceChartInstance = null;
+let statusChartInstance = null;
 
 const initCharts = () => {
   if (!window.Chart) {
     setTimeout(initCharts, 100);
     return;
   }
-  
+  if (currentSection.value !== 'analytics') return;
+
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
+  const now = new Date();
+  const thisMonthIndex = now.getMonth();
+  const monthLabels = [];
+  const monthData = [];
+  for (let i = 5; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    monthLabels.push(d.toLocaleString('default', { month: 'short' }));
+    if (i === 0) {
+      monthData.push(parseFloat(monthlyCommission.value) || 0);
+    } else {
+      monthData.push(0);
+    }
+  }
+
   if (performanceChart.value) {
+    if (performanceChartInstance) performanceChartInstance.destroy();
     const ctx = performanceChart.value.getContext('2d');
-    new window.Chart(ctx, {
+    performanceChartInstance = new window.Chart(ctx, {
       type: 'line',
       data: {
-        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+        labels: monthLabels,
         datasets: [{
           label: 'Commission ($)',
-          data: [200, 280, 350, 420, 380, 420],
-          borderColor: '#616161',
-          backgroundColor: 'rgba(97, 97, 97, 0.1)',
+          data: monthData,
+          borderColor: '#6366f1',
+          backgroundColor: 'rgba(99, 102, 241, 0.1)',
           tension: 0.4,
           fill: true
         }]
@@ -1664,32 +1753,32 @@ const initCharts = () => {
         plugins: { legend: { display: false } },
         scales: {
           x: { display: true, grid: { display: false } },
-          y: { display: true, grid: { color: '#f5f5f5' } }
+          y: { display: true, grid: { color: '#f5f5f5' }, beginAtZero: true }
         }
       }
     });
   }
-  
+
   if (statusChart.value) {
+    if (statusChartInstance) statusChartInstance.destroy();
     const ctx = statusChart.value.getContext('2d');
-    const activeCount = myClients.value.filter(c => c.status === 'Active').length;
-    const inactiveCount = myClients.value.filter(c => c.status === 'Inactive').length;
-    
-    new window.Chart(ctx, {
+    const activeCount = statusChartActive.value;
+    const inactiveCount = statusChartInactive.value;
+    statusChartInstance = new window.Chart(ctx, {
       type: 'doughnut',
       data: {
         labels: ['Active', 'Inactive'],
         datasets: [{
-          data: [activeCount, inactiveCount],
-          backgroundColor: ['#616161', '#bdbdbd'],
+          data: [activeCount || 0, inactiveCount || 0].map(v => v || 0.1),
+          backgroundColor: ['#10b981', '#e5e7eb'],
           borderWidth: 0
         }]
       },
       options: {
         responsive: true,
         maintainAspectRatio: false,
-        plugins: { legend: { position: 'bottom' } },
-        cutout: '60%'
+        plugins: { legend: { display: false } },
+        cutout: '65%'
       }
     });
   }
@@ -1711,7 +1800,13 @@ watch(currentSection, (newVal) => {
   localStorage.setItem('marketingSection', newVal);
   if (newVal === 'payment') {
     loadPaymentMethods();
-    checkMarketingApplicationStatus(); // Check approval status when opening payment section
+    checkMarketingApplicationStatus();
+  }
+  if (newVal === 'dashboard' || newVal === 'clients') {
+    loadMarketingStats();
+  }
+  if (newVal === 'analytics') {
+    loadMarketingStats().then(() => setTimeout(initCharts, 200));
   }
 });
 
@@ -1797,6 +1892,148 @@ onMounted(async () => {
 .stat-change {
   font-size: 0.7rem;
   font-weight: 600;
+}
+
+/* Marketing Analytics */
+.marketing-analytics .analytics-summary-card {
+  border-radius: 16px;
+  border: 1px solid #e5e7eb;
+  background: linear-gradient(135deg, #fafafa 0%, #f5f5f5 100%);
+}
+
+.analytics-summary-stats {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.summary-stat-item {
+  text-align: center;
+}
+
+.summary-stat-amount {
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.summary-stat-label {
+  font-size: 0.75rem;
+  color: #64748b;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+/* Current Tier summary cell – tier-colored */
+.tier-summary-cell {
+  padding: 12px 16px !important;
+  border-radius: 12px;
+  margin: 0 -4px;
+}
+.tier-summary-cell--silver {
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  border: 1px solid #cbd5e1;
+  box-shadow: 0 1px 3px rgba(100, 116, 139, 0.15);
+}
+.tier-summary-cell--silver .tier-summary-amount,
+.tier-summary-cell--silver .summary-stat-label { color: #475569 !important; }
+.tier-summary-cell--silver .tier-summary-medal { color: #64748b !important; }
+.tier-summary-cell--gold {
+  background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+  border: 1px solid #fcd34d;
+  box-shadow: 0 1px 3px rgba(217, 119, 6, 0.15);
+}
+.tier-summary-cell--gold .tier-summary-amount,
+.tier-summary-cell--gold .summary-stat-label { color: #92400e !important; }
+.tier-summary-cell--gold .tier-summary-medal { color: #d97706 !important; }
+.tier-summary-cell--platinum {
+  background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);
+  border: 1px solid #818cf8;
+  box-shadow: 0 1px 3px rgba(67, 56, 202, 0.15);
+}
+.tier-summary-cell--platinum .tier-summary-amount,
+.tier-summary-cell--platinum .summary-stat-label { color: #3730a3 !important; }
+.tier-summary-cell--platinum .tier-summary-medal { color: #4338ca !important; }
+.tier-summary-content {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  justify-content: center;
+}
+.tier-summary-content .summary-stat-amount { font-size: 1.1rem; }
+.tier-summary-medal { flex-shrink: 0; }
+
+/* Tier stat card (metric card) – tier-colored */
+.tier-stat-card.tier-stat-card--silver {
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%) !important;
+  border: 1px solid #cbd5e1;
+  border-radius: 12px;
+}
+.tier-stat-card--silver .tier-stat-icon--silver { color: #64748b !important; }
+.tier-stat-card--silver .tier-stat-value { color: #475569 !important; }
+.tier-stat-card.tier-stat-card--gold {
+  background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%) !important;
+  border: 1px solid #fcd34d;
+  border-radius: 12px;
+}
+.tier-stat-card--gold .tier-stat-icon--gold { color: #d97706 !important; }
+.tier-stat-card--gold .tier-stat-value { color: #92400e !important; }
+.tier-stat-card.tier-stat-card--platinum {
+  background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%) !important;
+  border: 1px solid #818cf8;
+  border-radius: 12px;
+}
+.tier-stat-card--platinum .tier-stat-icon--platinum { color: #4338ca !important; }
+.tier-stat-card--platinum .tier-stat-value { color: #3730a3 !important; }
+
+.marketing-analytics .analytics-stat-card {
+  transition: box-shadow 0.2s ease;
+}
+
+.marketing-analytics .analytics-stat-card:hover {
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1) !important;
+}
+
+.compact-header .compact-title {
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.quick-stat-item {
+  display: flex;
+  align-items: center;
+}
+
+.quick-stat-value {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.quick-stat-label {
+  font-size: 0.8rem;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.chart-legend .legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin-right: 8px;
+}
+
+.chart-legend .active-dot { background: #10b981; }
+.chart-legend .inactive-dot { background: #e5e7eb; }
+
+.top-client-row {
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.top-client-row:last-child {
+  border-bottom: none;
 }
 
 .earnings-summary {
@@ -2082,50 +2319,6 @@ onMounted(async () => {
   background: linear-gradient(135deg, #fafafa 0%, #f5f5f5 100%) !important;
 }
 
-.referral-link-section {
-  background: #ffffff;
-  border-radius: 8px;
-  padding: 12px;
-  border: 1px dashed #bdbdbd;
-}
-
-.referral-link-label {
-  font-size: 0.7rem;
-  color: #757575;
-  font-weight: 500;
-  display: flex;
-  align-items: center;
-}
-
-.referral-link-box {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  background: #e8e8e8;
-  border-radius: 6px;
-  padding: 8px 12px;
-}
-
-.referral-link-text {
-  font-size: 0.75rem;
-  color: #424242;
-  font-family: 'Courier New', monospace;
-  word-break: break-all;
-  flex: 1;
-  margin-right: 8px;
-}
-
-.copy-btn-small {
-  color: #757575 !important;
-  min-width: 28px !important;
-  height: 28px !important;
-}
-
-.copy-btn-small:hover {
-  color: #424242 !important;
-  background: rgba(0, 0, 0, 0.05) !important;
-}
-
 .share-buttons {
   display: flex;
   justify-content: center;
@@ -2178,6 +2371,56 @@ onMounted(async () => {
   background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
   border-bottom: 1px solid #e2e8f0;
   border-radius: 20px 20px 0 0 !important;
+}
+
+/* Dashboard summary + referral: equal-height cards */
+.dashboard-summary-card,
+.referral-card.h-100 {
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+.dashboard-summary-header {
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  border-bottom: 1px solid #e2e8f0;
+  border-radius: 12px 12px 0 0;
+  font-weight: 600;
+}
+
+.dashboard-summary-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.dashboard-summary-grid .summary-block--full {
+  padding-bottom: 12px;
+  margin-bottom: 4px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.dashboard-summary-grid .summary-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid #f1f5f9;
+  font-size: 0.875rem;
+}
+
+.dashboard-summary-grid .summary-row:last-child {
+  border-bottom: none;
+}
+
+.dashboard-summary-grid .summary-value--right {
+  min-width: 5rem;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.h-100 {
+  height: 100%;
 }
 
 .summary-label-compact {

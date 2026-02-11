@@ -69,6 +69,9 @@ class AuthController extends Controller
             $request->session()->regenerate();
             $user = Auth::user();
 
+            // Record last login time
+            $user->update(['last_login_at' => now()]);
+
             // Check if contractor/partner is rejected (ONLY block rejected accounts)
             $partnerTypes = ['caregiver', 'housekeeper', 'marketing', 'training_center'];
             if (in_array($user->user_type, $partnerTypes) && $user->status === 'rejected') {
@@ -278,7 +281,7 @@ class AuthController extends Controller
             \App\Models\ReferralCode::create([
                 'user_id' => $user->id,
                 'code' => \App\Models\ReferralCode::generateCode($user->id, $validated['last_name']),
-                'discount_per_hour' => 5.00,
+                'discount_per_hour' => 3.00,
                 'commission_per_hour' => 1.00,
                 'is_active' => false, // Will be activated when approved
                 'usage_count' => 0,
@@ -687,6 +690,7 @@ class AuthController extends Controller
         // Auto-login if not already logged in
         if (!Auth::check()) {
             Auth::login($user);
+            $user->update(['last_login_at' => now()]);
         }
         
         // Redirect based on user type
@@ -781,6 +785,7 @@ class AuthController extends Controller
                 
                 // Allow login for all other statuses (pending, Active, approved)
                 Auth::login($user);
+                $user->update(['last_login_at' => now()]);
                 session()->forget('oauth_referrer');
                 
                 // Redirect based on user type
@@ -866,6 +871,7 @@ class AuthController extends Controller
                     }
                     
                     Auth::login($user);
+                    $user->update(['last_login_at' => now()]);
                     return redirect('/client/dashboard-vue');
                 }
             }

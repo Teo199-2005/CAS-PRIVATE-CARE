@@ -623,7 +623,7 @@ const applyReferralCode = async () => {
     if (response.ok) {
       const data = await response.json();
       if (data.valid) {
-        referralDiscount.value = data.discount || 5;
+        referralDiscount.value = data.discount || 3;
         referralCodeError.value = '';
       } else {
         referralCodeError.value = data.message || 'Invalid referral code';

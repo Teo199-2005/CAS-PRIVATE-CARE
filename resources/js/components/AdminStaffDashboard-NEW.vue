@@ -657,6 +657,9 @@
           <template v-slot:item.clientsAcquired="{ item }">
             <v-chip color="info" size="small">{{ item.clientsAcquired }}</v-chip>
           </template>
+          <template v-slot:item.tier="{ item }">
+            <v-chip :color="getMarketingTierChipColor(item.tier)" size="small" class="font-weight-medium">{{ item.tierLabel || item.tier || 'Silver Partner' }} · ${{ (item.commissionPerHour ?? 1).toFixed(2) }}/hr</v-chip>
+          </template>
           <template v-slot:item.commissionEarned="{ item }">
             <span class="font-weight-bold text-success">${{ item.commissionEarned }}</span>
           </template>
@@ -736,6 +739,15 @@
               </v-card>
             </v-col>
           </v-row>
+          <v-row class="mt-2">
+            <v-col cols="12" md="4">
+              <v-card class="pa-4 text-center" variant="tonal" :color="getMarketingTierChipColor(viewingMarketingStaff.tier)">
+                <v-icon size="32" :color="getMarketingTierChipColor(viewingMarketingStaff.tier)">mdi-medal</v-icon>
+                <h4 class="mt-2">{{ viewingMarketingStaff.tierLabel || viewingMarketingStaff.tier || 'Silver Partner' }}</h4>
+                <div class="text-caption">Tier · ${{ (viewingMarketingStaff.commissionPerHour ?? 1).toFixed(2) }}/hr</div>
+              </v-card>
+            </v-col>
+          </v-row>
           
           <v-row class="mt-4">
             <v-col cols="12" md="6">
@@ -747,7 +759,7 @@
             <v-col cols="12" md="6">
               <div class="detail-section">
                 <div class="detail-label">Commission Rate</div>
-                <div class="detail-value">$1.00 per hour</div>
+                <div class="detail-value">${{ (viewingMarketingStaff.commissionPerHour ?? 1).toFixed(2) }} per hour</div>
               </div>
             </v-col>
           </v-row>
@@ -902,12 +914,6 @@
           class="elevation-0" 
           density="compact"
         >
-          <template v-slot:item.email_verified="{ item }">
-            <v-chip :color="item.email_verified === 'Yes' ? 'success' : 'warning'" size="small">
-              <v-icon size="14" class="mr-1">{{ item.email_verified === 'Yes' ? 'mdi-check-circle' : 'mdi-alert-circle' }}</v-icon>
-              {{ item.email_verified }}
-            </v-chip>
-          </template>
           <template v-slot:item.status="{ item }">
             <v-chip :color="getUserStatusColor(item.status)" size="small" class="font-weight-bold" :prepend-icon="getStatusIcon(item.status)">
               {{ item.status }}
@@ -957,16 +963,6 @@
               <div class="detail-section">
                 <div class="detail-label">Phone</div>
                 <div class="detail-value">{{ viewingAdminStaff.phone || 'Not provided' }}</div>
-              </div>
-            </v-col>
-            <v-col cols="12" md="6">
-              <div class="detail-section">
-                <div class="detail-label">Email Verified</div>
-                <div class="detail-value">
-                  <v-chip :color="viewingAdminStaff.email_verified === 'Yes' ? 'success' : 'warning'" size="small">
-                    {{ viewingAdminStaff.email_verified }}
-                  </v-chip>
-                </div>
               </div>
             </v-col>
             <v-col cols="12" md="6">
@@ -4164,6 +4160,7 @@ const marketingStaffHeaders = [
   { title: 'Email', key: 'email' },
   { title: 'Referral Code', key: 'referralCode' },
   { title: 'Clients Acquired', key: 'clientsAcquired' },
+  { title: 'Tier', key: 'tier' },
   { title: 'Total Hours', key: 'totalHours' },
   { title: 'Commission Earned', key: 'commissionEarned' },
   { title: 'Status', key: 'status' },
@@ -4192,7 +4189,6 @@ const adminStaffHeaders = [
   { title: 'Name', key: 'name' },
   { title: 'Email', key: 'email' },
   { title: 'Phone', key: 'phone' },
-  { title: 'Email Verified', key: 'email_verified' },
   { title: 'Last Login', key: 'last_login' },
   { title: 'Joined', key: 'joined' },
   { title: 'Status', key: 'status' },
@@ -5804,7 +5800,12 @@ const getStatusIcon = (status) => {
     'Verified': 'mdi-shield-check',
     'Unverified': 'mdi-shield-alert'
   };
-  return icons[status] || 'mdi-help-circle';
+return icons[status] || 'mdi-help-circle';
+  };
+
+const getMarketingTierChipColor = (tier) => {
+  const colors = { 'Silver': 'grey', 'Gold': 'amber', 'Platinum': 'indigo' };
+  return colors[tier] || 'grey';
 };
 
 const saveProfile = async () => {

@@ -73,7 +73,7 @@
  * <BreadcrumbNav :items="[
  *   { text: 'Home', href: '/', icon: 'mdi-home' },
  *   { text: 'Bookings', href: '/bookings' },
- *   { text: 'New Booking', href: '/book-service' }
+ *   { text: 'New Booking', href: '/client/dashboard' }
  * ]" />
  */
 import { computed } from 'vue';

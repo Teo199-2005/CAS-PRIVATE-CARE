@@ -41,7 +41,7 @@ class SetMarketingReferralCode extends Command
             ReferralCode::create([
                 'user_id' => $user->id,
                 'code' => $code,
-                'discount_per_hour' => 5.00,
+                'discount_per_hour' => 3.00,
                 'commission_per_hour' => 1.00,
                 'is_active' => true,
             ]);

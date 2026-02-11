@@ -25,7 +25,18 @@ class MarketingStaffController extends Controller
      */
     public function stats(Request $request)
     {
-        $userId = auth()->id();
+        $userId = $request->user()?->id ?? auth()->id();
+        if (!$userId) {
+            return response()->json([
+                'my_clients' => 0,
+                'active_bookings' => 0,
+                'total_commission' => 0,
+                'pending_commission' => 0,
+                'account_balance' => 0,
+                'clients' => [],
+                'weekly_summary' => ['clients_acquired' => 0, 'target' => 10, 'previous_payout' => 0, 'previous_payout_date' => null]
+            ]);
+        }
         
         $referralCode = ReferralCode::where('user_id', $userId)->first();
         
@@ -46,7 +57,7 @@ class MarketingStaffController extends Controller
             ]);
         }
         
-        // Get bookings that used this referral code
+        // All bookings with this referral code (paid filter removed so client always shows; commission still from time_trackings)
         $bookings = Booking::where('referral_code_id', $referralCode->id)
             ->with('client')
             ->orderBy('created_at', 'desc')
@@ -109,6 +120,9 @@ class MarketingStaffController extends Controller
     {
         return $bookings->groupBy('client_id')->map(function($clientBookings, $clientId) use ($userId) {
             $client = $clientBookings->first()->client;
+            if (!$client) {
+                return null;
+            }
             
             // Get ACTUAL hours and commission from time_trackings for this client
             $clientTimeTrackings = TimeTracking::where('marketing_partner_id', $userId)
@@ -138,6 +152,6 @@ class MarketingStaffController extends Controller
                     : '-',
                 'commission' => number_format($commission, 2)
             ];
-        })->values();
+        })->filter()->values();
     }
 }

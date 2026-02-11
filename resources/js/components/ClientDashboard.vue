@@ -2445,7 +2445,7 @@
                   <div class="pricing-rate-display">
                     <span v-if="selectedBookingDetails.hasReferralDiscount" class="original-rate">${{ selectedBookingDetails.originalRate || 45 }}</span>
                     <span class="pricing-value" :class="{ 'discounted-rate': selectedBookingDetails.hasReferralDiscount }">${{ selectedBookingDetails.hourlyRate }}</span>
-                    <v-chip v-if="selectedBookingDetails.hasReferralDiscount" color="success" size="x-small" class="ml-2">-$5/hr</v-chip>
+                    <v-chip v-if="selectedBookingDetails.hasReferralDiscount" color="success" size="x-small" class="ml-2">-$3/hr</v-chip>
                   </div>
                 </div>
                 <div class="pricing-item" v-if="selectedBookingDetails.hasReferralDiscount">
@@ -4838,7 +4838,7 @@ const getServicePrice = (serviceType) => {
   // Pricing breakdown:
   // ALL SERVICES (Caregivers & Housekeepers):
   //   Without Referral: $45/hr
-  //   With Referral: $40/hr ($5 discount)
+  //   With Referral: $42/hr ($3 discount)
   // Note: Admin assigns provider earnings, agency gets remainder
   const prices = {
     'Caregiver': '$45 per hour',
@@ -4855,15 +4855,15 @@ const getServicePrice = (serviceType) => {
 
 // Get the discount amount per hour based on service type
 const getReferralDiscountAmount = (serviceType) => {
-  // All services get $5/hr discount with referral code (same as caregivers)
-  return 5;
+  // All services get $3/hr discount with referral code (same as caregivers)
+  return 3;
 };
 
 const getHourlyRate = (serviceType) => {
   // PRICING BREAKDOWN:
   // ALL SERVICES (Caregivers & Housekeepers):
   //   Without referral: $45/hr
-  //   With referral: $40/hr ($5 discount)
+  //   With referral: $42/hr ($3 discount)
   // Note: Housekeeper earnings are assigned by admin, agency gets remainder
   const rates = {
     'Caregiver': 45,
@@ -4877,7 +4877,7 @@ const getHourlyRate = (serviceType) => {
   };
   const baseRate = rates[serviceType] || 45;
   
-  // Apply $5 discount if referral is active
+  // Apply $3 discount if referral is active
   if (referralDiscount.value > 0) {
     const discountAmount = getReferralDiscountAmount(serviceType);
     const discountedRate = baseRate - discountAmount;
@@ -4953,7 +4953,7 @@ const getTotalCost = () => {
   // PRICING BREAKDOWN:
   // ALL SERVICES (Caregivers & Housekeepers):
   //   Without referral: $45/hr
-  //   With referral: $40/hr ($5 discount)
+  //   With referral: $42/hr ($3 discount)
   // Note: Housekeeper earnings are assigned by admin, agency gets remainder
   const rates = {
     'Caregiver': 45,
@@ -5646,7 +5646,7 @@ const applyReferralCode = async () => {
     }
     
     if (response.ok && data.valid) {
-      referralDiscount.value = parseFloat(data.data?.discount_per_hour) || 5.00;
+      referralDiscount.value = parseFloat(data.data?.discount_per_hour) || 3.00;
       appliedReferralCodeId.value = data.data?.id ?? null;
       referralCodeError.value = '';
       success(`Referral code "${code}" applied successfully! You'll receive $${referralDiscount.value.toFixed(2)} off per hour.`);

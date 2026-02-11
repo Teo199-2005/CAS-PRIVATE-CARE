@@ -1,13 +1,14 @@
 <template>
-  <!-- Global Loading Overlay -->
+  <!-- Global Loading Overlay: admin shell so page structure appears immediately -->
   <LoadingOverlay 
     :visible="isPageLoading" 
-    context="admin"
-    tagline="Admin Control Panel"
+    :context="staffMode ? 'adminStaff' : 'admin'"
+    :tagline="staffMode ? 'Admin Staff Portal' : 'Admin Control Panel'"
+    :progress="loadingProgress"
   />
 
-  <!-- Session Blocked Modal - Overlay that blocks all interaction -->
-  <v-dialog v-model="sessionBlockedModal" persistent max-width="500" :scrim="true" scrim-class="session-blocked-scrim">
+  <!-- Session Blocked Modal - Master Admin only (strict one-session rule); Admin Staff skip -->
+  <v-dialog v-if="!staffMode" v-model="sessionBlockedModal" persistent max-width="500" :scrim="true" scrim-class="session-blocked-scrim">
     <v-card class="session-blocked-card">
       <v-card-title class="session-blocked-header pa-6">
         <div class="d-flex align-center">
@@ -53,21 +54,23 @@
   
   <dashboard-template
     user-role="admin"
-    :user-name="profile.firstName && profile.lastName ? `${profile.firstName} ${profile.lastName}` : 'Admin User'"
-    :user-initials="profile.firstName && profile.lastName ? `${profile.firstName[0]}${profile.lastName[0]}` : 'AU'"
+    :user-name="profile.firstName && profile.lastName ? `${profile.firstName} ${profile.lastName}` : (staffMode ? 'Admin Staff' : 'Admin User')"
+    :user-initials="profile.firstName && profile.lastName ? `${profile.firstName[0]}${profile.lastName[0]}` : (staffMode ? 'AS' : 'AU')"
     :user-avatar="userAvatar"
-    :welcome-message="profile.firstName ? `Welcome Back, ${profile.firstName}` : 'Welcome Back, Admin'"
-    subtitle="Manage platform operations and oversight"
-    header-title="Admin Control Panel"
-    header-subtitle="Comprehensive platform management and analytics"
-    :nav-items="navItems"
+    :welcome-message="profile.firstName ? `Welcome Back, ${profile.firstName}` : (staffMode ? 'Welcome Back, Admin Staff' : 'Welcome Back, Admin')"
+    :subtitle="staffMode ? 'Manage platform operations based on your assigned areas' : 'Manage platform operations and oversight'"
+    :header-title="staffMode ? 'Admin Staff Panel' : 'Admin Control Panel'"
+    :header-subtitle="staffMode ? 'Operations limited to areas assigned by your administrator' : 'Comprehensive platform management and analytics'"
+    :nav-items="navItemsForTemplate"
     :current-section="currentSection"
-    @section-change="currentSection = $event"
+    @section-change="staffMode ? handleSectionChangeWithPermission($event) : (currentSection = $event)"
     @toggle-click="handleNavClick"
+    @disabled-click="(val) => staffMode && showAccessDeniedNotification(val)"
     @logout="logout"
   >
     <template #header-left>
       <v-btn color="error" size="x-large" prepend-icon="mdi-bullhorn" class="admin-btn" @click="announceDialog = true">Send Announcement</v-btn>
+      <v-btn v-if="staffMode" color="success" size="x-large" prepend-icon="mdi-email-send" class="admin-btn ml-2" @click="testEmailDialog = true">Test Email</v-btn>
     </template>
 
   <!-- Email Verification Banner (not needed for company admin) -->
@@ -75,6 +78,9 @@
 
     <!-- Dashboard Section -->
     <div v-if="currentSection === 'dashboard'">
+      <v-alert v-if="staffMode" type="info" variant="tonal" density="compact" class="mb-4" border="start">
+        <strong>Assignment-based access.</strong> You only see and manage sections your administrator has assigned to you. Contact your admin to request access to other areas.
+      </v-alert>
       <v-row class="mb-4">
         <v-col v-for="(stat, index) in stats" :key="stat.title" cols="6" sm="6" md="3">
           <stat-card 
@@ -92,9 +98,9 @@
 
       <v-row class="mt-1">
         <v-col cols="12">
-          <v-row>
+          <v-row align="stretch">
             <v-col cols="12" md="4">
-              <v-card class="mb-3 compact-card d-flex flex-column" elevation="0">
+              <v-card class="mb-3 compact-card d-flex flex-column h-100" elevation="0">
                 <v-card-title class="card-header pa-4">
                   <span class="section-title-compact error--text">Staff Overview</span>
                 </v-card-title>
@@ -141,7 +147,7 @@
               </v-card>
             </v-col>
             <v-col cols="12" md="4">
-              <v-card elevation="0" class="mb-3 compact-card d-flex flex-column">
+              <v-card elevation="0" class="mb-3 compact-card d-flex flex-column h-100">
                 <v-card-title class="card-header pa-4">
                   <span class="section-title-compact error--text">Booking Status</span>
                 </v-card-title>
@@ -192,7 +198,7 @@
               </v-card>
             </v-col>
             <v-col cols="12" md="4">
-              <v-card elevation="0" class="mb-3 compact-card d-flex flex-column">
+              <v-card elevation="0" class="mb-3 compact-card d-flex flex-column h-100">
                 <v-card-title class="card-header pa-4">
                   <div class="d-flex justify-space-between align-center">
                     <span class="section-title-compact error--text">Contractors Contacts</span>
@@ -330,8 +336,8 @@
             </v-card-text>
           </v-card>
 
-          <!-- Booking Maintenance Mode Widget -->
-          <v-card elevation="0" class="modern-activity-card mt-4">
+          <!-- Booking Maintenance Mode Widget (Admin only; not shown for Admin Staff) -->
+          <v-card v-if="!staffMode" elevation="0" class="modern-activity-card mt-4">
             <v-card-title class="modern-card-header pa-6">
               <div class="d-flex align-center justify-space-between flex-wrap ga-2">
                 <div class="d-flex align-center">
@@ -1958,7 +1964,7 @@
             <v-text-field v-model="marketingStaffSearch" placeholder="Search marketing partner..." prepend-inner-icon="mdi-magnify" variant="outlined" density="compact" hide-details />
           </v-col>
           <v-col cols="12" md="2">
-            <v-select v-model="marketingStaffStatusFilter" :items="['All', 'Active', 'pending', 'Inactive']" label="All Status" variant="outlined" density="compact" hide-details />
+            <v-select v-model="marketingStaffStatusFilter" :items="['All', 'Active', 'Pending', 'Inactive']" label="All Status" variant="outlined" density="compact" hide-details />
           </v-col>
           <v-col cols="12" md="3">
             <v-btn color="error" prepend-icon="mdi-plus" @click="openMarketingStaffDialog()">Add Marketing Partner</v-btn>
@@ -1974,7 +1980,7 @@
         </v-card-title>
         
         <!-- Desktop Table View -->
-        <v-data-table v-if="!isMobile" v-model="selectedMarketingStaff" :headers="marketingStaffHeaders" :items="filteredMarketingStaff" :items-per-page="10" show-select item-value="id" class="elevation-0" density="compact">
+        <v-data-table v-if="!isMobile" v-model="selectedMarketingStaff" :headers="marketingStaffHeaders" :items="filteredMarketingStaff" :items-per-page="10" show-select item-value="id" class="elevation-0 marketing-partner-table" density="compact">
           <template v-slot:item.name="{ item }">
             {{ item.displayName || item.name || item.email || '—' }}
           </template>
@@ -1986,13 +1992,19 @@
             {{ item.place_indicator || item.location || (item.zip_code || '—') }}
           </template>
           <template v-slot:item.referralCode="{ item }">
-            <v-chip color="primary" size="small" class="font-weight-bold">
+            <v-chip color="primary" size="small" class="font-weight-bold referral-code-chip">
               <v-icon size="14" class="mr-1">mdi-ticket-percent</v-icon>
               {{ item.referralCode }}
             </v-chip>
           </template>
           <template v-slot:item.clientsAcquired="{ item }">
             <v-chip color="info" size="small">{{ item.clientsAcquired }}</v-chip>
+          </template>
+          <template v-slot:item.tier="{ item }">
+            <v-chip :color="getMarketingTierChipColor(item.tier)" size="small" class="font-weight-medium">
+              <v-icon size="14" class="mr-1">mdi-medal</v-icon>
+              {{ item.tierLabel || item.tier || 'Silver Partner' }} · ${{ (item.commissionPerHour ?? 1).toFixed(2) }}/hr
+            </v-chip>
           </template>
           <template v-slot:item.commissionEarned="{ item }">
             <span class="font-weight-bold text-success">${{ item.commissionEarned }}</span>
@@ -2045,6 +2057,10 @@
                 <div class="mobile-card-row d-flex justify-space-between py-2" style="border-bottom: 1px solid #f3f4f6;">
                   <span class="mobile-card-label text-grey-darken-1">Clients:</span>
                   <v-chip color="info" size="small">{{ item.clientsAcquired }}</v-chip>
+                </div>
+                <div class="mobile-card-row d-flex justify-space-between py-2" style="border-bottom: 1px solid #f3f4f6;">
+                  <span class="mobile-card-label text-grey-darken-1">Tier:</span>
+                  <v-chip :color="getMarketingTierChipColor(item.tier)" size="small" class="font-weight-medium">{{ item.tierLabel || item.tier || 'Silver Partner' }} · ${{ (item.commissionPerHour ?? 1).toFixed(2) }}/hr</v-chip>
                 </div>
                 <div class="mobile-card-row d-flex justify-space-between py-2">
                   <span class="mobile-card-label text-grey-darken-1">Commission:</span>
@@ -2219,6 +2235,15 @@
               </v-card>
             </v-col>
           </v-row>
+          <v-row class="mt-2">
+            <v-col cols="12" md="4">
+              <v-card class="pa-4 text-center" variant="tonal" :color="getMarketingTierChipColor(viewingMarketingStaff.tier)">
+                <v-icon size="32" :color="getMarketingTierChipColor(viewingMarketingStaff.tier)">mdi-medal</v-icon>
+                <h4 class="mt-2">{{ viewingMarketingStaff.tierLabel || viewingMarketingStaff.tier || 'Silver Partner' }}</h4>
+                <div class="text-caption">Tier</div>
+              </v-card>
+            </v-col>
+          </v-row>
           <v-row class="mt-4">
             <v-col cols="12" md="6">
               <div class="detail-section">
@@ -2229,7 +2254,7 @@
             <v-col cols="12" md="6">
               <div class="detail-section">
                 <div class="detail-label">Commission Rate</div>
-                <div class="detail-value">$1.00 per hour</div>
+                <div class="detail-value">${{ (viewingMarketingStaff.commissionPerHour ?? 1).toFixed(2) }} per hour</div>
               </div>
             </v-col>
           </v-row>
@@ -2401,12 +2426,6 @@
             <span style="display:none">{{ ensureItemPlaceIndicator(item) }}</span>
             {{ item.place_indicator || item.location || 'Unknown ZIP' }}
           </template>
-          <template v-slot:item.email_verified="{ item }">
-            <v-chip :color="item.email_verified === 'Yes' ? 'success' : 'warning'" size="small">
-              <v-icon size="14" class="mr-1">{{ item.email_verified === 'Yes' ? 'mdi-check-circle' : 'mdi-alert-circle' }}</v-icon>
-              {{ item.email_verified }}
-            </v-chip>
-          </template>
           <template v-slot:item.status="{ item }">
             <v-chip
               :color="getUserStatusColor(item.status)"
@@ -2447,13 +2466,9 @@
                   <span class="mobile-card-label text-grey-darken-1">Phone:</span>
                   <span class="mobile-card-value">{{ item.phone || 'N/A' }}</span>
                 </div>
-                <div class="mobile-card-row d-flex justify-space-between py-2" style="border-bottom: 1px solid #f3f4f6;">
+                <div class="mobile-card-row d-flex justify-space-between py-2">
                   <span class="mobile-card-label text-grey-darken-1">Location:</span>
                   <span class="mobile-card-value">{{ item.place_indicator || item.location || 'Unknown' }}</span>
-                </div>
-                <div class="mobile-card-row d-flex justify-space-between py-2">
-                  <span class="mobile-card-label text-grey-darken-1">Email Verified:</span>
-                  <v-chip :color="item.email_verified === 'Yes' ? 'success' : 'warning'" size="small">{{ item.email_verified }}</v-chip>
                 </div>
               </div>
               <div class="mobile-card-actions d-flex justify-center ga-2 pa-3" style="background: #f9fafb; border-top: 1px solid #e5e7eb;">
@@ -2485,10 +2500,6 @@
               <h2>{{ viewingAdminStaff.name }}</h2>
               <p class="text-subtitle-1 text-grey mb-2">Admin Staff</p>
               <v-chip :color="getUserStatusColor(viewingAdminStaff.status)" class="mt-2">{{ viewingAdminStaff.status }}</v-chip>
-              <v-chip :color="viewingAdminStaff.email_verified === 'Yes' ? 'success' : 'warning'" class="mt-2 ml-2">
-                <v-icon size="16" class="mr-1">{{ viewingAdminStaff.email_verified === 'Yes' ? 'mdi-shield-check' : 'mdi-shield-alert' }}</v-icon>
-                {{ viewingAdminStaff.email_verified === 'Yes' ? 'Verified' : 'Pending' }}
-              </v-chip>
             </v-col>
           </v-row>
 
@@ -2607,16 +2618,6 @@
                 <div class="detail-section">
                   <div class="detail-label">Last Login</div>
                   <div class="detail-value">{{ viewingAdminStaff.last_login || 'N/A' }}</div>
-                </div>
-              </v-col>
-              <v-col cols="12" md="6">
-                <div class="detail-section">
-                  <div class="detail-label">Email Verified</div>
-                  <div class="detail-value">
-                    <v-chip :color="viewingAdminStaff.email_verified === 'Yes' ? 'success' : 'warning'" size="small">
-                      {{ viewingAdminStaff.email_verified || 'N/A' }}
-                    </v-chip>
-                  </div>
                 </div>
               </v-col>
               <v-col cols="12" md="6">
@@ -2955,7 +2956,7 @@
             <v-select v-model="trainingCenterCountyFilter" :items="trainingCenterCountyOptions" label="County" variant="outlined" density="compact" hide-details />
           </v-col>
           <v-col cols="12" sm="6" md="2">
-            <v-select v-model="trainingCenterStatusFilter" :items="['All', 'Active', 'pending', 'Inactive']" label="All Status" variant="outlined" density="compact" hide-details />
+            <v-select v-model="trainingCenterStatusFilter" :items="['All', 'Active', 'Pending', 'Inactive']" label="All Status" variant="outlined" density="compact" hide-details />
           </v-col>
           <v-col cols="12" sm="6" md="3">
             <v-btn color="error" prepend-icon="mdi-plus" @click="openTrainingCenterDialog()">Add Training Center</v-btn>
@@ -3664,13 +3665,10 @@
     <div v-if="currentSection === 'time-tracking'">
       <div class="mb-6">
         <v-row class="align-center">
-          <v-col cols="12" md="3">
+          <v-col cols="12" md="4">
             <v-text-field v-model="timeTrackingSearch" placeholder="Search clients..." prepend-inner-icon="mdi-magnify" variant="outlined" density="compact" hide-details />
           </v-col>
-          <v-col cols="12" md="2">
-            <v-select v-model="timeTrackingDateFilter" :items="['Today', 'This Week', 'This Month', 'All Time']" variant="outlined" density="compact" hide-details />
-          </v-col>
-          <v-col cols="12" md="2">
+          <v-col cols="12" md="3">
             <v-select v-model="timeTrackingStatusFilter" :items="['All', 'Clocked In', 'Clocked Out']" variant="outlined" density="compact" hide-details />
           </v-col>
         </v-row>
@@ -3850,7 +3848,7 @@
             <v-text-field v-model="bookingSearch" placeholder="Search bookings..." prepend-inner-icon="mdi-magnify" variant="outlined" density="compact" hide-details />
           </v-col>
           <v-col cols="12" md="3">
-            <v-select v-model="bookingStatusFilter" :items="['All', 'Pending', 'Approved', 'Rejected']" variant="outlined" density="compact" hide-details />
+            <v-select v-model="bookingStatusFilter" :items="['All', 'Pending', 'Approved', 'Confirmed', 'Completed', 'Cancelled', 'Rejected']" variant="outlined" density="compact" hide-details />
           </v-col>
           <v-col cols="12" md="3">
             <v-select v-model="bookingDateFilter" :items="['All Time', 'Today', 'This Week', 'This Month']" variant="outlined" density="compact" hide-details />
@@ -4226,8 +4224,8 @@
       </v-row>
     </div>
 
-    <!-- Featured Posts Section -->
-    <div v-if="currentSection === 'featured-posts'">
+    <!-- Featured Posts Section (Admin only; not shown for Admin Staff) -->
+    <div v-if="!staffMode && currentSection === 'featured-posts'">
       <v-card elevation="0" class="mb-6">
         <v-card-title class="card-header pa-8 d-flex justify-space-between align-center flex-wrap gap-2">
           <span class="section-title primary--text">Featured Posts</span>
@@ -4770,7 +4768,7 @@
               <span class="section-title-compact error--text">Client Payments</span>
             </v-card-title>
             <!-- Desktop Table View -->
-            <v-data-table v-if="!isMobile" :headers="clientPaymentHeaders" :items="clientPayments" :items-per-page="10" class="elevation-0 table-no-checkbox">
+            <v-data-table v-if="!isMobile" :headers="clientPaymentHeaders" :items="filteredClientPayments" :items-per-page="10" class="elevation-0 table-no-checkbox">
               <template v-slot:item.status="{ item }">
                 <v-chip :color="getPaymentStatusColor(item.status)" size="small" class="font-weight-bold">{{ item.status }}</v-chip>
               </template>
@@ -4787,10 +4785,10 @@
             </v-data-table>
             <!-- Mobile Card View -->
             <div v-else class="mobile-cards-container pa-3">
-              <div v-if="clientPayments.length === 0" class="text-center py-8 text-grey">
+              <div v-if="filteredClientPayments.length === 0" class="text-center py-8 text-grey">
                 No client payments found
               </div>
-              <v-card v-for="item in clientPayments" :key="item.id" class="mobile-data-card mb-3" elevation="2" rounded="lg">
+              <v-card v-for="item in filteredClientPayments" :key="item.id" class="mobile-data-card mb-3" elevation="2" rounded="lg">
                 <v-card-text class="pa-0">
                   <div class="mobile-card-header d-flex align-center justify-space-between pa-3" style="background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);">
                     <span class="text-white font-weight-bold text-body-1">{{ item.client_name || item.client }}</span>
@@ -4911,7 +4909,7 @@
               <span class="section-title-compact error--text">Caregiver Payments</span>
             </v-card-title>
             <!-- Desktop Table View -->
-            <v-data-table v-if="!isMobile" :headers="paymentHeaders" :items="caregiverPayments" :items-per-page="10" class="elevation-0 table-no-checkbox">
+            <v-data-table v-if="!isMobile" :headers="paymentHeaders" :items="filteredCaregiverPayments" :items-per-page="10" class="elevation-0 table-no-checkbox">
               <template v-slot:item.bank_status="{ item }">
                 <v-chip :color="item.bank_connected ? 'success' : 'warning'" size="small" variant="flat">
                   <v-icon start size="small">{{ item.bank_connected ? 'mdi-check-circle' : 'mdi-alert-circle' }}</v-icon>
@@ -4957,10 +4955,10 @@
             </v-data-table>
             <!-- Mobile Card View -->
             <div v-else class="mobile-cards-container pa-3">
-              <div v-if="caregiverPayments.length === 0" class="text-center py-8 text-grey">
+              <div v-if="filteredCaregiverPayments.length === 0" class="text-center py-8 text-grey">
                 No caregiver payments found
               </div>
-              <v-card v-for="item in caregiverPayments" :key="item.id" class="mobile-data-card mb-3" elevation="2" rounded="lg">
+              <v-card v-for="item in filteredCaregiverPayments" :key="item.id" class="mobile-data-card mb-3" elevation="2" rounded="lg">
                 <v-card-text class="pa-0">
                   <div class="mobile-card-header d-flex align-center justify-space-between pa-3" style="background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);">
                     <span class="text-white font-weight-bold text-body-1">{{ item.name }}</span>
@@ -5217,6 +5215,11 @@
               class="elevation-0 table-no-checkbox"
               :loading="loadingMarketingCommissions"
             >
+              <template v-slot:item.tier="{ item }">
+                <v-chip :color="getMarketingTierChipColor(item.tier)" size="small" class="font-weight-medium">
+                  {{ item.tier_label || item.tier || 'Silver Partner' }} · ${{ (item.commission_per_hour ?? 1).toFixed(2) }}/hr
+                </v-chip>
+              </template>
               <template v-slot:item.bank_status="{ item }">
                 <v-chip :color="item.bank_connected ? 'success' : 'warning'" size="small" variant="flat">
                   <v-icon start size="small">{{ item.bank_connected ? 'mdi-check-circle' : 'mdi-alert-circle' }}</v-icon>
@@ -5294,11 +5297,15 @@
                     </div>
                     <div class="mobile-card-row d-flex justify-space-between py-2" style="border-bottom: 1px solid #f3f4f6;">
                       <span class="mobile-card-label text-grey-darken-1">Referrals:</span>
-                      <span class="mobile-card-value">{{ item.referral_count || 0 }}</span>
+                      <span class="mobile-card-value">{{ item.clients_referred ?? item.referral_count ?? 0 }}</span>
+                    </div>
+                    <div class="mobile-card-row d-flex justify-space-between py-2" style="border-bottom: 1px solid #f3f4f6;">
+                      <span class="mobile-card-label text-grey-darken-1">Tier:</span>
+                      <v-chip :color="getMarketingTierChipColor(item.tier)" size="x-small" class="font-weight-medium">{{ item.tier_label || item.tier || 'Silver Partner' }} · ${{ (item.commission_per_hour ?? 1).toFixed(2) }}/hr</v-chip>
                     </div>
                     <div class="mobile-card-row d-flex justify-space-between py-2" style="border-bottom: 1px solid #f3f4f6;">
                       <span class="mobile-card-label text-grey-darken-1">Total Earned:</span>
-                      <span class="mobile-card-value font-weight-bold">${{ item.total_earned || 0 }}</span>
+                      <span class="mobile-card-value font-weight-bold">${{ item.total_commission ?? item.total_earned ?? 0 }}</span>
                     </div>
                     <div class="mobile-card-row d-flex justify-space-between py-2">
                       <span class="mobile-card-label text-grey-darken-1">Pending:</span>
@@ -5557,7 +5564,7 @@
               <span class="section-title-compact error--text">All Transactions</span>
             </v-card-title>
             <!-- Desktop Table View -->
-            <v-data-table v-if="!isMobile" :headers="transactionHeaders" :items="allTransactions" :items-per-page="15" class="elevation-0 table-no-checkbox">
+            <v-data-table v-if="!isMobile" :headers="transactionHeaders" :items="filteredTransactions" :items-per-page="15" class="elevation-0 table-no-checkbox">
               <template v-slot:item.type="{ item }">
                 <v-chip :color="getTransactionTypeColor(item.type)" size="small" class="font-weight-bold">{{ item.type }}</v-chip>
               </template>
@@ -5569,10 +5576,10 @@
             </v-data-table>
             <!-- Mobile Card View -->
             <div v-else class="mobile-cards-container pa-3">
-              <div v-if="allTransactions.length === 0" class="text-center py-8 text-grey">
+              <div v-if="filteredTransactions.length === 0" class="text-center py-8 text-grey">
                 No transactions found
               </div>
-              <v-card v-for="(item, index) in allTransactions" :key="index" class="mobile-data-card mb-3" elevation="2" rounded="lg">
+              <v-card v-for="(item, index) in filteredTransactions" :key="index" class="mobile-data-card mb-3" elevation="2" rounded="lg">
                 <v-card-text class="pa-0">
                   <div class="mobile-card-header d-flex align-center justify-space-between pa-3" :style="item.type === 'Payment' ? 'background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);' : 'background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);'">
                     <span class="text-white font-weight-bold text-body-1">{{ item.description || item.reference }}</span>
@@ -7581,43 +7588,48 @@
             </v-col>
           </v-row>
 
-          <!-- Voucher/Referral Code Information -->
-          <v-row v-if="viewingBooking.referralCode" class="mb-4">
+          <!-- Referral / Marketing Partner (assign so partner gets credit and client appears on their dashboard) -->
+          <v-row class="mb-4">
             <v-col cols="12">
               <div class="booking-overview-card">
                 <div class="booking-overview-header">
                   <v-icon color="primary" size="24" class="mr-3">mdi-ticket-percent</v-icon>
-                  <span class="booking-overview-title">Voucher Applied</span>
+                  <span class="booking-overview-title">Referral / Marketing Partner</span>
                 </div>
                 <v-divider class="my-3" />
-                <v-row>
-                  <v-col cols="12" md="6">
-                    <div class="booking-detail-item">
-                      <v-icon color="primary" size="18" class="mr-2">mdi-ticket</v-icon>
-                      <span class="booking-detail-label">Referral Code:</span>
-                      <v-chip color="primary" size="small" class="ml-2 font-weight-bold">
-                        {{ viewingBooking.referralCode.code }}
-                      </v-chip>
-                    </div>
-                    <div class="booking-detail-item" v-if="viewingBooking.referralDiscountApplied">
-                      <v-icon color="success" size="18" class="mr-2">mdi-tag</v-icon>
-                      <span class="booking-detail-label">Discount Applied:</span>
-                      <span class="booking-detail-value text-success font-weight-bold">${{ viewingBooking.referralDiscountApplied }}/hour</span>
-                    </div>
-                  </v-col>
-                  <v-col cols="12" md="6" v-if="viewingBooking.referralCode.user">
-                    <div class="booking-detail-item">
-                      <v-icon color="info" size="18" class="mr-2">mdi-account-circle</v-icon>
-                      <span class="booking-detail-label">Referred By:</span>
-                      <span class="booking-detail-value">{{ viewingBooking.referralCode.user.name }}</span>
-                    </div>
-                    <div class="booking-detail-item" v-if="viewingBooking.referralCode.user.email">
-                      <v-icon color="info" size="18" class="mr-2">mdi-email</v-icon>
-                      <span class="booking-detail-label">Email:</span>
-                      <span class="booking-detail-value">{{ viewingBooking.referralCode.user.email }}</span>
-                    </div>
-                  </v-col>
-                </v-row>
+                <template v-if="viewingBooking.referralCode && (viewingBooking.referralCode.code || viewingBooking.referralCode)">
+                  <v-row>
+                    <v-col cols="12" md="6">
+                      <div class="booking-detail-item">
+                        <v-icon color="primary" size="18" class="mr-2">mdi-ticket</v-icon>
+                        <span class="booking-detail-label">Referral Code:</span>
+                        <v-chip color="primary" size="small" class="ml-2 font-weight-bold">
+                          {{ viewingBooking.referralCode.code || viewingBooking.referralCode }}
+                        </v-chip>
+                      </div>
+                      <div class="booking-detail-item" v-if="viewingBooking.referralDiscountApplied">
+                        <v-icon color="success" size="18" class="mr-2">mdi-tag</v-icon>
+                        <span class="booking-detail-label">Discount Applied:</span>
+                        <span class="booking-detail-value text-success font-weight-bold">${{ viewingBooking.referralDiscountApplied }}/hour</span>
+                      </div>
+                    </v-col>
+                    <v-col cols="12" md="6" v-if="viewingBooking.referralCode && viewingBooking.referralCode.user">
+                      <div class="booking-detail-item">
+                        <v-icon color="info" size="18" class="mr-2">mdi-account-circle</v-icon>
+                        <span class="booking-detail-label">Referred By:</span>
+                        <span class="booking-detail-value">{{ viewingBooking.referralCode.user.name }}</span>
+                      </div>
+                      <div class="booking-detail-item" v-if="viewingBooking.referralCode.user.email">
+                        <v-icon color="info" size="18" class="mr-2">mdi-email</v-icon>
+                        <span class="booking-detail-label">Email:</span>
+                        <span class="booking-detail-value">{{ viewingBooking.referralCode.user.email }}</span>
+                      </div>
+                    </v-col>
+                  </v-row>
+                </template>
+                <template v-else>
+                  <p class="text-body-2 text-grey mb-0">No referral assigned.</p>
+                </template>
               </div>
             </v-col>
           </v-row>
@@ -7668,7 +7680,7 @@
                             <div class="text-caption text-grey">{{ caregiver.email }}</div>
                             <v-chip size="x-small" color="success" class="mt-1">
                               <v-icon size="14" class="mr-1">mdi-cash</v-icon>
-                              ${{ caregiver.hourly_rate || caregiver.hourlyRate || 20 }}/hr
+                              Assigned: ${{ caregiver.hourly_rate || caregiver.hourlyRate || 20 }}/hr
                             </v-chip>
                           </div>
                         </div>
@@ -8220,7 +8232,7 @@
                                 </v-chip>
                                 <v-chip size="small" color="success" variant="elevated">
                                   <v-icon size="16" class="mr-1">mdi-cash</v-icon>
-                                  <span class="font-weight-bold">${{ caregiver.hourly_rate || caregiver.hourlyRate || 20 }}/hr</span>
+                                  <span class="font-weight-bold">Assigned: ${{ caregiver.hourly_rate || caregiver.hourlyRate || 20 }}/hr</span>
                                 </v-chip>
                               </div>
                               
@@ -9025,6 +9037,10 @@ import EmailMarketingPanel from './admin/EmailMarketingPanel.vue';
 import LoadingOverlay from './LoadingOverlay.vue';
 import { useNotification } from '../composables/useNotification';
 
+const props = defineProps({
+  staffMode: { type: Boolean, default: false }
+});
+
 // Lazy-loaded admin tab components for better performance
 const AdminUsersTab = defineAsyncComponent(() => import('./admin/AdminUsersTab.vue'));
 const AdminBookingsTab = defineAsyncComponent(() => import('./admin/AdminBookingsTab.vue'));
@@ -9119,12 +9135,10 @@ const forceLogout = async () => {
   window.location.href = '/login?refresh=' + Date.now();
 };
 
-// Start session heartbeat
+// Start session heartbeat (Master Admin only; Admin Staff do not have one-session rule)
 const startSessionHeartbeat = () => {
-  // Check immediately
+  if (props.staffMode) return;
   checkSessionValidity();
-  
-  // Then check every 5 seconds
   sessionHeartbeatInterval = setInterval(checkSessionValidity, 5000);
 };
 
@@ -9153,7 +9167,7 @@ onBeforeUnmount(() => {
 const showErrorModal = ref(false);
 const errorMessages = ref([]);
 
-const currentSection = ref(localStorage.getItem('adminSection') || 'dashboard');
+const currentSection = ref(props.staffMode ? 'dashboard' : (localStorage.getItem('adminSection') || 'dashboard'));
 const userEmailVerified = ref(false);
 const settingsTab = ref('system');
 const addUserDialog = ref(false);
@@ -9568,6 +9582,7 @@ const marketingStaffHeaders = [
   { title: 'Location', key: 'location' },
   { title: 'Referral Code', key: 'referralCode' },
   { title: 'Clients Acquired', key: 'clientsAcquired' },
+  { title: 'Tier', key: 'tier' },
   { title: 'Total Hours', key: 'totalHours' },
   { title: 'Commission Earned', key: 'commissionEarned' },
   { title: 'Status', key: 'status' },
@@ -9666,7 +9681,6 @@ const adminStaffHeaders = [
   { title: 'Name', key: 'name' },
   { title: 'Email', key: 'email' },
   { title: 'Phone', key: 'phone' },
-  { title: 'Email Verified', key: 'email_verified' },
   { title: 'Last Login', key: 'last_login' },
   { title: 'Joined', key: 'joined' },
   { title: 'Status', key: 'status' },
@@ -9891,6 +9905,113 @@ const navItems = ref([
   { icon: 'mdi-chart-line', title: 'Analytics', value: 'analytics', category: 'REPORTS' },
   { icon: 'mdi-account-circle', title: 'Profile', value: 'profile', category: 'ACCOUNT' },
 ]);
+
+// Staff mode: page permissions from API (main admin can lock sections)
+const pagePermissions = ref({
+  dashboard: true,
+  notifications: true,
+  users: true,
+  caregivers: true,
+  housekeepers: true,
+  clients: true,
+  'admin-staff': true,
+  'marketing-staff': true,
+  'training-centers': true,
+  pending: true,
+  'password-resets': true,
+  'client-bookings': true,
+  'time-tracking': true,
+  reviews: true,
+  announcements: true,
+  'email-marketing': true,
+  payments: true,
+  analytics: true,
+  profile: true,
+});
+
+const isPageAllowed = (pageValue) => pagePermissions.value[pageValue] !== false;
+
+const loadPagePermissions = async () => {
+  if (!props.staffMode) return;
+  try {
+    const response = await fetch('/api/admin/admin-staff/permissions', { credentials: 'include' });
+    if (response.ok) {
+      const data = await response.json();
+      if (data.permissions) {
+        pagePermissions.value = { ...pagePermissions.value, ...data.permissions };
+        // If current section is locked, switch to dashboard
+        if (!isPageAllowed(currentSection.value)) {
+          currentSection.value = 'dashboard';
+        }
+      }
+    }
+  } catch (err) {
+    console.error('Failed to load page permissions:', err);
+  }
+};
+
+const handleSectionChangeWithPermission = (sectionValue) => {
+  if (!isPageAllowed(sectionValue)) {
+    showAccessDeniedNotification(sectionValue);
+    return;
+  }
+  currentSection.value = sectionValue;
+};
+
+const showAccessDeniedNotification = (pageValue) => {
+  const pageNames = {
+    dashboard: 'Dashboard',
+    notifications: 'Notifications',
+    users: 'Users',
+    caregivers: 'Caregivers',
+    housekeepers: 'Housekeepers',
+    clients: 'Clients',
+    'admin-staff': 'Admin Staff',
+    'marketing-staff': 'Marketing Partner',
+    'training-centers': 'Training Centers',
+    pending: 'Contractors Application',
+    'password-resets': 'Password Resets',
+    'client-bookings': 'Client Bookings',
+    'time-tracking': 'Time Tracking',
+    reviews: 'Reviews & Ratings',
+    announcements: 'Announcements',
+    'email-marketing': 'Email Marketing',
+    payments: 'Payments',
+    analytics: 'Analytics',
+    profile: 'Profile',
+  };
+  const pageName = pageNames[pageValue] || pageValue;
+  warning(
+    `You do not have permission to access "${pageName}". Contact your administrator if you need access.`,
+    'Access Restricted'
+  );
+};
+
+// Nav items for template: when staffMode, exclude Featured Posts and apply disabled from permissions
+const navItemsForTemplate = computed(() => {
+  const items = navItems.value;
+  if (!props.staffMode) return items;
+  return items
+    .filter(item => item.value !== 'featured-posts')
+    .map(item => {
+      if (item.isToggle && item.children) {
+        const updatedChildren = item.children.map(child => ({
+          ...child,
+          disabled: !isPageAllowed(child.value),
+        }));
+        const hasAnyEnabledChild = updatedChildren.some(c => !c.disabled);
+        return {
+          ...item,
+          children: updatedChildren,
+          disabled: !hasAnyEnabledChild,
+        };
+      }
+      return {
+        ...item,
+        disabled: !isPageAllowed(item.value),
+      };
+    });
+});
 
 const loadAdminNotificationCount = async () => {
   try {
@@ -10285,30 +10406,28 @@ const loadMetrics = async () => {
     // Housekeeper metrics
     housekeeperMetrics.value[3].value = '$' + (data.avg_housekeeper_earnings || 0).toFixed(0); // Avg Earnings
     
-    // Use admin bookings API to get ALL bookings (api/bookings filters by current user's client_id)
-    const bookingsResp = await fetch('/api/admin/bookings?per_page=9999', {
-      credentials: 'include'
-    });
-    const bookingsResult = await bookingsResp.json();
-    const allBookings = bookingsResult.success ? (bookingsResult.data || []) : [];
-    bookingStats.value.pending = allBookings.filter(b => b.status === 'pending').length.toString();
-    bookingStats.value.active = allBookings.filter(b => b.status === 'confirmed').length.toString();
-    bookingStats.value.completed = allBookings.filter(b => b.status === 'completed').length.toString();
-    bookingStats.value.cancelled = allBookings.filter(b => b.status === 'cancelled').length.toString();
-    totalBookingsForChart.value = allBookings.length.toString();
-    
-    // Update analytics stats with real bookings count
-    analyticsStats.value[3].value = allBookings.length.toString();
-    
-    // Load housekeeper analytics for active/assigned counts
+    // Lightweight booking counts (no full list)
     try {
-      const hkResp = await fetch('/api/admin/housekeeper-salaries', {
-        credentials: 'include'
-      });
+      const statsResp = await fetch('/api/admin/booking-stats', { credentials: 'include' });
+      const statsData = await statsResp.json();
+      if (statsData.success) {
+        bookingStats.value.pending = statsData.pending ?? '0';
+        bookingStats.value.active = statsData.active ?? '0';
+        bookingStats.value.completed = statsData.completed ?? '0';
+        bookingStats.value.cancelled = statsData.cancelled ?? '0';
+        totalBookingsForChart.value = statsData.total ?? '0';
+        analyticsStats.value[3].value = statsData.total ?? '0';
+      }
+    } catch (statsErr) {
+      // Keep defaults
+    }
+    // Housekeeper analytics (active/assigned) – optional, non-blocking
+    try {
+      const hkResp = await fetch('/api/admin/housekeeper-salaries', { credentials: 'include' });
       const hkData = await hkResp.json();
       const payments = hkData.payments || [];
-      housekeeperMetrics.value[1].value = payments.filter(p => p.days_worked > 0).length.toString(); // Active Today
-      housekeeperMetrics.value[2].value = payments.filter(p => p.status !== 'No Hours').length.toString(); // Assigned
+      housekeeperMetrics.value[1].value = payments.filter(p => p.days_worked > 0).length.toString();
+      housekeeperMetrics.value[2].value = payments.filter(p => p.status !== 'No Hours').length.toString();
     } catch (hkError) {
       // Keep default values
     }
@@ -10407,9 +10526,8 @@ const loadUsers = async () => {
       });
     
     caregivers.value = mappedCaregivers;
-    
-    // Resolve all ZIP codes and force Vue reactivity update
-    resolveAllZipCodes(mappedCaregivers, caregivers);
+    // Defer ZIP resolution so dashboard shows faster (run after paint)
+    setTimeout(() => resolveAllZipCodes(caregivers.value, caregivers), 0);
 
     // Try to load the full users list (used across other tabs). If it returns HTML (login page),
     // do NOT wipe already-loaded caregivers — just keep existing data.
@@ -10458,8 +10576,7 @@ const loadUsers = async () => {
         };
         return item;
       });
-      // Batch resolve ZIP locations for clients
-      resolveAllZipCodes(clients.value, clients);
+      setTimeout(() => resolveAllZipCodes(clients.value, clients), 0);
     }
   } catch (error) {
     console.error('Error loading users:', error);
@@ -10627,6 +10744,7 @@ const paymentToMark = ref(null);
 const selectedPayment = ref(null);
 const processSalariesDialog = ref(false);
 const timeTrackingSearch = ref('');
+// Time tracking view is aggregated by client (no per-row date); date filter UI was removed as irrelevant
 const timeTrackingDateFilter = ref('Today');
 const timeTrackingStatusFilter = ref('All');
 
@@ -11545,6 +11663,37 @@ const loadClientPayments = async () => {
   }
 };
 
+const filteredClientPayments = computed(() => {
+  let items = [...(clientPayments.value || [])];
+  const q = (clientPaymentSearch.value || '').toLowerCase().trim();
+  if (q) {
+    items = items.filter(p => {
+      const client = ((p.client || p.client_name || '') + ' ' + (p.service || '')).toLowerCase();
+      return client.includes(q);
+    });
+  }
+  if (paymentStatusFilter.value && paymentStatusFilter.value !== 'All') {
+    items = items.filter(p => (p.status || '').toLowerCase() === paymentStatusFilter.value.toLowerCase());
+  }
+  if (paymentPeriodFilter.value && paymentPeriodFilter.value !== 'All Time') {
+    const now = new Date();
+    const thisMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+    const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const threeMonthsStart = new Date(now.getFullYear(), now.getMonth() - 2, 1);
+    items = items.filter(p => {
+      const raw = p.dueDate ?? p.due_date ?? p.date;
+      if (!raw) return true;
+      const d = new Date(raw);
+      if (isNaN(d.getTime())) return true;
+      if (paymentPeriodFilter.value === 'This Month') return d >= thisMonthStart && d <= now;
+      if (paymentPeriodFilter.value === 'Last Month') return d >= lastMonthStart && d < thisMonthStart;
+      if (paymentPeriodFilter.value === 'Last 3 Months') return d >= threeMonthsStart && d <= now;
+      return true;
+    });
+  }
+  return items;
+});
+
 const paymentHeaders = [
   { title: 'Caregiver', key: 'caregiver' },
   { title: 'Hours Worked', key: 'hours_display' },
@@ -11597,6 +11746,28 @@ const loadCaregiverPayments = async () => {
   }
 };
 
+const filteredCaregiverPayments = computed(() => {
+  let items = [...(caregiverPayments.value || [])];
+  const q = (salarySearch.value || '').toLowerCase().trim();
+  if (q) {
+    items = items.filter(p => (p.caregiver || p.name || '').toLowerCase().includes(q));
+  }
+  if (salaryStatusFilter.value && salaryStatusFilter.value !== 'All') {
+    items = items.filter(p => (p.status || '').toLowerCase() === salaryStatusFilter.value.toLowerCase());
+  }
+  if (salaryPeriodFilter.value && salaryPeriodFilter.value !== 'Current Month') {
+    const periodLower = (salaryPeriodFilter.value || '').toLowerCase();
+    items = items.filter(p => {
+      const pPeriod = (p.period || '').toLowerCase();
+      if (!pPeriod) return true;
+      if (periodLower === 'last month') return pPeriod.includes('last month') || pPeriod.includes('previous month');
+      if (periodLower === 'last 3 months') return pPeriod.includes('3 months') || pPeriod.includes('last 3');
+      return pPeriod.includes(periodLower);
+    });
+  }
+  return items;
+});
+
 const loadHousekeeperPayments = async () => {
   try {
     const response = await fetch('/api/admin/housekeeper-salaries', {
@@ -11623,11 +11794,32 @@ const filteredHousekeeperPayments = computed(() => {
 
   // Status
   if (housekeeperSalaryStatusFilter.value && housekeeperSalaryStatusFilter.value !== 'All') {
-    items = items.filter(p => p.status === housekeeperSalaryStatusFilter.value);
+    items = items.filter(p => (p.status || '').toLowerCase() === housekeeperSalaryStatusFilter.value.toLowerCase());
   }
 
-  // Period (backend currently returns current month for all rows)
-  // Keep filter in UI for future extension.
+  // Period: filter by period label or by date field when backend provides it
+  if (housekeeperSalaryPeriodFilter.value && housekeeperSalaryPeriodFilter.value !== 'Current Month') {
+    const periodLower = (housekeeperSalaryPeriodFilter.value || '').toLowerCase();
+    const now = new Date();
+    const thisMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+    const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const threeMonthsStart = new Date(now.getFullYear(), now.getMonth() - 2, 1);
+    items = items.filter(p => {
+      const pPeriod = (p.period || '').toLowerCase();
+      const raw = p.period_start ?? p.date ?? p.created_at ?? p.payment_date;
+      if (raw) {
+        const d = new Date(raw);
+        if (!isNaN(d.getTime())) {
+          if (periodLower === 'last month') return d >= lastMonthStart && d < thisMonthStart;
+          if (periodLower === 'last 3 months') return d >= threeMonthsStart && d <= now;
+        }
+      }
+      if (!pPeriod) return true;
+      if (periodLower === 'last month') return pPeriod.includes('last month') || pPeriod.includes('previous month');
+      if (periodLower === 'last 3 months') return pPeriod.includes('3 months') || pPeriod.includes('last 3');
+      return pPeriod.includes(periodLower);
+    });
+  }
   return items;
 });
 
@@ -11717,6 +11909,7 @@ const marketingCommissionHeaders = [
   { title: 'Name', key: 'name' },
   { title: 'Email', key: 'email' },
   { title: 'Referral Code', key: 'referral_code' },
+  { title: 'Tier', key: 'tier' },
   { title: 'Total Commission', key: 'total_commission' },
   { title: 'Pending', key: 'pending_commission' },
   { title: 'Bank Account', key: 'bank_status' },
@@ -11743,7 +11936,8 @@ const filteredMarketingCommissions = computed(() => {
   }
   
   if (marketingCommissionStatusFilter.value !== 'All') {
-    filtered = filtered.filter(m => m.payment_status === marketingCommissionStatusFilter.value);
+    const statusVal = marketingCommissionStatusFilter.value.toLowerCase();
+    filtered = filtered.filter(m => (m.payment_status || '').toLowerCase() === statusVal);
   }
   
   return filtered;
@@ -11760,6 +11954,8 @@ const loadMarketingCommissions = async () => {
     if (data.success) {
       marketingCommissions.value = data.commissions.map(c => ({
         ...c,
+        referral_count: c.clients_referred ?? c.referral_count,
+        total_earned: c.total_commission != null ? parseFloat(c.total_commission).toFixed(2) : (c.total_earned ?? '0.00'),
         total_commission: parseFloat(c.total_commission || 0).toFixed(2),
         pending_commission: parseFloat(c.pending_commission || 0).toFixed(2),
         bank_connected: !!c.stripe_connect_id,
@@ -11833,7 +12029,8 @@ const filteredTrainingCommissions = computed(() => {
   }
   
   if (trainingCommissionStatusFilter.value !== 'All') {
-    filtered = filtered.filter(t => t.payment_status === trainingCommissionStatusFilter.value);
+    const statusVal = trainingCommissionStatusFilter.value.toLowerCase();
+    filtered = filtered.filter(t => (t.payment_status || '').toLowerCase() === statusVal);
   }
   
   return filtered;
@@ -12176,10 +12373,46 @@ const loadAllTransactions = async () => {
   }
 };
 
+const filteredTransactions = computed(() => {
+  let items = [...(allTransactions.value || [])];
+  const q = (transactionSearch.value || '').toLowerCase().trim();
+  if (q) {
+    items = items.filter(t => {
+      const desc = (t.description || t.reference || '').toLowerCase();
+      const type = (t.type || '').toLowerCase();
+      return desc.includes(q) || type.includes(q);
+    });
+  }
+  if (transactionTypeFilter.value && transactionTypeFilter.value !== 'All') {
+    items = items.filter(t => (t.type || '').toLowerCase() === transactionTypeFilter.value.toLowerCase());
+  }
+  if (transactionPeriodFilter.value && transactionPeriodFilter.value !== 'All Time') {
+    const now = new Date();
+    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const todayEnd = new Date(todayStart.getTime() + 24 * 60 * 60 * 1000);
+    const weekStart = new Date(todayStart);
+    weekStart.setDate(weekStart.getDate() - weekStart.getDay());
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+    items = items.filter(t => {
+      const raw = t.date ?? t.created_at;
+      if (!raw) return true;
+      const d = new Date(raw);
+      if (isNaN(d.getTime())) return true;
+      const period = transactionPeriodFilter.value;
+      if (period === 'Today') return d >= todayStart && d < todayEnd;
+      if (period === 'This Week') return d >= weekStart && d <= now;
+      if (period === 'This Month') return d >= monthStart && d <= now;
+      return true;
+    });
+  }
+  return items;
+});
+
 const filteredUsers = computed(() => {
   return users.value.filter(u => {
     const matchesSearch = !userSearch.value || u.name.toLowerCase().includes(userSearch.value.toLowerCase()) || u.email.toLowerCase().includes(userSearch.value.toLowerCase());
-    const matchesType = userType.value === 'All' || u.type === userType.value.slice(0, -1);
+    const typeLabel = userType.value === 'All' ? '' : userType.value.slice(0, -1).toLowerCase(); // "Caregivers" -> "caregiver"
+    const matchesType = userType.value === 'All' || (u.type && u.type.toLowerCase() === typeLabel);
     const uCounty = u.county != null ? String(u.county).trim() : '';
     const uBorough = u.borough != null ? String(u.borough).trim() : '';
     const uCity = u.city != null ? String(u.city).trim() : '';
@@ -12369,9 +12602,35 @@ const housekeeperIdsWithOngoingContract = computed(() => {
 
 const filteredBookings = computed(() => {
   return clientBookings.value.filter(b => {
-    const matchesSearch = !bookingSearch.value || b.client.toLowerCase().includes(bookingSearch.value.toLowerCase()) || b.service.toLowerCase().includes(bookingSearch.value.toLowerCase());
-    const matchesStatus = bookingStatusFilter.value === 'All' || b.status.toLowerCase() === bookingStatusFilter.value.toLowerCase();
-    return matchesSearch && matchesStatus;
+    const clientStr = String(b?.client ?? b?.client_name ?? '');
+    const serviceStr = String(b?.service ?? b?.service_type ?? '');
+    const matchesSearch = !bookingSearch.value || clientStr.toLowerCase().includes(bookingSearch.value.toLowerCase()) || serviceStr.toLowerCase().includes(bookingSearch.value.toLowerCase());
+    const statusVal = (b.status || '').toLowerCase();
+    const filterStatus = bookingStatusFilter.value;
+    let matchesStatus = filterStatus === 'All';
+    if (!matchesStatus) {
+      const f = filterStatus.toLowerCase();
+      if (f === 'approved') matchesStatus = statusVal === 'approved' || statusVal === 'confirmed';
+      else matchesStatus = statusVal === f;
+    }
+    const dateFilter = bookingDateFilter.value;
+    let matchesDate = true;
+    if (dateFilter !== 'All Time' && b.created_at) {
+      const d = b.created_at instanceof Date ? b.created_at : new Date(b.created_at);
+      if (isNaN(d.getTime())) matchesDate = true;
+      else {
+        const now = new Date();
+        const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        const todayEnd = new Date(todayStart.getTime() + 24 * 60 * 60 * 1000);
+        const weekStart = new Date(todayStart);
+        weekStart.setDate(weekStart.getDate() - weekStart.getDay());
+        const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+        if (dateFilter === 'Today') matchesDate = d >= todayStart && d < todayEnd;
+        else if (dateFilter === 'This Week') matchesDate = d >= weekStart && d <= now;
+        else if (dateFilter === 'This Month') matchesDate = d >= monthStart && d <= now;
+      }
+    }
+    return matchesSearch && matchesStatus && matchesDate;
   });
 });
 
@@ -12413,6 +12672,12 @@ const getStatusIcon = (status) => {
     'Unverified': 'mdi-shield-alert'
   };
   return icons[status] || 'mdi-help-circle';
+};
+
+/** Marketing partner tier chip color: Silver = grey, Gold = amber, Platinum = indigo */
+const getMarketingTierChipColor = (tier) => {
+  const colors = { 'Silver': 'grey', 'Gold': 'amber', 'Platinum': 'indigo' };
+  return colors[tier] || 'grey';
 };
 
 /** Client ZIP: from item first, then from raw users list (API response) so ZIP always shows when available. */
@@ -12520,7 +12785,10 @@ const changePassword = async () => {
   }
 };
 
+let loggingOut = false;
 const logout = async () => {
+  if (loggingOut) return;
+  loggingOut = true;
   try {
     const csrf = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
     await fetch('/logout', {
@@ -14767,7 +15035,8 @@ const getAssignmentStatusColor = (assignmentStatus) => {
 const assignCaregiverDialog = async (booking) => {
   selectedBooking.value = booking;
   assignCaregiverSearch.value = '';
-  assignAvailabilityFilter.value = 'Available';
+  // Use 'All' so already-assigned caregivers (status Assigned) still show in the list
+  assignAvailabilityFilter.value = 'All';
   
   // Initialize custom caregivers needed with booking's default value
   customCaregiversNeeded.value = booking.caregiversNeeded;
@@ -14775,12 +15044,15 @@ const assignCaregiverDialog = async (booking) => {
   // Load currently assigned caregivers for this booking
   assignSelectedCaregivers.value = caregiverAssignments.value[booking.id] || [];
   
-  // Initialize assigned rates for selected caregivers with default values
+  // Initialize assigned rates: use existing assignment rate if saved, else preferred min
   assignedRates.value = {};
   assignSelectedCaregivers.value.forEach(caregiverId => {
+    const existingAssignment = booking.assignments?.find(a => a.caregiver_id === caregiverId);
+    const existingRate = existingAssignment?.assigned_hourly_rate != null ? Number(existingAssignment.assigned_hourly_rate) : null;
     const caregiver = caregivers.value.find(c => c.id === caregiverId);
-    if (caregiver) {
-      // Default to minimum preferred rate
+    if (existingRate != null && !isNaN(existingRate) && existingRate > 0) {
+      assignedRates.value[caregiverId] = existingRate;
+    } else if (caregiver) {
       assignedRates.value[caregiverId] = caregiver.preferred_hourly_rate_min || 20;
     }
   });
@@ -14925,8 +15197,9 @@ const filteredAssignCaregivers = computed(() => {
   return caregivers.value.filter(c => {
     const matchesSearch = !assignCaregiverSearch.value || 
       c.name.toLowerCase().includes(assignCaregiverSearch.value.toLowerCase());
-    const matchesAvailability = assignAvailabilityFilter.value === 'All' || 
+    const matchesAvailability = assignAvailabilityFilter.value === 'All' ||
       (assignAvailabilityFilter.value === 'Available' && c.status === 'Active') ||
+      (assignAvailabilityFilter.value === 'Assigned' && c.status === 'Assigned') ||
       (assignAvailabilityFilter.value === 'Unavailable' && (c.status === 'Assigned' || c.status === 'Inactive'));
     return matchesSearch && matchesAvailability;
   });
@@ -14956,23 +15229,39 @@ const getAssignedCaregivers = (bookingId) => {
   const assignedIds = caregiverAssignments.value[bookingId] || [];
   const booking = clientBookings.value.find(b => b.id === bookingId);
   
-  // If booking has assignments with caregiver data, use that (includes actual phone from DB)
-  if (booking && booking.assignments) {
-    return booking.assignments.map(assignment => ({
-      id: assignment.caregiver_id,
-      name: assignment.caregiver?.user?.name || 'Unknown',
-      email: assignment.caregiver?.user?.email || 'Unknown',
-      phone: assignment.caregiver?.user?.phone || '(646) 282-8282',
-      rating: assignment.caregiver?.rating || 5.0,
-      status: 'Active',
-      borough: 'Manhattan',
-      hourly_rate: assignment.assigned_hourly_rate,
-      hourlyRate: assignment.assigned_hourly_rate
-    }));
+  // If booking has assignments with caregiver data, use that (includes assigned rate for this booking)
+  if (booking && booking.assignments && booking.assignments.length > 0) {
+    return booking.assignments.map(assignment => {
+      const assignedRate = assignment.assigned_hourly_rate != null
+        ? Number(assignment.assigned_hourly_rate)
+        : null;
+      const caregiver = caregivers.value.find(c => c.id === assignment.caregiver_id);
+      const fallbackRate = caregiver?.preferred_hourly_rate_min ?? 20;
+      const rate = (assignedRate != null && !isNaN(assignedRate) && assignedRate > 0)
+        ? assignedRate
+        : fallbackRate;
+      return {
+        id: assignment.caregiver_id,
+        name: assignment.caregiver?.user?.name || 'Unknown',
+        email: assignment.caregiver?.user?.email || 'Unknown',
+        phone: assignment.caregiver?.user?.phone || '(646) 282-8282',
+        rating: assignment.caregiver?.rating || 5.0,
+        status: 'Active',
+        borough: 'Manhattan',
+        hourly_rate: rate,
+        hourlyRate: rate,
+        assigned_rate_for_booking: assignedRate != null && !isNaN(assignedRate) && assignedRate > 0
+      };
+    });
   }
   
-  // Fallback to caregivers array
-  return caregivers.value.filter(c => assignedIds.includes(c.id));
+  // Fallback to caregivers array (no assignment details – show preferred min as placeholder)
+  return caregivers.value.filter(c => assignedIds.includes(c.id)).map(c => ({
+    ...c,
+    hourly_rate: c.preferred_hourly_rate_min ?? 20,
+    hourlyRate: c.preferred_hourly_rate_min ?? 20,
+    assigned_rate_for_booking: false
+  }));
 };
 
 const getAssignedHousekeepers = (bookingId) => {
@@ -14999,6 +15288,8 @@ const isHousekeepingBooking = (booking) => {
 
 const viewBookingDialog = ref(false);
 const viewingBooking = ref(null);
+const bookingReferralCodeToAssign = ref('');
+const savingBookingReferral = ref(false);
 const viewAssignedCaregiversDialog = ref(false);
 const viewingBookingCaregivers = ref(null);
 const viewAssignedHousekeepersDialog = ref(false);
@@ -15031,7 +15322,58 @@ const daysOfWeek = [
 
 const viewBooking = (booking) => {
   viewingBooking.value = booking;
+  const code = booking?.referralCode?.code ?? booking?.referralCode ?? '';
+  bookingReferralCodeToAssign.value = typeof code === 'string' ? code : (booking?.referralCode?.code || '');
   viewBookingDialog.value = true;
+};
+
+const marketingPartnerReferralOptions = computed(() => {
+  const list = [{ code: '', label: 'No referral' }];
+  for (const m of marketingStaff.value || []) {
+    const code = m.referralCode || m.referral_code;
+    if (code && String(code).trim() && code !== 'N/A') {
+      list.push({ code: String(code).trim(), label: `${m.name || m.displayName || m.email || 'Partner'} (${code})` });
+    }
+  }
+  return list;
+});
+
+const saveBookingReferral = async () => {
+  const booking = viewingBooking.value;
+  if (!booking?.id) return;
+  savingBookingReferral.value = true;
+  try {
+    const body = bookingReferralCodeToAssign.value
+      ? { referral_code: String(bookingReferralCodeToAssign.value).trim() }
+      : { referral_code_id: null };
+    const res = await fetch(`/api/bookings/${booking.id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+      },
+      credentials: 'include',
+      body: JSON.stringify(body)
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      throw new Error(data.message || data.error || 'Failed to update referral');
+    }
+    notification.value = { show: true, type: 'success', title: 'Saved', message: bookingReferralCodeToAssign.value ? 'Referral assigned. The marketing partner will see this client on their dashboard.' : 'Referral removed.', timeout: 4000 };
+    const updated = data.booking || data.data || data;
+    const referralCodeObj = updated.referral_code || updated.referralCode || null;
+    const idx = clientBookings.value.findIndex(b => b.id === booking.id);
+    if (idx !== -1) {
+      const prev = clientBookings.value[idx];
+      clientBookings.value[idx] = { ...prev, referralCode: referralCodeObj, referralCodeId: updated.referral_code_id ?? prev.referralCodeId };
+    }
+    viewingBooking.value = clientBookings.value[idx] ?? { ...booking, referralCode: referralCodeObj, referralCodeId: updated.referral_code_id };
+  } catch (e) {
+    notification.value = { show: true, type: 'error', title: 'Error', message: e.message || 'Failed to update referral', timeout: 5000 };
+  } finally {
+    savingBookingReferral.value = false;
+  }
 };
 
 const viewAssignedCaregivers = async (booking) => {
@@ -16195,10 +16537,17 @@ const confirmPayment = async () => {
 };
 
 const exportTransactions = () => {
-  info('Exporting financial report to PDF...', 'Export Started');
-  
-  // Open PDF in new window
-  window.open('/api/admin/financial-report/pdf?period=all', '_blank');
+  const params = new URLSearchParams();
+  const period = transactionPeriodFilter.value || 'All Time';
+  const type = transactionTypeFilter.value || 'All';
+  const search = (transactionSearch.value || '').trim();
+  if (period && period !== 'All Time') params.set('period', period);
+  if (type && type !== 'All') params.set('type', type);
+  if (search) params.set('search', search);
+  const qs = params.toString();
+  const url = '/api/admin/transactions/export/pdf' + (qs ? '?' + qs : '');
+  info('Exporting transactions to PDF...', 'Export Started');
+  window.open(url, '_blank');
 };
 
 const exportFinancialReportPDF = () => {
@@ -16760,7 +17109,7 @@ const initCharts = () => {
 const exportCaregiverPaymentsPDF = () => {
   try {
     console.log('Exporting Caregiver Payments PDF...');
-    console.log('Data:', caregiverPayments.value);
+    console.log('Data:', filteredCaregiverPayments.value);
     console.log('Period:', salaryPeriodFilter.value);
     
     if (!window.jspdf) {
@@ -16769,13 +17118,13 @@ const exportCaregiverPaymentsPDF = () => {
       return;
     }
     
-    if (!caregiverPayments.value || caregiverPayments.value.length === 0) {
+    if (!filteredCaregiverPayments.value || filteredCaregiverPayments.value.length === 0) {
       console.warn('No caregiver payment data to export');
       alert('No payment data available to export.');
       return;
     }
     
-    generatePaymentPDF('Caregiver Payments', caregiverPayments.value, salaryPeriodFilter.value, [
+    generatePaymentPDF('Caregiver Payments', filteredCaregiverPayments.value, salaryPeriodFilter.value, [
       'Date',
       'Employee Name',
       'Client Name',
@@ -17076,16 +17425,20 @@ onMounted(async () => {
   // Start session enforcement heartbeat (for Master Admin single session)
   startSessionHeartbeat();
   
-  // Track loading progress with Promise.allSettled for parallel loading
-  const loadingTasks = [
+  // Critical path: data needed to show the dashboard shell and first view (faster first paint)
+  const criticalTasks = [
     { fn: loadProfile, weight: 5 },
-    { fn: loadAdminStats, weight: 10 },
+    { fn: loadAdminStats, weight: 15 },
     { fn: loadQuickCaregivers, weight: 10 },
     { fn: loadHousekeepers, weight: 10 },
-    { fn: loadUsers, weight: 10 },
-    { fn: loadClientBookings, weight: 10 },
+    { fn: loadUsers, weight: 15 },
+    { fn: loadClientBookings, weight: 15 },
     { fn: loadApplications, weight: 5 },
     { fn: loadPasswordResets, weight: 5 },
+    { fn: loadRecentAnnouncements, weight: 2 },
+    ...(props.staffMode ? [{ fn: loadPagePermissions, weight: 2 }] : [{ fn: loadBookingMaintenanceStatus, weight: 2 }])
+  ];
+  const deferredTasks = [
     { fn: loadMetrics, weight: 5 },
     { fn: loadAnalyticsStats, weight: 5 },
     { fn: loadAdminNotificationCount, weight: 3 },
@@ -17107,47 +17460,34 @@ onMounted(async () => {
     { fn: loadRecentAnalyticsActivity, weight: 3 },
     { fn: loadTimeTrackingHistory, weight: 3 },
     { fn: loadPlatformPayouts, weight: 3 },
-    { fn: loadCompanyAccount, weight: 3 },
-    { fn: loadRecentAnnouncements, weight: 2 },
-    { fn: loadBookingMaintenanceStatus, weight: 2 }
+    { fn: loadCompanyAccount, weight: 3 }
   ];
-  
-  const totalWeight = loadingTasks.reduce((sum, task) => sum + task.weight, 0);
+  const criticalWeight = criticalTasks.reduce((sum, t) => sum + t.weight, 0);
   let completedWeight = 0;
-  
-  // Safety timeout - ensure loading completes even if something hangs
   const loadingTimeout = setTimeout(() => {
-    console.warn('Loading timeout reached - forcing completion');
     loadingProgress.value = 100;
     isPageLoading.value = false;
     initialDataLoaded.value = true;
-  }, 60000); // 60 second timeout
-  
-  // Execute all loading tasks in parallel
-  const promises = loadingTasks.map(async (task) => {
+  }, 25000);
+  const runCritical = criticalTasks.map(async (task) => {
     try {
       await task.fn();
     } catch (err) {
       console.warn('Loading task failed:', err);
     } finally {
       completedWeight += task.weight;
-      loadingProgress.value = Math.round((completedWeight / totalWeight) * 100);
+      loadingProgress.value = Math.min(99, Math.round((completedWeight / criticalWeight) * 100));
     }
   });
-  
-  // Wait for all tasks to complete
-  await Promise.allSettled(promises);
-  
-  // Clear the safety timeout
+  await Promise.allSettled(runCritical);
   clearTimeout(loadingTimeout);
-  
-  // Ensure progress shows 100%
   loadingProgress.value = 100;
-
-  // Hide overlay immediately
   isPageLoading.value = false;
   initialDataLoaded.value = true;
-  
+  // Deferred: load remaining data in background (no blocking)
+  deferredTasks.forEach((task) => {
+    task.fn().catch((err) => console.warn('Deferred load failed:', err));
+  });
   if (currentSection.value === 'analytics') {
     setTimeout(initCharts, 500);
   }
@@ -17312,6 +17652,19 @@ setInterval(() => {
 .v-data-table table thead tr th:last-child,
 .v-data-table table tbody tr td:last-child {
   border-right: none !important;
+}
+
+/* Marketing Partner table: Referral Code column wide enough to show full code */
+.marketing-partner-table table thead tr th:nth-child(6),
+.marketing-partner-table table tbody tr td:nth-child(6),
+.marketing-partner-table .v-data-table__thead .v-data-table__tr .v-data-table__th:nth-child(6),
+.marketing-partner-table .v-data-table__tbody .v-data-table__tr .v-data-table__td:nth-child(6) {
+  min-width: 200px !important;
+  width: 200px !important;
+}
+.marketing-partner-table .referral-code-chip {
+  white-space: nowrap;
+  max-width: none;
 }
 
 /* Reset first column for ALL tables - default to normal width */
@@ -17925,6 +18278,10 @@ setInterval(() => {
 
 .compact-card:hover {
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12), 0 4px 8px rgba(0, 0, 0, 0.06) !important;
+}
+
+.h-100 {
+  height: 100%;
 }
 
 .action-btn-compact {

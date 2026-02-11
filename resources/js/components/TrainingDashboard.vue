@@ -129,59 +129,50 @@
         </v-col>
       </v-row>
 
-      <v-row>
+      <v-row align="stretch">
         <v-col cols="12" md="6">
-          <v-card class="mb-3 enhanced-card d-flex flex-column" elevation="2">
-            <v-card-title class="enhanced-card-header pa-6">
-              <v-icon color="grey-darken-2" class="mr-3">mdi-chart-line</v-icon>
-              <span class="section-title grey--text text--darken-2">Previous Week Summary</span>
+          <v-card class="dashboard-summary-card h-100" elevation="1">
+            <v-card-title class="dashboard-summary-header pa-4">
+              <v-icon color="grey-darken-2" size="22" class="mr-2">mdi-chart-line</v-icon>
+              <span class="section-title-compact grey--text text--darken-2">Previous Week Summary</span>
             </v-card-title>
-            <v-card-text class="pa-4 flex-grow-1 d-flex flex-column justify-space-between">
-              <div>
-                <div class="mb-3">
-                  <div class="d-flex justify-space-between mb-1">
+            <v-card-text class="pa-4 pt-0">
+              <div class="dashboard-summary-grid">
+                <div class="summary-block summary-block--full">
+                  <div class="summary-row summary-row--inline">
                     <span class="summary-label-compact">Deployed Caregivers</span>
-                    <span class="summary-value-compact">{{ weeklySummary.deployed_caregivers }} caregivers</span>
+                    <span class="summary-value-compact font-weight-medium">{{ weeklySummary.deployed_caregivers }} caregivers</span>
                   </div>
-                  <v-progress-linear :model-value="(weeklySummary.deployed_caregivers / weeklySummary.target) * 100" color="info" height="6" rounded />
-                  <div class="text-caption text-grey mt-1">Target: {{ weeklySummary.target }} caregivers/week</div>
+                  <v-progress-linear :model-value="Math.min((weeklySummary.deployed_caregivers / (weeklySummary.target || 1)) * 100, 100)" color="info" height="6" rounded class="mb-1 mt-1" />
+                  <div class="text-caption text-grey">Target: {{ weeklySummary.target }} caregivers/week</div>
                 </div>
-              </div>
-              <div>
-                <v-divider class="my-2" />
-                <div class="summary-item-compact">
+                <div class="summary-row">
                   <span class="summary-label-compact">Previous Payout</span>
-                  <span class="summary-value-compact font-weight-bold">${{ (Number(weeklySummary.previous_payout) || 0).toFixed(2) }} - {{ weeklySummary.previous_payout_date || 'N/A' }}</span>
+                  <span class="summary-value-compact summary-value--right font-weight-bold">${{ (Number(weeklySummary.previous_payout) || 0).toFixed(2) }} <span class="text-caption text-disabled">· {{ weeklySummary.previous_payout_date || 'N/A' }}</span></span>
                 </div>
               </div>
             </v-card-text>
           </v-card>
         </v-col>
-
         <v-col cols="12" md="6">
-          <v-card elevation="0" class="mb-3 compact-card">
-            <v-card-title class="card-header pa-4">
+          <v-card class="dashboard-summary-card h-100" elevation="1">
+            <v-card-title class="dashboard-summary-header pa-4">
+              <v-icon color="grey-darken-2" size="22" class="mr-2">mdi-currency-usd</v-icon>
               <span class="section-title-compact grey--text text--darken-2">Training Revenue</span>
             </v-card-title>
-            <v-card-text class="pa-4">
-              <div class="earnings-summary">
-                <div class="earning-item mb-3">
-                  <div class="d-flex justify-space-between">
-                    <span class="earning-label">Total Revenue</span>
-                    <span class="earning-value grey--text text--darken-2">${{ totalRevenue }}</span>
-                  </div>
+            <v-card-text class="pa-4 pt-0">
+              <div class="dashboard-summary-grid">
+                <div class="summary-row">
+                  <span class="summary-label-compact">Total Revenue</span>
+                  <span class="summary-value-compact summary-value--right font-weight-bold grey--text text--darken-2">${{ totalRevenue }}</span>
                 </div>
-                <div class="earning-item mb-3">
-                  <div class="d-flex justify-space-between">
-                    <span class="earning-label">This Month</span>
-                    <span class="earning-value">${{ monthlyRevenue }}</span>
-                  </div>
+                <div class="summary-row">
+                  <span class="summary-label-compact">This Month</span>
+                  <span class="summary-value-compact summary-value--right font-weight-bold primary--text">${{ monthlyRevenue }}</span>
                 </div>
-                <div class="earning-item">
-                  <div class="d-flex justify-space-between">
-                    <span class="earning-label">Active Trainees</span>
-                    <span class="earning-value">{{ stats[0]?.value ?? '0' }}</span>
-                  </div>
+                <div class="summary-row">
+                  <span class="summary-label-compact">Active Trainees</span>
+                  <span class="summary-value-compact summary-value--right font-weight-bold">{{ stats[0]?.value ?? '0' }}</span>
                 </div>
               </div>
             </v-card-text>
@@ -2212,6 +2203,47 @@ onMounted(async () => {
   background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
   border-bottom: 1px solid #e2e8f0;
   border-radius: 20px 20px 0 0 !important;
+}
+
+.dashboard-summary-card {
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+.dashboard-summary-header {
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  border-bottom: 1px solid #e2e8f0;
+  border-radius: 12px 12px 0 0;
+  font-weight: 600;
+}
+.dashboard-summary-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+.dashboard-summary-grid .summary-block--full {
+  padding-bottom: 12px;
+  margin-bottom: 4px;
+  border-bottom: 1px solid #f1f5f9;
+}
+.dashboard-summary-grid .summary-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid #f1f5f9;
+  font-size: 0.875rem;
+}
+.dashboard-summary-grid .summary-row:last-child {
+  border-bottom: none;
+}
+.dashboard-summary-grid .summary-value--right {
+  min-width: 5rem;
+  text-align: right;
+  white-space: nowrap;
+}
+.h-100 {
+  height: 100%;
 }
 
 /* Mobile Responsive Styles */

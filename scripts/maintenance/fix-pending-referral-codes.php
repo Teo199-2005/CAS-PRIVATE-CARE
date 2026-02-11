@@ -29,7 +29,7 @@ foreach ($marketingUsers as $user) {
     $code = ReferralCode::create([
         'user_id' => $user->id,
         'code' => ReferralCode::generateCode($user->id),
-        'discount_per_hour' => 5.00,
+        'discount_per_hour' => 3.00,
         'commission_per_hour' => 1.00,
         'is_active' => $user->status === 'Active', // Active if user is already approved
         'usage_count' => 0,

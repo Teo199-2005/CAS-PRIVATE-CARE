@@ -73,7 +73,7 @@ export default defineConfig({
                     
                     // PERFORMANCE FIX: Route-based code splitting for dashboards
                     // Each dashboard type gets its own chunk for better initial load
-                    if (id.includes('AdminDashboard.vue') || id.includes('AdminStaffDashboard.vue')) {
+                    if (id.includes('AdminDashboard.vue')) {
                         return 'chunk-admin';
                     }
                     if (id.includes('ClientDashboard.vue')) {

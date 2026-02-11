@@ -11,7 +11,7 @@ class PricingService
     /**
      * Pricing breakdown constants - CAREGIVERS
      * 
-     * Client pays $45/hr (without referral) or $40/hr (with referral)
+     * Client pays $45/hr (without referral) or $42/hr (with referral)
      */
     const CAREGIVER_RATE = 28.00;           // Caregiver always gets $28/hr
     const TRAINING_CENTER_RATE = 0.50;       // Training center gets $0.50/hr (if applicable)
@@ -24,21 +24,21 @@ class PricingService
     const AGENCY_RATE_WITH_REFERRAL_NO_TRAINING = 11.00; // $11.00/hr (with referral, no training - gets training's $0.50)
     
     const CLIENT_RATE_NO_REFERRAL = 45.00;   // Client pays $45/hr without referral
-    const CLIENT_RATE_WITH_REFERRAL = 40.00; // Client pays $40/hr with referral
-    const REFERRAL_DISCOUNT = 5.00;          // $5/hr discount with referral
+    const CLIENT_RATE_WITH_REFERRAL = 42.00; // Client pays $42/hr with referral
+    const REFERRAL_DISCOUNT = 3.00;          // $3/hr discount with referral
     
     /**
      * Pricing breakdown constants - HOUSEKEEPERS
      * 
-     * Client pays SAME as caregivers: $45/hr (without referral) or $40/hr (with referral)
+     * Client pays SAME as caregivers: $45/hr (without referral) or $42/hr (with referral)
      * Admin assigns the housekeeper's hourly rate when making assignment
      * Agency profit = Client Rate - Assigned Rate - Marketing (if referral)
      * Simpler structure: no training centers for housekeepers
      */
     const HOUSEKEEPER_DEFAULT_RATE = 20.00;            // Default housekeeper rate (admin can override)
     const HOUSEKEEPER_CLIENT_RATE_NO_REFERRAL = 45.00; // Client pays $45/hr (same as caregivers)
-    const HOUSEKEEPER_CLIENT_RATE_WITH_REFERRAL = 40.00; // Client pays $40/hr (same as caregivers)
-    const HOUSEKEEPER_REFERRAL_DISCOUNT = 5.00;        // $5/hr discount (same as caregivers)
+    const HOUSEKEEPER_CLIENT_RATE_WITH_REFERRAL = 42.00; // Client pays $42/hr (same as caregivers)
+    const HOUSEKEEPER_REFERRAL_DISCOUNT = 3.00;        // $3/hr discount (same as caregivers)
     const HOUSEKEEPER_MARKETING_RATE = 1.00;           // Marketing gets $1/hr (if referral code used)
     
     /**
@@ -222,7 +222,7 @@ class PricingService
     }
     
     /**
-     * Get the housekeeper client hourly rate (SAME as caregivers: $45 or $40 with referral)
+     * Get the housekeeper client hourly rate (SAME as caregivers: $45 or $42 with referral)
      */
     public static function getHousekeeperClientRate(bool $hasReferral = false): float
     {

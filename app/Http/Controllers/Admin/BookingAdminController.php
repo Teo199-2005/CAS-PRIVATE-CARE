@@ -46,7 +46,8 @@ class BookingAdminController extends Controller
                 },
                 'assignments.caregiver.user:id,name,email',
                 'housekeeperAssignments.housekeeper.user:id,name,email',
-                'payments'
+                'payments',
+                'referralCode.user:id,name,email'
             ]);
 
             // Apply filters
@@ -91,6 +92,38 @@ class BookingAdminController extends Controller
                 'user_id' => Auth::id()
             ]);
             return $this->errorResponse('Failed to retrieve bookings', 500);
+        }
+    }
+
+    /**
+     * Lightweight booking counts for analytics/charts (no full list).
+     */
+    public function getBookingStats(): JsonResponse
+    {
+        try {
+            $pending = (int) Booking::where('status', 'pending')->count();
+            $active = (int) Booking::where('status', 'confirmed')->count();
+            $completed = (int) Booking::where('status', 'completed')->count();
+            $cancelled = (int) Booking::where('status', 'cancelled')->count();
+            $total = $pending + $active + $completed + $cancelled;
+            return response()->json([
+                'success' => true,
+                'pending' => (string) $pending,
+                'active' => (string) $active,
+                'completed' => (string) $completed,
+                'cancelled' => (string) $cancelled,
+                'total' => (string) $total,
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Failed to get booking stats', ['error' => $e->getMessage()]);
+            return response()->json([
+                'success' => false,
+                'pending' => '0',
+                'active' => '0',
+                'completed' => '0',
+                'cancelled' => '0',
+                'total' => '0',
+            ], 500);
         }
     }
 

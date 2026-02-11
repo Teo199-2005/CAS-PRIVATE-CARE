@@ -96,12 +96,12 @@ Route::get('/blog/category/{category}', [BlogController::class, 'category'])->na
 Route::get('/contact', [ContactController::class, 'show'])->name('contact');
 Route::post('/contact', [ContactController::class, 'submit'])->middleware(['throttle:3,1', 'verify.recaptcha:contact'])->name('contact.submit');
 
-// Book Service Redirect - Redirects to login if not authenticated, then to book-service
+// Book: send to client dashboard (booking is done there) or login
 Route::get('/book', function () {
     if (auth()->check()) {
-        return redirect('/book-service');
+        return redirect('/client/dashboard');
     }
-    return redirect('/login?redirect=/book-service');
+    return redirect('/login?redirect=/client/dashboard');
 })->name('book');
 
 // Authentication (with smart rate limiting and reCAPTCHA for security)
@@ -214,8 +214,10 @@ Route::middleware(['auth'])->group(function () {
     // API Test Page (dev)
     Route::get('/api-test', [PageController::class, 'apiTest'])->name('api.test');
     
-    // Booking Service
-    Route::get('/book-service', [BookingController::class, 'create']);
+    // Booking (form removed; clients book from client dashboard)
+    Route::get('/book-service', function () {
+        return redirect('/client/dashboard');
+    });
     Route::post('/bookings', [BookingController::class, 'store']);
     
     // Profile
@@ -227,8 +229,10 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/account/delete', [\App\Http\Controllers\AccountDeletionController::class, 'requestDeletion'])->name('account.delete.confirm');
     Route::get('/account/export-data', [\App\Http\Controllers\AccountDeletionController::class, 'exportData'])->name('account.export');
     
-    // Available Clients (caregiver)
-    Route::get('/available-clients', [CaregiverController::class, 'availableClients']);
+    // Legacy: available-clients Blade page removed; caregivers use dashboard "Job Listings" section
+    Route::get('/available-clients', function () {
+        return redirect('/caregiver/dashboard-vue');
+    });
     
     // Avatar Upload
     Route::post('/api/user/{id}/avatar', [AvatarController::class, 'upload']);
@@ -321,6 +325,9 @@ Route::prefix('api')->middleware(['web', 'auth'])->group(function () {
     // Referral Codes
     Route::get('/referral-codes/my-code', [\App\Http\Controllers\ReferralCodeController::class, 'getMyCode']);
     Route::post('/referral-codes/validate', [\App\Http\Controllers\ReferralCodeController::class, 'validateCode']);
+    
+    // Marketing stats (same auth as my-code so session is always valid; returns only current user's stats)
+    Route::get('/marketing/stats', [\App\Http\Controllers\MarketingStaffController::class, 'stats']);
     
     // Training Centers dropdown: handled by api.php GET /api/training-centers (no auth) so caregiver/housekeeper profile always gets the list
     // Receipts
@@ -446,9 +453,11 @@ Route::prefix('api')->middleware(['web', 'auth', 'user.type:admin'])->group(func
     
     // Reports (ReportAdminController)
     Route::get('/admin/financial-report/pdf', [\App\Http\Controllers\AdminReportController::class, 'generateFinancialReport']);
+    Route::get('/admin/transactions/export/pdf', [\App\Http\Controllers\AdminReportController::class, 'exportTransactionsPdf']);
     Route::get('/admin/top-performers', [ReportAdminController::class, 'getTopPerformers']);
     Route::get('/admin/recent-activity', [ReportAdminController::class, 'getRecentActivity']);
     Route::get('/admin/bookings', [BookingAdminController::class, 'getAllBookings']);
+    Route::get('/admin/booking-stats', [BookingAdminController::class, 'getBookingStats']);
     Route::get('/admin/time-tracking', [\App\Http\Controllers\TimeTrackingController::class, 'getAdminTimeTracking']);
     Route::put('/admin/time-tracking/{id}', [\App\Http\Controllers\TimeTrackingController::class, 'update']);
     Route::delete('/admin/time-tracking/{id}', [\App\Http\Controllers\TimeTrackingController::class, 'destroy']);
@@ -497,12 +506,9 @@ Route::prefix('api')->middleware(['web', 'auth', 'user.type:admin'])->group(func
 });
 
 // ============================================
-// MARKETING STAFF API ROUTES
+// MARKETING STAFF API ROUTES (other marketing-only routes can go here)
 // ============================================
-
-Route::prefix('api')->middleware(['web', 'auth', 'user.type:marketing'])->group(function () {
-    Route::get('/marketing/stats', [MarketingStaffController::class, 'stats']);
-});
+// Note: /api/marketing/stats is under the general auth group above so it always receives the same session as /api/referral-codes/my-code
 
 // ============================================
 // TRAINING CENTER API ROUTES

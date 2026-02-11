@@ -12,7 +12,6 @@ window.Chart = Chart;
 import ClientDashboard from './components/ClientDashboard.vue';
 import CaregiverDashboard from './components/CaregiverDashboard.vue';
 import AdminDashboard from './components/AdminDashboard.vue';
-import AdminStaffDashboard from './components/AdminStaffDashboard.vue';
 import AdminSettings from './components/AdminSettings.vue';
 import MarketingDashboard from './components/MarketingDashboard.vue';
 import TrainingDashboard from './components/TrainingDashboard.vue';
@@ -102,8 +101,9 @@ if (document.getElementById('training-dashboard-app')) {
 if (document.getElementById('admin-staff-dashboard-app')) {
     const app = createApp({
         components: {
-            AdminStaffDashboard,
+            AdminDashboard,
         },
+        template: '<admin-dashboard :staff-mode="true" />',
     });
     app.use(vuetify);
     app.mount('#admin-staff-dashboard-app');

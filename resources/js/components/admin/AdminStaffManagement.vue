@@ -62,12 +62,6 @@
         <template v-slot:item.location="{ item }">
           {{ item.place_indicator || item.location || 'Unknown ZIP' }}
         </template>
-        <template v-slot:item.email_verified="{ item }">
-          <v-chip :color="item.email_verified === 'Yes' ? 'success' : 'warning'" size="small">
-            <v-icon size="14" class="mr-1">{{ item.email_verified === 'Yes' ? 'mdi-check-circle' : 'mdi-alert-circle' }}</v-icon>
-            {{ item.email_verified }}
-          </v-chip>
-        </template>
         <template v-slot:item.status="{ item }">
           <v-chip
             :color="getStatusColor(item.status)"
@@ -150,15 +144,9 @@
                 <span class="mobile-card-label text-grey-darken-1">Phone:</span>
                 <span class="mobile-card-value">{{ item.phone || 'N/A' }}</span>
               </div>
-              <div class="mobile-card-row d-flex justify-space-between py-2" style="border-bottom: 1px solid #f3f4f6;">
+              <div class="mobile-card-row d-flex justify-space-between py-2">
                 <span class="mobile-card-label text-grey-darken-1">Location:</span>
                 <span class="mobile-card-value">{{ item.place_indicator || item.location || 'Unknown' }}</span>
-              </div>
-              <div class="mobile-card-row d-flex justify-space-between py-2">
-                <span class="mobile-card-label text-grey-darken-1">Email Verified:</span>
-                <v-chip :color="item.email_verified === 'Yes' ? 'success' : 'warning'" size="small">
-                  {{ item.email_verified }}
-                </v-chip>
               </div>
             </div>
             <div class="mobile-card-actions d-flex justify-center ga-2 pa-3" style="background: #f9fafb; border-top: 1px solid #e5e7eb;">
@@ -229,7 +217,6 @@ const headers = ref([
   { title: 'Email', key: 'email' },
   { title: 'Phone', key: 'phone' },
   { title: 'Location', key: 'location' },
-  { title: 'Email Verified', key: 'email_verified' },
   { title: 'Status', key: 'status' },
   { title: 'Actions', key: 'actions', sortable: false }
 ]);

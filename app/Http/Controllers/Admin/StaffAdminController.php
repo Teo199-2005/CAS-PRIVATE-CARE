@@ -8,6 +8,7 @@ use App\Models\Caregiver;
 use App\Models\Booking;
 use App\Rules\ValidPhoneNumber;
 use App\Rules\ValidNYZipCode;
+use App\Services\MarketingTierService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
@@ -79,6 +80,20 @@ class StaffAdminController extends Controller
                     }
                 }
             }
+
+            // Tier based on PAID client count only (Silver 1-5, Gold 6-10, Platinum 11+)
+            $tierData = MarketingTierService::getTierAndRateForUser($user->id);
+            $tier = $tierData['tier'];
+            $tierLabel = $tierData['label'];
+            $commissionPerHour = (float) $tierData['rate'];
+
+            // Commission earned: sum of stored marketing_partner_commission from time_trackings (actual recorded commissions)
+            if (DB::getSchemaBuilder()->hasTable('time_trackings')) {
+                $commissionEarned = (float) DB::table('time_trackings')
+                    ->where('marketing_partner_id', $user->id)
+                    ->whereNotNull('marketing_partner_commission')
+                    ->sum('marketing_partner_commission');
+            }
             
             $nameParts = array_filter(explode(' ', trim($user->name ?? ''), 2));
             $firstName = $nameParts[0] ?? '';
@@ -102,6 +117,10 @@ class StaffAdminController extends Controller
                 'status' => $user->status ?? 'Active',
                 'referralCode' => $referralCode ? $referralCode->code : 'N/A',
                 'clientsAcquired' => $clientsAcquired,
+                'paidClientCount' => $tierData['active_client_count'] ?? 0,
+                'tier' => $tier,
+                'tierLabel' => $tierLabel,
+                'commissionPerHour' => $commissionPerHour,
                 'totalHours' => number_format($totalHours, 1),
                 'commissionEarned' => number_format($commissionEarned, 2),
                 'joined' => $user->created_at->format('M d, Y'),
@@ -154,7 +173,7 @@ class StaffAdminController extends Controller
         $referralCode = \App\Models\ReferralCode::create([
             'user_id' => $user->id,
             'code' => \App\Models\ReferralCode::generateCode($user->id),
-            'discount_per_hour' => 5.00,
+            'discount_per_hour' => 3.00,
             'commission_per_hour' => 1.00,
             'is_active' => true,
             'usage_count' => 0,
@@ -663,6 +682,7 @@ class StaffAdminController extends Controller
             'time-tracking' => true,
             'reviews' => true,
             'announcements' => true,
+            'email-marketing' => true,
             'payments' => true,
             'analytics' => true,
             'profile' => true,

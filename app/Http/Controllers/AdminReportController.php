@@ -11,6 +11,8 @@ use App\Models\TimeTracking;
 use Dompdf\Dompdf;
 use Dompdf\Options;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 class AdminReportController extends Controller
 {
@@ -61,6 +63,139 @@ class AdminReportController extends Controller
         return response($dompdf->output(), 200)
             ->header('Content-Type', 'application/pdf')
             ->header('Content-Disposition', 'inline; filename="' . $filename . '"');
+    }
+
+    /**
+     * Export transactions list as PDF with optional filters (type, period, search).
+     * Query params: period (All Time|Today|This Week|This Month), type (All|Payment|Salary|Refund|Fee), search (string).
+     */
+    public function exportTransactionsPdf(Request $request)
+    {
+        if (!Schema::hasTable('transactions')) {
+            return response()->json(['error' => 'Transactions table not found'], 404);
+        }
+
+        $period = $request->input('period', 'All Time');
+        $typeFilter = $request->input('type', 'All');
+        $search = $request->input('search', '');
+        $search = is_string($search) ? trim($search) : '';
+
+        $query = DB::table('transactions')->orderBy('created_at', 'desc');
+
+        // Date range from period
+        $startDate = null;
+        $endDate = Carbon::now();
+        switch (strtolower($period)) {
+            case 'today':
+                $startDate = Carbon::today();
+                break;
+            case 'this week':
+                $startDate = Carbon::now()->startOfWeek();
+                break;
+            case 'this month':
+                $startDate = Carbon::now()->startOfMonth();
+                break;
+            default:
+                $startDate = Carbon::create(2020, 1, 1);
+        }
+        $query->whereBetween('created_at', [$startDate, $endDate]);
+
+        // Type filter (map UI labels to DB enum values)
+        if ($typeFilter && $typeFilter !== 'All') {
+            $typeMap = [
+                'Payment' => 'payment',
+                'Salary' => 'payout',
+                'Payout' => 'payout',
+                'Refund' => 'refund',
+                'Fee' => 'bonus',
+                'Bonus' => 'bonus',
+            ];
+            $dbType = $typeMap[strtolower($typeFilter)] ?? strtolower($typeFilter);
+            $query->where('type', $dbType);
+        }
+
+        // Search on description and reference (if column exists)
+        if ($search !== '') {
+            $query->where(function ($q) use ($search) {
+                $q->where('description', 'like', '%' . $search . '%');
+                if (Schema::hasColumn('transactions', 'reference')) {
+                    $q->orWhere('reference', 'like', '%' . $search . '%');
+                }
+            });
+        }
+
+        $rows = $query->limit(500)->get()->map(function ($t) {
+            return [
+                'date' => Carbon::parse($t->created_at)->format('M d, Y'),
+                'description' => $t->description ?? '—',
+                'type' => ucfirst($t->type ?? ''),
+                'amount' => number_format((float) $t->amount, 2),
+                'status' => ucfirst($t->status ?? ''),
+                'reference' => $t->reference ?? ('TXN-' . str_pad($t->id, 3, '0', STR_PAD_LEFT)),
+            ];
+        });
+
+        $html = $this->generateTransactionsPdfHtml($rows, $period, $typeFilter, $search);
+
+        $options = new Options();
+        $options->set('isHtml5ParserEnabled', true);
+        $options->set('isRemoteEnabled', true);
+        $options->set('defaultFont', 'Helvetica');
+        $dompdf = new Dompdf($options);
+        $dompdf->loadHtml($html);
+        $dompdf->setPaper('A4', 'portrait');
+        $dompdf->render();
+
+        $filename = 'Transactions_Export_' . now()->format('Y-m-d') . '.pdf';
+        return response($dompdf->output(), 200)
+            ->header('Content-Type', 'application/pdf')
+            ->header('Content-Disposition', 'inline; filename="' . $filename . '"');
+    }
+
+    private function generateTransactionsPdfHtml($rows, $period, $typeFilter, $search)
+    {
+        $filtersText = 'Period: ' . $period;
+        if ($typeFilter && $typeFilter !== 'All') {
+            $filtersText .= ' | Type: ' . $typeFilter;
+        }
+        if ($search !== '') {
+            $filtersText .= ' | Search: "' . htmlspecialchars($search) . '"';
+        }
+
+        $tableRows = '';
+        foreach ($rows as $r) {
+            $tableRows .= '<tr>';
+            $tableRows .= '<td>' . htmlspecialchars($r['date']) . '</td>';
+            $tableRows .= '<td>' . htmlspecialchars($r['description']) . '</td>';
+            $tableRows .= '<td>' . htmlspecialchars($r['type']) . '</td>';
+            $tableRows .= '<td style="text-align:right;">$' . $r['amount'] . '</td>';
+            $tableRows .= '<td>' . htmlspecialchars($r['status']) . '</td>';
+            $tableRows .= '<td>' . htmlspecialchars($r['reference']) . '</td>';
+            $tableRows .= '</tr>';
+        }
+        if ($tableRows === '') {
+            $tableRows = '<tr><td colspan="6" style="text-align:center;padding:20px;">No transactions match the current filters.</td></tr>';
+        }
+
+        return '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Transactions Export</title>
+        <style>
+        body{font-family:Arial,sans-serif;font-size:10pt;padding:20px 40px;}
+        h1{font-size:14pt;margin-bottom:4px;}
+        .filters{font-size:9pt;color:#555;margin-bottom:16px;}
+        table{width:100%;border-collapse:collapse;font-size:9pt;}
+        th{background:#e0e0e0;border:1px solid #000;padding:6px 8px;text-align:left;}
+        td{border:1px solid #000;padding:5px 8px;}
+        tr:nth-child(even){background:#f5f5f5;}
+        .footer{margin-top:20px;font-size:8pt;color:#666;}
+        </style></head><body>
+        <h1>Transactions Export</h1>
+        <div class="filters">' . htmlspecialchars($filtersText) . '</div>
+        <table>
+        <thead><tr><th>Date</th><th>Description</th><th>Type</th><th style="text-align:right;">Amount</th><th>Status</th><th>Reference</th></tr></thead>
+        <tbody>' . $tableRows . '</tbody>
+        </table>
+        <div class="footer">Generated ' . now()->format('M d, Y g:i A') . ' | CAS Private Care LLC</div>
+        </body></html>';
     }
     
     private function getFinancialData($startDate, $endDate)

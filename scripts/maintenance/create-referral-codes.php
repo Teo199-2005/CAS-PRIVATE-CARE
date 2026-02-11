@@ -22,7 +22,7 @@ foreach ($marketingUsers as $user) {
         $code = ReferralCode::create([
             'user_id' => $user->id,
             'code' => 'STAFF-' . str_pad($user->id, 3, '0', STR_PAD_LEFT),
-            'discount_per_hour' => 5.00,
+            'discount_per_hour' => 3.00,
             'commission_per_hour' => 1.00,
             'is_active' => true
         ]);
@@ -32,12 +32,12 @@ foreach ($marketingUsers as $user) {
     }
 }
 
-// Also add some general promo codes
+// Also add some general promo codes ($3/hr discount, same as referral policy)
 $promoCodes = [
-    ['code' => 'SAVE10', 'discount' => 5.00],
-    ['code' => 'WELCOME20', 'discount' => 5.00],
-    ['code' => 'FRIEND15', 'discount' => 5.00],
-    ['code' => 'CARE25', 'discount' => 5.00],
+    ['code' => 'SAVE10', 'discount' => 3.00],
+    ['code' => 'WELCOME20', 'discount' => 3.00],
+    ['code' => 'FRIEND15', 'discount' => 3.00],
+    ['code' => 'CARE25', 'discount' => 3.00],
 ];
 
 echo "\nCreating promotional codes...\n";

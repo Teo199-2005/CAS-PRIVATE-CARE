@@ -19,7 +19,7 @@ Your website has a **fully automated commission tracking system** that calculate
    ↓
 4. System AUTOMATICALLY calculates commissions:
    - Caregiver: $28/hour
-   - Marketing (if referral used): $1/hour
+   - Marketing (if referral used): tier-based $1.00–$1.50/hr (see Partner Tiers below)
    - Training Center (if caregiver trained): $2/hour (old) or $0.50/hour (new hourly system)
    - Agency: Remainder
    ↓
@@ -101,22 +101,33 @@ TOTAL:           $45.00/hr
 ### **Marketing Staff Commissions**
 
 #### **How Marketing Earns:**
-1. Marketing staff creates a **referral code** (e.g., `STAFF-001`)
-2. Client uses code when booking → Client gets **$5/hour discount** ($45 → $40)
+1. Marketing staff gets a **referral code** (e.g., `STAFF-001`)
+2. Client uses code when booking → Client gets **$3/hour discount** ($45 → $42 with referral)
 3. Caregiver assigned to booking clocks in/out
-4. System **automatically** calculates: `hours_worked × $1.00` → Marketing commission
+4. System **automatically** calculates: `hours_worked × tier_rate` → Marketing commission (see **Partner Tiers** below)
 5. Stored in `time_trackings.marketing_partner_commission`
+
+#### **Marketing Partner Tiers (commission per hour)**
+
+| Tier              | Paid clients   | Commission rate |
+|-------------------|----------------|-----------------|
+| **Silver Partner**| 1–5            | **$1.00/hr**    |
+| **Gold Partner**  | 6–10           | **$1.25/hr**    |
+| **Platinum Partner** | 11+          | **$1.50/hr**    |
+
+- “Paid clients” = unique clients who have actually paid (charge recorded or booking `payment_status = paid`). This prevents fake clients from inflating tier.
+- Tier is calculated automatically from the partner’s paid client count; commission uses the current tier rate at clock-out/payment.
 
 #### **Database Structure:**
 ```sql
 time_trackings table:
 ├── marketing_partner_id        (FK to users table)
-├── marketing_partner_commission ($1.00 × hours_worked)
+├── marketing_partner_commission (tier_rate × hours_worked)
 └── payment_status              (pending/paid)
 ```
 
 #### **Commission Rate:**
-- **$1.00 per hour** for every hour worked by referred client's caregiver
+- **Tier-based per hour** ($1.00 / $1.25 / $1.50) for every hour worked by referred client's caregiver
 - Tracked **per time tracking entry** (not per booking)
 
 #### **Example:**

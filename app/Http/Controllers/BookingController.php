@@ -101,11 +101,6 @@ class BookingController extends Controller
         ]);
     }
 
-    public function create()
-    {
-        return view('book-service-enhanced');
-    }
-
     public function store(Request $request)
     {
         try {
@@ -145,7 +140,7 @@ class BookingController extends Controller
             // Calculate hourly rate (base $45, or discounted if referral applied)
             $hourlyRate = $request->hourly_rate ?: 45;
             if ($referralDiscountApplied) {
-                $hourlyRate = 45 - $referralDiscountApplied; // $40 with $5 discount
+                $hourlyRate = 45 - $referralDiscountApplied; // $42 with $3 discount
             }
             
             // Handle start_time - default to 09:00:00 if not provided
@@ -292,8 +287,28 @@ class BookingController extends Controller
             if ($request->has('street_address')) $updateData['street_address'] = $request->street_address;
             if ($request->has('apartment_unit')) $updateData['apartment_unit'] = $request->apartment_unit;
             if ($request->has('special_instructions')) $updateData['special_instructions'] = $request->special_instructions;
+
+            // Admin-only: set or clear referral code so marketing partner gets credit for referred clients
+            if ($user && $user->user_type === 'admin') {
+                if ($request->has('referral_code_id')) {
+                    $updateData['referral_code_id'] = $request->referral_code_id ? (int) $request->referral_code_id : null;
+                    if (empty($updateData['referral_code_id'])) {
+                        $updateData['referral_discount_applied'] = null;
+                    }
+                } elseif ($request->filled('referral_code')) {
+                    $referralCode = ReferralCode::findValidCode($request->referral_code);
+                    if ($referralCode) {
+                        $updateData['referral_code_id'] = $referralCode->id;
+                        $updateData['referral_discount_applied'] = $referralCode->discount_per_hour;
+                    } else {
+                        $updateData['referral_code_id'] = null;
+                        $updateData['referral_discount_applied'] = null;
+                    }
+                }
+            }
             
             $booking->update($updateData);
+            $booking->load(['referralCode.user:id,name,email']);
 
             return response()->json([
                 'success' => true,

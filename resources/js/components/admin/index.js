@@ -2,7 +2,7 @@
  * Admin Dashboard Sub-Components
  * ==============================
  * 
- * These components are extracted from the main AdminDashboard.vue and AdminStaffDashboard.vue
+ * These components are extracted from the main AdminDashboard.vue
  * to improve maintainability and enable lazy loading for better performance.
  * 
  * Architecture Goals:

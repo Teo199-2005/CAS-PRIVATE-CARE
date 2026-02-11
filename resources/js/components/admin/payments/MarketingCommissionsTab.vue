@@ -125,6 +125,11 @@
             {{ item.bank_status }}
           </v-chip>
         </template>
+        <template v-slot:item.tier="{ item }">
+          <v-chip :color="getTierChipColor(item.tier)" size="small" variant="flat" class="font-weight-medium">
+            {{ item.tier_label || item.tier || 'Silver' }} · ${{ (item.commission_per_hour ?? 1).toFixed(2) }}/hr
+          </v-chip>
+        </template>
         <template v-slot:item.payment_status="{ item }">
           <v-chip :color="item.payment_status === 'Paid' ? 'success' : 'warning'" size="small" class="font-weight-bold">
             {{ item.payment_status }}
@@ -210,12 +215,16 @@
                 </v-chip>
               </div>
               <div class="mobile-card-row d-flex justify-space-between py-2" style="border-bottom: 1px solid #f3f4f6;">
+                <span class="mobile-card-label text-grey-darken-1">Tier:</span>
+                <v-chip :color="getTierChipColor(item.tier)" size="x-small" variant="flat">{{ item.tier_label || item.tier || 'Silver' }} · ${{ (item.commission_per_hour ?? 1).toFixed(2) }}/hr</v-chip>
+              </div>
+              <div class="mobile-card-row d-flex justify-space-between py-2" style="border-bottom: 1px solid #f3f4f6;">
                 <span class="mobile-card-label text-grey-darken-1">Referrals:</span>
-                <span class="mobile-card-value">{{ item.referral_count || 0 }}</span>
+                <span class="mobile-card-value">{{ item.clients_referred ?? item.referral_count ?? 0 }}</span>
               </div>
               <div class="mobile-card-row d-flex justify-space-between py-2" style="border-bottom: 1px solid #f3f4f6;">
                 <span class="mobile-card-label text-grey-darken-1">Total Earned:</span>
-                <span class="mobile-card-value font-weight-bold">${{ item.total_earned || 0 }}</span>
+                <span class="mobile-card-value font-weight-bold">${{ item.total_commission ?? item.total_earned ?? 0 }}</span>
               </div>
               <div class="mobile-card-row d-flex justify-space-between py-2">
                 <span class="mobile-card-label text-grey-darken-1">Pending:</span>
@@ -293,6 +302,7 @@ const itemsPerPage = 10;
 const headers = ref([
   { title: 'Name', key: 'name' },
   { title: 'Bank Status', key: 'bank_status' },
+  { title: 'Tier', key: 'tier', align: 'center' },
   { title: 'Referrals', key: 'referral_count' },
   { title: 'Total Earned', key: 'total_earned' },
   { title: 'Pending', key: 'pending_commission' },
@@ -324,6 +334,11 @@ const paginatedCommissions = computed(() => {
 });
 
 const totalPages = computed(() => Math.ceil(filteredCommissions.value.length / itemsPerPage));
+
+function getTierChipColor(tier) {
+  const colors = { Silver: 'grey', Gold: 'amber', Platinum: 'indigo' };
+  return colors[tier] || 'grey';
+}
 </script>
 
 <style scoped>

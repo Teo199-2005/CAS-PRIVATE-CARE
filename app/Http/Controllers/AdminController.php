@@ -660,7 +660,7 @@ class AdminController extends Controller
                 \App\Models\ReferralCode::create([
                     'user_id' => $user->id,
                     'code' => \App\Models\ReferralCode::generateCode($user->id),
-                    'discount_per_hour' => 5.00,
+                    'discount_per_hour' => 3.00,
                     'commission_per_hour' => 1.00,
                     'is_active' => true,
                     'usage_count' => 0,
@@ -1345,7 +1345,7 @@ class AdminController extends Controller
                 $referralCode = \App\Models\ReferralCode::create([
                     'user_id' => $user->id,
                     'code' => \App\Models\ReferralCode::generateCode($user->id),
-                    'discount_per_hour' => 5.00,
+                    'discount_per_hour' => 3.00,
                     'commission_per_hour' => 1.00,
                     'is_active' => true,
                 ]);
@@ -1468,7 +1468,7 @@ class AdminController extends Controller
         $referralCode = \App\Models\ReferralCode::create([
             'user_id' => $user->id,
             'code' => \App\Models\ReferralCode::generateCode($user->id),
-            'discount_per_hour' => 5.00,
+            'discount_per_hour' => 3.00,
             'commission_per_hour' => 1.00,
             'is_active' => true,
             'usage_count' => 0,
@@ -1516,7 +1516,7 @@ class AdminController extends Controller
                     \App\Models\ReferralCode::create([
                         'user_id' => $user->id,
                         'code' => $code,
-                        'discount_per_hour' => 5.00,
+                        'discount_per_hour' => 3.00,
                         'commission_per_hour' => 1.00,
                         'is_active' => true,
                     ]);

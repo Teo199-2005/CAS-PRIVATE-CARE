@@ -7,6 +7,7 @@ use App\Models\TimeTracking;
 use App\Models\Caregiver;
 use App\Models\Housekeeper;
 use App\Models\Client;
+use App\Services\MarketingTierService;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 
@@ -198,12 +199,11 @@ class TimeTrackingController extends Controller
             // Fallback to default rate if not set
             $providerRate = $assignment->assigned_hourly_rate ?? \App\Services\PricingService::getHousekeeperDefaultRate();
             $clientChargeRate = \App\Services\PricingService::getHousekeeperClientRate($hasReferral);
-            $marketingRate = \App\Services\PricingService::HOUSEKEEPER_MARKETING_RATE;
             
             // Calculate provider earnings
             $providerEarnings = $hoursWorked * $providerRate;
             
-            // Marketing commission (if referral used)
+            // Marketing commission (if referral used) — tier-based rate (Silver $1, Gold $1.25, Platinum $1.50)
             $marketingPartnerId = null;
             $marketingCommission = 0;
             
@@ -211,6 +211,7 @@ class TimeTrackingController extends Controller
                 $referralCode = $booking->referralCode;
                 if ($referralCode && $referralCode->user_id) {
                     $marketingPartnerId = $referralCode->user_id;
+                    $marketingRate = MarketingTierService::getCommissionRateForReferralCode($referralCode->id);
                     $marketingCommission = $hoursWorked * $marketingRate;
                 }
             }
@@ -248,13 +249,12 @@ class TimeTrackingController extends Controller
             // Use PricingService for caregiver rates
             $providerRate = $assignment->assigned_hourly_rate ?? \App\Services\PricingService::getCaregiverRate();
             $clientChargeRate = \App\Services\PricingService::getClientRate($hasReferral);
-            $marketingRate = \App\Services\PricingService::MARKETING_RATE;
             $trainingRate = \App\Services\PricingService::TRAINING_CENTER_RATE;
             
             // Calculate provider earnings
             $providerEarnings = $hoursWorked * $providerRate;
             
-            // Marketing commission (if referral used)
+            // Marketing commission (if referral used) — tier-based rate (Silver $1, Gold $1.25, Platinum $1.50)
             $marketingPartnerId = null;
             $marketingCommission = 0;
             
@@ -262,6 +262,7 @@ class TimeTrackingController extends Controller
                 $referralCode = $booking->referralCode;
                 if ($referralCode && $referralCode->user_id) {
                     $marketingPartnerId = $referralCode->user_id;
+                    $marketingRate = MarketingTierService::getCommissionRateForReferralCode($referralCode->id);
                     $marketingCommission = $hoursWorked * $marketingRate;
                 }
             }
