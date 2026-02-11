@@ -353,6 +353,21 @@ const getDashboardUrl = (role) => {
   return dashboards[role] || '/dashboard';
 };
 
+// Fetch fresh CSRF token so it matches current session
+async function getFreshCsrfToken() {
+  try {
+    const r = await fetch('/csrf-token', { credentials: 'include' });
+    if (!r.ok) return null;
+    const data = await r.json();
+    const token = data?.token;
+    const meta = document.querySelector('meta[name="csrf-token"]');
+    if (token && meta) meta.setAttribute('content', token);
+    return token || null;
+  } catch {
+    return null;
+  }
+}
+
 // Handle forgot password
 const handleForgotPassword = async () => {
   if (!resetEmail.value) {
@@ -365,8 +380,14 @@ const handleForgotPassword = async () => {
   resetMessage.value = '';
 
   try {
+    const freshToken = await getFreshCsrfToken();
     const metaToken = document.querySelector('meta[name="csrf-token"]');
-    const token = metaToken ? metaToken.getAttribute('content') : csrfToken.value;
+    const token = freshToken || (metaToken ? metaToken.getAttribute('content') : null) || csrfToken.value;
+    if (!token) {
+      resetMessage.value = 'Security token missing. Please refresh the page and try again.';
+      resetMessageType.value = 'error';
+      return;
+    }
 
     const response = await fetch('/password/email', {
       method: 'POST',
@@ -380,7 +401,7 @@ const handleForgotPassword = async () => {
       body: JSON.stringify({ email: resetEmail.value })
     });
 
-    const data = await response.json();
+    const data = await response.json().catch(() => ({}));
 
     if (response.ok) {
       resetMessage.value = 'Password reset link sent! Please check your email.';
@@ -390,6 +411,9 @@ const handleForgotPassword = async () => {
         resetEmail.value = '';
         resetMessage.value = '';
       }, 3000);
+    } else if (response.status === 419) {
+      resetMessage.value = 'Session expired. Please refresh the page and try again.';
+      resetMessageType.value = 'error';
     } else {
       resetMessage.value = data.message || 'Email not found in our system.';
       resetMessageType.value = 'error';

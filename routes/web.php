@@ -411,6 +411,7 @@ Route::prefix('api')->middleware(['web', 'auth', 'user.type:admin'])->group(func
     // Password Resets (UserAdminController)
     Route::get('/admin/password-resets', [UserAdminController::class, 'getPasswordResets']);
     Route::post('/admin/password-resets/{id}/process', [UserAdminController::class, 'processPasswordReset']);
+    Route::delete('/admin/password-resets/{id}', [UserAdminController::class, 'deletePasswordReset']);
     
     // Announcements (AdminController - kept in main controller)
     Route::get('/admin/announcements', [AdminController::class, 'getAnnouncements']);

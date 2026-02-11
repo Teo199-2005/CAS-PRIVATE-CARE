@@ -728,6 +728,23 @@ class UserAdminController extends Controller
     }
 
     /**
+     * Delete a password reset request
+     */
+    public function deletePasswordReset($id)
+    {
+        try {
+            $deleted = DB::table('password_resets_custom')->where('id', $id)->delete();
+            if (!$deleted) {
+                return response()->json(['success' => false, 'message' => 'Password reset request not found.'], 404);
+            }
+            return response()->json(['success' => true]);
+        } catch (\Exception $e) {
+            Log::error('Error deleting password reset (id: ' . $id . '): ' . $e->getMessage());
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
+    }
+
+    /**
      * Get all users with their related data
      */
     public function getUsers()

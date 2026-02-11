@@ -2657,12 +2657,6 @@
                   <template v-slot:prepend>
                     <v-icon color="success">mdi-check-circle</v-icon>
                   </template>
-                  <v-list-item-title>Password Resets</v-list-item-title>
-                </v-list-item>
-                <v-list-item>
-                  <template v-slot:prepend>
-                    <v-icon color="success">mdi-check-circle</v-icon>
-                  </template>
                   <v-list-item-title>Client Bookings</v-list-item-title>
                 </v-list-item>
               </v-list>
@@ -3608,58 +3602,6 @@
         </v-card-text>
       </v-card>
     </v-dialog>
-
-    <!-- Password Resets Section -->
-    <div v-if="currentSection === 'password-resets'">
-      <v-card elevation="0">
-        <v-card-title class="card-header pa-8">
-          <span class="section-title error--text">Password Reset Requests</span>
-        </v-card-title>
-        <!-- Desktop Table View -->
-        <v-data-table v-if="!isMobile" :headers="passwordResetHeaders" :items="passwordResets" :items-per-page="10" class="elevation-0 table-no-checkbox">
-          <template v-slot:item.status="{ item }">
-            <v-chip :color="item.status === 'Completed' ? 'success' : 'warning'" size="small" class="font-weight-bold" :prepend-icon="getStatusIcon(item.status)">{{ item.status }}</v-chip>
-          </template>
-          <template v-slot:item.userType="{ item }">
-            <v-chip :color="item.userType === 'Caregiver' ? 'success' : 'primary'" size="small" class="font-weight-bold" :prepend-icon="item.userType === 'Caregiver' ? 'mdi-account-heart' : 'mdi-account'">{{ item.userType }}</v-chip>
-          </template>
-          <template v-slot:item.actions="{ item }">
-            <div class="action-buttons">
-              <v-btn v-if="item.status === 'Pending'" class="action-btn-approve" icon="mdi-check" size="small" @click="processPasswordReset(item)"></v-btn>
-              <v-icon v-else color="grey" size="small">mdi-check-circle</v-icon>
-            </div>
-          </template>
-        </v-data-table>
-        <!-- Mobile Card View -->
-        <div v-else class="mobile-cards-container pa-3">
-          <div v-if="passwordResets.length === 0" class="text-center py-8 text-grey">
-            No password reset requests found
-          </div>
-          <v-card v-for="item in passwordResets" :key="item.id" class="mobile-data-card mb-3" elevation="2" rounded="lg">
-            <v-card-text class="pa-0">
-              <div class="mobile-card-header d-flex align-center justify-space-between pa-3" style="background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);">
-                <span class="text-white font-weight-bold text-body-1">{{ item.email || item.name }}</span>
-                <v-chip :color="item.status === 'Completed' ? 'success' : 'warning'" size="small" class="font-weight-bold" :prepend-icon="getStatusIcon(item.status)">{{ item.status }}</v-chip>
-              </div>
-              <div class="mobile-card-body pa-3">
-                <div class="mobile-card-row d-flex justify-space-between py-2" style="border-bottom: 1px solid #f3f4f6;">
-                  <span class="mobile-card-label text-grey-darken-1">User Type:</span>
-                  <v-chip :color="item.userType === 'Caregiver' ? 'success' : 'primary'" size="x-small" class="font-weight-bold" :prepend-icon="item.userType === 'Caregiver' ? 'mdi-account-heart' : 'mdi-account'">{{ item.userType }}</v-chip>
-                </div>
-                <div class="mobile-card-row d-flex justify-space-between py-2" style="border-bottom: 1px solid #f3f4f6;">
-                  <span class="mobile-card-label text-grey-darken-1">Requested:</span>
-                  <span class="mobile-card-value">{{ item.requested_at || item.created_at }}</span>
-                </div>
-              </div>
-              <div class="mobile-card-actions d-flex justify-center pa-3" style="background: #f9fafb; border-top: 1px solid #e5e7eb;">
-                <v-btn v-if="item.status === 'Pending'" color="success" variant="tonal" size="small" prepend-icon="mdi-check" @click="processPasswordReset(item)">Process Reset</v-btn>
-                <v-chip v-else color="success" size="small" prepend-icon="mdi-check-circle">Completed</v-chip>
-              </div>
-            </v-card-text>
-          </v-card>
-        </div>
-      </v-card>
-    </div>
 
     <!-- Time Tracking Section -->
     <div v-if="currentSection === 'time-tracking'">
@@ -9167,7 +9109,10 @@ onBeforeUnmount(() => {
 const showErrorModal = ref(false);
 const errorMessages = ref([]);
 
-const currentSection = ref(props.staffMode ? 'dashboard' : (localStorage.getItem('adminSection') || 'dashboard'));
+const currentSection = ref((() => {
+  const saved = props.staffMode ? 'dashboard' : (localStorage.getItem('adminSection') || 'dashboard');
+  return saved === 'password-resets' ? 'dashboard' : saved;
+})());
 const userEmailVerified = ref(false);
 const settingsTab = ref('system');
 const addUserDialog = ref(false);
@@ -9517,19 +9462,6 @@ const viewApplication = (application) => {
   viewApplicationDialog.value = true;
 };
 
-const passwordResets = ref([]);
-
-const loadPasswordResets = async () => {
-  try {
-    const response = await fetch('/api/admin/password-resets', {
-      credentials: 'include'
-    });
-    const data = await response.json();
-    passwordResets.value = data.resets;
-  } catch (error) {
-  }
-};
-
 const caregiverHeaders = [
   { title: 'Name', key: 'name' },
   { title: 'Email', key: 'email' },
@@ -9613,7 +9545,6 @@ const getDefaultPagePermissions = () => ({
   'marketing-staff': true,
   'training-centers': true,
   pending: true,
-  'password-resets': true,
   'client-bookings': true,
   'time-tracking': true,
   reviews: true,
@@ -9641,7 +9572,6 @@ const permissionPages = {
   ],
   applications: [
     { value: 'pending', title: 'Contractors Application', icon: 'mdi-account-clock' },
-    { value: 'password-resets', title: 'Password Resets', icon: 'mdi-lock-reset' },
   ],
   bookings: [
     { value: 'client-bookings', title: 'Client Bookings', icon: 'mdi-calendar-account' },
@@ -9759,14 +9689,6 @@ const applicationHeaders = [
   { title: 'Phone', key: 'phone' },
   { title: 'Applied', key: 'applied' },
   { title: 'Status', key: 'documents' },
-  { title: 'Actions', key: 'actions', sortable: false },
-];
-
-const passwordResetHeaders = [
-  { title: 'Email', key: 'email' },
-  { title: 'User Type', key: 'userType' },
-  { title: 'Requested', key: 'requestedAt' },
-  { title: 'Status', key: 'status' },
   { title: 'Actions', key: 'actions', sortable: false },
 ];
 
@@ -9894,7 +9816,6 @@ const navItems = ref([
     ]
   },
   { icon: 'mdi-account-clock', title: 'Contractors Application', value: 'pending', category: 'APPLICATIONS' },
-  { icon: 'mdi-lock-reset', title: 'Password Resets', value: 'password-resets', category: 'APPLICATIONS' },
   { icon: 'mdi-calendar-account', title: 'Client Bookings', value: 'client-bookings', category: 'BOOKINGS' },
   { icon: 'mdi-clock-time-four', title: 'Time Tracking', value: 'time-tracking', category: 'BOOKINGS' },
   { icon: 'mdi-star', title: 'Reviews & Ratings', value: 'reviews', category: 'FEEDBACK' },
@@ -9918,7 +9839,6 @@ const pagePermissions = ref({
   'marketing-staff': true,
   'training-centers': true,
   pending: true,
-  'password-resets': true,
   'client-bookings': true,
   'time-tracking': true,
   reviews: true,
@@ -9970,7 +9890,6 @@ const showAccessDeniedNotification = (pageValue) => {
     'marketing-staff': 'Marketing Partner',
     'training-centers': 'Training Centers',
     pending: 'Contractors Application',
-    'password-resets': 'Password Resets',
     'client-bookings': 'Client Bookings',
     'time-tracking': 'Time Tracking',
     reviews: 'Reviews & Ratings',
@@ -12789,16 +12708,25 @@ let loggingOut = false;
 const logout = async () => {
   if (loggingOut) return;
   loggingOut = true;
+  const csrf = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+  const redirectOut = () => { window.location.href = '/login?refresh=' + Date.now(); };
+  const timeoutId = setTimeout(redirectOut, 3000);
   try {
-    const csrf = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
-    await fetch('/logout', {
+    const res = await fetch('/logout', {
       method: 'POST',
-      headers: { 'X-CSRF-TOKEN': csrf, 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      headers: { 'X-CSRF-TOKEN': csrf, 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
       credentials: 'include',
       body: JSON.stringify({})
     });
-  } catch (_) {}
-  window.location.href = '/login?refresh=' + Date.now();
+    clearTimeout(timeoutId);
+    if (res.ok && res.headers.get('content-type')?.includes('application/json')) {
+      redirectOut();
+      return;
+    }
+  } catch (_) {
+    clearTimeout(timeoutId);
+  }
+  redirectOut();
 };
 
 const editUser = (user) => {
@@ -12946,40 +12874,6 @@ const rejectApplication = async (application) => {
     'error',
     'Reject',
     'mdi-close'
-  );
-};
-
-const processPasswordReset = async (reset) => {
-  showConfirm(
-    'Process Password Reset',
-    `Process password reset for ${reset.email}? This will set the user's password to 123456.`,
-    async () => {
-      try {
-        const response = await fetch(`/api/admin/password-resets/${reset.id}/process`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
-            'X-Requested-With': 'XMLHttpRequest'
-          },
-          credentials: 'include'
-        });
-        const result = await response.json().catch(() => ({ success: response.ok }));
-        if (result.success) {
-          const emailMsg = result.email_sent ? ` Notification email sent to ${reset.email}.` : '';
-          success(`Password reset processed for ${reset.email}.${emailMsg}`, 'Reset Complete');
-        } else {
-          error('Failed to process password reset. Please try again.', 'Reset Failed');
-        }
-        loadPasswordResets();
-      } catch (err) {
-        error('Failed to process password reset. Please try again.', 'Reset Failed');
-      }
-    },
-    'success',
-    'Approve',
-    'mdi-lock-reset'
   );
 };
 
@@ -17327,7 +17221,9 @@ const generatePaymentPDF = async (title, data, period, columns) => {
 };
 
 watch(currentSection, (newVal) => {
-  localStorage.setItem('adminSection', newVal);
+  const sectionToSave = newVal === 'password-resets' ? 'dashboard' : newVal;
+  if (sectionToSave !== newVal) currentSection.value = 'dashboard';
+  localStorage.setItem('adminSection', sectionToSave);
   if (newVal === 'analytics') {
     setTimeout(initCharts, 300);
   }
@@ -17434,7 +17330,6 @@ onMounted(async () => {
     { fn: loadUsers, weight: 15 },
     { fn: loadClientBookings, weight: 15 },
     { fn: loadApplications, weight: 5 },
-    { fn: loadPasswordResets, weight: 5 },
     { fn: loadRecentAnnouncements, weight: 2 },
     ...(props.staffMode ? [{ fn: loadPagePermissions, weight: 2 }] : [{ fn: loadBookingMaintenanceStatus, weight: 2 }])
   ];
@@ -17521,7 +17416,7 @@ watch(clientBookings, () => {
 }, { deep: true });
 
 // Re-add labels when other table data changes
-watch([caregivers, clients, pendingApplications, passwordResets, marketingStaff, trainingCenters], () => {
+watch([caregivers, clients, pendingApplications, marketingStaff, trainingCenters], () => {
   setTimeout(() => {
     addMobileTableLabels();
   }, 300);

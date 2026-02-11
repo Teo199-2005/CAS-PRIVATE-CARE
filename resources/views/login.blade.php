@@ -952,7 +952,7 @@
             return '';
         }
 
-        function submitForgotPassword(event) {
+        async function submitForgotPassword(event) {
             event.preventDefault();
             const email = document.getElementById('resetEmail').value;
             const submitButton = event.target.querySelector('button[type="submit"]');
@@ -961,37 +961,48 @@
             submitButton.disabled = true;
             submitButton.innerHTML = '<span>Sending...</span>';
             
-            // Create form data (use current CSRF token from meta)
-            const formData = new FormData();
-            formData.append('email', email);
-            formData.append('_token', getCsrfToken());
-            
-            // Submit to password reset endpoint
-            fetch('/password/email', {
-                method: 'POST',
-                headers: {
-                    'Accept': 'application/json'
-                },
-                body: formData
-            })
-            .then(response => {
-                if (response.ok) {
-                    return response.json();
-                } else {
-                    return response.json().then(err => Promise.reject(err));
-                }
-            })
-            .then(data => {
-                closeForgotPasswordModal();
-                showBanner('Password reset link sent. Please check your email.', 'success');
-            })
-            .catch(error => {
-                showMessage(error.message || 'Email not found in our system.', 'error');
-            })
-            .finally(() => {
+            // Refresh CSRF token so it matches current session (avoids mismatch after long-lived tabs)
+            const token = await refreshCsrfToken() || getCsrfToken();
+            if (!token) {
+                showMessage('Security token missing. Please refresh the page and try again.', 'error');
                 submitButton.disabled = false;
                 submitButton.innerHTML = '<span>Send Reset Link</span>';
-            });
+                return;
+            }
+            
+            // Send both header and body so Laravel accepts the token
+            const formData = new FormData();
+            formData.append('email', email);
+            formData.append('_token', token);
+            
+            try {
+                const response = await fetch('/password/email', {
+                    method: 'POST',
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': token,
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    credentials: 'include',
+                    body: formData
+                });
+                
+                const data = await response.json().catch(() => ({}));
+                
+                if (response.ok) {
+                    closeForgotPasswordModal();
+                    showBanner('Password reset link sent. Please check your email.', 'success');
+                } else if (response.status === 419) {
+                    showMessage('Session expired. Please refresh the page and try again.', 'error');
+                } else {
+                    showMessage(data.message || 'Email not found in our system.', 'error');
+                }
+            } catch (err) {
+                showMessage('An error occurred. Please try again.', 'error');
+            } finally {
+                submitButton.disabled = false;
+                submitButton.innerHTML = '<span>Send Reset Link</span>';
+            }
         }
 
         // Close modal when clicking outside

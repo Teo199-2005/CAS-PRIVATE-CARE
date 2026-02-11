@@ -3101,7 +3101,6 @@ class AdminController extends Controller
             'marketing-staff' => true,
             'training-centers' => true,
             'pending' => true,
-            'password-resets' => true,
             'client-bookings' => true,
             'time-tracking' => true,
             'reviews' => true,

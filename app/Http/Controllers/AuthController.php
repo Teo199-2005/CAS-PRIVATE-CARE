@@ -325,6 +325,12 @@ class AuthController extends Controller
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
+
+        // AJAX/SPA: return JSON immediately so the client can redirect without waiting for the full login page
+        if ($request->expectsJson() || $request->ajax()) {
+            return response()->json(['message' => 'Logged out', 'redirect' => url('/login')]);
+        }
+
         return redirect('/login');
     }
 
