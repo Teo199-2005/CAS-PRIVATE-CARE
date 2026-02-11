@@ -30,16 +30,21 @@
     <!-- Bootstrap Icons -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
     
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Google Fonts (match caregiver/housekeeper so nav and body match site-wide) -->
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
     
     @include('partials.nav-footer-styles')
     
     <style>
-        * {
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+        }
+        /* Reset margin/padding for all elements except nav (nav uses nav-footer-styles only for same look as rest of site) */
+        *:not(nav):not(nav *) {
             margin: 0;
             padding: 0;
-            box-sizing: border-box;
         }
 
         body {
@@ -460,10 +465,11 @@
 
         /* Standard Mobile (768px) */
         @media (max-width: 768px) {
-            /* About Hero */
+            /* About Hero - padding-top clears fixed nav (no margin = no white gap) */
             .about-hero {
-                margin-top: 70px;
+                margin-top: 0;
                 padding: 3rem 1.25rem;
+                padding-top: 70px;
             }
             
             .about-hero h1 {
@@ -785,24 +791,42 @@
             animation: scaleIn 0.6s ease forwards;
         }
 
-        /* Skip Link for Accessibility */
+        /* Skip Link - hidden until focus (matches site-wide) */
         .skip-link {
             position: absolute;
-            top: -40px;
-            left: 0;
-            background: #1e40af;
-            color: white;
-            padding: 8px 16px;
+            top: -100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #0B4FA2;
+            color: #fff;
+            padding: 0.75rem 1.5rem;
             z-index: 10000;
             text-decoration: none;
             font-weight: 600;
-            border-radius: 0 0 4px 0;
-            transition: top 0.3s ease;
+            border-radius: 0 0 8px 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            transition: top 0.2s ease-out;
         }
         .skip-link:focus {
             top: 0;
-            outline: 2px solid #fbbf24;
+            outline: 3px solid #f59e0b;
             outline-offset: 2px;
+        }
+
+        /* Ensure navbar matches site-wide (same as caregiver, housekeeper, etc.) */
+        body nav#primary-navigation {
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            width: 100% !important;
+            height: 72px !important;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%) !important;
+            backdrop-filter: blur(20px);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            padding: 0;
+            border-bottom: 1px solid rgba(59, 130, 246, 0.2);
         }
     </style>
 </head>
@@ -811,8 +835,6 @@
     <a href="#main-content" class="skip-link">Skip to main content</a>
 
     @include('partials.navigation')
-
-    @include('partials.trust-strip')
 
     <main id="main-content" role="main" tabindex="-1">
         <!-- Hero Section -->

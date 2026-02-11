@@ -15,11 +15,30 @@
     @include('partials.nav-footer-styles')
     
     <style>
+        html {
+            overflow-x: hidden;
+            max-width: 100vw;
+        }
         body {
             font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             line-height: 1.6;
             color: #0B4FA2;
             overflow-x: hidden;
+            max-width: 100vw;
+        }
+
+        /* Blog nav: smaller logo so it fits the topbar */
+        body.blog-page nav .nav-container {
+            max-width: 100%;
+            padding-left: max(1rem, env(safe-area-inset-left));
+            padding-right: max(1rem, env(safe-area-inset-right));
+        }
+        body.blog-page nav .logo-section img {
+            max-height: 48px !important;
+            height: auto !important;
+            width: auto !important;
+            max-width: 140px !important;
+            object-fit: contain;
         }
 
         .post-hero {
@@ -66,8 +85,10 @@
 
         .post-container {
             max-width: 900px;
+            width: 100%;
             margin: 0 auto;
             padding: 60px 20px;
+            box-sizing: border-box;
         }
 
         .post-featured-image {
@@ -86,6 +107,8 @@
             font-size: 1.1rem;
             line-height: 1.8;
             color: #1e293b;
+            max-width: 100%;
+            overflow-wrap: break-word;
         }
 
         .post-content img {
@@ -298,9 +321,18 @@
                 grid-template-columns: 1fr;
             }
         }
+
+        @media (max-width: 400px) {
+            .post-container {
+                padding: 30px 0.75rem;
+            }
+            .post-hero {
+                padding: 50px 0.75rem 30px;
+            }
+        }
     </style>
 </head>
-<body>
+<body class="blog-page">
     <!-- Navigation -->
     @include('partials.navigation')
 
@@ -372,15 +404,15 @@
     @include('partials.footer')
 
     <script>
-        // Mobile menu toggle
+        // Mobile menu toggle (nav uses .mobile-menu-btn and toggleMenu() from navigation partial)
         document.addEventListener('DOMContentLoaded', function() {
-            const navToggle = document.querySelector('.hamburger');
-            const navMenu = document.querySelector('.nav-links');
-            
-            if (navToggle) {
+            var navMenu = document.getElementById('navLinks');
+            var navBtn = document.getElementById('mobileMenuBtn');
+            var navToggle = document.querySelector('.hamburger') || document.querySelector('.mobile-menu-btn');
+            if (navToggle && navMenu && !navToggle.onclick) {
                 navToggle.addEventListener('click', function() {
                     navMenu.classList.toggle('active');
-                    navToggle.classList.toggle('active');
+                    if (navBtn) navBtn.setAttribute('aria-expanded', navMenu.classList.contains('active'));
                 });
             }
         });

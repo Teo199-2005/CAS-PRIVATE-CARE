@@ -38,8 +38,9 @@
 
         /* Hero Section */
         .hero {
-            margin-top: 88px;
+            margin-top: 0;
             padding: 6rem 2rem;
+            padding-top: 88px;
             background: linear-gradient(135deg, #0B4FA2 0%, #1e40af 100%);
             color: white;
             text-align: center;
@@ -63,6 +64,7 @@
             margin: 0 auto;
             position: relative;
             z-index: 1;
+            padding-top: 2rem;
         }
 
         .hero h1 {
@@ -452,8 +454,9 @@
         @media (max-width: 768px) {
             /* Hero Section */
             .hero {
-                margin-top: 70px;
+                margin-top: 0;
                 padding: 3rem 1rem;
+                padding-top: 70px;
             }
 
             .hero h1 {

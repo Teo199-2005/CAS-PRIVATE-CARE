@@ -504,8 +504,14 @@
             top: 70px;
             left: 0;
             right: 0;
+            width: 100%;
+            max-width: 100vw;
+            margin: 0;
+            box-sizing: border-box;
             background: linear-gradient(180deg, #1e3a5f 0%, #0d1b2a 100%);
             padding: 1rem;
+            padding-left: max(1rem, env(safe-area-inset-left));
+            padding-right: max(1rem, env(safe-area-inset-right));
             box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
             border-radius: 0 0 20px 20px;
             z-index: 1000;
@@ -518,6 +524,11 @@
             grid-template-columns: repeat(2, 1fr) !important;
             gap: 0.625rem !important;
             width: 100% !important;
+            max-width: 100% !important;
+            left: 0 !important;
+            right: 0 !important;
+            margin-left: 0 !important;
+            margin-right: 0 !important;
         }
 
         .nav-links li {
@@ -545,6 +556,7 @@
 
         .nav-links a {
             display: flex !important;
+            flex-direction: column !important;
             align-items: center !important;
             justify-content: center !important;
             padding: 0.875rem 0.5rem !important;
@@ -561,6 +573,7 @@
             box-sizing: border-box !important;
             line-height: 1.3 !important;
             word-wrap: break-word !important;
+            white-space: normal !important;
         }
 
         .nav-links a:hover,
@@ -582,12 +595,13 @@
             display: none;
         }
 
-        /* Nav icons - show on mobile only */
+        /* Nav icons - show on mobile only; stacked above label so text can wrap and stay centered */
         .nav-links .nav-icon,
         .dropdown-menu .nav-icon {
-            display: inline-block !important;
-            margin-right: 0.5rem;
-            font-size: 1rem;
+            display: block !important;
+            margin-right: 0 !important;
+            margin-bottom: 0.35rem !important;
+            font-size: 1rem !important;
         }
 
         .dropdown-menu {
@@ -1060,8 +1074,16 @@
         /* 2x2 Grid - more compact on smaller screens */
         .nav-links {
             top: 64px;
+            left: 0 !important;
+            right: 0 !important;
+            width: 100% !important;
+            max-width: 100vw !important;
+            margin: 0 !important;
+            padding-left: max(0.5rem, env(safe-area-inset-left));
+            padding-right: max(0.5rem, env(safe-area-inset-right));
             max-height: calc(100vh - 64px);
-            padding: 0.5rem;
+            padding-top: 0.5rem;
+            padding-bottom: 0.5rem;
             gap: 0.375rem;
         }
 

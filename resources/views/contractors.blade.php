@@ -87,9 +87,10 @@
             animation: fadeInUp 0.8s ease forwards;
         }
 
-        /* Hero Section */
+        /* Hero Section - padding clears fixed nav; no margin so no white gap */
         .contractor-hero {
-            margin-top: 80px;
+            margin-top: 0;
+            padding-top: 80px;
             min-height: 90vh;
             display: flex;
             align-items: center;
@@ -758,7 +759,8 @@
         @media (max-width: 768px) {
             /* Hero Section */
             .contractor-hero {
-                margin-top: 70px;
+                margin-top: 0;
+                padding-top: 70px;
                 min-height: auto;
             }
             
@@ -1437,7 +1439,7 @@
         </section>
 
         <!-- Payouts Explained Section -->
-        <section style="padding: 5rem 2rem; background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border-top: 1px solid rgba(251, 191, 36, 0.3);">
+        <section class="section-light" style="padding: 5rem 2rem;">
             <div class="container">
                 <div class="section-header">
                     <h2>How <span>Payouts</span> Work</h2>

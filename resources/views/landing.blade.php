@@ -97,6 +97,7 @@
     <!-- Critical CSS for above-the-fold content -->
     <style>
         /* Critical path CSS - inlined for fastest FCP */
+        html { scroll-padding-top: 5.5rem; } /* Prevent fixed nav from covering section tops when scrolling to #reviews etc. */
         body { font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif; margin: 0; }
         .hero { min-height: 100vh; display: flex; align-items: center; }
         nav { position: fixed; top: 0; left: 0; right: 0; z-index: 1000; background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); }
@@ -3375,6 +3376,23 @@
             /* Review card location */
             .reviews-grid > div > div:nth-child(2) p {
                 font-size: 0.8rem !important;
+            }
+            
+            /* At 375px etc.: show full "Manhattan, NY" / location - let header name+role column shrink and wrap */
+            .reviews-grid > div > div:first-child > div:nth-child(2) {
+                flex-wrap: wrap !important;
+                gap: 0.5rem !important;
+            }
+            .reviews-grid > div > div:first-child > div:nth-child(2) > div:nth-child(2) {
+                min-width: 0 !important;
+                overflow: visible !important;
+                flex: 1 1 60% !important; /* take available space, allow wrap */
+            }
+            .reviews-grid > div > div:first-child > div:nth-child(2) > div:nth-child(2) p {
+                flex-wrap: wrap !important;
+                white-space: normal !important;
+                overflow: visible !important;
+                min-width: 0 !important;
             }
             
             /* Review card stars row */
@@ -6713,7 +6731,7 @@
     </div>
 
     <!-- Reviews and Testimonials Section (Premium Redesign) -->
-    <section class="section-light" style="padding: 6rem 2rem; position: relative; overflow: hidden;">
+    <section id="reviews" class="section-light" style="padding: 6rem 2rem; position: relative; overflow: hidden; scroll-margin-top: 5.5rem;">
         <!-- Decorative Elements -->
         <div aria-hidden="true" style="position: absolute; top: 0; left: 0; right: 0; height: 6px; background: linear-gradient(90deg, #0B4FA2 0%, #f97316 50%, #10b981 100%);"></div>
         <div aria-hidden="true" style="position: absolute; top: 60px; right: -100px; width: 400px; height: 400px; background: radial-gradient(circle, rgba(11, 79, 162, 0.08) 0%, transparent 70%); border-radius: 50%;"></div>

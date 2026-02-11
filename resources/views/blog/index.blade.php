@@ -15,6 +15,11 @@
     @include('partials.nav-footer-styles')
     
     <style>
+        /* Prevent horizontal scroll site-wide on blog */
+        html {
+            overflow-x: hidden;
+            max-width: 100vw;
+        }
         body {
             font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             line-height: 1.6;
@@ -23,11 +28,13 @@
             background: #ffffff;
             margin: 0;
             padding: 0;
+            max-width: 100vw;
         }
 
         .blog-hero {
-            margin-top: 88px;
+            margin-top: 0;
             padding: 8rem 2rem 6rem;
+            padding-top: 88px;
             text-align: center;
             position: relative;
             overflow: hidden;
@@ -45,6 +52,7 @@
             height: 100%;
             display: flex;
             z-index: 0;
+            overflow: hidden;
         }
 
         .blog-hero-bg-slice {
@@ -53,7 +61,8 @@
             background-position: center;
             position: relative;
             transform: skewX(-5deg);
-            margin: 0 -2%;
+            margin: 0 0;
+            min-width: 33.33%;
         }
 
         .blog-hero-bg-slice:nth-child(1) {
@@ -72,7 +81,9 @@
             position: relative;
             z-index: 10;
             max-width: 1000px;
+            width: 100%;
             margin: 0 auto;
+            box-sizing: border-box;
             background: rgba(255, 255, 255, 0.05);
             backdrop-filter: blur(20px);
             border-radius: 30px;
@@ -149,22 +160,26 @@
 
         .blog-container {
             max-width: 1400px;
+            width: 100%;
             margin: 0 auto;
             padding: 80px 2rem;
             display: grid;
             grid-template-columns: 1fr 350px;
             gap: 50px;
             background: #ffffff;
+            box-sizing: border-box;
         }
 
         .blog-main {
             width: 100%;
+            min-width: 0;
         }
 
         .blog-sidebar {
             position: sticky;
             top: 108px;
             height: fit-content;
+            min-width: 0;
         }
 
         .section-title {
@@ -234,7 +249,7 @@
             overflow: hidden;
             box-shadow: 0 5px 20px rgba(0,0,0,0.08);
             display: grid;
-            grid-template-columns: 1.2fr 1fr;
+            grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
             gap: 0;
             margin-bottom: 40px;
             transition: all 0.3s ease;
@@ -252,10 +267,12 @@
             height: 100%;
             min-height: 400px;
             object-fit: cover;
+            min-width: 0;
         }
 
         .featured-post-content {
             padding: 40px;
+            min-width: 0;
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -336,7 +353,7 @@
             text-decoration: none;
             color: inherit;
             display: grid;
-            grid-template-columns: 280px 1fr;
+            grid-template-columns: minmax(0, 280px) 1fr;
             gap: 0;
             min-height: 200px;
             border: 1px solid #e5e7eb;
@@ -351,10 +368,12 @@
             width: 100%;
             height: 100%;
             object-fit: cover;
+            min-width: 0;
         }
 
         .blog-card-content {
             padding: 20px 25px;
+            min-width: 0;
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -618,9 +637,13 @@
         }
 
         @media (max-width: 768px) {
+            .blog-container {
+                padding: 60px 1.5rem;
+            }
             .blog-hero {
-                margin-top: 72px;
+                margin-top: 0;
                 padding: 3rem 1.5rem 2.5rem;
+                padding-top: 72px;
             }
 
             .blog-hero h1 {
@@ -663,17 +686,18 @@
             }
 
             .read-more-btn {
-                width: 100%;
-                text-align: center;
-                justify-content: center;
+                width: auto;
+                display: inline-flex;
+                align-items: center;
             }
         }
 
         /* Mobile Responsive (480px and below) */
         @media (max-width: 480px) {
             .blog-hero {
-                margin-top: 70px;
+                margin-top: 0;
                 padding: 2rem 1rem;
+                padding-top: 70px;
                 min-height: auto;
             }
 
@@ -840,9 +864,12 @@
             }
 
             .read-more-btn {
-                padding: 8px 16px;
+                padding: 8px 18px;
                 font-size: 0.85rem;
-                width: 100%;
+                width: auto;
+                max-width: 100%;
+                display: inline-flex;
+                align-items: center;
                 justify-content: center;
             }
 
@@ -898,7 +925,7 @@
         }
     </style>
 </head>
-<body>
+<body class="blog-page">
     <!-- Navigation -->
     @include('partials.navigation')
 
@@ -1054,15 +1081,15 @@
     @include('partials.footer')
 
     <script>
-        // Mobile menu toggle
+        // Mobile menu toggle (nav uses .mobile-menu-btn and toggleMenu() from navigation partial)
         document.addEventListener('DOMContentLoaded', function() {
-            const navToggle = document.querySelector('.hamburger');
-            const navMenu = document.querySelector('.nav-links');
-            
-            if (navToggle) {
+            var navMenu = document.getElementById('navLinks');
+            var navBtn = document.getElementById('mobileMenuBtn');
+            var navToggle = document.querySelector('.hamburger') || document.querySelector('.mobile-menu-btn');
+            if (navToggle && navMenu && !navToggle.onclick) {
                 navToggle.addEventListener('click', function() {
                     navMenu.classList.toggle('active');
-                    navToggle.classList.toggle('active');
+                    if (navBtn) navBtn.setAttribute('aria-expanded', navMenu.classList.contains('active'));
                 });
             }
         });
