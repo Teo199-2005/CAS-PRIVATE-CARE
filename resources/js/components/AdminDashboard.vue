@@ -70,7 +70,6 @@
   >
     <template #header-left>
       <v-btn color="error" size="x-large" prepend-icon="mdi-bullhorn" class="admin-btn" @click="announceDialog = true">Send Announcement</v-btn>
-      <v-btn v-if="staffMode" color="success" size="x-large" prepend-icon="mdi-email-send" class="admin-btn ml-2" @click="testEmailDialog = true">Test Email</v-btn>
     </template>
 
   <!-- Email Verification Banner (not needed for company admin) -->
@@ -5971,34 +5970,6 @@
       </v-card>
     </v-dialog>
 
-    <!-- Test Email Dialog -->
-    <v-dialog v-model="testEmailDialog" :max-width="isMobile ? undefined : 500" :fullscreen="isMobile" scrollable>
-      <v-card>
-        <v-card-title class="pa-6" style="background: #dc2626; color: white;">
-          <span class="section-title" style="color: white;">Test Email Configuration</span>
-        </v-card-title>
-        <v-card-text class="pa-6">
-          <p class="mb-4">Send a test email to verify your Brevo email configuration is working correctly.</p>
-          <v-text-field 
-            v-model="testEmailAddress" 
-            label="Test Email Address" 
-            variant="outlined" 
-            placeholder="teofiloharry69@gmail.com"
-            prepend-inner-icon="mdi-email"
-            class="mb-4"
-          />
-          <v-alert type="info" variant="tonal" class="mb-4">
-            This will send a test email to verify your SMTP configuration is working.
-          </v-alert>
-        </v-card-text>
-        <v-card-actions class="pa-6 pt-0">
-          <v-spacer />
-          <v-btn color="grey" variant="outlined" @click="testEmailDialog = false">Cancel</v-btn>
-          <v-btn color="error" :loading="sendingTestEmail" @click="sendTestEmail">Send Test Email</v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
-
     <!-- Add User Dialog -->
     <v-dialog v-model="addUserDialog" :max-width="isMobile ? undefined : 600" :fullscreen="isMobile" scrollable>
       <v-card>
@@ -9121,9 +9092,6 @@ const viewingCaregiver = ref(null);
 const caregiverReviews = ref([]);
 const loadingCaregiverReviews = ref(false);
 const announceDialog = ref(false);
-const testEmailDialog = ref(false);
-const testEmailAddress = ref('teofiloharry69@gmail.com');
-const sendingTestEmail = ref(false);
 const clientDialog = ref(false);
 const caregiverDialog = ref(false);
 const editingClient = ref(false);
@@ -12108,7 +12076,10 @@ const loadClientBookings = async () => {
       };
       
       const caregiversNeeded = b.caregivers_needed !== undefined ? b.caregivers_needed : calculateCaregiversNeeded(b.duty_type);
-      const assignedCount = b.assignments?.length || 0;
+      const isHousekeeping = String(b.service_type || b.service || '').toLowerCase().includes('housekeeping');
+      const assignedCount = isHousekeeping
+        ? (b.housekeeper_assignments || b.housekeeperAssignments || []).length
+        : (b.assignments?.length || 0);
       
       // Calculate coverage end date
       const serviceDate = new Date(b.service_date);
@@ -12229,6 +12200,7 @@ const loadClientBookings = async () => {
         paymentStatus: b.payment_status || 'unpaid',
         assignmentStatus: assignmentStatus,
         assignments: b.assignments || [], // Store full assignment data with phone numbers
+        housekeeper_assignments: b.housekeeper_assignments || b.housekeeperAssignments || [], // For housekeeping bookings
         // Pricing fields
         dutyType: b.duty_type || 'hourly',
         hoursPerDay: hoursPerDay,
@@ -12880,38 +12852,6 @@ const rejectApplication = async (application) => {
 const verifyUser = (user, type) => {
   user.verified = !user.verified;
   success(`${user.name} verification status updated.`, 'Verification Updated');
-};
-
-const sendTestEmail = async () => {
-  if (!testEmailAddress.value || !testEmailAddress.value.includes('@')) {
-    warning('Please enter a valid email address.', 'Invalid Email');
-    return;
-  }
-  
-  sendingTestEmail.value = true;
-  try {
-    const response = await fetch('/api/admin/test-email', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
-      },
-      body: JSON.stringify({ email: testEmailAddress.value })
-    });
-    
-    const result = await response.json();
-    
-    if (result.success) {
-      success(result.message || `Test email sent successfully to ${testEmailAddress.value}!`, 'Test Email Sent');
-      testEmailDialog.value = false;
-    } else {
-      error(result.message || 'Failed to send test email. Please check your configuration.', 'Test Email Failed');
-    }
-  } catch (err) {
-    error('Failed to send test email. Please try again.', 'Test Email Failed');
-  } finally {
-    sendingTestEmail.value = false;
-  }
 };
 
 const sendAnnouncement = async () => {
@@ -14961,18 +14901,20 @@ const assignHousekeeperDialog = async (booking) => {
 
   customHousekeepersNeeded.value = booking.caregiversNeeded;
 
-  // Prefill from existing assignments if provided
-  assignSelectedHousekeepers.value = (booking.assignments || [])
-  .filter(a => String(a.provider_type || '').toLowerCase() === 'housekeeper' || a.housekeeper_id || a.housekeeper?.id)
-  .map(a => a.housekeeper_id || a.housekeeper?.id)
-    .filter(Boolean);
+  // Prefill from existing housekeeper assignments (or legacy assignments with housekeeper_id)
+  const hkAssignments = booking.housekeeper_assignments || booking.housekeeperAssignments || [];
+  const fromAssignments = (booking.assignments || [])
+    .filter(a => String(a.provider_type || '').toLowerCase() === 'housekeeper' || a.housekeeper_id || a.housekeeper?.id)
+    .map(a => a.housekeeper_id || a.housekeeper?.id);
+  assignSelectedHousekeepers.value = hkAssignments.length
+    ? hkAssignments.map(a => a.housekeeper_id ?? a.housekeeper?.id).filter(Boolean)
+    : fromAssignments.filter(Boolean);
 
   assignedHousekeeperRates.value = {};
   assignSelectedHousekeepers.value.forEach(housekeeperId => {
+    const fromApi = hkAssignments.find(a => (a.housekeeper_id ?? a.housekeeper?.id) === housekeeperId);
     const hk = housekeepers.value.find(h => h.id === housekeeperId);
-    if (hk) {
-      assignedHousekeeperRates.value[housekeeperId] = hk.hourly_rate || 20;
-    }
+    assignedHousekeeperRates.value[housekeeperId] = fromApi?.hourly_rate ?? hk?.hourly_rate ?? 20;
   });
 
   assignHousekeeperDialogOpen.value = true;
@@ -15160,15 +15102,33 @@ const getAssignedCaregivers = (bookingId) => {
 
 const getAssignedHousekeepers = (bookingId) => {
   const booking = clientBookings.value.find(b => b.id === bookingId);
-  if (!booking || !Array.isArray(booking.assignments)) return [];
+  if (!booking) return [];
 
+  // Housekeeping bookings: use housekeeper_assignments from API
+  const hkAssignments = booking.housekeeper_assignments || booking.housekeeperAssignments || [];
+  if (hkAssignments.length > 0) {
+    return hkAssignments.map(a => {
+      const id = a.housekeeper_id ?? a.housekeeper?.id;
+      if (!id) return null;
+      const fromList = housekeepers.value?.find(h => h.id === id);
+      return {
+        id,
+        name: a.housekeeper?.user?.name || a.housekeeper?.name || fromList?.user?.name || fromList?.name || 'Unknown',
+        email: a.housekeeper?.user?.email || a.housekeeper?.email || fromList?.user?.email || fromList?.email || 'Unknown',
+        hourly_rate: a.hourly_rate ?? a.assigned_hourly_rate ?? fromList?.hourly_rate ?? 20,
+      };
+    }).filter(Boolean);
+  }
+
+  // Fallback: legacy assignments array with housekeeper_id
+  if (!Array.isArray(booking.assignments)) return [];
   return booking.assignments
     .filter(a => String(a.provider_type || '').toLowerCase() === 'housekeeper' || a.housekeeper_id)
     .map(a => ({
-      id: a.housekeeper_id,
+      id: a.housekeeper_id ?? a.housekeeper?.id,
       name: a.housekeeper?.user?.name || a.housekeeper_name || 'Unknown',
       email: a.housekeeper?.user?.email || a.housekeeper_email || 'Unknown',
-      hourly_rate: a.assigned_hourly_rate || 20,
+      hourly_rate: a.assigned_hourly_rate ?? a.hourly_rate ?? 20,
     }))
     .filter(h => !!h.id);
 };
@@ -15270,95 +15230,90 @@ const saveBookingReferral = async () => {
   }
 };
 
-const viewAssignedCaregivers = async (booking) => {
+const viewAssignedCaregivers = (booking) => {
   viewingBookingCaregivers.value = booking;
-  loadUsers(); // Refresh caregiver data
-  
-  // Load schedules for all assigned caregivers
   caregiverSchedules.value = {};
-  weeklySchedule.value = {}; // Reset weekly schedule
+  weeklySchedule.value = {};
+  viewAssignedCaregiversDialog.value = true; // Open immediately so the UI responds right away
 
-if (booking && booking.assignments) {
-    console.log('Loading schedules for booking', booking.id, 'with assignments:', booking.assignments);
-    for (const assignment of booking.assignments) {
-      try {
-        console.log('Fetching schedule for caregiver_id:', assignment.caregiver_id);
-        const response = await fetch(`/api/bookings/${booking.id}/caregiver/${assignment.caregiver_id}/schedule`, {
-          headers: {
-            'Accept': 'application/json',
-            'X-Requested-With': 'XMLHttpRequest'
-          },
-          credentials: 'include'
-        });
-        if (response.ok) {
-          const responseData = await response.json();
-          console.log('Schedule response for caregiver', assignment.caregiver_id, ':', responseData);
-          
-          // API wraps data in 'data' object
-          const scheduleData = responseData.data?.schedule || responseData.schedule;
-          
-          if (scheduleData) {
-            // Store the full schedule object (days array and schedules object)
-            caregiverSchedules.value[assignment.caregiver_id] = {
-              days: scheduleData.days || [],
-              schedules: scheduleData.schedules || {}
-            };
-
-            // Build the weekly schedule view
-            if (scheduleData.days) {
-              for (const day of scheduleData.days) {
-                weeklySchedule.value[day] = assignment.caregiver_id;
+  loadUsers(); // Refresh caregiver data (non-blocking)
+  // Load schedules in the background so the dialog is not blocked
+  if (booking?.assignments?.length) {
+    (async () => {
+      for (const assignment of booking.assignments) {
+        try {
+          const response = await fetch(`/api/bookings/${booking.id}/caregiver/${assignment.caregiver_id}/schedule`, {
+            headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+            credentials: 'include'
+          });
+          if (response.ok) {
+            const responseData = await response.json();
+            const scheduleData = responseData.data?.schedule || responseData.schedule;
+            if (scheduleData) {
+              caregiverSchedules.value[assignment.caregiver_id] = {
+                days: scheduleData.days || [],
+                schedules: scheduleData.schedules || {}
+              };
+              if (scheduleData.days) {
+                for (const day of scheduleData.days) {
+                  weeklySchedule.value[day] = assignment.caregiver_id;
+                }
               }
             }
           }
-        } else {
-          console.error('Failed to fetch schedule for caregiver', assignment.caregiver_id, 'status:', response.status);
-        }
-      } catch (err) {
-        console.error('Error fetching schedule for caregiver', assignment.caregiver_id, err);
+        } catch (_) { /* ignore */ }
       }
-    }
+    })();
   }
-
-viewAssignedCaregiversDialog.value = true;
 };
 
-const viewAssignedHousekeepers = async (booking) => {
+const viewAssignedHousekeepers = (booking) => {
   viewingBookingHousekeepers.value = booking;
-
-  // Load schedules for all assigned housekeepers
   housekeeperSchedules.value = {};
   weeklyHousekeeperSchedule.value = {};
+  assignedHousekeepersTab.value = 'housekeepers';
+  viewAssignedHousekeepersDialog.value = true; // Open immediately so the UI responds right away
 
+  // Load schedules in the background so the dialog is not blocked
   const assigned = getAssignedHousekeepers(booking.id);
-  for (const hk of assigned) {
-    try {
-      const response = await fetch(`/api/bookings/${booking.id}/housekeeper/${hk.id}/schedule`, {
-        credentials: 'include'
-      });
-      if (response.ok) {
-        const responseData = await response.json();
-        // API wraps data in 'data' object
-        const scheduleData = responseData.data?.schedule || responseData.schedule;
-        if (scheduleData) {
-          housekeeperSchedules.value[hk.id] = {
-            days: scheduleData.days || [],
-            schedules: scheduleData.schedules || {}
-          };
-          if (scheduleData.days) {
-            for (const day of scheduleData.days) {
+  if (assigned.length > 0) {
+    (async () => {
+      for (const hk of assigned) {
+        try {
+          const response = await fetch(`/api/bookings/${booking.id}/housekeeper/${hk.id}/schedule`, {
+            credentials: 'include'
+          });
+          if (response.ok) {
+            const responseData = await response.json();
+            const raw = responseData.data ?? responseData;
+            if (!raw) continue;
+            // API returns schedule_days: [{ day, start_time, end_time }, ...] (array or JSON string); normalize to days + schedules
+            let days = [];
+            let schedules = {};
+            let scheduleDays = raw.schedule_days;
+            if (typeof scheduleDays === 'string') {
+              try { scheduleDays = JSON.parse(scheduleDays); } catch (_) { scheduleDays = []; }
+            }
+            if (Array.isArray(scheduleDays) && scheduleDays.length > 0) {
+              days = scheduleDays.map(s => (s.day || s).toString().toLowerCase());
+              schedules = scheduleDays.reduce((acc, s) => {
+                const day = (s.day || s).toString().toLowerCase();
+                acc[day] = { start_time: s.start_time || '08:00', end_time: s.end_time || '17:00' };
+                return acc;
+              }, {});
+            } else if (raw.days?.length) {
+              days = raw.days;
+              schedules = raw.schedules || {};
+            }
+            housekeeperSchedules.value[hk.id] = { days, schedules };
+            for (const day of days) {
               weeklyHousekeeperSchedule.value[day] = hk.id;
             }
           }
-        }
+        } catch (_) { /* ignore */ }
       }
-    } catch (err) {
-      // ignore
-    }
+    })();
   }
-
-  assignedHousekeepersTab.value = 'housekeepers';
-  viewAssignedHousekeepersDialog.value = true;
 };
 
 const getHousekeeperScheduleDays = (housekeeperId) => {
@@ -15391,24 +15346,42 @@ const saveHousekeeperSchedule = async (housekeeperId) => {
   if (!viewingBookingHousekeepers.value) return;
   const bookingId = viewingBookingHousekeepers.value.id;
   const schedule = housekeeperSchedules.value[housekeeperId] || { days: [], schedules: {} };
+  const days = schedule.days || [];
+  const schedules = schedule.schedules || {};
+  const defaultEnd = viewingBookingHousekeepers.value?.end_time || '17:00';
+
+  // Backend expects schedule_days: [ { day, start_time, end_time }, ... ]
+  const schedule_days = days.map(day => {
+    const slot = schedules[day] || {};
+    return {
+      day,
+      start_time: slot.start_time || '08:00',
+      end_time: slot.end_time || defaultEnd,
+    };
+  });
 
   try {
-    const el = document.querySelector('meta[name="csrf-token"]');
+    await refreshAdminCsrfToken();
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
     const response = await fetch(`/api/bookings/${bookingId}/housekeeper/${housekeeperId}/schedule`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        ...(el ? { 'X-CSRF-TOKEN': el.getAttribute('content') } : {}),
+        'Accept': 'application/json',
+        'X-CSRF-TOKEN': csrfToken,
+        'X-Requested-With': 'XMLHttpRequest',
       },
       credentials: 'include',
-      body: JSON.stringify({
-        days: schedule.days || [],
-        schedules: schedule.schedules || {},
-      }),
+      body: JSON.stringify({ schedule_days, notes: null }),
     });
-    if (!response.ok) {
+    if (response.ok) {
+      success('Weekly schedule saved for this housekeeper.', 'Schedule Saved');
+    } else {
+      const data = await response.json().catch(() => ({}));
+      error(data?.message || 'Failed to save schedule. Please try again.', 'Save Failed');
     }
   } catch (e) {
+    error('Failed to save schedule. Please try again.', 'Save Failed');
   }
 };
 
@@ -15604,7 +15577,6 @@ const assignCaregiverToDay = async (dayValue, caregiverId) => {
     caregiverSchedules.value[caregiverId] = { ...currentSchedule };
 
     // Save to database
-    console.log('Saving schedule for caregiver', caregiverId, 'day', dayValue, 'schedule:', currentSchedule);
     const response = await fetch(`/api/bookings/${viewingBookingCaregivers.value.id}/caregiver/${caregiverId}/schedule`, {
       method: 'POST',
       headers: {
@@ -15622,16 +15594,13 @@ const assignCaregiverToDay = async (dayValue, caregiverId) => {
     
     if (response.ok) {
       const responseData = await response.json();
-      console.log('Schedule saved successfully:', responseData);
-      // Update cache with server response - API wraps data in 'data' object
       const scheduleData = responseData.data?.schedule || responseData.schedule;
       if (scheduleData) {
         caregiverSchedules.value[caregiverId] = scheduleData;
       }
+      success('Weekly schedule saved for this caregiver.', 'Schedule Saved');
     } else {
-      const errorText = await response.text();
-      console.error('Failed to save schedule:', errorText);
-      
+      error('Failed to save schedule. Please try again.', 'Save Failed');
       // Revert on error
       if (previousCaregiverId) {
         weeklySchedule.value[dayValue] = previousCaregiverId;
@@ -15639,8 +15608,8 @@ const assignCaregiverToDay = async (dayValue, caregiverId) => {
         delete weeklySchedule.value[dayValue];
       }
     }
-  } catch (error) {
-    console.error('Error saving schedule:', error);
+  } catch (err) {
+    error('Failed to save schedule. Please try again.', 'Save Failed');
     // Revert on error
     if (previousCaregiverId) {
       weeklySchedule.value[dayValue] = previousCaregiverId;
@@ -15899,20 +15868,29 @@ const unassignCaregiver = async (caregiverId) => {
   }
 };
 
-const unassignHousekeeper = async (housekeeperId, bookingId) => {
+const unassignHousekeeper = async (housekeeperId, bookingId, retryAfterCsrf = false) => {
   if (!bookingId) return;
 
   try {
+    if (!retryAfterCsrf) await refreshAdminCsrfToken();
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+
     const resp = await fetch(`/api/bookings/${bookingId}/unassign-housekeeper`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+        'Accept': 'application/json',
+        'X-CSRF-TOKEN': csrfToken,
         'X-Requested-With': 'XMLHttpRequest',
       },
       credentials: 'include',
-      body: JSON.stringify({ housekeeper_id: housekeeperId }),
+      body: JSON.stringify({ housekeeper_id: housekeeperId, _token: csrfToken }),
     });
+
+    if (resp.status === 419 && !retryAfterCsrf) {
+      const newToken = await refreshAdminCsrfToken();
+      if (newToken) return unassignHousekeeper(housekeeperId, bookingId, true);
+    }
 
     // Parse response if possible
     let data = {};
@@ -16298,7 +16276,7 @@ const confirmAssignCaregivers = async () => {
   }
 };
 
-const confirmAssignHousekeepers = async () => {
+const confirmAssignHousekeepers = async (retryAfterCsrf = false) => {
   try {
     if (!selectedBooking.value) return;
     const bookingId = selectedBooking.value.id;
@@ -16311,28 +16289,40 @@ const confirmAssignHousekeepers = async () => {
       }
     }
 
+    // Use fresh CSRF token so assignment doesn't fail with token mismatch
+    if (!retryAfterCsrf) await refreshAdminCsrfToken();
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+
+    const body = {
+      housekeeper_ids: assignSelectedHousekeepers.value,
+      assigned_rates: assignedHousekeeperRates.value,
+      housekeepers_needed: customHousekeepersNeeded.value || selectedBooking.value.caregiversNeeded,
+      _token: csrfToken
+    };
+
     const response = await fetch(`/api/bookings/${bookingId}/assign-housekeepers`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
-        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+        'X-CSRF-TOKEN': csrfToken,
+        'X-Requested-With': 'XMLHttpRequest'
       },
-  credentials: 'include',
-      body: JSON.stringify({
-        housekeeper_ids: assignSelectedHousekeepers.value,
-        assigned_rates: assignedHousekeeperRates.value,
-        housekeepers_needed: customHousekeepersNeeded.value || selectedBooking.value.caregiversNeeded
-      })
+      credentials: 'include',
+      body: JSON.stringify(body)
     });
+
+    if (response.status === 419 && !retryAfterCsrf) {
+      const newToken = await refreshAdminCsrfToken();
+      if (newToken) return confirmAssignHousekeepers(true);
+    }
 
     const responseData = await response.json().catch(() => ({}));
     if (!response.ok) throw new Error(responseData.message || 'Failed to save housekeeper assignments');
 
-  success('Housekeeper assignment updated successfully!', 'Assignment Complete');
-  // Close immediately for better UX, then refresh data in the background
-  closeAssignHousekeeperDialog();
-  await loadClientBookings();
+    success('Housekeeper assignment updated successfully!', 'Assignment Complete');
+    closeAssignHousekeeperDialog();
+    await loadClientBookings();
   } catch (err) {
     error(err.message || 'Failed to update housekeeper assignments. Please try again.', 'Assignment Failed');
   }
@@ -17399,13 +17389,7 @@ onMounted(async () => {
     }, 500);
   });
   
-  // Auto-refresh bookings and stats every 15 seconds to catch payment updates
-  setInterval(() => {
-    loadClientBookings();  // Refresh bookings table
-    loadAdminStats();      // Refresh platform metrics
-    loadPaymentStats();    // Refresh payment stats
-    loadMetrics();         // Refresh financial metrics
-  }, 15000);
+  // No auto-refresh: data updates when user navigates or performs actions (Vue reactivity).
 });
 
 // Re-add labels when booking data changes
@@ -17473,12 +17457,6 @@ if (typeof window !== 'undefined') {
 // Refresh notification count every 30 seconds
 setInterval(loadAdminNotificationCount, 30000);
 
-// Refresh time tracking every 10 seconds for real-time updates
-setInterval(() => {
-  if (currentSection.value === 'time-tracking') {
-    loadTimeTrackingData();
-  }
-}, 10000);
 </script>
 
 <style>

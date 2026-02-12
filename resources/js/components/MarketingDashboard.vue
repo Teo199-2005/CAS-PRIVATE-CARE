@@ -182,17 +182,6 @@
                 <div class="referral-code">{{ referralCode }}</div>
                 <v-btn icon="mdi-content-copy" size="small" variant="text" @click="copyReferralCode" class="copy-btn" title="Copy Code" aria-label="Copy code"></v-btn>
               </div>
-              <div class="share-buttons mb-3">
-                <v-btn size="x-small" color="success" variant="tonal" @click="shareViaWhatsApp" class="mr-1">
-                  <v-icon size="14">mdi-whatsapp</v-icon>
-                </v-btn>
-                <v-btn size="x-small" color="info" variant="tonal" @click="shareViaEmail" class="mr-1">
-                  <v-icon size="14">mdi-email</v-icon>
-                </v-btn>
-                <v-btn size="x-small" color="primary" variant="tonal" @click="shareViaSMS">
-                  <v-icon size="14">mdi-message-text</v-icon>
-                </v-btn>
-              </div>
               <v-divider class="my-2" />
               <div class="d-flex justify-space-between text-body-2">
                 <span class="text-grey">Times Used</span>
@@ -242,16 +231,13 @@
           <v-col cols="12" md="3">
             <v-select v-model="boroughFilter" :items="boroughs" label="Borough" variant="outlined" density="compact" hide-details />
           </v-col>
-          <v-col cols="12" md="2">
-            <v-btn color="grey-darken-2" prepend-icon="mdi-plus" @click="addClientDialog = true">Add Client</v-btn>
-          </v-col>
         </v-row>
       </div>
       <v-card elevation="0">
         <v-card-title class="card-header pa-8">
           <span class="section-title grey--text text--darken-2">My Clients</span>
         </v-card-title>
-        <v-data-table :headers="clientManagementHeaders" :items="filteredClients" :items-per-page="10" class="elevation-0">
+        <v-data-table :headers="clientManagementHeaders" :items="filteredClients" :items-per-page="10" class="elevation-0 marketing-clients-table">
           <template v-slot:item.status="{ item }">
             <v-chip :color="getStatusColor(item.status)" size="small" class="font-weight-bold">{{ item.status }}</v-chip>
           </template>
@@ -259,9 +245,21 @@
             <span class="font-weight-bold grey--text text--darken-2">${{ item.commission }}</span>
           </template>
           <template v-slot:item.actions="{ item }">
-            <div class="action-buttons">
-              <v-btn class="action-btn-view" icon="mdi-eye" @click="viewClient(item)"></v-btn>
-              <v-btn class="action-btn-edit" icon="mdi-percent" @click="editDiscount(item)"></v-btn>
+            <div class="actions-cell">
+              <v-tooltip text="Client Details" location="top">
+                <template v-slot:activator="{ props }">
+                  <v-btn
+                    v-bind="props"
+                    class="action-btn-view"
+                    icon="mdi-eye-outline"
+                    size="small"
+                    variant="tonal"
+                    color="primary"
+                    @click="viewClient(item)"
+                    aria-label="Client Details"
+                  />
+                </template>
+              </v-tooltip>
             </div>
           </template>
         </v-data-table>
@@ -799,6 +797,65 @@
       </v-card>
     </v-dialog>
 
+    <!-- Client Details Dialog -->
+    <v-dialog v-model="clientDetailsDialog" max-width="520" persistent>
+      <v-card v-if="viewingClient">
+        <v-card-title class="pa-6 d-flex align-center" style="background: #616161; color: white;">
+          <v-icon class="mr-2" color="white">mdi-account-details</v-icon>
+          Client Details
+        </v-card-title>
+        <v-card-text class="pa-6">
+          <v-list density="comfortable" class="py-0">
+            <v-list-item class="px-0">
+              <template v-slot:prepend><span class="text-body-2 text-grey font-weight-medium" style="min-width: 140px;">Name</span></template>
+              <v-list-item-title>{{ viewingClient.name }}</v-list-item-title>
+            </v-list-item>
+            <v-divider />
+            <v-list-item class="px-0">
+              <template v-slot:prepend><span class="text-body-2 text-grey font-weight-medium" style="min-width: 140px;">Email</span></template>
+              <v-list-item-title>{{ viewingClient.email }}</v-list-item-title>
+            </v-list-item>
+            <v-divider />
+            <v-list-item class="px-0">
+              <template v-slot:prepend><span class="text-body-2 text-grey font-weight-medium" style="min-width: 140px;">Phone</span></template>
+              <v-list-item-title>{{ viewingClient.phone || '—' }}</v-list-item-title>
+            </v-list-item>
+            <v-divider />
+            <v-list-item class="px-0">
+              <template v-slot:prepend><span class="text-body-2 text-grey font-weight-medium" style="min-width: 140px;">Borough</span></template>
+              <v-list-item-title>{{ viewingClient.borough || 'N/A' }}</v-list-item-title>
+            </v-list-item>
+            <v-divider />
+            <v-list-item class="px-0">
+              <template v-slot:prepend><span class="text-body-2 text-grey font-weight-medium" style="min-width: 140px;">Status</span></template>
+              <v-list-item-title>
+                <v-chip :color="viewingClient.status === 'Active' ? 'success' : 'grey'" size="small" class="font-weight-bold">{{ viewingClient.status }}</v-chip>
+              </v-list-item-title>
+            </v-list-item>
+            <v-divider />
+            <v-list-item class="px-0">
+              <template v-slot:prepend><span class="text-body-2 text-grey font-weight-medium" style="min-width: 140px;">Total Hours</span></template>
+              <v-list-item-title>{{ viewingClient.totalHours ?? '0' }}</v-list-item-title>
+            </v-list-item>
+            <v-divider />
+            <v-list-item class="px-0">
+              <template v-slot:prepend><span class="text-body-2 text-grey font-weight-medium" style="min-width: 140px;">Contract Date Applied</span></template>
+              <v-list-item-title>{{ viewingClient.contractDate || '—' }}</v-list-item-title>
+            </v-list-item>
+            <v-divider />
+            <v-list-item class="px-0">
+              <template v-slot:prepend><span class="text-body-2 text-grey font-weight-medium" style="min-width: 140px;">My Commission</span></template>
+              <v-list-item-title class="font-weight-bold">${{ viewingClient.commission ?? '0.00' }}</v-list-item-title>
+            </v-list-item>
+          </v-list>
+        </v-card-text>
+        <v-card-actions class="pa-6 pt-0">
+          <v-spacer />
+          <v-btn color="grey-darken-2" variant="flat" @click="clientDetailsDialog = false">Close</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
     <!-- Profile Picture Success Modal -->
     <v-dialog 
       v-model="showAvatarSuccessModal" 
@@ -899,6 +956,8 @@ const errorMessages = ref([]);
 const currentSection = ref(localStorage.getItem('marketingSection') || 'dashboard');
 const userEmailVerified = ref(false);
 const addClientDialog = ref(false);
+const clientDetailsDialog = ref(false);
+const viewingClient = ref(null);
 const addPaymentDialog = ref(false);
 const clientForm = ref({ name: '', email: '', phone: '', borough: 'Manhattan', contractDate: '' });
 const paymentInfo = ref({ bankName: '', accountNumber: '', routingNumber: '', accountHolder: 'Marketing Staff' });
@@ -1017,7 +1076,7 @@ const clientManagementHeaders = [
   { title: 'Total Hours', key: 'totalHours' },
   { title: 'Contract Date Applied', key: 'contractDate' },
   { title: 'My Commission', key: 'commission' },
-  { title: 'Actions', key: 'actions', sortable: false },
+  { title: 'Actions', key: 'actions', sortable: false, width: '200px' },
 ];
 
 const analyticsSummary = computed(() => ({
@@ -1405,11 +1464,8 @@ const checkMarketingApplicationStatus = async () => {
 };
 
 const viewClient = (client) => {
-  info(`Viewing details for ${client.name}`, 'Client Details');
-};
-
-const editDiscount = (client) => {
-  info(`Managing discount for ${client.name}`, 'Edit Discount');
+  viewingClient.value = client;
+  clientDetailsDialog.value = true;
 };
 
 const saveClient = () => {
@@ -1443,25 +1499,6 @@ const copyReferralCode = () => {
 const copyReferralLink = () => {
   navigator.clipboard.writeText(referralLink.value);
   success('Referral link copied to clipboard!', 'Link Copied');
-};
-
-// Share via WhatsApp
-const shareViaWhatsApp = () => {
-  const message = encodeURIComponent(`Book professional caregiving services with CAS Private Care! Use my referral link to get $3/hour discount: ${referralLink.value}\n\nI earn commission when you book.`);
-  window.open(`https://wa.me/?text=${message}`, '_blank');
-};
-
-// Share via Email
-const shareViaEmail = () => {
-  const subject = encodeURIComponent('Professional Caregiving Services - CAS Private Care');
-  const body = encodeURIComponent(`Hi,\n\nI'd like to recommend CAS Private Care for professional caregiving services in New York.\n\nUse my referral link to get $3/hour discount on your first booking:\n${referralLink.value}\n\nI earn commission when you book.\n\nThey offer verified caregivers, housekeeping services, and more!\n\nBest regards`);
-  window.open(`mailto:?subject=${subject}&body=${body}`, '_blank');
-};
-
-// Share via SMS
-const shareViaSMS = () => {
-  const message = encodeURIComponent(`Get $3/hour off caregiving services with CAS Private Care! Use my link: ${referralLink.value} I earn commission when you book.`);
-  window.open(`sms:?body=${message}`, '_blank');
 };
 
 // ZIP Code to City/State lookup mapping for NY
@@ -2056,29 +2093,36 @@ onMounted(async () => {
   color: #424242;
 }
 
-.action-buttons {
-  display: flex;
-  gap: 6px;
-  justify-content: center;
+/* My Clients table: Actions column */
+.marketing-clients-table :deep(th:last-child),
+.marketing-clients-table :deep(td:last-child),
+.marketing-clients-table :deep(.v-data-table__td:has(.actions-cell)),
+.marketing-clients-table :deep(.v-table__wrapper table th:last-child),
+.marketing-clients-table :deep(.v-table__wrapper table td:last-child) {
+  min-width: 100px !important;
+  width: 100px !important;
+  white-space: nowrap;
+  vertical-align: middle;
 }
 
-.action-btn-view,
-.action-btn-edit {
-  width: 36px !important;
-  height: 36px !important;
-  min-width: 36px !important;
-  padding: 0 !important;
-  border-radius: 8px !important;
+.marketing-clients-table :deep(td:last-child) {
+  padding: 12px 16px !important;
+}
+
+.actions-cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
 }
 
 .action-btn-view {
-  background-color: #757575 !important;
-  color: white !important;
+  flex-shrink: 0;
 }
 
-.action-btn-edit {
-  background-color: #9e9e9e !important;
-  color: white !important;
+.action-btn-view:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
 }
 
 .earning-overview {
@@ -2317,12 +2361,6 @@ onMounted(async () => {
 /* Referral Link Styles */
 .referral-card {
   background: linear-gradient(135deg, #fafafa 0%, #f5f5f5 100%) !important;
-}
-
-.share-buttons {
-  display: flex;
-  justify-content: center;
-  gap: 8px;
 }
 
 .referral-stats {

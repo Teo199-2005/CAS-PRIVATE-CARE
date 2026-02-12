@@ -1465,7 +1465,8 @@
             color: #64748b;
             line-height: 1.5;
             margin-bottom: 1.5rem;
-            flex-grow: 0;
+            flex: 1 1 auto;
+            min-height: 0;
         }
 
         .option-button {
@@ -1481,7 +1482,8 @@
             transition: all 0.3s;
             box-shadow: 0 4px 12px rgba(59, 130, 246, 0.25);
             letter-spacing: 0.01em;
-            margin-top: 0;
+            margin-top: auto;
+            flex-shrink: 0;
         }
 
         .option-button:hover {

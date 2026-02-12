@@ -24,7 +24,6 @@
   >
     <template #header-left>
       <v-btn color="error" size="x-large" prepend-icon="mdi-bullhorn" class="admin-btn" @click="announceDialog = true">Send Announcement</v-btn>
-      <v-btn color="success" size="x-large" prepend-icon="mdi-email-send" class="admin-btn ml-2" @click="testEmailDialog = true">Test Email</v-btn>
     </template>
 
     <!-- Email Verification Banner -->
@@ -1987,34 +1986,6 @@
       </v-card>
     </v-dialog>
 
-    <!-- Test Email Dialog -->
-    <v-dialog v-model="testEmailDialog" max-width="500">
-      <v-card>
-        <v-card-title class="pa-6" style="background: #dc2626; color: white;">
-          <span class="section-title" style="color: white;">Test Email Configuration</span>
-        </v-card-title>
-        <v-card-text class="pa-6">
-          <p class="mb-4">Send a test email to verify your Brevo email configuration is working correctly.</p>
-          <v-text-field 
-            v-model="testEmailAddress" 
-            label="Test Email Address" 
-            variant="outlined" 
-            placeholder="teofiloharry69@gmail.com"
-            prepend-inner-icon="mdi-email"
-            class="mb-4"
-          />
-          <v-alert type="info" variant="tonal" class="mb-4">
-            This will send a test email to verify your SMTP configuration is working.
-          </v-alert>
-        </v-card-text>
-        <v-card-actions class="pa-6 pt-0">
-          <v-spacer />
-          <v-btn color="grey" variant="outlined" @click="testEmailDialog = false">Cancel</v-btn>
-          <v-btn color="error" :loading="sendingTestEmail" @click="sendTestEmail">Send Test Email</v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
-
     <!-- Add User Dialog -->
     <v-dialog v-model="addUserDialog" max-width="600">
       <v-card>
@@ -3951,9 +3922,6 @@ const viewingCaregiver = ref(null);
 const caregiverReviews = ref([]);
 const loadingCaregiverReviews = ref(false);
 const announceDialog = ref(false);
-const testEmailDialog = ref(false);
-const testEmailAddress = ref('teofiloharry69@gmail.com');
-const sendingTestEmail = ref(false);
 const clientDialog = ref(false);
 const caregiverDialog = ref(false);
 const editingClient = ref(false);
@@ -4060,6 +4028,7 @@ const maintenanceMode = ref(false);
 
 const caregivers = ref([]);
 const caregiverAssignments = ref({}); // Track which caregivers are assigned to which bookings
+const housekeeperAssignments = ref({}); // Track which housekeepers are assigned to which bookings (housekeeping)
 
 const clients = ref([]);
 
@@ -4284,7 +4253,7 @@ const navItems = ref([
     title: 'Users', 
     value: 'user-management',
     isToggle: true,
-    expanded: false,
+    expanded: false, // overwritten by navItemsForTemplate
     children: [
       { icon: 'mdi-account-heart', title: 'Caregivers', value: 'caregivers' },
       { icon: 'mdi-account-multiple', title: 'Clients', value: 'clients' },
@@ -5492,7 +5461,10 @@ if (!response.ok) {
       };
       
       const caregiversNeeded = b.caregivers_needed !== undefined ? b.caregivers_needed : calculateCaregiversNeeded(b.duty_type);
-      const assignedCount = b.assignments?.length || 0;
+      const isHousekeeping = String(b.service_type || b.service || '').toLowerCase().includes('housekeeping');
+      const assignedCount = isHousekeeping
+        ? (b.housekeeper_assignments || b.housekeeperAssignments || []).length
+        : (b.assignments?.length || 0);
       
       // Calculate coverage end date
       const serviceDate = new Date(b.service_date);
@@ -5504,12 +5476,13 @@ if (!response.ok) {
       const isCurrentlyActive = serviceDate <= today && today <= coverageEndDate;
       
       // Store assignments in memory with full caregiver data
-      if (assignedCount > 0) {
+      if (assignedCount > 0 && !isHousekeeping) {
         caregiverAssignments.value[b.id] = b.assignments.map(a => a.caregiver_id);
-        // Store the full booking data including assignments for phone access
-        if (!clientBookings.value.find(existing => existing.id === b.id)) {
-          // This will be set later, but we need to ensure assignments are preserved
-        }
+      }
+      // Store housekeeper assignments for housekeeping bookings (for display/consistency)
+      const hkAssignments = b.housekeeper_assignments || b.housekeeperAssignments || [];
+      if (hkAssignments.length > 0) {
+        housekeeperAssignments.value[b.id] = hkAssignments.map(a => a.housekeeper_id ?? a.housekeeper?.id).filter(Boolean);
       }
       
       // Determine assignment status based on assigned count
@@ -5590,6 +5563,7 @@ if (!response.ok) {
         status: b.status || 'pending',
         assignmentStatus: assignmentStatus,
         assignments: b.assignments || [], // Store full assignment data with phone numbers
+        housekeeper_assignments: b.housekeeper_assignments || b.housekeeperAssignments || [], // For housekeeping bookings
         // Pricing fields
         dutyType: b.duty_type || 'hourly',
         hoursPerDay: hoursPerDay,
@@ -5899,38 +5873,6 @@ const rejectApplication = async (application) => {
 const verifyUser = (user, type) => {
   user.verified = !user.verified;
   success(`${user.name} verification status updated.`, 'Verification Updated');
-};
-
-const sendTestEmail = async () => {
-  if (!testEmailAddress.value || !testEmailAddress.value.includes('@')) {
-    warning('Please enter a valid email address.', 'Invalid Email');
-    return;
-  }
-  
-  sendingTestEmail.value = true;
-  try {
-    const response = await fetch('/api/admin/test-email', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
-      },
-      body: JSON.stringify({ email: testEmailAddress.value })
-    });
-    
-    const result = await response.json();
-    
-    if (result.success) {
-      success(result.message || `Test email sent successfully to ${testEmailAddress.value}!`, 'Test Email Sent');
-      testEmailDialog.value = false;
-    } else {
-      error(result.message || 'Failed to send test email. Please check your configuration.', 'Test Email Failed');
-    }
-  } catch (err) {
-    error('Failed to send test email. Please try again.', 'Test Email Failed');
-  } finally {
-    sendingTestEmail.value = false;
-  }
 };
 
 const sendAnnouncement = async () => {
@@ -7399,43 +7341,41 @@ const viewBooking = (booking) => {
   viewBookingDialog.value = true;
 };
 
-const viewAssignedCaregivers = async (booking) => {
+const viewAssignedCaregivers = (booking) => {
   viewingBookingCaregivers.value = booking;
-  loadUsers(); // Refresh caregiver data
-  
-  // Load schedules for all assigned caregivers
   caregiverSchedules.value = {};
-  weeklySchedule.value = {}; // Reset weekly schedule
+  weeklySchedule.value = {};
+  viewAssignedCaregiversDialog.value = true; // Open immediately so the UI responds right away
 
-if (booking && booking.assignments) {
-    for (const assignment of booking.assignments) {
-      try {
-        const response = await fetch(`/api/bookings/${booking.id}/caregiver/${assignment.caregiver_id}/schedule`);
-        if (response.ok) {
-          const data = await response.json();
-          
-          if (data.schedule) {
-            // Store the full schedule object (days array and schedules object)
-            caregiverSchedules.value[assignment.caregiver_id] = {
-              days: data.schedule.days || [],
-              schedules: data.schedule.schedules || {}
-            };
-
-// Build the weekly schedule view
-            if (data.schedule.days) {
-              for (const day of data.schedule.days) {
-                weeklySchedule.value[day] = assignment.caregiver_id;
+  loadUsers(); // Refresh caregiver data (non-blocking)
+  // Load schedules in the background
+  if (booking?.assignments?.length) {
+    (async () => {
+      for (const assignment of booking.assignments) {
+        try {
+          const response = await fetch(`/api/bookings/${booking.id}/caregiver/${assignment.caregiver_id}/schedule`, {
+            headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+            credentials: 'include'
+          });
+          if (response.ok) {
+            const data = await response.json();
+            const schedule = data.data?.schedule || data.schedule;
+            if (schedule) {
+              caregiverSchedules.value[assignment.caregiver_id] = {
+                days: schedule.days || [],
+                schedules: schedule.schedules || {}
+              };
+              if (schedule.days?.length) {
+                for (const day of schedule.days) {
+                  weeklySchedule.value[day] = assignment.caregiver_id;
+                }
               }
             }
           }
-        } else {
-        }
-      } catch (err) {
+        } catch (_) { /* ignore */ }
       }
-    }
+    })();
   }
-
-viewAssignedCaregiversDialog.value = true;
 };
 
 const getCaregiverScheduleDays = (caregiverId) => {
@@ -7577,12 +7517,13 @@ const assignCaregiverToDay = async (dayValue, caregiverId) => {
     
     if (response.ok) {
       const data = await response.json();
-      // Update cache with server response
-      caregiverSchedules.value[caregiverId] = data.schedule;
-      
+      const scheduleData = data.data?.schedule || data.schedule;
+      if (scheduleData) {
+        caregiverSchedules.value[caregiverId] = scheduleData;
+      }
+      success('Weekly schedule saved for this caregiver.', 'Schedule Saved');
     } else {
-      const errorText = await response.text();
-      
+      error('Failed to save schedule. Please try again.', 'Save Failed');
       // Revert on error
       if (previousCaregiverId) {
         weeklySchedule.value[dayValue] = previousCaregiverId;
@@ -7590,8 +7531,8 @@ const assignCaregiverToDay = async (dayValue, caregiverId) => {
         delete weeklySchedule.value[dayValue];
       }
     }
-  } catch (error) {
-    
+  } catch (err) {
+    error('Failed to save schedule. Please try again.', 'Save Failed');
     // Revert on error
     if (previousCaregiverId) {
       weeklySchedule.value[dayValue] = previousCaregiverId;
@@ -8346,22 +8287,14 @@ const notificationCenter = ref(null);
 const handleNotificationAction = (action) => {
 };
 
-const handleNavClick = (item) => {
-  if (item.isToggle) {
-    // Toggle the expanded state
-    item.expanded = !item.expanded;
-  } else {
-    currentSection.value = item.value;
+const handleNavClick = (_item) => {
+  // Toggle is now handled entirely inside DashboardTemplate (local state)
+  if (_item?.value && !_item?.isToggle) {
+    currentSection.value = _item.value;
   }
 };
 
 watch(currentSection, (newVal) => {
-  if (newVal === 'caregivers' || newVal === 'clients') {
-    const userMgmtItem = navItems.value.find(nav => nav.isToggle);
-    if (userMgmtItem) {
-      userMgmtItem.expanded = true;
-    }
-  }
   if (newVal === 'reviews') {
     loadAllReviews();
   }
@@ -8721,12 +8654,6 @@ onMounted(() => {
   
   // Refresh notification count every 30 seconds
   setInterval(loadAdminNotificationCount, 30000);
-  // Refresh time tracking every 10 seconds for real-time updates
-  setInterval(() => {
-    if (currentSection.value === 'time-tracking') {
-      loadTimeTrackingData();
-    }
-  }, 10000);
 });
 </script>
 

@@ -8,15 +8,16 @@ use App\Http\Controllers\Controller;
 use App\Http\Traits\ApiResponseTrait;
 use App\Models\Booking;
 use App\Models\BookingAssignment;
+use App\Models\BookingHousekeeperAssignment;
 use App\Models\Caregiver;
 use App\Models\Housekeeper;
-use App\Models\HousekeeperBookingSchedule;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Schema;
 
 /**
  * BookingAdminController
@@ -202,23 +203,16 @@ class BookingAdminController extends Controller
             $booking = Booking::findOrFail($id);
             
             foreach ($request->housekeeper_ids as $housekeeperId) {
-                // Check if already assigned
-                $exists = DB::table('housekeeper_booking_assignments')
-                    ->where('booking_id', $id)
-                    ->where('housekeeper_id', $housekeeperId)
-                    ->exists();
-
-                if (!$exists) {
-                    DB::table('housekeeper_booking_assignments')->insert([
+                BookingHousekeeperAssignment::firstOrCreate(
+                    [
                         'booking_id' => $id,
                         'housekeeper_id' => $housekeeperId,
+                    ],
+                    [
                         'assigned_at' => now(),
-                        'assigned_by' => Auth::id(),
                         'status' => 'assigned',
-                        'created_at' => now(),
-                        'updated_at' => now()
-                    ]);
-                }
+                    ]
+                );
             }
 
             DB::commit();
@@ -295,8 +289,7 @@ class BookingAdminController extends Controller
         ]);
 
         try {
-            $deleted = DB::table('housekeeper_booking_assignments')
-                ->where('booking_id', $id)
+            $deleted = BookingHousekeeperAssignment::where('booking_id', $id)
                 ->where('housekeeper_id', $request->housekeeper_id)
                 ->delete();
 
@@ -323,25 +316,55 @@ class BookingAdminController extends Controller
 
     /**
      * Get housekeeper schedule for a booking.
+     * Uses housekeeper_schedules table (days + schedules json columns).
      */
     public function getHousekeeperSchedule(int $id, int $housekeeperId): JsonResponse
     {
         try {
-            $schedule = HousekeeperBookingSchedule::where('booking_id', $id)
-                ->where('housekeeper_id', $housekeeperId)
-                ->first();
-
-            if (!$schedule) {
-                // Return empty schedule structure
+            if (!Schema::hasTable('housekeeper_schedules')) {
                 return $this->successResponse([
                     'booking_id' => $id,
                     'housekeeper_id' => $housekeeperId,
-                    'schedule_days' => [],
-                    'notes' => null
+                    'days' => [],
+                    'schedules' => [],
+                    'schedule_days' => []
                 ], 'No schedule found');
             }
 
-            return $this->successResponse($schedule, 'Schedule retrieved successfully');
+            $row = DB::table('housekeeper_schedules')
+                ->where('booking_id', $id)
+                ->where('housekeeper_id', $housekeeperId)
+                ->first();
+
+            if (!$row) {
+                return $this->successResponse([
+                    'booking_id' => $id,
+                    'housekeeper_id' => $housekeeperId,
+                    'days' => [],
+                    'schedules' => [],
+                    'schedule_days' => []
+                ], 'No schedule found');
+            }
+
+            $days = json_decode($row->days, true) ?: [];
+            $schedules = json_decode($row->schedules, true) ?: [];
+            $schedule_days = [];
+            foreach ($days as $day) {
+                $slot = $schedules[$day] ?? [];
+                $schedule_days[] = [
+                    'day' => $day,
+                    'start_time' => $slot['start_time'] ?? '08:00',
+                    'end_time' => $slot['end_time'] ?? '17:00',
+                ];
+            }
+
+            return $this->successResponse([
+                'booking_id' => (int) $row->booking_id,
+                'housekeeper_id' => (int) $row->housekeeper_id,
+                'days' => $days,
+                'schedules' => $schedules,
+                'schedule_days' => $schedule_days
+            ], 'Schedule retrieved successfully');
 
         } catch (\Exception $e) {
             Log::error('Failed to get housekeeper schedule', [
@@ -355,6 +378,8 @@ class BookingAdminController extends Controller
 
     /**
      * Update housekeeper schedule for a booking.
+     * Uses housekeeper_schedules table (days + schedules json columns).
+     * Accepts schedule_days from frontend and converts to days + schedules for storage.
      */
     public function updateHousekeeperSchedule(Request $request, int $id, int $housekeeperId): JsonResponse
     {
@@ -367,17 +392,50 @@ class BookingAdminController extends Controller
         ]);
 
         try {
-            $schedule = HousekeeperBookingSchedule::updateOrCreate(
-                [
+            if (!Schema::hasTable('housekeeper_schedules')) {
+                return $this->errorResponse('Scheduling not available', 400);
+            }
+
+            $schedule_days = $request->schedule_days;
+            $days = [];
+            $schedules = [];
+            foreach ($schedule_days as $entry) {
+                $day = is_string($entry['day'] ?? null) ? strtolower($entry['day']) : null;
+                if ($day === null) {
+                    continue;
+                }
+                $days[] = $day;
+                $schedules[$day] = [
+                    'start_time' => $entry['start_time'] ?? '08:00',
+                    'end_time' => $entry['end_time'] ?? '17:00',
+                ];
+            }
+            $days = array_values(array_unique($days));
+
+            $existing = DB::table('housekeeper_schedules')
+                ->where('booking_id', $id)
+                ->where('housekeeper_id', $housekeeperId)
+                ->first();
+
+            if ($existing) {
+                DB::table('housekeeper_schedules')
+                    ->where('booking_id', $id)
+                    ->where('housekeeper_id', $housekeeperId)
+                    ->update([
+                        'days' => json_encode($days),
+                        'schedules' => json_encode($schedules),
+                        'updated_at' => now(),
+                    ]);
+            } else {
+                DB::table('housekeeper_schedules')->insert([
                     'booking_id' => $id,
-                    'housekeeper_id' => $housekeeperId
-                ],
-                [
-                    'schedule_days' => json_encode($request->schedule_days),
-                    'notes' => $request->notes,
-                    'updated_by' => Auth::id()
-                ]
-            );
+                    'housekeeper_id' => $housekeeperId,
+                    'days' => json_encode($days),
+                    'schedules' => json_encode($schedules),
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+            }
 
             Log::info('Housekeeper schedule updated', [
                 'booking_id' => $id,
@@ -385,7 +443,11 @@ class BookingAdminController extends Controller
                 'admin_id' => Auth::id()
             ]);
 
-            return $this->successResponse($schedule, 'Schedule updated successfully');
+            return $this->successResponse([
+                'days' => $days,
+                'schedules' => $schedules,
+                'schedule_days' => $schedule_days
+            ], 'Schedule updated successfully');
 
         } catch (\Exception $e) {
             Log::error('Failed to update housekeeper schedule', [

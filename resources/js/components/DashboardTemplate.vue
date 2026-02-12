@@ -51,20 +51,21 @@
             <v-list-item 
               :prepend-icon="item.icon" 
               :title="item.title" 
-              @click="$emit('toggle-click', item)"
+              @click.stop.prevent="onToggleClick(item)"
               class="nav-item mb-1 toggle-item"
               :class="{ 'nav-item-disabled': item.disabled }"
+              role="button"
             >
               <template v-slot:append>
                 <v-icon v-if="item.disabled" size="small" color="grey" class="mr-2">mdi-lock</v-icon>
-                <v-icon size="small" :class="{ 'rotate-180': item.expanded }" class="toggle-icon">
+                <v-icon size="small" :class="{ 'rotate-180': isToggleExpanded(item) }" class="toggle-icon">
                   mdi-chevron-down
                 </v-icon>
               </template>
             </v-list-item>
             
             <v-expand-transition>
-              <div v-show="item.expanded" class="sub-items">
+              <div v-if="isToggleExpanded(item)" class="sub-items" @click.stop>
                 <v-list-item 
                   v-for="child in item.children" 
                   :key="child.value"
@@ -359,6 +360,8 @@ const emit = defineEmits(['section-change', 'logout', 'toggle-click', 'disabled-
 // ==========================================
 const drawer = ref(true);
 const showTierHelpModal = ref(false);
+// Dropdown open state: key = nav item value (e.g. 'user-management'), value = true/false. All logic here, no parent sync.
+const toggleExpanded = ref({});
 const drawerRef = ref(null);
 const ariaAnnouncer = ref(null);
 const isMobile = ref(typeof window !== 'undefined' ? window.innerWidth <= 960 : false);
@@ -488,6 +491,15 @@ watch(drawer, async (isOpen) => {
   }
 });
 
+// When section changes to a child of a toggle (e.g. Caregivers), open that dropdown
+watch(() => props.currentSection, (section) => {
+  if (!section) return;
+  const toggle = props.navItems.find((i) => i.isToggle && i.children?.some((c) => c.value === section));
+  if (toggle) {
+    toggleExpanded.value = { ...toggleExpanded.value, [toggle.value]: true };
+  }
+});
+
 // ==========================================
 // Accessibility: ARIA Announcements
 // ==========================================
@@ -572,6 +584,18 @@ const handleMobileNavClick = (section) => {
   }
   emit('section-change', section);
   announceToScreenReader(`Navigated to ${section}`);
+};
+
+const isToggleExpanded = (item) => {
+  if (!item?.isToggle) return false;
+  return toggleExpanded.value[item.value] ?? item.expanded ?? false;
+};
+
+// Toggle dropdown: pure local state, no emit, no parent – so it always works
+const onToggleClick = (item) => {
+  if (!item?.isToggle) return;
+  const key = item.value;
+  toggleExpanded.value = { ...toggleExpanded.value, [key]: !(toggleExpanded.value[key] ?? false) };
 };
 
 // Handle nav item click - check if disabled first
