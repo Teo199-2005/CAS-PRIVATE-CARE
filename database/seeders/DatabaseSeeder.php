@@ -16,7 +16,7 @@ class DatabaseSeeder extends Seeder
 
     public function run(): void
     {
-        // Create Admin User
+        // Create Admin User (demo)
         $admin = User::firstOrCreate(
             ['email' => 'admin@demo.com'],
             [
@@ -25,6 +25,9 @@ class DatabaseSeeder extends Seeder
                 'user_type' => 'admin'
             ]
         );
+
+        // CAS Private Care primary admin (casprivatecare@gmail.com)
+        $this->call(CasAdminSeeder::class);
 
         // Create Marketing User
         $marketing = User::firstOrCreate(
