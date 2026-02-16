@@ -595,7 +595,8 @@ html, body {
     
     .loading-overlay .loading-logo img,
     .loading-logo img {
-        max-height: 80px !important;
+        max-height: 140px !important;
+        height: 140px !important;
         width: auto !important;
     }
     

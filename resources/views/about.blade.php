@@ -41,8 +41,8 @@
         *::after {
             box-sizing: border-box;
         }
-        /* Reset margin/padding for all elements except nav (nav uses nav-footer-styles only for same look as rest of site) */
-        *:not(nav):not(nav *) {
+        /* Reset margin/padding for page content only; exclude nav and footer so they keep nav-footer-styles */
+        *:not(nav):not(nav *):not(footer):not(footer *) {
             margin: 0;
             padding: 0;
         }

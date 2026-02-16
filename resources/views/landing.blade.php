@@ -5735,8 +5735,8 @@
 
         .loading-logo-wrapper {
             position: relative;
-            width: 280px;
-            height: 280px;
+            width: 240px;
+            height: 240px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -5777,7 +5777,7 @@
         }
 
         .loading-logo img {
-            height: 200px;
+            height: 160px;
             width: auto;
             box-shadow: none;
             filter: drop-shadow(0 10px 30px rgba(11, 79, 162, 0.15));
@@ -5837,14 +5837,16 @@
             }
         }
 
-        /* Mobile responsive loading screen */
+        /* Mobile: smaller logo */
         @media (max-width: 768px) {
             .loading-logo-wrapper {
-                width: 220px;
-                height: 220px;
+                width: 200px;
+                height: 200px;
             }
             .loading-logo img {
-                height: 150px;
+                height: 140px !important;
+                width: auto !important;
+                max-width: 160px;
             }
             .loading-text {
                 font-size: 1rem;
