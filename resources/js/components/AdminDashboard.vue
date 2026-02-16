@@ -5840,16 +5840,16 @@
                   <v-text-field v-model="profileData.lastName" label="Last Name" variant="outlined" @update:model-value="profileData.lastName = filterLettersOnly(profileData.lastName)" />
                 </v-col>
                 <v-col cols="12" md="6">
-                  <v-text-field v-model="profileData.email" label="Email" variant="outlined" type="email" readonly>
+                  <v-text-field v-model="profileData.email" label="Email" variant="outlined" type="email">
                     <template v-slot:append-inner>
-                      <v-tooltip :text="userEmailVerified ? 'Email Verified' : 'Email Not Verified'" location="top">
+                      <v-tooltip :text="userEmailVerified ? 'Email verified' : 'Email not verified'" location="top">
                         <template v-slot:activator="{ props }">
                           <v-icon 
                             v-bind="props"
-                            :color="userEmailVerified ? 'success' : 'error'"
+                            :color="userEmailVerified ? 'success' : 'grey'"
                             size="20"
                           >
-                            {{ userEmailVerified ? 'mdi-check-circle' : 'mdi-close-circle' }}
+                            {{ userEmailVerified ? 'mdi-check-circle' : 'mdi-email-outline' }}
                           </v-icon>
                         </template>
                       </v-tooltip>
@@ -12612,14 +12612,14 @@ const saveProfile = async () => {
     
     if (response.ok && data.success) {
       success('Profile changes saved successfully!');
-      // Update the header name
       profile.value.firstName = profileData.value.firstName;
       profile.value.lastName = profileData.value.lastName;
+      profile.value.email = profileData.value.email;
     } else {
-      error('Error: ' + (data.error || data.message || 'Failed to save profile'));
+      const msg = data.message || data.error || (data.errors && Object.values(data.errors).flat().join(' ')) || 'Failed to save profile';
+      error(msg);
     }
   } catch (err) {
-    console.error('Save profile error:', err);
     error('Failed to save profile. Please try again.');
   }
 };
@@ -12646,12 +12646,16 @@ const changePassword = async () => {
       return;
     }
     
+    await refreshAdminCsrfToken();
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
     const response = await fetch('/api/profile/change-password', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        'X-CSRF-TOKEN': csrfToken,
+        'X-Requested-With': 'XMLHttpRequest'
       },
+      credentials: 'include',
       body: JSON.stringify({
         currentPassword: passwordData.value.currentPassword,
         newPassword: passwordData.value.newPassword,
@@ -12663,15 +12667,38 @@ const changePassword = async () => {
     
     if (response.ok && data.success) {
       success('Password changed successfully!');
-      // Clear form
       passwordData.value.currentPassword = '';
       passwordData.value.newPassword = '';
       passwordData.value.confirmPassword = '';
     } else {
-      error('Error: ' + (data.error || data.message || 'Failed to change password'));
+      if (response.status === 419) {
+        const newToken = await refreshAdminCsrfToken();
+        const retry = await fetch('/api/profile/change-password', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+            'X-Requested-With': 'XMLHttpRequest'
+          },
+          credentials: 'include',
+          body: JSON.stringify({
+            currentPassword: passwordData.value.currentPassword,
+            newPassword: passwordData.value.newPassword,
+            confirmPassword: passwordData.value.confirmPassword
+          })
+        });
+        const retryData = await retry.json();
+        if (retry.ok && retryData.success) {
+          success('Password changed successfully!');
+          passwordData.value.currentPassword = '';
+          passwordData.value.newPassword = '';
+          passwordData.value.confirmPassword = '';
+          return;
+        }
+      }
+      error(data.message || data.error || 'Failed to change password.');
     }
   } catch (err) {
-    console.error('Change password error:', err);
     error('Failed to change password. Please try again.');
   }
 };

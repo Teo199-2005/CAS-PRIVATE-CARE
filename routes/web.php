@@ -40,6 +40,7 @@ use App\Http\Controllers\DebugController;
 use App\Http\Controllers\AvatarController;
 use App\Http\Controllers\FeaturedPostController;
 use App\Http\Controllers\HealthController;
+use App\Http\Controllers\Api\UserProfileController;
 
 // ============================================
 // HEALTH CHECK ROUTES (for monitoring & DevOps)
@@ -309,7 +310,8 @@ Route::prefix('api')->middleware(['web', 'auth'])->group(function () {
     // Profile
     Route::get('/profile', [ProfileController::class, 'getProfile']);
     Route::post('/profile/update', [ProfileController::class, 'updateProfile']);
-    
+    Route::post('/profile/change-password', [UserProfileController::class, 'changePassword']);
+
     // Time Tracking
     Route::post('/time-tracking/clock-in', [\App\Http\Controllers\TimeTrackingController::class, 'clockIn']);
     Route::post('/time-tracking/clock-out', [\App\Http\Controllers\TimeTrackingController::class, 'clockOut']);
