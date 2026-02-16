@@ -201,7 +201,7 @@
                 <v-card-title class="card-header pa-4">
                   <div class="d-flex justify-space-between align-center">
                     <span class="section-title-compact error--text">Contractors Contacts</span>
-                    <v-btn size="small" color="error" variant="flat" prepend-icon="mdi-eye" @click="openContractorsContactsDialog">View All</v-btn>
+                    <v-btn size="small" color="error" variant="text" density="compact" prepend-icon="mdi-eye" class="contractors-view-all-btn" @click="openContractorsContactsDialog">View All</v-btn>
                   </div>
                 </v-card-title>
                 <v-card-text class="pa-4 flex-grow-1">
@@ -214,7 +214,7 @@
                         <div class="flex-grow-1">
                           <div class="caregiver-name">{{ contractor.name }}</div>
                           <div class="d-flex align-center gap-1">
-                            <v-chip size="x-small" density="compact" color="error" variant="tonal">{{ contractor.contractorType }}</v-chip>
+                            <v-chip size="x-small" density="compact" color="error" variant="tonal" class="contractor-type-chip">{{ contractor.contractorType }}</v-chip>
                             <span class="caregiver-status" :class="contractor.available ? 'success--text' : 'grey--text'">
                               {{ contractor.available ? 'Available' : 'Busy' }}
                             </span>
@@ -357,14 +357,14 @@
               </div>
             </v-card-title>
             <v-divider></v-divider>
-            <v-card-text class="pa-6">
+            <v-card-text class="pa-6 booking-maintenance-card-body">
               <v-row align="center">
-                <v-col cols="12" md="8">
+                <v-col cols="12" md="8" class="booking-maintenance-text-col">
                   <div class="d-flex align-center mb-3">
-                    <v-icon :color="bookingMaintenanceEnabled ? 'warning' : 'success'" size="24" class="mr-3">
+                    <v-icon :color="bookingMaintenanceEnabled ? 'warning' : 'success'" size="24" class="mr-3 flex-shrink-0">
                       {{ bookingMaintenanceEnabled ? 'mdi-alert-circle' : 'mdi-calendar-check' }}
                     </v-icon>
-                    <div>
+                    <div class="min-width-0">
                       <div class="text-subtitle-1 font-weight-bold">
                         {{ bookingMaintenanceEnabled ? 'Booking System Disabled' : 'Booking System Active' }}
                       </div>
@@ -387,22 +387,25 @@
                     :disabled="togglingBookingMaintenance"
                   ></v-text-field>
                 </v-col>
-                <v-col cols="12" md="4" class="text-right">
-                  <v-btn
-                    :color="bookingMaintenanceEnabled ? 'success' : 'warning'"
-                    size="large"
-                    :prepend-icon="bookingMaintenanceEnabled ? 'mdi-play-circle' : 'mdi-pause-circle'"
-                    @click="toggleBookingMaintenance"
-                    :loading="togglingBookingMaintenance"
-                    class="booking-maintenance-btn"
-                  >
-                    {{ bookingMaintenanceEnabled ? 'Enable Booking' : 'Disable Booking' }}
-                  </v-btn>
-                  <div class="text-caption text-grey mt-2">
-                    {{ bookingMaintenanceEnabled 
-                      ? 'Click to allow new bookings' 
-                      : 'Click to enable maintenance mode' 
-                    }}
+                <v-col cols="12" md="4" class="booking-maintenance-actions-col">
+                  <div class="booking-maintenance-actions">
+                    <v-btn
+                      :color="bookingMaintenanceEnabled ? 'success' : 'warning'"
+                      size="large"
+                      :prepend-icon="bookingMaintenanceEnabled ? 'mdi-play-circle' : 'mdi-pause-circle'"
+                      @click="toggleBookingMaintenance"
+                      :loading="togglingBookingMaintenance"
+                      class="booking-maintenance-btn"
+                      block
+                    >
+                      {{ bookingMaintenanceEnabled ? 'Enable Booking' : 'Disable Booking' }}
+                    </v-btn>
+                    <div class="text-caption text-grey mt-2 text-center">
+                      {{ bookingMaintenanceEnabled 
+                        ? 'Click to allow new bookings' 
+                        : 'Click to enable maintenance mode' 
+                      }}
+                    </div>
                   </div>
                 </v-col>
               </v-row>
@@ -477,7 +480,7 @@
                     hide-details 
                     density="compact" 
                     color="white" 
-                    class="mr-2"
+                    class="mr-2 mobile-card-checkbox"
                   />
                   <span class="text-white font-weight-bold text-body-1">{{ item.name }}</span>
                 </div>
@@ -850,7 +853,7 @@
               <!-- Card Header with Name and Status -->
               <div class="mobile-card-header d-flex justify-space-between align-center pa-3" style="background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);">
                 <div class="d-flex align-center">
-                  <v-checkbox v-model="selectedCaregivers" :value="item.userId" hide-details density="compact" color="white" class="mr-2"></v-checkbox>
+                  <v-checkbox v-model="selectedCaregivers" :value="item.userId" hide-details density="compact" color="white" class="mr-2 mobile-card-checkbox"></v-checkbox>
                   <span class="text-white font-weight-bold">{{ item.first_name }} {{ item.last_name }}</span>
                 </div>
                 <v-chip :color="getUserStatusColor(item.status)" size="small" class="font-weight-bold">{{ item.status }}</v-chip>
@@ -878,11 +881,11 @@
                   <span class="mobile-card-label text-grey-darken-1">Hourly Rate:</span>
                   <span class="mobile-card-value font-weight-bold text-success">${{ item.preferred_hourly_rate_min ?? 20 }} - ${{ item.preferred_hourly_rate_max ?? 50 }}/hr</span>
                 </div>
-                <div class="mobile-card-row d-flex justify-space-between align-center py-2">
-                  <span class="mobile-card-label text-grey-darken-1">Rating:</span>
-                  <div class="d-flex align-center">
-                    <v-rating :model-value="parseFloat(item.rating || 0)" :length="5" :size="16" color="amber" active-color="amber" half-increments readonly density="compact"></v-rating>
-                    <span class="ml-1 text-caption">{{ parseFloat(item.rating || 0).toFixed(1) }}</span>
+                <div class="mobile-card-row mobile-card-row-rating py-2">
+                  <span class="mobile-card-label text-grey-darken-1 d-block mb-1">Rating:</span>
+                  <div class="d-flex align-center flex-wrap">
+                    <v-rating :model-value="parseFloat(item.rating || 0)" :length="5" :size="14" color="amber" active-color="amber" half-increments readonly density="compact" class="caregiver-mobile-rating"></v-rating>
+                    <span class="ml-1 text-caption font-weight-medium">{{ parseFloat(item.rating || 0).toFixed(1) }}</span>
                   </div>
                 </div>
               </div>
@@ -1617,12 +1620,18 @@
         <div v-else class="mobile-cards-container pa-3">
           <v-card v-for="item in filteredHousekeepers" :key="item.userId" class="mobile-data-card mb-3" elevation="2">
             <v-card-text class="pa-0">
-              <div class="mobile-card-header d-flex justify-space-between align-center pa-3" style="background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);">
+              <div class="mobile-card-header d-flex justify-space-between align-center pa-3 housekeeper-mobile-header" style="background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);">
                 <div class="d-flex align-center">
-                  <v-checkbox v-model="selectedHousekeepers" :value="item.userId" hide-details density="compact" color="white" class="mr-2"></v-checkbox>
+                  <v-checkbox v-model="selectedHousekeepers" :value="item.userId" hide-details density="compact" color="white" class="mr-2 mobile-card-checkbox"></v-checkbox>
                   <span class="text-white font-weight-bold">{{ item.first_name }} {{ item.last_name }}</span>
                 </div>
-                <v-chip :color="getUserStatusColor(item.status)" size="small" class="font-weight-bold">{{ item.status }}</v-chip>
+                <v-chip
+                  :color="getUserStatusColor(item.status)"
+                  size="small"
+                  class="font-weight-bold mobile-header-status-chip"
+                  :class="{ 'chip-pending-on-dark': String(item.status).toLowerCase() === 'pending' }"
+                  variant="flat"
+                >{{ item.status }}</v-chip>
               </div>
               <div class="mobile-card-body pa-3">
                 <div class="mobile-card-row d-flex justify-space-between py-2" style="border-bottom: 1px solid #f3f4f6;">
@@ -1641,10 +1650,10 @@
                   <span class="mobile-card-label text-grey-darken-1">Preferred Hourly Rate:</span>
                   <span class="mobile-card-value font-weight-bold deep-purple--text">${{ item.hourly_rate ?? 20 }}/hr</span>
                 </div>
-                <div class="mobile-card-row d-flex justify-space-between align-center py-2">
-                  <span class="mobile-card-label text-grey-darken-1">Rating:</span>
-                  <div class="d-flex align-center">
-                    <v-rating :model-value="parseFloat(item.rating || 0)" :length="5" :size="16" color="amber" active-color="amber" half-increments readonly density="compact"></v-rating>
+                <div class="mobile-card-row mobile-card-row-rating py-2">
+                  <span class="mobile-card-label text-grey-darken-1 d-block mb-1">Rating:</span>
+                  <div class="d-flex align-center flex-wrap">
+                    <v-rating :model-value="parseFloat(item.rating || 0)" :length="5" :size="14" color="amber" active-color="amber" half-increments readonly density="compact" class="caregiver-mobile-rating"></v-rating>
                     <span class="ml-1 text-caption">{{ parseFloat(item.rating || 0).toFixed(1) }}</span>
                   </div>
                 </div>
@@ -1922,7 +1931,7 @@
             <v-card-text class="pa-0">
               <div class="mobile-card-header d-flex justify-space-between align-center pa-3" style="background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);">
                 <div class="d-flex align-center">
-                  <v-checkbox v-model="selectedClients" :value="item.id" hide-details density="compact" color="white" class="mr-2"></v-checkbox>
+                  <v-checkbox v-model="selectedClients" :value="item.id" hide-details density="compact" color="white" class="mr-2 mobile-card-checkbox"></v-checkbox>
                   <span class="text-white font-weight-bold">{{ item.first_name }} {{ item.last_name }}</span>
                 </div>
                 <v-chip :color="getUserStatusColor(item.status)" size="small" class="font-weight-bold">{{ item.status }}</v-chip>
@@ -2035,7 +2044,7 @@
             <v-card-text class="pa-0">
               <div class="mobile-card-header d-flex justify-space-between align-center pa-3" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);">
                 <div class="d-flex align-center">
-                  <v-checkbox v-model="selectedMarketingStaff" :value="item.id" hide-details density="compact" color="white" class="mr-2"></v-checkbox>
+                  <v-checkbox v-model="selectedMarketingStaff" :value="item.id" hide-details density="compact" color="white" class="mr-2 mobile-card-checkbox"></v-checkbox>
                   <span class="text-white font-weight-bold">{{ item.displayName || (item.first_name + ' ' + item.last_name).trim() || item.name || item.email }}</span>
                 </div>
                 <v-chip :color="getUserStatusColor(item.status)" size="small" class="font-weight-bold">{{ item.status }}</v-chip>
@@ -2451,7 +2460,7 @@
             <v-card-text class="pa-0">
               <div class="mobile-card-header d-flex justify-space-between align-center pa-3" style="background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);">
                 <div class="d-flex align-center">
-                  <v-checkbox v-model="selectedAdminStaff" :value="item.id" hide-details density="compact" color="white" class="mr-2"></v-checkbox>
+                  <v-checkbox v-model="selectedAdminStaff" :value="item.id" hide-details density="compact" color="white" class="mr-2 mobile-card-checkbox"></v-checkbox>
                   <span class="text-white font-weight-bold">{{ item.first_name }} {{ item.last_name }}</span>
                 </div>
                 <v-chip :color="getUserStatusColor(item.status)" size="small" class="font-weight-bold">{{ item.status }}</v-chip>
@@ -3015,7 +3024,7 @@
             <v-card-text class="pa-0">
               <div class="mobile-card-header d-flex justify-space-between align-center pa-3" style="background: linear-gradient(135deg, #ea580c 0%, #c2410c 100%);">
                 <div class="d-flex align-center">
-                  <v-checkbox v-model="selectedTrainingCenters" :value="item.id" hide-details density="compact" color="white" class="mr-2"></v-checkbox>
+                  <v-checkbox v-model="selectedTrainingCenters" :value="item.id" hide-details density="compact" color="white" class="mr-2 mobile-card-checkbox"></v-checkbox>
                   <span class="text-white font-weight-bold">{{ item.name }}</span>
                 </div>
                 <v-chip :color="getUserStatusColor(item.status)" size="small" class="font-weight-bold">{{ item.status }}</v-chip>
@@ -3931,7 +3940,7 @@
             <v-card-text class="pa-0">
               <div class="mobile-card-header d-flex justify-space-between align-center pa-3" style="background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);">
                 <div class="d-flex align-center">
-                  <v-checkbox v-model="selectedBookings" :value="item.id" hide-details density="compact" color="white" class="mr-2"></v-checkbox>
+                  <v-checkbox v-model="selectedBookings" :value="item.id" hide-details density="compact" color="white" class="mr-2 mobile-card-checkbox"></v-checkbox>
                   <span class="text-white font-weight-bold text-truncate" style="max-width: 150px;">{{ item.client }}</span>
                 </div>
                 <v-chip :color="getBookingStatusColor(item.status)" size="small" class="font-weight-bold">{{ item.status }}</v-chip>
@@ -6334,7 +6343,7 @@
                 <div class="flex-grow-1">
                   <div class="d-flex align-center gap-2 flex-wrap">
                     <div class="caregiver-name-large">{{ contractor.name }}</div>
-                    <v-chip size="small" density="compact" :color="contractor.contractorType === 'Caregiver' ? 'error' : 'deep-purple'" variant="tonal">{{ contractor.contractorType }}</v-chip>
+                    <v-chip size="small" density="compact" :color="contractor.contractorType === 'Caregiver' ? 'error' : 'deep-purple'" variant="tonal" class="contractor-type-chip">{{ contractor.contractorType }}</v-chip>
                   </div>
                   <div class="caregiver-details">{{ contractor.email }} • {{ contractor.phone || 'N/A' }}</div>
                   <div class="caregiver-location">{{ contractor.zip_code || '' }}{{ contractor.zip_code && contractor.location ? ' - ' : '' }}{{ contractor.location || contractor.borough || '' }}</div>
@@ -9716,18 +9725,26 @@ const uploadAvatar = async (event) => {
   try {
     const formData = new FormData();
     formData.append('avatar', file);
+    const csrf = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
     
     const response = await fetch(`/api/user/${adminUserId.value}/avatar`, {
       method: 'POST',
-      body: formData
+      headers: { 'X-CSRF-TOKEN': csrf, 'X-Requested-With': 'XMLHttpRequest' },
+      body: formData,
+      credentials: 'include'
     });
     
     if (response.ok) {
       const data = await response.json();
-      userAvatar.value = data.avatar_url;
+      // Backend returns { avatar: '/storage/...' } not avatar_url
+      userAvatar.value = data.avatar || data.avatar_url || '';
       showAvatarSuccessModal.value = true;
+    } else {
+      const err = await response.json().catch(() => ({}));
+      warning(err.error || `Upload failed (${response.status})`);
     }
   } catch (error) {
+    warning('Failed to upload profile photo. Please try again.');
   } finally {
     uploadingAvatar.value = false;
     if (avatarInput.value) avatarInput.value.value = '';
@@ -18864,6 +18881,34 @@ setInterval(loadAdminNotificationCount, 30000);
   border-bottom: none;
 }
 
+/* Slim Caregiver/Housekeeper type tags - less padding, smaller height */
+.contractor-type-chip {
+  padding: 2px 8px !important;
+  min-height: 22px !important;
+  height: auto !important;
+  font-size: 0.7rem !important;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.contractor-type-chip .v-chip__content {
+  padding: 0;
+}
+
+/* Slim View All button on Contractors Contacts card */
+.contractors-view-all-btn {
+  min-height: 32px !important;
+  padding: 4px 10px !important;
+  font-size: 0.8rem !important;
+  font-weight: 600;
+  text-transform: none;
+  letter-spacing: 0.02em;
+}
+
+.contractors-view-all-btn .v-btn__content {
+  padding: 0;
+}
+
 .caregiver-name {
   font-size: 0.85rem;
   font-weight: 600;
@@ -20417,6 +20462,31 @@ setInterval(loadAdminNotificationCount, 30000);
   transition: all 0.2s ease;
 }
 
+/* Mobile card checkboxes: larger touch target (44px), bigger icon on colored headers */
+.mobile-card-header .mobile-card-checkbox {
+  padding: 10px !important;
+  margin: -10px 4px -10px -10px !important;
+  min-width: 44px !important;
+  min-height: 44px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.mobile-card-header .mobile-card-checkbox :deep(.v-selection-control) {
+  min-height: 32px !important;
+  min-width: 32px !important;
+}
+
+.mobile-card-header .mobile-card-checkbox :deep(.v-selection-control__wrapper) {
+  width: 32px !important;
+  height: 32px !important;
+}
+
+.mobile-card-header .mobile-card-checkbox :deep(.v-icon) {
+  font-size: 28px !important;
+}
+
 .mobile-data-card:hover {
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12) !important;
   transform: translateY(-2px);
@@ -20445,6 +20515,58 @@ setInterval(loadAdminNotificationCount, 30000);
   font-size: 0.875rem;
   text-align: right;
   flex: 1;
+}
+
+/* Rating row on mobile caregiver/housekeeper cards: stacked so stars + number don't get cut off */
+.mobile-card-row-rating {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  border-bottom: none !important;
+}
+
+.mobile-card-row-rating .mobile-card-label {
+  min-width: 0;
+}
+
+.mobile-card-row-rating .d-flex.align-center {
+  min-width: 0;
+  width: 100%;
+}
+
+.caregiver-mobile-rating {
+  flex-shrink: 0;
+}
+
+.caregiver-mobile-rating .v-rating__wrapper {
+  flex-wrap: nowrap;
+}
+
+/* Pending tag on purple housekeeper mobile header: force high contrast so it's readable */
+.housekeeper-mobile-header .chip-pending-on-dark {
+  background-color: #f59e0b !important;
+  color: #ffffff !important;
+}
+
+.housekeeper-mobile-header .chip-pending-on-dark .v-chip__content {
+  color: #ffffff !important;
+}
+
+/* Any status chip on purple header: ensure text is white for readability */
+.housekeeper-mobile-header .mobile-header-status-chip {
+  color: #ffffff !important;
+}
+
+.housekeeper-mobile-header .mobile-header-status-chip .v-chip__content {
+  color: #ffffff !important;
+}
+
+.housekeeper-mobile-header .mobile-header-status-chip.v-chip {
+  background: rgba(255, 255, 255, 0.25) !important;
+}
+
+.housekeeper-mobile-header .mobile-header-status-chip.chip-pending-on-dark.v-chip {
+  background: #f59e0b !important;
 }
 
 .mobile-card-actions {
@@ -20834,10 +20956,22 @@ button:focus-visible {
    BOOKING MAINTENANCE WIDGET
    ============================================ */
 
+.booking-maintenance-card-body .booking-maintenance-actions-col {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.booking-maintenance-actions {
+  width: 100%;
+  max-width: 280px;
+}
+
 .booking-maintenance-btn {
-  min-width: 180px;
+  min-width: 160px;
   font-weight: 600;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.02em;
+  text-transform: none;
   transition: all 0.3s ease;
 }
 
@@ -20847,9 +20981,19 @@ button:focus-visible {
 }
 
 @media (max-width: 960px) {
+  .booking-maintenance-card-body .booking-maintenance-actions-col {
+    justify-content: stretch;
+    margin-top: 8px;
+  }
+  .booking-maintenance-actions {
+    max-width: none;
+    width: 100%;
+  }
   .booking-maintenance-btn {
     width: 100%;
-    margin-top: 16px;
+  }
+  .booking-maintenance-actions .text-caption {
+    text-align: center !important;
   }
 }
 

@@ -16,13 +16,13 @@
     </div>
 
     <!-- Quick Actions -->
-    <v-card elevation="0" class="mb-6">
+    <v-card elevation="0" class="mb-6 notification-center-card">
       <v-card-title class="card-header pa-6 d-flex justify-space-between align-center">
         <span class="section-title" :class="primaryColor">Notification Center</span>
-        <div class="d-flex gap-2">
-          <v-btn :color="primaryColorName" variant="outlined" prepend-icon="mdi-check-all" @click="markAllRead" :loading="loading">Mark All Read</v-btn>
-          <v-btn color="error" variant="outlined" prepend-icon="mdi-delete-sweep" @click="clearAll" :loading="loading">Clear All</v-btn>
-          <v-btn color="primary" variant="outlined" prepend-icon="mdi-refresh" @click="loadNotifications" :loading="loading">Refresh</v-btn>
+        <div class="notification-center-actions d-flex gap-2">
+          <v-btn :color="primaryColorName" variant="tonal" density="compact" size="small" prepend-icon="mdi-check-all" class="notification-action-btn" @click="markAllRead" :loading="loading">Mark all read</v-btn>
+          <v-btn color="error" variant="tonal" density="compact" size="small" prepend-icon="mdi-delete-sweep" class="notification-action-btn" @click="clearAll" :loading="loading">Clear all</v-btn>
+          <v-btn color="primary" variant="tonal" density="compact" size="small" prepend-icon="mdi-refresh" class="notification-action-btn" @click="loadNotifications" :loading="loading">Refresh</v-btn>
         </div>
       </v-card-title>
     </v-card>
@@ -411,21 +411,27 @@ onMounted(() => {
   }
 
   /* Stack notification header elements on mobile */
-  .card-header .d-flex.justify-space-between {
+  .notification-center-card .card-header.d-flex.justify-space-between {
     flex-direction: column !important;
     gap: 0.75rem !important;
-    align-items: flex-start !important;
+    align-items: stretch !important;
   }
 
-  .card-header .d-flex.gap-2 {
+  .notification-center-actions {
     flex-wrap: wrap !important;
     width: 100% !important;
+    gap: 0.5rem !important;
   }
 
-  .card-header .d-flex.gap-2 .v-btn {
+  .notification-center-actions .notification-action-btn {
     flex: 1 1 auto !important;
-    min-width: calc(50% - 0.25rem) !important;
-    font-size: 0.8125rem !important;
+    min-width: 0 !important;
+    font-size: 0.8rem !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.02em !important;
+    text-transform: none !important;
+    min-height: 36px !important;
+    padding: 0 12px !important;
   }
 
   /* Compact notification item layout */
@@ -492,9 +498,11 @@ onMounted(() => {
     padding: 0.875rem !important;
   }
 
-  .card-header .d-flex.gap-2 .v-btn {
-    min-width: 100% !important;
-    margin-bottom: 0.5rem !important;
+  .notification-center-actions .notification-action-btn {
+    min-width: 0 !important;
+    flex: 1 1 100% !important;
+    font-size: 0.8125rem !important;
+    min-height: 40px !important;
   }
 
   :deep(.v-avatar) {

@@ -281,14 +281,14 @@
             </div>
           </v-card-title>
           <v-divider></v-divider>
-          <v-card-text class="pa-6">
+          <v-card-text class="pa-6 booking-maintenance-card-body">
             <v-row align="center">
-              <v-col cols="12" md="8">
+              <v-col cols="12" md="8" class="booking-maintenance-text-col">
                 <div class="d-flex align-center mb-3">
-                  <v-icon :color="bookingMaintenanceEnabled ? 'warning' : 'success'" size="24" class="mr-3">
+                  <v-icon :color="bookingMaintenanceEnabled ? 'warning' : 'success'" size="24" class="mr-3 flex-shrink-0">
                     {{ bookingMaintenanceEnabled ? 'mdi-alert-circle' : 'mdi-calendar-check' }}
                   </v-icon>
-                  <div>
+                  <div class="min-width-0">
                     <div class="text-subtitle-1 font-weight-bold">
                       {{ bookingMaintenanceEnabled ? 'Booking System Disabled' : 'Booking System Active' }}
                     </div>
@@ -312,22 +312,25 @@
                   @update:model-value="$emit('update:bookingMaintenanceMessage', $event)"
                 ></v-text-field>
               </v-col>
-              <v-col cols="12" md="4" class="text-right">
-                <v-btn
-                  :color="bookingMaintenanceEnabled ? 'success' : 'warning'"
-                  size="large"
-                  :prepend-icon="bookingMaintenanceEnabled ? 'mdi-play-circle' : 'mdi-pause-circle'"
-                  @click="$emit('toggle-maintenance')"
-                  :loading="togglingMaintenance"
-                  class="booking-maintenance-btn"
-                >
-                  {{ bookingMaintenanceEnabled ? 'Enable Booking' : 'Disable Booking' }}
-                </v-btn>
-                <div class="text-caption text-grey mt-2">
-                  {{ bookingMaintenanceEnabled 
-                    ? 'Click to allow new bookings' 
-                    : 'Click to enable maintenance mode' 
-                  }}
+              <v-col cols="12" md="4" class="booking-maintenance-actions-col">
+                <div class="booking-maintenance-actions">
+                  <v-btn
+                    :color="bookingMaintenanceEnabled ? 'success' : 'warning'"
+                    size="large"
+                    :prepend-icon="bookingMaintenanceEnabled ? 'mdi-play-circle' : 'mdi-pause-circle'"
+                    @click="$emit('toggle-maintenance')"
+                    :loading="togglingMaintenance"
+                    class="booking-maintenance-btn"
+                    block
+                  >
+                    {{ bookingMaintenanceEnabled ? 'Enable Booking' : 'Disable Booking' }}
+                  </v-btn>
+                  <div class="text-caption text-grey mt-2 text-center">
+                    {{ bookingMaintenanceEnabled 
+                      ? 'Click to allow new bookings' 
+                      : 'Click to enable maintenance mode' 
+                    }}
+                  </div>
                 </div>
               </v-col>
             </v-row>
@@ -493,18 +496,45 @@ watch(() => props.bookingMaintenanceMessage, (newVal) => {
   font-weight: 600;
 }
 
+.booking-maintenance-card-body .booking-maintenance-actions-col {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.booking-maintenance-actions {
+  width: 100%;
+  max-width: 280px;
+}
+
 .booking-maintenance-btn {
   min-width: 160px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: none;
+}
+
+@media (max-width: 960px) {
+  .booking-maintenance-card-body .booking-maintenance-actions-col {
+    justify-content: stretch;
+    margin-top: 8px;
+  }
+  .booking-maintenance-actions {
+    max-width: none;
+    width: 100%;
+  }
+  .booking-maintenance-btn {
+    width: 100%;
+  }
+  .booking-maintenance-actions .text-caption {
+    text-align: center !important;
+  }
 }
 
 @media (max-width: 600px) {
   .quick-action-btn {
     min-height: 80px;
     padding: 16px 8px;
-  }
-  
-  .booking-maintenance-btn {
-    width: 100%;
   }
 }
 </style>

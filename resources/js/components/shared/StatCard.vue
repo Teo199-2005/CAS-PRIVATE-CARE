@@ -315,6 +315,28 @@ onMounted(() => {
   min-width: 0;
 }
 
+/* Mobile: stack value/label and change vertically so change text has full width and doesn't fragment */
+@media (max-width: 600px) {
+  .stat-card-body {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 0.5rem !important;
+  }
+  .stat-body-right {
+    max-width: 100%;
+    width: 100%;
+    align-items: flex-start;
+  }
+  .stat-body-right .stat-change {
+    text-align: left;
+    justify-content: flex-start;
+  }
+  .stat-change-text {
+    word-break: normal;
+    overflow-wrap: anywhere;
+  }
+}
+
 /* ========================================
    Stat Icon Styles - Metallic by color scheme
    - Brushed metal with colored metallic sheen
