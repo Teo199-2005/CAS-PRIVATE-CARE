@@ -776,6 +776,9 @@ class UserAdminController extends Controller
                 }
                 $zipCode = $zipCode !== null && $zipCode !== '' ? (string) $zipCode : $zipCode;
 
+                $dob = $u->date_of_birth;
+                $dateOfBirthFormatted = ($dob instanceof \DateTimeInterface) ? $dob->format('Y-m-d') : null;
+
                 $data = [
                     'id' => $u->id,
                     'name' => $u->name,
@@ -793,7 +796,7 @@ class UserAdminController extends Controller
                     'state' => $u->state,
                     'county' => $u->county,
                     'borough' => $u->borough,
-                    'date_of_birth' => $u->date_of_birth ? $u->date_of_birth->format('Y-m-d') : null,
+                    'date_of_birth' => $dateOfBirthFormatted,
                 ];
                 
                 if ($u->user_type === 'caregiver' && $u->caregiver) {
@@ -851,6 +854,12 @@ class UserAdminController extends Controller
             $data = $caregivers
                 ->filter(fn($u) => $u->caregiver && $u->caregiver->id)
                 ->map(function ($u) {
+                    try {
+                        $dob = $u->date_of_birth;
+                        $dateOfBirthFormatted = ($dob instanceof \DateTimeInterface) ? $dob->format('Y-m-d') : null;
+                    } catch (\Throwable $e) {
+                        $dateOfBirthFormatted = null;
+                    }
                     return [
                         'id' => $u->id,
                         'name' => $u->name,
@@ -860,7 +869,7 @@ class UserAdminController extends Controller
                         'city' => $u->city,
                         'county' => $u->county,
                         'borough' => $u->borough,
-                        'date_of_birth' => $u->date_of_birth ? $u->date_of_birth->format('Y-m-d') : null,
+                        'date_of_birth' => $dateOfBirthFormatted,
                         'joined' => $u->created_at ? $u->created_at->format('M d, Y') : null,
                         'caregiver' => [
                             'id' => $u->caregiver->id,
@@ -923,6 +932,8 @@ class UserAdminController extends Controller
                     if ($location === null && $zip !== '') {
                         $location = $zip;
                     }
+                    $dob = $u->date_of_birth;
+                    $dateOfBirthFormatted = ($dob instanceof \DateTimeInterface) ? $dob->format('Y-m-d') : null;
                     return [
                         'id' => $u->id,
                         'name' => $u->name,
@@ -934,7 +945,7 @@ class UserAdminController extends Controller
                         'borough' => $u->borough,
                         'state' => $u->state,
                         'status' => $u->status ?? 'Active',
-                        'date_of_birth' => $u->date_of_birth ? $u->date_of_birth->format('Y-m-d') : null,
+                        'date_of_birth' => $dateOfBirthFormatted,
                         'joined' => $u->created_at ? $u->created_at->format('M d, Y') : null,
                         'location' => $location,
                         'years_experience' => (int) ($u->housekeeper->years_experience ?? 0),
@@ -978,6 +989,8 @@ class UserAdminController extends Controller
         try {
             $user = User::with('caregiver')->where('user_type', 'caregiver')->findOrFail($userId);
             $caregiver = $user->caregiver;
+            $dob = $user->date_of_birth;
+            $dateOfBirthFormatted = ($dob instanceof \DateTimeInterface) ? $dob->format('Y-m-d') : null;
 
             return response()->json([
                 'user' => [
@@ -990,7 +1003,7 @@ class UserAdminController extends Controller
                     'county' => $user->county,
                     'city' => $user->city,
                     'state' => $user->state,
-                    'date_of_birth' => $user->date_of_birth ? $user->date_of_birth->format('Y-m-d') : null,
+                    'date_of_birth' => $dateOfBirthFormatted,
                     'email_verified_at' => $user->email_verified_at,
                     'created_at' => $user->created_at,
                 ],
@@ -1025,6 +1038,9 @@ class UserAdminController extends Controller
             $user = User::with('housekeeper')->where('user_type', 'housekeeper')->findOrFail($userId);
             $housekeeper = $user->housekeeper;
 
+            $dob = $user->date_of_birth;
+            $dateOfBirthFormatted = ($dob instanceof \DateTimeInterface) ? $dob->format('Y-m-d') : null;
+
             return response()->json([
                 'user' => [
                     'id' => $user->id,
@@ -1037,7 +1053,7 @@ class UserAdminController extends Controller
                     'county' => $user->county,
                     'city' => $user->city,
                     'state' => $user->state,
-                    'date_of_birth' => $user->date_of_birth ? $user->date_of_birth->format('Y-m-d') : null,
+                    'date_of_birth' => $dateOfBirthFormatted,
                     'email_verified_at' => $user->email_verified_at,
                     'created_at' => $user->created_at,
                 ],
