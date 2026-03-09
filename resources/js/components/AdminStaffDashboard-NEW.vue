@@ -401,6 +401,24 @@
             </v-col>
             <v-col cols="12" md="6">
               <div class="detail-section">
+                <div class="detail-label">Birthdate</div>
+                <div class="detail-value">{{ viewingCaregiver.birthdate || viewingCaregiver.date_of_birth || 'N/A' }}</div>
+              </div>
+            </v-col>
+            <v-col cols="12" md="6">
+              <div class="detail-section">
+                <div class="detail-label">Age</div>
+                <div class="detail-value">{{ viewingCaregiver.age ?? 'N/A' }}</div>
+              </div>
+            </v-col>
+            <v-col cols="12" md="6">
+              <div class="detail-section">
+                <div class="detail-label">Gender</div>
+                <div class="detail-value">{{ viewingCaregiver.gender || 'N/A' }}</div>
+              </div>
+            </v-col>
+            <v-col cols="12" md="6">
+              <div class="detail-section">
                 <div class="detail-label">Borough</div>
                 <div class="detail-value">{{ viewingCaregiver.borough }}</div>
               </div>
@@ -581,6 +599,18 @@
               <div class="detail-section">
                 <div class="detail-label">Email</div>
                 <div class="detail-value">{{ viewingClient.email }}</div>
+              </div>
+            </v-col>
+            <v-col cols="12" md="6">
+              <div class="detail-section">
+                <div class="detail-label">Birthdate</div>
+                <div class="detail-value">{{ viewingClient.birthdate || viewingClient.date_of_birth || 'Not provided' }}</div>
+              </div>
+            </v-col>
+            <v-col cols="12" md="6">
+              <div class="detail-section">
+                <div class="detail-label">Age</div>
+                <div class="detail-value">{{ viewingClient.age ?? 'Not provided' }}</div>
               </div>
             </v-col>
             <v-col cols="12" md="6">
@@ -4611,6 +4641,19 @@ const loadUsers = async () => {
     caregivers.value = caregiverUsers
       .filter(u => u.caregiver && u.caregiver.id)
       .map((u) => {
+        const dob = u.date_of_birth || '';
+        const birthdate = dob ? new Date(dob).toLocaleDateString() : '';
+        let age = '';
+        if (dob) {
+          const d = new Date(dob);
+          if (!Number.isNaN(d.getTime())) {
+            const today = new Date();
+            let a = today.getFullYear() - d.getFullYear();
+            const m = today.getMonth() - d.getMonth();
+            if (m < 0 || (m === 0 && today.getDate() < d.getDate())) a--;
+            age = a;
+          }
+        }
         return {
           id: u.caregiver.id,
           userId: u.id,
@@ -4621,23 +4664,45 @@ const loadUsers = async () => {
           clients: 0,
           joined: u.joined,
           verified: true,
-          borough: 'Manhattan',
+          borough: u.borough || 'Manhattan',
           phone: u.phone || '(646) 282-8282',
-          // Use actual stored file path from DB (null when not uploaded)
+          date_of_birth: dob,
+          birthdate,
+          age,
+          gender: u.caregiver?.gender || '',
           training_certificate: u.caregiver?.training_certificate || null
         };
       });
     
-    clients.value = data.users.filter(u => u.type === 'Client').map(u => ({
-      id: u.id,
-      name: u.name,
-      email: u.email,
-      status: u.status,
-      bookings: 0,
-      totalSpent: '$0',
-      joined: u.joined,
-      verified: true
-    }));
+    clients.value = data.users.filter(u => u.type === 'Client').map(u => {
+      const dob = u.date_of_birth || '';
+      let birthdate = '';
+      let age = '';
+      if (dob) {
+        const d = new Date(dob);
+        if (!Number.isNaN(d.getTime())) {
+          birthdate = new Date(dob).toLocaleDateString();
+          const today = new Date();
+          let a = today.getFullYear() - d.getFullYear();
+          const m = today.getMonth() - d.getMonth();
+          if (m < 0 || (m === 0 && today.getDate() < d.getDate())) a--;
+          age = a;
+        }
+      }
+      return {
+        id: u.id,
+        name: u.name,
+        email: u.email,
+        status: u.status,
+        bookings: 0,
+        totalSpent: '$0',
+        joined: u.joined,
+        verified: true,
+        date_of_birth: dob,
+        birthdate,
+        age
+      };
+    });
   } catch (error) {
   }
 };

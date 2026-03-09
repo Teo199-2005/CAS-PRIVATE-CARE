@@ -64,6 +64,7 @@ class UserAdminController extends Controller
             'available_for_transport' => 'nullable|boolean',
             'skills' => 'nullable|array',
             'specializations' => 'nullable|array',
+            'gender' => 'nullable|in:male,female',
         ]);
         
         // Sanitize bio field to prevent XSS
@@ -106,7 +107,7 @@ class UserAdminController extends Controller
             } elseif ($validated['user_type'] === 'caregiver') {
                 $caregiverData = [
                     'user_id' => $user->id,
-                    'gender' => 'female',
+                    'gender' => $validated['gender'] ?? 'female',
                     'availability_status' => 'available'
                 ];
                 if (isset($validated['firstName'])) $caregiverData['first_name'] = $validated['firstName'];
@@ -117,7 +118,7 @@ class UserAdminController extends Controller
             } elseif ($validated['user_type'] === 'housekeeper') {
                 $housekeeperData = [
                     'user_id' => $user->id,
-                    'gender' => 'female',
+                    'gender' => $validated['gender'] ?? 'female',
                     'availability_status' => 'available'
                 ];
                 if (isset($validated['years_experience'])) $housekeeperData['years_experience'] = $validated['years_experience'];
@@ -142,7 +143,7 @@ class UserAdminController extends Controller
     public function updateUser(Request $request, $id)
     {
         $id = (int) $id;
-        $user = User::with('caregiver')->findOrFail($id);
+        $user = User::with(['caregiver', 'housekeeper'])->findOrFail($id);
 
         $validated = $request->validate([
             'name' => 'sometimes|string|max:255',
@@ -167,6 +168,7 @@ class UserAdminController extends Controller
             'cna_number' => 'sometimes|nullable|string|max:255',
             'has_rn' => 'sometimes|boolean',
             'rn_number' => 'sometimes|nullable|string|max:255',
+            'gender' => 'sometimes|nullable|in:male,female',
         ]);
 
         if (isset($validated['bio'])) {
@@ -209,6 +211,7 @@ class UserAdminController extends Controller
             if (array_key_exists('cna_number', $validated)) $caregiverUpdate['cna_number'] = $validated['cna_number'];
             if (array_key_exists('has_rn', $validated)) $caregiverUpdate['has_rn'] = (bool) $validated['has_rn'];
             if (array_key_exists('rn_number', $validated)) $caregiverUpdate['rn_number'] = $validated['rn_number'];
+            if (array_key_exists('gender', $validated)) $caregiverUpdate['gender'] = $validated['gender'];
 
             // Map training center name to caregiver.training_center_id
             if (array_key_exists('training_center', $validated)) {
@@ -249,7 +252,16 @@ class UserAdminController extends Controller
             }
         }
 
-        return response()->json(['success' => true, 'user' => $user->fresh(['caregiver'])]);
+        // Update housekeeper table fields if applicable
+        if ($user->user_type === 'housekeeper' && $user->housekeeper) {
+            $housekeeperUpdate = [];
+            if (array_key_exists('gender', $validated)) $housekeeperUpdate['gender'] = $validated['gender'];
+            if (!empty($housekeeperUpdate)) {
+                $user->housekeeper->update($housekeeperUpdate);
+            }
+        }
+
+        return response()->json(['success' => true, 'user' => $user->fresh(['caregiver', 'housekeeper'])]);
     }
 
     /**
@@ -751,7 +763,7 @@ class UserAdminController extends Controller
     {
         try {
             $perPage = min((int) $request->input('per_page', 50), 100);
-            $paginated = User::with(['caregiver:id,user_id,rating,preferred_hourly_rate_min,preferred_hourly_rate_max', 'client:id,user_id,zip_code'])
+            $paginated = User::with(['caregiver:id,user_id,rating,gender,preferred_hourly_rate_min,preferred_hourly_rate_max', 'client:id,user_id,zip_code'])
                 ->select(['id', 'name', 'email', 'phone', 'user_type', 'status', 'zip_code', 'city', 'county', 'borough', 'state', 'address', 'date_of_birth', 'created_at', 'email_verified_at'])
                 ->orderBy('created_at', 'desc')
                 ->paginate($perPage);
@@ -781,13 +793,14 @@ class UserAdminController extends Controller
                     'state' => $u->state,
                     'county' => $u->county,
                     'borough' => $u->borough,
-                    'date_of_birth' => $u->date_of_birth,
+                    'date_of_birth' => $u->date_of_birth ? $u->date_of_birth->format('Y-m-d') : null,
                 ];
                 
                 if ($u->user_type === 'caregiver' && $u->caregiver) {
                     $data['caregiver'] = [
                         'id' => $u->caregiver->id,
                         'rating' => $u->caregiver->rating,
+                        'gender' => $u->caregiver->gender,
                         'preferred_hourly_rate_min' => $u->caregiver->preferred_hourly_rate_min,
                         'preferred_hourly_rate_max' => $u->caregiver->preferred_hourly_rate_max,
                     ];
@@ -829,8 +842,8 @@ class UserAdminController extends Controller
             $perPage = min((int) $request->input('per_page', 50), 100);
             $paginated = User::query()
                 ->where('user_type', 'caregiver')
-                ->with('caregiver:id,user_id,rating,preferred_hourly_rate_min,preferred_hourly_rate_max')
-                ->select(['id', 'name', 'email', 'phone', 'zip_code', 'city', 'county', 'borough', 'created_at'])
+                ->with('caregiver:id,user_id,rating,gender,preferred_hourly_rate_min,preferred_hourly_rate_max')
+                ->select(['id', 'name', 'email', 'phone', 'zip_code', 'city', 'county', 'borough', 'date_of_birth', 'created_at'])
                 ->orderBy('created_at', 'desc')
                 ->paginate($perPage);
             $caregivers = collect($paginated->items());
@@ -847,10 +860,12 @@ class UserAdminController extends Controller
                         'city' => $u->city,
                         'county' => $u->county,
                         'borough' => $u->borough,
+                        'date_of_birth' => $u->date_of_birth ? $u->date_of_birth->format('Y-m-d') : null,
                         'joined' => $u->created_at ? $u->created_at->format('M d, Y') : null,
                         'caregiver' => [
                             'id' => $u->caregiver->id,
                             'rating' => $u->caregiver->rating,
+                            'gender' => $u->caregiver->gender,
                             'preferred_hourly_rate_min' => $u->caregiver->preferred_hourly_rate_min,
                             'preferred_hourly_rate_max' => $u->caregiver->preferred_hourly_rate_max,
                         ],
@@ -888,8 +903,8 @@ class UserAdminController extends Controller
             $perPage = min((int) $request->input('per_page', 50), 100);
             $paginated = User::query()
                 ->where('user_type', 'housekeeper')
-                ->with('housekeeper:id,user_id,rating,hourly_rate,years_experience')
-                ->select(['id', 'name', 'email', 'phone', 'zip_code', 'city', 'county', 'borough', 'state', 'status', 'created_at'])
+                ->with('housekeeper:id,user_id,rating,gender,hourly_rate,years_experience')
+                ->select(['id', 'name', 'email', 'phone', 'zip_code', 'city', 'county', 'borough', 'state', 'status', 'date_of_birth', 'created_at'])
                 ->orderBy('created_at', 'desc')
                 ->paginate($perPage);
             $housekeepers = collect($paginated->items());
@@ -919,12 +934,14 @@ class UserAdminController extends Controller
                         'borough' => $u->borough,
                         'state' => $u->state,
                         'status' => $u->status ?? 'Active',
+                        'date_of_birth' => $u->date_of_birth ? $u->date_of_birth->format('Y-m-d') : null,
                         'joined' => $u->created_at ? $u->created_at->format('M d, Y') : null,
                         'location' => $location,
                         'years_experience' => (int) ($u->housekeeper->years_experience ?? 0),
                         'housekeeper' => [
                             'id' => $u->housekeeper->id,
                             'rating' => $u->housekeeper->rating,
+                            'gender' => $u->housekeeper->gender,
                             'years_experience' => $u->housekeeper->years_experience,
                             'hourly_rate' => $u->housekeeper->hourly_rate,
                         ],
@@ -973,11 +990,13 @@ class UserAdminController extends Controller
                     'county' => $user->county,
                     'city' => $user->city,
                     'state' => $user->state,
+                    'date_of_birth' => $user->date_of_birth ? $user->date_of_birth->format('Y-m-d') : null,
                     'email_verified_at' => $user->email_verified_at,
                     'created_at' => $user->created_at,
                 ],
                 'caregiver' => $caregiver ? [
                     'id' => $caregiver->id,
+                    'gender' => $caregiver->gender,
                     'rating' => $caregiver->rating,
                     'preferred_hourly_rate_min' => $caregiver->preferred_hourly_rate_min,
                     'preferred_hourly_rate_max' => $caregiver->preferred_hourly_rate_max,
@@ -1018,12 +1037,13 @@ class UserAdminController extends Controller
                     'county' => $user->county,
                     'city' => $user->city,
                     'state' => $user->state,
-                    'date_of_birth' => $user->date_of_birth,
+                    'date_of_birth' => $user->date_of_birth ? $user->date_of_birth->format('Y-m-d') : null,
                     'email_verified_at' => $user->email_verified_at,
                     'created_at' => $user->created_at,
                 ],
                 'housekeeper' => $housekeeper ? [
                     'id' => $housekeeper->id,
+                    'gender' => $housekeeper->gender,
                     'rating' => $housekeeper->rating,
                     'years_experience' => $housekeeper->years_experience,
                     'hourly_rate' => $housekeeper->hourly_rate,

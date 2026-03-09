@@ -991,6 +991,12 @@
                 <div class="detail-value">{{ viewingCaregiver.age || 'N/A' }}</div>
               </div>
             </v-col>
+            <v-col cols="12" md="6">
+              <div class="detail-section">
+                <div class="detail-label">Gender</div>
+                <div class="detail-value">{{ viewingCaregiver.gender || 'N/A' }}</div>
+              </div>
+            </v-col>
 
             <v-col cols="12" md="6">
               <div class="detail-section">
@@ -1746,6 +1752,12 @@
               <div class="detail-section">
                 <div class="detail-label">Age</div>
                 <div class="detail-value">{{ viewingHousekeeper.age || 'N/A' }}</div>
+              </div>
+            </v-col>
+            <v-col cols="12" md="6">
+              <div class="detail-section">
+                <div class="detail-label">Gender</div>
+                <div class="detail-value">{{ viewingHousekeeper.gender || 'N/A' }}</div>
               </div>
             </v-col>
             <v-col cols="12" md="6">
@@ -6398,6 +6410,9 @@
               <v-col cols="12" md="6">
                 <v-text-field :model-value="calculateAge(caregiverForm.birthdate)" label="Age" variant="outlined" readonly />
               </v-col>
+              <v-col cols="12" md="6">
+                <v-select v-model="caregiverForm.gender" :items="[{ title: 'Male', value: 'male' }, { title: 'Female', value: 'female' }]" item-title="title" item-value="value" label="Gender" variant="outlined" clearable />
+              </v-col>
               <v-col cols="12">
                 <v-text-field v-model="caregiverForm.address" label="Address" variant="outlined" />
               </v-col>
@@ -6551,6 +6566,9 @@
               </v-col>
               <v-col cols="12" md="6">
                 <v-text-field :model-value="calculateAge(housekeeperForm.birthdate)" label="Age" variant="outlined" readonly />
+              </v-col>
+              <v-col cols="12" md="6">
+                <v-select v-model="housekeeperForm.gender" :items="[{ title: 'Male', value: 'male' }, { title: 'Female', value: 'female' }]" item-title="title" item-value="value" label="Gender" variant="outlined" clearable />
               </v-col>
               <v-col cols="12">
                 <v-text-field v-model="housekeeperForm.address" label="Address" variant="outlined" />
@@ -9143,6 +9161,7 @@ const caregiverForm = ref({
   email: '', 
   phone: '', 
   birthdate: '', 
+  gender: '',
   address: '', 
   state: 'New York', 
   county: '', 
@@ -9176,6 +9195,7 @@ const housekeeperForm = ref({
   email: '',
   phone: '',
   birthdate: '',
+  gender: '',
   address: '',
   state: 'New York',
   county: '',
@@ -10424,6 +10444,19 @@ const loadUsers = async () => {
     
     const mappedCaregivers = caregiverUsers
       .map((u) => {
+        const dob = u.date_of_birth || '';
+        const birthdate = dob ? new Date(dob).toLocaleDateString() : '';
+        let age = '';
+        if (dob) {
+          const d = new Date(dob);
+          if (!Number.isNaN(d.getTime())) {
+            const today = new Date();
+            let a = today.getFullYear() - d.getFullYear();
+            const m = today.getMonth() - d.getMonth();
+            if (m < 0 || (m === 0 && today.getDate() < d.getDate())) a--;
+            age = a;
+          }
+        }
         return {
           id: u.caregiver?.id,
           userId: u.id,
@@ -10441,6 +10474,10 @@ const loadUsers = async () => {
           location: '',
           place_indicator: (u.zip_code || u.zip) ? 'Loading...' : '',
           phone: u.phone || '(646) 282-8282',
+          date_of_birth: dob,
+          birthdate,
+          age,
+          gender: u.caregiver?.gender || '',
           training_certificate: u.caregiver?.training_certificate || null,
           preferred_hourly_rate_min: u.caregiver?.preferred_hourly_rate_min || null,
           preferred_hourly_rate_max: u.caregiver?.preferred_hourly_rate_max || null
@@ -10474,6 +10511,20 @@ const loadUsers = async () => {
       clients.value = allUsers.filter(u => u.type === 'Client').map(u => {
         const rawZip = u.zip_code ?? u.zip ?? u.zipCode ?? '';
         const zip = (rawZip !== null && rawZip !== '' && String(rawZip).trim() !== '') ? String(rawZip).trim() : '';
+        const dob = u.date_of_birth || '';
+        let birthdate = '';
+        let age = '';
+        if (dob) {
+          const d = new Date(dob);
+          if (!Number.isNaN(d.getTime())) {
+            birthdate = new Date(dob).toLocaleDateString();
+            const today = new Date();
+            let a = today.getFullYear() - d.getFullYear();
+            const m = today.getMonth() - d.getMonth();
+            if (m < 0 || (m === 0 && today.getDate() < d.getDate())) a--;
+            age = a;
+          }
+        }
         const item = {
           id: u.id,
           name: u.name,
@@ -10490,7 +10541,9 @@ const loadUsers = async () => {
           county: u.county || '',
           borough: u.borough || '',
           address: u.address || '',
-          date_of_birth: u.date_of_birth || '',
+          date_of_birth: dob,
+          birthdate,
+          age,
           location: '',
           place_indicator: zip ? 'Loading...' : '',
           created_at: u.created_at || '',
@@ -10524,6 +10577,19 @@ const loadHousekeepers = async () => {
   };
   housekeepers.value = (data.housekeepers || []).map(h => {
     const { first_name, last_name } = nameParts(h);
+    const dob = h.date_of_birth || '';
+    const birthdate = dob ? new Date(dob).toLocaleDateString() : '';
+    let age = '';
+    if (dob) {
+      const d = new Date(dob);
+      if (!Number.isNaN(d.getTime())) {
+        const today = new Date();
+        let a = today.getFullYear() - d.getFullYear();
+        const m = today.getMonth() - d.getMonth();
+        if (m < 0 || (m === 0 && today.getDate() < d.getDate())) a--;
+        age = a;
+      }
+    }
     return {
       id: h.housekeeper?.id,
       userId: h.id,
@@ -10538,6 +10604,10 @@ const loadHousekeepers = async () => {
       borough: h.borough || '',
       location: h.location || 'Unknown',
       status: h.status || 'Active',
+      date_of_birth: dob,
+      birthdate,
+      age,
+      gender: h.housekeeper?.gender || '',
       years_experience: h.years_experience ?? h.housekeeper?.years_experience ?? 0,
       rating: h.housekeeper?.rating ?? h.rating ?? 0,
       hourly_rate: h.housekeeper?.hourly_rate ?? 20,
@@ -10591,6 +10661,7 @@ const viewHousekeeperDetails = async (housekeeper) => {
         if (m < 0 || (m === 0 && today.getDate() < d.getDate())) a--;
         return a;
       })(),
+      gender: hk.gender || housekeeper.gender || '',
       address: u.address || '',
       state: u.state || 'New York',
       county: u.county || u.borough || '',
@@ -13816,6 +13887,7 @@ const openCaregiverDialog = (caregiver = null) => {
       email: caregiver.email || '',
       phone: caregiver.phone || '',
       birthdate: caregiver.date_of_birth || caregiver.birthdate || '',
+      gender: caregiver.gender || '',
       address: caregiver.address || '',
       state: caregiver.state || 'New York',
       county: caregiver.county || '',
@@ -13849,6 +13921,7 @@ const openCaregiverDialog = (caregiver = null) => {
       email: '', 
       phone: '', 
       birthdate: '', 
+      gender: '',
       address: '', 
       state: 'New York', 
       county: '', 
@@ -13903,6 +13976,7 @@ const openHousekeeperDialog = (housekeeper = null) => {
       email: housekeeper.email || '',
       phone: housekeeper.phone || '',
       birthdate: housekeeper.date_of_birth || housekeeper.birthdate || '',
+      gender: housekeeper.gender || '',
       address: housekeeper.address || '',
       state: housekeeper.state || 'New York',
       county: housekeeper.county || '',
@@ -13927,6 +14001,7 @@ const openHousekeeperDialog = (housekeeper = null) => {
       email: '',
       phone: '',
       birthdate: '',
+      gender: '',
       address: '',
       state: 'New York',
       county: '',
@@ -13973,6 +14048,7 @@ const saveHousekeeper = async () => {
       email: housekeeperForm.value.email,
       phone: housekeeperForm.value.phone || null,
       date_of_birth: housekeeperForm.value.birthdate || null,
+      gender: housekeeperForm.value.gender || null,
       address: housekeeperForm.value.address || null,
       state: housekeeperForm.value.state || 'New York',
       county: housekeeperForm.value.county || null,
@@ -14123,6 +14199,7 @@ const saveCaregiver = async () => {
       email: caregiverForm.value.email,
       phone: caregiverForm.value.phone || null,
       date_of_birth: caregiverForm.value.birthdate || null,
+      gender: caregiverForm.value.gender || null,
       address: caregiverForm.value.address || null,
       state: caregiverForm.value.state || 'New York',
       county: caregiverForm.value.county || null,
@@ -14697,6 +14774,7 @@ const viewCaregiverDetails = async (caregiver) => {
         if (m < 0 || (m === 0 && today.getDate() < d.getDate())) a--;
         return a;
       })(),
+      gender: c.gender || caregiver.gender || '',
       address: u.address || '',
       state: u.state || 'New York',
       county: u.county || u.borough || '',
