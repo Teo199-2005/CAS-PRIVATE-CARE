@@ -264,6 +264,12 @@ class AuthController extends Controller
         if (! empty($validated['date_of_birth'] ?? null)) {
             $userData['date_of_birth'] = $validated['date_of_birth'];
         }
+        \Log::info('Registration DOB debug', [
+            'request_dob' => $request->input('date_of_birth'),
+            'validated_dob' => $validated['date_of_birth'] ?? 'NOT SET',
+            'userData_has_dob' => isset($userData['date_of_birth']),
+            'userData_dob' => $userData['date_of_birth'] ?? 'NOT SET',
+        ]);
         $user = User::create($userData);
 
         if ($validated['user_type'] === 'client') {
