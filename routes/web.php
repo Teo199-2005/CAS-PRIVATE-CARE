@@ -240,10 +240,10 @@ Route::middleware(['auth'])->group(function () {
 });
 
 // ============================================
-// AUTHENTICATED API ROUTES
+// AUTHENTICATED API ROUTES (rate limited: 60/min per user)
 // ============================================
 
-Route::prefix('api')->middleware(['web', 'auth'])->group(function () {
+Route::prefix('api')->middleware(['web', 'auth', 'throttle:dashboard'])->group(function () {
     
     // Application Status
     Route::get('/caregiver/application-status', [ApplicationStatusController::class, 'caregiverStatus']);
@@ -293,7 +293,8 @@ Route::prefix('api')->middleware(['web', 'auth'])->group(function () {
     Route::get('/housekeepers', [\App\Http\Controllers\DashboardController::class, 'housekeepers']);
     Route::get('/caregiver/{id}/stats', [\App\Http\Controllers\DashboardController::class, 'caregiverStats']);
     Route::get('/caregiver/{id}/earnings-report', [CaregiverController::class, 'getEarningsReport']);
-    Route::post('/caregiver/earnings-report-pdf', [CaregiverController::class, 'generateEarningsReportPdf']);
+    Route::post('/caregiver/earnings-report-pdf', [CaregiverController::class, 'generateEarningsReportPdf'])
+        ->middleware('throttle:dashboard-export');
     Route::get('/available-clients', [CaregiverController::class, 'getAvailableClients']);
     Route::post('/apply-client/{id}', [CaregiverController::class, 'applyForClient']);
     Route::get('/caregiver/payment-data', [CaregiverDataController::class, 'paymentData']);
@@ -372,10 +373,10 @@ Route::prefix('api')->middleware(['web', 'auth'])->group(function () {
 });
 
 // ============================================
-// ADMIN API ROUTES
+// ADMIN API ROUTES (rate limited: 60/min per user)
 // ============================================
 
-Route::prefix('api')->middleware(['web', 'auth', 'user.type:admin'])->group(function () {
+Route::prefix('api')->middleware(['web', 'auth', 'user.type:admin,adminstaff', 'throttle:dashboard'])->group(function () {
     Route::get('/admin/csrf-token', fn () => response()->json(['token' => csrf_token()]));
     Route::get('/admin/stats', [\App\Http\Controllers\DashboardController::class, 'adminStats']);
     Route::get('/admin/users', [\App\Http\Controllers\DashboardController::class, 'adminUsers']);
@@ -433,6 +434,7 @@ Route::prefix('api')->middleware(['web', 'auth', 'user.type:admin'])->group(func
     Route::post('/bookings/{id}/unassign-housekeeper', [BookingAdminController::class, 'unassignHousekeeper']);
     Route::get('/bookings/{id}/housekeeper/{housekeeperId}/schedule', [BookingAdminController::class, 'getHousekeeperSchedule']);
     Route::post('/bookings/{id}/housekeeper/{housekeeperId}/schedule', [BookingAdminController::class, 'updateHousekeeperSchedule']);
+    Route::get('/bookings/{id}/staff-weekly-hours', [BookingAdminController::class, 'getStaffWeeklyHours']);
     
     // Payments & Analytics (ReportAdminController)
     Route::get('/admin/payment-stats', [ReportAdminController::class, 'getPaymentStats']);
@@ -454,9 +456,11 @@ Route::prefix('api')->middleware(['web', 'auth', 'user.type:admin'])->group(func
     Route::get('/admin/verify-payout/{id}', [\App\Http\Controllers\PaymentMonitoringController::class, 'verifyPayoutDetails']);
     Route::get('/admin/reconciliation-report', [\App\Http\Controllers\PaymentMonitoringController::class, 'getReconciliationReport']);
     
-    // Reports (ReportAdminController)
-    Route::get('/admin/financial-report/pdf', [\App\Http\Controllers\AdminReportController::class, 'generateFinancialReport']);
-    Route::get('/admin/transactions/export/pdf', [\App\Http\Controllers\AdminReportController::class, 'exportTransactionsPdf']);
+    // Reports (ReportAdminController) - export throttle: 5/min
+    Route::get('/admin/financial-report/pdf', [\App\Http\Controllers\AdminReportController::class, 'generateFinancialReport'])
+        ->middleware('throttle:dashboard-export');
+    Route::get('/admin/transactions/export/pdf', [\App\Http\Controllers\AdminReportController::class, 'exportTransactionsPdf'])
+        ->middleware('throttle:dashboard-export');
     Route::get('/admin/top-performers', [ReportAdminController::class, 'getTopPerformers']);
     Route::get('/admin/recent-activity', [ReportAdminController::class, 'getRecentActivity']);
     Route::get('/admin/bookings', [BookingAdminController::class, 'getAllBookings']);

@@ -8,10 +8,12 @@ use App\Services\NotificationService;
 use App\Services\PaymentService;
 use App\Services\EmailService;
 use App\Services\PaymentFeeService;
+use App\Services\StaffHoursService;
 use App\Http\Responses\ApiResponse;
 use App\Http\Traits\ApiResponseTrait;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
@@ -20,12 +22,14 @@ class BookingController extends Controller
 {
     use ApiResponseTrait;
 
-    public function index()
+    public function index(Request $request)
     {
         $clientId = Auth::id();
-        $bookings = Booking::with(['client', 'assignments.caregiver.user', 'payments'])
+        $perPage = min((int) $request->input('per_page', 100), 200);
+        $bookings = Booking::with(['client:id,name', 'assignments.caregiver.user:id,name,email,phone', 'payments:id,booking_id,status'])
             ->where('client_id', $clientId)
             ->orderBy('created_at', 'desc')
+            ->limit($perPage)
             ->get();
 
         // Log only in non-production environments for debugging
@@ -162,7 +166,22 @@ class BookingController extends Controller
             // Calculate total budget: hours per day × duration days × hourly rate
             $durationDays = $request->duration_days ?: 15;
             $totalBudget = $hoursPerDay * $durationDays * $hourlyRate;
-            
+
+            // Validate day_schedules: no single shift may exceed 12 hours
+            if ($request->day_schedules && is_array($request->day_schedules)) {
+                $staffHours = app(StaffHoursService::class);
+                $maxShift = $staffHours->getMaxHoursPerShift();
+                foreach ($request->day_schedules as $dayKey => $schedule) {
+                    $duration = $staffHours->parseDayScheduleHours($schedule);
+                    if ($duration > $maxShift) {
+                        return response()->json([
+                            'success' => false,
+                            'message' => 'No single shift may exceed ' . $maxShift . ' hours. Please adjust the schedule for ' . ucfirst((string) $dayKey) . '.',
+                        ], 422);
+                    }
+                }
+            }
+
             // Use database transaction to ensure data consistency
             $booking = DB::transaction(function() use ($request, $clientId, $dutyType, $startTime, $hourlyRate, $referralCodeId, $referralDiscountApplied, $user, $durationDays, $totalBudget) {
                 return Booking::create([
@@ -194,6 +213,9 @@ class BookingController extends Controller
                     'day_schedules' => $request->day_schedules ?: null
                 ]);
             });
+
+            Cache::forget('admin_dashboard_stats_v1');
+            Cache::forget("client_stats_{$booking->client_id}");
 
             // Log booking creation for debugging
             try {
@@ -287,6 +309,23 @@ class BookingController extends Controller
             if ($request->has('street_address')) $updateData['street_address'] = $request->street_address;
             if ($request->has('apartment_unit')) $updateData['apartment_unit'] = $request->apartment_unit;
             if ($request->has('special_instructions')) $updateData['special_instructions'] = $request->special_instructions;
+            if ($request->has('day_schedules')) {
+                $daySchedules = $request->day_schedules;
+                if (is_array($daySchedules)) {
+                    $staffHours = app(StaffHoursService::class);
+                    $maxShift = $staffHours->getMaxHoursPerShift();
+                    foreach ($daySchedules as $dayKey => $schedule) {
+                        $duration = $staffHours->parseDayScheduleHours($schedule);
+                        if ($duration > $maxShift) {
+                            return response()->json([
+                                'success' => false,
+                                'message' => 'No single shift may exceed ' . $maxShift . ' hours. Please adjust the schedule for ' . ucfirst((string) $dayKey) . '.',
+                            ], 422);
+                        }
+                    }
+                }
+                $updateData['day_schedules'] = $daySchedules;
+            }
 
             // Admin-only: set or clear referral code so marketing partner gets credit for referred clients
             if ($user && $user->user_type === 'admin') {
@@ -308,6 +347,8 @@ class BookingController extends Controller
             }
             
             $booking->update($updateData);
+            Cache::forget('admin_dashboard_stats_v1');
+            Cache::forget("client_stats_{$booking->client_id}");
             $booking->load(['referralCode.user:id,name,email']);
 
             return response()->json([
@@ -442,7 +483,9 @@ class BookingController extends Controller
             $booking = Booking::findOrFail($id);
             $oldStatus = $booking->status;
             $booking->update(['status' => 'approved']);
-            
+            Cache::forget('admin_dashboard_stats_v1');
+            Cache::forget("client_stats_{$booking->client_id}");
+
             // Load client for email
             $booking->load('client');
             $client = $booking->client;
@@ -485,7 +528,9 @@ class BookingController extends Controller
         try {
             $booking = Booking::findOrFail($id);
             $booking->update(['status' => 'rejected']);
-            
+            Cache::forget('admin_dashboard_stats_v1');
+            Cache::forget("client_stats_{$booking->client_id}");
+
             // Send notification to client
             NotificationService::notifyBookingRejected($booking, $request->reason);
             
@@ -592,8 +637,11 @@ class BookingController extends Controller
             // Update booking status to confirmed
             $booking->update([
                 'status' => 'confirmed',
+                'payment_status' => 'paid',
                 'stripe_payment_intent_id' => $validated['payment_intent_id']
             ]);
+            Cache::forget('admin_dashboard_stats_v1');
+            Cache::forget("client_stats_{$booking->client_id}");
 
             \Log::info('Payment status updated', [
                 'booking_id' => $booking->id,

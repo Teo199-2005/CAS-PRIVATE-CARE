@@ -50,6 +50,9 @@ class Kernel extends ConsoleKernel
         $schedule->command('tax:generate-1099')
             ->yearlyOn(1, 15, '03:00')
             ->appendOutputTo(storage_path('logs/1099-generation.log'));
+
+        // Sync Stripe revenue to cache every 5 min (avoids Stripe API in hot paths)
+        $schedule->job(new \App\Jobs\SyncStripeRevenueJob())->everyFiveMinutes();
     }
 
     protected function commands(): void

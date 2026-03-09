@@ -5,6 +5,7 @@ namespace App\Console\Commands;
 use App\Models\Booking;
 use App\Models\Payment;
 use App\Models\User;
+use App\Services\StaffHoursService;
 use App\Models\Notification;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
@@ -359,28 +360,46 @@ class ProcessRecurringBookings extends Command
      */
     private function autoAssignCaregivers($originalBooking, $newBooking)
     {
+        $staffHours = app(StaffHoursService::class);
+        $bookingStart = Carbon::parse($newBooking->service_date)->format('Y-m-d');
+        $bookingEnd = Carbon::parse($newBooking->service_date)->addDays(($newBooking->duration_days ?? 15) - 1)->format('Y-m-d');
+
         // Get assignments from original booking
         $originalAssignments = $originalBooking->assignments ?? collect();
         
         if ($originalAssignments->isEmpty()) {
             // Check if there's an assigned_caregiver_id
             if ($originalBooking->assigned_caregiver_id) {
-                \App\Models\BookingAssignment::create([
-                    'booking_id' => $newBooking->id,
-                    'caregiver_id' => $originalBooking->assigned_caregiver_id,
-                    'status' => 'assigned',
-                    'assigned_at' => now(),
-                ]);
+                $caregiverId = (int) $originalBooking->assigned_caregiver_id;
+                $newHoursPerWeek = $staffHours->getNewCaregiverAssignmentHoursPerWeek($newBooking, $bookingStart, $bookingEnd);
+                $violation = $staffHours->checkCaregiverWeeklyLimit($caregiverId, $bookingStart, $bookingEnd, $newHoursPerWeek, (int) $newBooking->id);
+                if ($violation === null) {
+                    \App\Models\BookingAssignment::create([
+                        'booking_id' => $newBooking->id,
+                        'caregiver_id' => $caregiverId,
+                        'status' => 'assigned',
+                        'assigned_at' => now(),
+                    ]);
+                } else {
+                    Log::warning('Recurring booking: skipped caregiver (40hr limit)', ['booking_id' => $newBooking->id, 'caregiver_id' => $caregiverId, 'message' => $violation]);
+                }
             }
             return;
         }
 
-        // Copy assignments to new booking
+        // Copy assignments to new booking (skip if caregiver would exceed 40 hrs/week)
         foreach ($originalAssignments as $assignment) {
+            $caregiverId = (int) $assignment->caregiver_id;
+            $newHoursPerWeek = $staffHours->getNewCaregiverAssignmentHoursPerWeek($newBooking, $bookingStart, $bookingEnd);
+            $violation = $staffHours->checkCaregiverWeeklyLimit($caregiverId, $bookingStart, $bookingEnd, $newHoursPerWeek, (int) $newBooking->id);
+            if ($violation !== null) {
+                Log::warning('Recurring booking: skipped caregiver (40hr limit)', ['booking_id' => $newBooking->id, 'caregiver_id' => $caregiverId, 'message' => $violation]);
+                continue;
+            }
             \App\Models\BookingAssignment::create([
                 'booking_id' => $newBooking->id,
-                'caregiver_id' => $assignment->caregiver_id,
-                'hourly_rate' => $assignment->hourly_rate,
+                'caregiver_id' => $caregiverId,
+                'assigned_hourly_rate' => $assignment->assigned_hourly_rate ?? $assignment->hourly_rate ?? null,
                 'status' => 'assigned',
                 'assigned_at' => now(),
             ]);

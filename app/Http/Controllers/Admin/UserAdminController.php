@@ -745,14 +745,18 @@ class UserAdminController extends Controller
     }
 
     /**
-     * Get all users with their related data
+     * Get all users with their related data (paginated: max 100 per page)
      */
-    public function getUsers()
+    public function getUsers(Request $request)
     {
         try {
-            $users = User::with(['caregiver', 'client'])->orderBy('created_at', 'desc')->get();
-            
-            $usersData = $users->map(function($u) {
+            $perPage = min((int) $request->input('per_page', 50), 100);
+            $paginated = User::with(['caregiver:id,user_id,rating,preferred_hourly_rate_min,preferred_hourly_rate_max', 'client:id,user_id,zip_code'])
+                ->select(['id', 'name', 'email', 'phone', 'user_type', 'status', 'zip_code', 'city', 'county', 'borough', 'state', 'address', 'date_of_birth', 'created_at', 'email_verified_at'])
+                ->orderBy('created_at', 'desc')
+                ->paginate($perPage);
+
+            $usersData = collect($paginated->items())->map(function($u) {
                 // Use client relation zip_code as fallback for client-type users when user.zip_code is empty
                 $zipCode = $u->zip_code;
                 if (($zipCode === null || $zipCode === '') && $u->user_type === 'client' && $u->relationLoaded('client') && $u->client) {
@@ -792,7 +796,21 @@ class UserAdminController extends Controller
                 return $data;
             });
             
-            $response = response()->json(['users' => $usersData]);
+            $response = response()->json([
+                'users' => $usersData,
+                'meta' => [
+                    'current_page' => $paginated->currentPage(),
+                    'last_page' => $paginated->lastPage(),
+                    'per_page' => $paginated->perPage(),
+                    'total' => $paginated->total(),
+                ],
+                'links' => [
+                    'first' => $paginated->url(1),
+                    'last' => $paginated->url($paginated->lastPage()),
+                    'prev' => $paginated->previousPageUrl(),
+                    'next' => $paginated->nextPageUrl(),
+                ],
+            ]);
             $response->header('Cache-Control', 'no-store, no-cache, must-revalidate');
             $response->header('Pragma', 'no-cache');
             return $response;
@@ -803,16 +821,19 @@ class UserAdminController extends Controller
     }
 
     /**
-     * Minimal caregivers list for admin dashboard table
+     * Minimal caregivers list for admin dashboard table (paginated: max 100 per page)
      */
-    public function getCaregivers()
+    public function getCaregivers(Request $request)
     {
         try {
-            $caregivers = User::query()
+            $perPage = min((int) $request->input('per_page', 50), 100);
+            $paginated = User::query()
                 ->where('user_type', 'caregiver')
-                ->with('caregiver')
+                ->with('caregiver:id,user_id,rating,preferred_hourly_rate_min,preferred_hourly_rate_max')
+                ->select(['id', 'name', 'email', 'phone', 'zip_code', 'city', 'county', 'borough', 'created_at'])
                 ->orderBy('created_at', 'desc')
-                ->get();
+                ->paginate($perPage);
+            $caregivers = collect($paginated->items());
 
             $data = $caregivers
                 ->filter(fn($u) => $u->caregiver && $u->caregiver->id)
@@ -837,7 +858,21 @@ class UserAdminController extends Controller
                 })
                 ->values();
 
-            return response()->json(['caregivers' => $data]);
+            return response()->json([
+                'caregivers' => $data,
+                'meta' => [
+                    'current_page' => $paginated->currentPage(),
+                    'last_page' => $paginated->lastPage(),
+                    'per_page' => $paginated->perPage(),
+                    'total' => $paginated->total(),
+                ],
+                'links' => [
+                    'first' => $paginated->url(1),
+                    'last' => $paginated->url($paginated->lastPage()),
+                    'prev' => $paginated->previousPageUrl(),
+                    'next' => $paginated->nextPageUrl(),
+                ],
+            ]);
         } catch (\Exception $e) {
             Log::error('Error in getCaregivers: ' . $e->getMessage());
             return response()->json(['error' => $e->getMessage()], 500);
@@ -845,16 +880,19 @@ class UserAdminController extends Controller
     }
 
     /**
-     * Get all housekeepers for admin dashboard
+     * Get all housekeepers for admin dashboard (paginated: max 100 per page)
      */
-    public function getHousekeepers()
+    public function getHousekeepers(Request $request)
     {
         try {
-            $housekeepers = User::query()
+            $perPage = min((int) $request->input('per_page', 50), 100);
+            $paginated = User::query()
                 ->where('user_type', 'housekeeper')
-                ->with('housekeeper')
+                ->with('housekeeper:id,user_id,rating,hourly_rate,years_experience')
+                ->select(['id', 'name', 'email', 'phone', 'zip_code', 'city', 'county', 'borough', 'state', 'status', 'created_at'])
                 ->orderBy('created_at', 'desc')
-                ->get();
+                ->paginate($perPage);
+            $housekeepers = collect($paginated->items());
 
             $data = $housekeepers
                 ->filter(fn($u) => $u->housekeeper && $u->housekeeper->id)
@@ -894,7 +932,21 @@ class UserAdminController extends Controller
                 })
                 ->values();
 
-            return response()->json(['housekeepers' => $data]);
+            return response()->json([
+                'housekeepers' => $data,
+                'meta' => [
+                    'current_page' => $paginated->currentPage(),
+                    'last_page' => $paginated->lastPage(),
+                    'per_page' => $paginated->perPage(),
+                    'total' => $paginated->total(),
+                ],
+                'links' => [
+                    'first' => $paginated->url(1),
+                    'last' => $paginated->url($paginated->lastPage()),
+                    'prev' => $paginated->previousPageUrl(),
+                    'next' => $paginated->nextPageUrl(),
+                ],
+            ]);
         } catch (\Exception $e) {
             Log::error('Error in getHousekeepers: ' . $e->getMessage());
             return response()->json(['error' => $e->getMessage()], 500);

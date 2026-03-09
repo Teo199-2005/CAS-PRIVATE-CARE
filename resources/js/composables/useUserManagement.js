@@ -71,9 +71,9 @@ export function useUserManagement() {
         
         try {
             const response = await axios.get('/api/admin/users', {
-                params: { type: 'client', search: searchQuery.value, status: statusFilter.value }
+                params: { type: 'client', search: searchQuery.value, status: statusFilter.value, per_page: 50 }
             });
-            clients.value = response.data.data || response.data || [];
+            clients.value = response.data.users ?? response.data.data ?? response.data ?? [];
         } catch (err) {
             error.value = err.response?.data?.message || 'Failed to load clients';
             console.error('Clients fetch error:', err);
@@ -87,8 +87,8 @@ export function useUserManagement() {
         error.value = null;
         
         try {
-            const response = await axios.get('/api/admin/caregivers');
-            caregivers.value = response.data.data || response.data || [];
+            const response = await axios.get('/api/admin/caregivers', { params: { per_page: 50 } });
+            caregivers.value = response.data.caregivers ?? response.data.data ?? response.data ?? [];
         } catch (err) {
             error.value = err.response?.data?.message || 'Failed to load caregivers';
             console.error('Caregivers fetch error:', err);
@@ -102,8 +102,8 @@ export function useUserManagement() {
         error.value = null;
         
         try {
-            const response = await axios.get('/api/admin/housekeepers');
-            housekeepers.value = response.data.data || response.data || [];
+            const response = await axios.get('/api/admin/housekeepers', { params: { per_page: 50 } });
+            housekeepers.value = response.data.housekeepers ?? response.data.data ?? response.data ?? [];
         } catch (err) {
             error.value = err.response?.data?.message || 'Failed to load housekeepers';
             console.error('Housekeepers fetch error:', err);

@@ -78,5 +78,15 @@ class AppServiceProvider extends ServiceProvider
             }
             return Limit::perMinute(60)->by($request->ip());
         });
+
+        // Dashboard API rate limiting - 60/min per user (10k users = sustainable load)
+        RateLimiter::for('dashboard', function (Request $request) {
+            return Limit::perMinute(60)->by($request->user()?->id ?: $request->ip());
+        });
+
+        // Export/PDF rate limiting - 5/min per user (expensive operations)
+        RateLimiter::for('dashboard-export', function (Request $request) {
+            return Limit::perMinute(5)->by($request->user()?->id ?: $request->ip());
+        });
     }
 }

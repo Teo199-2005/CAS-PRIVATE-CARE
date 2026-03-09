@@ -11,6 +11,7 @@ use App\Models\BookingAssignment;
 use App\Models\BookingHousekeeperAssignment;
 use App\Models\Caregiver;
 use App\Models\Housekeeper;
+use App\Services\StaffHoursService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -142,8 +143,21 @@ class BookingAdminController extends Controller
             DB::beginTransaction();
 
             $booking = Booking::findOrFail($id);
-            
+            $serviceDate = $booking->service_date ? \Carbon\Carbon::parse($booking->service_date) : null;
+            $durationDays = (int) ($booking->duration_days ?? 15);
+            $bookingStart = $serviceDate ? $serviceDate->format('Y-m-d') : now()->format('Y-m-d');
+            $bookingEnd = $serviceDate ? $serviceDate->copy()->addDays($durationDays - 1)->format('Y-m-d') : $bookingStart;
+            $staffHours = app(StaffHoursService::class);
+
             foreach ($request->caregiver_ids as $caregiverId) {
+                $newHoursPerWeek = $staffHours->getNewCaregiverAssignmentHoursPerWeek($booking, $bookingStart, $bookingEnd);
+                $violation = $staffHours->checkCaregiverWeeklyLimit((int) $caregiverId, $bookingStart, $bookingEnd, $newHoursPerWeek, $id);
+                if ($violation !== null) {
+                    DB::rollBack();
+                    $caregiver = \App\Models\Caregiver::with('user')->find($caregiverId);
+                    $name = $caregiver && $caregiver->user ? $caregiver->user->name : "Caregiver #{$caregiverId}";
+                    return $this->errorResponse("{$name}: {$violation}", 422);
+                }
                 // Check if already assigned
                 $exists = BookingAssignment::where('booking_id', $id)
                     ->where('caregiver_id', $caregiverId)
@@ -201,8 +215,21 @@ class BookingAdminController extends Controller
             DB::beginTransaction();
 
             $booking = Booking::findOrFail($id);
-            
+            $serviceDate = $booking->service_date ? \Carbon\Carbon::parse($booking->service_date) : null;
+            $durationDays = (int) ($booking->duration_days ?? 15);
+            $bookingStart = $serviceDate ? $serviceDate->format('Y-m-d') : now()->format('Y-m-d');
+            $bookingEnd = $serviceDate ? $serviceDate->copy()->addDays($durationDays - 1)->format('Y-m-d') : $bookingStart;
+            $staffHours = app(StaffHoursService::class);
+
             foreach ($request->housekeeper_ids as $housekeeperId) {
+                $newHoursPerWeek = $staffHours->getNewHousekeeperAssignmentHoursPerWeek($booking, $bookingStart, $bookingEnd);
+                $violation = $staffHours->checkHousekeeperWeeklyLimit((int) $housekeeperId, $bookingStart, $bookingEnd, $newHoursPerWeek, $id);
+                if ($violation !== null) {
+                    DB::rollBack();
+                    $housekeeper = Housekeeper::with('user')->find($housekeeperId);
+                    $name = $housekeeper && $housekeeper->user ? $housekeeper->user->name : "Housekeeper #{$housekeeperId}";
+                    return $this->errorResponse("{$name}: {$violation}", 422);
+                }
                 BookingHousekeeperAssignment::firstOrCreate(
                     [
                         'booking_id' => $id,
@@ -315,6 +342,48 @@ class BookingAdminController extends Controller
     }
 
     /**
+     * Get scheduled hours per week for caregivers and housekeepers (for assign dialog).
+     * Query: caregiver_ids[]=1&caregiver_ids[]=2&housekeeper_ids[]=3
+     */
+    public function getStaffWeeklyHours(Request $request, int $id): JsonResponse
+    {
+        try {
+            $booking = Booking::findOrFail($id);
+            $serviceDate = $booking->service_date ? \Carbon\Carbon::parse($booking->service_date) : null;
+            $durationDays = (int) ($booking->duration_days ?? 15);
+            $bookingStart = $serviceDate ? $serviceDate->format('Y-m-d') : now()->format('Y-m-d');
+            $bookingEnd = $serviceDate ? $serviceDate->copy()->addDays($durationDays - 1)->format('Y-m-d') : $bookingStart;
+            $staffHours = app(StaffHoursService::class);
+            $caregiverIds = $request->has('caregiver_ids') ? (array) $request->input('caregiver_ids', []) : [];
+            $housekeeperIds = $request->has('housekeeper_ids') ? (array) $request->input('housekeeper_ids', []) : [];
+            $caregivers = [];
+            $housekeepers = [];
+            foreach ($caregiverIds as $cid) {
+                $cid = (int) $cid;
+                if ($cid <= 0) {
+                    continue;
+                }
+                $caregivers[(string) $cid] = $staffHours->getCaregiverHoursPerWeek($cid, $bookingStart, $bookingEnd, $id);
+            }
+            foreach ($housekeeperIds as $hid) {
+                $hid = (int) $hid;
+                if ($hid <= 0) {
+                    continue;
+                }
+                $housekeepers[(string) $hid] = $staffHours->getHousekeeperHoursPerWeek($hid, $bookingStart, $bookingEnd, $id);
+            }
+            return $this->successResponse([
+                'caregivers' => $caregivers,
+                'housekeepers' => $housekeepers,
+                'max_hours_per_week' => $staffHours->getMaxHoursPerWeek(),
+            ], 'Staff weekly hours retrieved');
+        } catch (\Exception $e) {
+            Log::error('Failed to get staff weekly hours', ['booking_id' => $id, 'error' => $e->getMessage()]);
+            return $this->errorResponse('Failed to retrieve staff weekly hours', 500);
+        }
+    }
+
+    /**
      * Get housekeeper schedule for a booking.
      * Uses housekeeper_schedules table (days + schedules json columns).
      */
@@ -399,18 +468,45 @@ class BookingAdminController extends Controller
             $schedule_days = $request->schedule_days;
             $days = [];
             $schedules = [];
+            $staffHours = app(StaffHoursService::class);
+            $maxShiftHours = $staffHours->getMaxHoursPerShift();
             foreach ($schedule_days as $entry) {
                 $day = is_string($entry['day'] ?? null) ? strtolower($entry['day']) : null;
                 if ($day === null) {
                     continue;
                 }
+                $startTime = $entry['start_time'] ?? '08:00';
+                $endTime = $entry['end_time'] ?? '17:00';
+                $startCarbon = \Carbon\Carbon::parse($startTime);
+                $endCarbon = \Carbon\Carbon::parse($endTime);
+                if ($endCarbon->format('H:i') <= $startCarbon->format('H:i')) {
+                    $endCarbon->addDay();
+                }
+                $shiftHours = $startCarbon->diffInMinutes($endCarbon) / 60;
+                if ($shiftHours > $maxShiftHours) {
+                    return $this->errorResponse(
+                        'No single shift may exceed ' . $maxShiftHours . ' hours. Please adjust the time for ' . ucfirst($day) . '.',
+                        422
+                    );
+                }
                 $days[] = $day;
                 $schedules[$day] = [
-                    'start_time' => $entry['start_time'] ?? '08:00',
+                    'start_time' => $startTime,
                     'end_time' => $entry['end_time'] ?? '17:00',
                 ];
             }
             $days = array_values(array_unique($days));
+
+            $booking = Booking::find($id);
+            if ($booking && $booking->service_date && $booking->duration_days) {
+                $bookingStart = \Carbon\Carbon::parse($booking->service_date)->format('Y-m-d');
+                $bookingEnd = \Carbon\Carbon::parse($booking->service_date)->addDays((int) $booking->duration_days - 1)->format('Y-m-d');
+                $newHoursPerWeek = $staffHours->getHousekeeperHoursPerWeekFromScheduleDays($bookingStart, $bookingEnd, $schedule_days);
+                $violation = $staffHours->checkHousekeeperWeeklyLimit((int) $housekeeperId, $bookingStart, $bookingEnd, $newHoursPerWeek, $id);
+                if ($violation !== null) {
+                    return $this->errorResponse($violation, 422);
+                }
+            }
 
             $existing = DB::table('housekeeper_schedules')
                 ->where('booking_id', $id)

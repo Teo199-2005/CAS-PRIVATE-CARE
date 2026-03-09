@@ -111,6 +111,12 @@
 
         <!-- Dashboard Section -->
         <div v-if="currentSection === 'dashboard'">
+          <v-alert type="info" variant="tonal" density="compact" class="mb-3" border="start">
+            <div class="text-body-2">
+              <v-icon size="small" class="mr-2" style="vertical-align: middle;">mdi-clock-check-outline</v-icon>
+              <strong>Maximum hours:</strong> 40 hours per week and 12 hours per shift. Schedules are set to keep you within these limits.
+            </div>
+          </v-alert>
           <v-row class="mb-2">
             <v-col cols="12" sm="6" md="3">
               <v-card elevation="0" class="mb-3 account-balance-card d-flex flex-column" style="height: 100%;">
@@ -4410,7 +4416,7 @@ onMounted(async () => {
   }, 30000);
   
   // Refresh notification count every 30 seconds
-  setInterval(loadSidebarNotificationCount, 30000);
+  setInterval(loadSidebarNotificationCount, 60000); // 60s (was 30s - scalable for 10k users)
 });
 
 // Clean up resize listener

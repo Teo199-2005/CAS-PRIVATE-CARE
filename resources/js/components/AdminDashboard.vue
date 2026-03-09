@@ -7047,6 +7047,15 @@
                       <span class="mx-2">•</span>
                       <v-icon size="14" class="mr-1">mdi-map-marker</v-icon>
                       {{ caregiver.zip_code }} - {{ caregiver.location }}
+                      <v-chip
+                        v-if="staffWeeklyHours.max_hours_per_week"
+                        :color="getCaregiverScheduledHours(caregiver.id) >= staffWeeklyHours.max_hours_per_week ? 'warning' : 'default'"
+                        size="x-small"
+                        variant="tonal"
+                        class="ml-2"
+                      >
+                        {{ getCaregiverScheduledHours(caregiver.id) }} / {{ staffWeeklyHours.max_hours_per_week }} hrs
+                      </v-chip>
                       <span class="mx-2">•</span>
                       <v-icon size="14" class="mr-1">mdi-cash</v-icon>
                       ${{ caregiver.preferred_hourly_rate_min || 20 }}-${{ caregiver.preferred_hourly_rate_max || 50 }}/hr
@@ -7290,6 +7299,15 @@
                       <div class="caregiver-assign-details">
                         <v-icon size="14" class="mr-1">mdi-email</v-icon>
                         {{ hk.email || '—' }}
+                        <v-chip
+                          v-if="staffWeeklyHours.max_hours_per_week"
+                          :color="getHousekeeperScheduledHours(hk.id) >= staffWeeklyHours.max_hours_per_week ? 'warning' : 'default'"
+                          size="x-small"
+                          variant="tonal"
+                          class="ml-2"
+                        >
+                          {{ getHousekeeperScheduledHours(hk.id) }} / {{ staffWeeklyHours.max_hours_per_week }} hrs
+                        </v-chip>
                       </div>
                     </div>
                     <v-chip
@@ -9061,7 +9079,7 @@ const forceLogout = async () => {
 const startSessionHeartbeat = () => {
   if (props.staffMode) return;
   checkSessionValidity();
-  sessionHeartbeatInterval = setInterval(checkSessionValidity, 5000);
+  sessionHeartbeatInterval = setInterval(checkSessionValidity, 60000); // 60s (was 5s - scalable for 10k users)
 };
 
 // ============================================
@@ -11441,6 +11459,8 @@ const assignHousekeeperAvailabilityFilter = ref('Available');
 const assignSelectedHousekeepers = ref([]);
 const assignedHousekeeperRates = ref({});
 const customHousekeepersNeeded = ref(null);
+
+const staffWeeklyHours = ref({ caregivers: {}, housekeepers: {}, max_hours_per_week: 40 });
 
 const paymentStats = ref([
   { title: 'Total Revenue', value: '$0', icon: 'mdi-currency-usd', color: 'success', change: '+15%', changeColor: 'success--text' },
@@ -14910,6 +14930,40 @@ const getAssignmentStatusColor = (assignmentStatus) => {
   return colors[assignmentStatus] || 'info';
 };
 
+const loadStaffWeeklyHours = async (bookingId, caregiverIds = [], housekeeperIds = []) => {
+  try {
+    const params = new URLSearchParams();
+    caregiverIds.forEach(id => params.append('caregiver_ids[]', id));
+    housekeeperIds.forEach(id => params.append('housekeeper_ids[]', id));
+    const url = `/api/bookings/${bookingId}/staff-weekly-hours?${params.toString()}`;
+    const response = await fetch(url, { credentials: 'include' });
+    const data = await response.json();
+    if (data.success && data.data) {
+      staffWeeklyHours.value = {
+        caregivers: data.data.caregivers || {},
+        housekeepers: data.data.housekeepers || {},
+        max_hours_per_week: data.data.max_hours_per_week ?? 40
+      };
+    }
+  } catch (_) {
+    staffWeeklyHours.value = { caregivers: {}, housekeepers: {}, max_hours_per_week: 40 };
+  }
+};
+
+const getCaregiverScheduledHours = (caregiverId) => {
+  const weeks = staffWeeklyHours.value.caregivers[String(caregiverId)];
+  if (!weeks || typeof weeks !== 'object') return 0;
+  const values = Object.values(weeks);
+  return values.length ? Math.max(...values) : 0;
+};
+
+const getHousekeeperScheduledHours = (housekeeperId) => {
+  const weeks = staffWeeklyHours.value.housekeepers[String(housekeeperId)];
+  if (!weeks || typeof weeks !== 'object') return 0;
+  const values = Object.values(weeks);
+  return values.length ? Math.max(...values) : 0;
+};
+
 const assignCaregiverDialog = async (booking) => {
   selectedBooking.value = booking;
   assignCaregiverSearch.value = '';
@@ -14934,6 +14988,8 @@ const assignCaregiverDialog = async (booking) => {
       assignedRates.value[caregiverId] = caregiver.preferred_hourly_rate_min || 20;
     }
   });
+  const cgIds = (caregivers.value || []).map(c => c.id).filter(Boolean);
+  await loadStaffWeeklyHours(booking.id, cgIds, []);
   
   assignDialog.value = true;
 };
@@ -14960,6 +15016,8 @@ const assignHousekeeperDialog = async (booking) => {
     const hk = housekeepers.value.find(h => h.id === housekeeperId);
     assignedHousekeeperRates.value[housekeeperId] = fromApi?.hourly_rate ?? hk?.hourly_rate ?? 20;
   });
+  const hkIds = (housekeepers.value || []).map(h => h.id).filter(Boolean);
+  await loadStaffWeeklyHours(booking.id, [], hkIds);
 
   assignHousekeeperDialogOpen.value = true;
 };
@@ -15403,6 +15461,22 @@ const saveHousekeeperSchedule = async (housekeeperId) => {
       end_time: slot.end_time || defaultEnd,
     };
   });
+
+  const maxShiftHours = 12;
+  const parseTime = (t) => {
+    const [h, m] = (t || '00:00').toString().split(':').map(Number);
+    return (h || 0) * 60 + (m || 0);
+  };
+  for (const s of schedule_days) {
+    const startM = parseTime(s.start_time);
+    let endM = parseTime(s.end_time);
+    if (endM <= startM) endM += 24 * 60;
+    const hours = (endM - startM) / 60;
+    if (hours > maxShiftHours) {
+      warning(`No single shift may exceed ${maxShiftHours} hours. Please adjust the time for ${(s.day || '').charAt(0).toUpperCase() + (s.day || '').slice(1)}.`, 'Shift limit');
+      return;
+    }
+  }
 
   try {
     await refreshAdminCsrfToken();
@@ -17499,7 +17573,7 @@ if (typeof window !== 'undefined') {
 }
 
 // Refresh notification count every 30 seconds
-setInterval(loadAdminNotificationCount, 30000);
+setInterval(loadAdminNotificationCount, 60000); // 60s (was 30s - scalable for 10k users)
 
 </script>
 

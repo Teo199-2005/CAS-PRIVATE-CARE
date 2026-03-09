@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Booking;
 use App\Models\Payment;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -232,7 +233,9 @@ class PaymentPageController extends Controller
                 'stripe_payment_intent_id' => $paymentIntentId,
                 'payment_date' => now()
             ]);
-            
+            Cache::forget('admin_dashboard_stats_v1');
+            Cache::forget("client_stats_{$booking->client_id}");
+
             // Calculate the booking amount
             $hours = $this->extractHoursFromDutyType($booking->duty_type);
             $rate = $booking->assigned_hourly_rate ?: 28;

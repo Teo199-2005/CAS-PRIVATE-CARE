@@ -199,15 +199,16 @@ export function useAdminStaffState() {
   const fetchUsers = async () => {
     state.loading.users = true;
     try {
-      const [clientsRes, caregiversRes, housekeepersRes] = await Promise.all([
-        axios.get('/api/admin/clients').catch(() => ({ data: { data: [] } })),
-        axios.get('/api/admin/caregivers').catch(() => ({ data: { data: [] } })),
-        axios.get('/api/admin/housekeepers').catch(() => ({ data: { data: [] } })),
+      const [usersRes, caregiversRes, housekeepersRes] = await Promise.all([
+        axios.get('/api/admin/users', { params: { per_page: 50 } }).catch(() => ({ data: { users: [] } })),
+        axios.get('/api/admin/caregivers', { params: { per_page: 50 } }).catch(() => ({ data: { caregivers: [] } })),
+        axios.get('/api/admin/housekeepers', { params: { per_page: 50 } }).catch(() => ({ data: { housekeepers: [] } })),
       ]);
-      
-      state.clients = clientsRes.data?.data || [];
-      state.caregivers = caregiversRes.data?.data || [];
-      state.housekeepers = housekeepersRes.data?.data || [];
+
+      const allUsers = usersRes.data?.users ?? [];
+      state.clients = allUsers.filter(u => u.type === 'Client');
+      state.caregivers = caregiversRes.data?.caregivers ?? caregiversRes.data?.data ?? [];
+      state.housekeepers = housekeepersRes.data?.housekeepers ?? housekeepersRes.data?.data ?? [];
     } catch (error) {
       console.error('Failed to fetch users:', error);
     } finally {

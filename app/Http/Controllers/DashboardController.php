@@ -9,23 +9,27 @@ use App\Models\Payment;
 use App\Services\PricingService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 
 class DashboardController extends Controller
 {
     public function clientStats(Request $request): JsonResponse
     {
-        // Require authentication - no more demo fallbacks
         $clientId = $request->query('client_id') ?: auth()->id();
-        
+
         if (!$clientId) {
             return response()->json([
                 'success' => false,
                 'message' => 'Authentication required'
             ], 401);
         }
-        
-        // Get all bookings for the client with assignments loaded
-        $allBookings = Booking::where('client_id', $clientId)
+
+        $cacheKey = "client_stats_{$clientId}";
+        $cacheTtl = now()->addMinutes(5);
+
+        $data = Cache::remember($cacheKey, $cacheTtl, function () use ($clientId) {
+            // Limit bookings loaded: only what's needed for stats (scalability)
+            $allBookings = Booking::where('client_id', $clientId)
             ->with([
                 'assignments.caregiver.user:id,name,email,phone',
                 'assignments.caregiver:id,user_id',
@@ -47,24 +51,7 @@ class DashboardController extends Controller
         $totalSpent = $spendingBookings->sum(function($booking) {
             $hours = $this->extractHours($booking->duty_type);
             $rate = $booking->hourly_rate ?: $this->getDefaultRate($booking->service_type);
-            $calculatedSpent = $hours * $booking->duration_days * $rate;
-            
-            // Debug: Log the calculation for troubleshooting
-            \Log::info('Booking calculation', [
-                'booking_id' => $booking->id,
-                'service_type' => $booking->service_type,
-                'duty_type' => $booking->duty_type,
-                'hours' => $hours,
-                'duration_days' => $booking->duration_days,
-                'hourly_rate' => $booking->hourly_rate,
-                'default_rate' => $this->getDefaultRate($booking->service_type),
-                'final_rate' => $rate,
-                'calculated_spent' => $calculatedSpent,
-                'has_payment_record' => $booking->payments->where('status', 'completed')->isNotEmpty(),
-                'booking_payment_status' => $booking->payment_status
-            ]);
-            
-            return $calculatedSpent;
+            return $hours * $booking->duration_days * $rate;
         });
         
         // Calculate this month's spending
@@ -162,7 +149,7 @@ class DashboardController extends Controller
             ];
         })->values()->toArray();
         
-        return response()->json([
+        return [
             'total_bookings' => $allBookings->count(),
             'active_bookings' => $activeBookings,
             'ongoing_contracts' => $activeBookings,
@@ -174,8 +161,8 @@ class DashboardController extends Controller
             'this_month_spent' => $thisMonthSpent,
             'avg_monthly_spent' => $avgMonthlySpent,
             'total_hours' => $totalHours,
-            'avg_rating' => 4.9, // This would come from reviews table
-            'active_caregivers' => $activeBookings, // Simplified
+            'avg_rating' => 4.9,
+            'active_caregivers' => $activeBookings,
             'transactions' => $transactions,
             'my_bookings' => Booking::where('client_id', $clientId)
                 ->with([
@@ -184,8 +171,12 @@ class DashboardController extends Controller
                     'assignments.caregiver:id,user_id'
                 ])
                 ->latest()
+                ->limit(100)
                 ->get()
-        ]);
+        ];
+        });
+
+        return response()->json($data);
     }
     
     private function extractHours($dutyType)
@@ -451,82 +442,60 @@ class DashboardController extends Controller
 
     public function adminStats(): JsonResponse
     {
-        $totalUsers = \App\Models\User::count();
-        $totalCaregivers = \App\Models\User::where('user_type', 'caregiver')->count();
-        $totalClients = \App\Models\User::where('user_type', 'client')->count();
-        $totalAdmins = \App\Models\User::where('user_type', 'admin')->count();
-        $totalMarketing = \App\Models\User::where('user_type', 'marketing')->count();
-        $totalTraining = \App\Models\User::where('user_type', 'training')->count();
-        $totalHousekeepers = \App\Models\User::where('user_type', 'housekeeper')->count();
-        
-        // Get active bookings (approved/confirmed/in_progress AND has completed payment)
-        $activeBookings = Booking::with('payments')
-            ->get()
-            ->filter(function($booking) {
-                $hasCompletedPayment = $booking->payments->where('status', 'completed')->isNotEmpty();
-                return in_array($booking->status, ['approved', 'confirmed', 'in_progress']) 
-                    && $hasCompletedPayment;
-            })
-            ->count();
-        
-        // Get total revenue - try Stripe first, fallback to local payments
-        $totalRevenue = Payment::where('status', 'completed')->sum('amount');
-        
-        // Try to get more accurate total from Stripe
-        try {
-            \Stripe\Stripe::setApiKey(config('services.stripe.secret'));
-            $balance = \Stripe\Balance::retrieve();
-            
-            // Get total from Stripe charges (succeeded only)
-            $charges = \Stripe\Charge::all(['limit' => 100]);
-            $stripeTotal = 0;
-            foreach ($charges->data as $charge) {
-                if ($charge->status === 'succeeded') {
-                    $stripeTotal += $charge->amount / 100;
-                }
+        $cacheKey = 'admin_dashboard_stats_v1';
+        $cacheTtl = now()->addMinutes(5);
+
+        return response()->json(Cache::remember($cacheKey, $cacheTtl, function () {
+            $totalUsers = \App\Models\User::count();
+            $totalCaregivers = \App\Models\User::where('user_type', 'caregiver')->count();
+            $totalClients = \App\Models\User::where('user_type', 'client')->count();
+            $totalAdmins = \App\Models\User::where('user_type', 'admin')->count();
+            $totalMarketing = \App\Models\User::where('user_type', 'marketing')->count();
+            $totalTraining = \App\Models\User::where('user_type', 'training')->count();
+            $totalHousekeepers = \App\Models\User::where('user_type', 'housekeeper')->count();
+
+            // Active bookings: approved/confirmed/in_progress with completed payment (DB query, no full load)
+            $activeBookings = Booking::whereIn('status', ['approved', 'confirmed', 'in_progress'])
+                ->where(function ($q) {
+                    $q->where('payment_status', 'paid')
+                        ->orWhereHas('payments', fn ($p) => $p->where('status', 'completed'));
+                })
+                ->count();
+
+            // Total revenue: local payments first, Stripe from cache (populated by SyncStripeRevenueJob)
+            $totalRevenue = (float) Payment::where('status', 'completed')->sum('amount');
+            $stripeCached = Cache::get('stripe_revenue_total');
+            if ($stripeCached !== null && $stripeCached > $totalRevenue) {
+                $totalRevenue = (float) $stripeCached;
             }
-            
-            // Use Stripe total if it's higher (more accurate)
-            if ($stripeTotal > $totalRevenue) {
-                $totalRevenue = $stripeTotal;
-            }
-        } catch (\Exception $e) {
-            // Stripe fetch failed, use local payment data
-            \Log::warning('Failed to fetch Stripe revenue: ' . $e->getMessage());
-        }
-        
-        // Get recent bookings for activity feed
-        $recentBookings = Booking::with(['client'])
-            ->orderBy('created_at', 'desc')
-            ->take(10)
-            ->get()
-            ->map(function ($booking) {
-                return [
-                    'id' => $booking->id,
-                    'client' => [
-                        'name' => $booking->client->name ?? 'Unknown Client'
-                    ],
-                    'service_type' => $booking->service_type ?? 'Caregiver',
-                    'status' => $booking->status,
-                    'created_at' => $booking->created_at
-                ];
-            });
-        
-        // Calculate month-over-month growth
-        $lastMonthUsers = \App\Models\User::where('created_at', '<', now()->startOfMonth())->count();
-        $userGrowth = $lastMonthUsers > 0 ? round((($totalUsers - $lastMonthUsers) / $lastMonthUsers) * 100, 1) : 0;
-        
-        // Calculate booking growth (only count paid active bookings from last week)
-        $lastWeekActiveBookings = Booking::with('payments')
-            ->where('created_at', '<', now()->startOfWeek())
-            ->get()
-            ->filter(function($booking) {
-                $hasCompletedPayment = $booking->payments->where('status', 'completed')->isNotEmpty();
-                return in_array($booking->status, ['approved', 'confirmed', 'in_progress']) 
-                    && $hasCompletedPayment;
-            })
-            ->count();
-        $bookingGrowth = $lastWeekActiveBookings > 0 ? round((($activeBookings - $lastWeekActiveBookings) / $lastWeekActiveBookings) * 100, 1) : 0;
+
+            // Recent bookings (limit 10, efficient)
+            $recentBookings = Booking::with(['client:id,name'])
+                ->orderBy('created_at', 'desc')
+                ->limit(10)
+                ->get(['id', 'client_id', 'service_type', 'status', 'created_at'])
+                ->map(fn ($b) => [
+                    'id' => $b->id,
+                    'client' => ['name' => $b->client->name ?? 'Unknown Client'],
+                    'service_type' => $b->service_type ?? 'Caregiver',
+                    'status' => $b->status,
+                    'created_at' => $b->created_at,
+                ])
+                ->toArray();
+
+            // Month-over-month growth
+            $lastMonthUsers = \App\Models\User::where('created_at', '<', now()->startOfMonth())->count();
+            $userGrowth = $lastMonthUsers > 0 ? round((($totalUsers - $lastMonthUsers) / $lastMonthUsers) * 100, 1) : 0;
+
+            // Booking growth (DB query, no full load)
+            $lastWeekActiveBookings = Booking::whereIn('status', ['approved', 'confirmed', 'in_progress'])
+                ->where('created_at', '<', now()->startOfWeek())
+                ->where(function ($q) {
+                    $q->where('payment_status', 'paid')
+                        ->orWhereHas('payments', fn ($p) => $p->where('status', 'completed'));
+                })
+                ->count();
+            $bookingGrowth = $lastWeekActiveBookings > 0 ? round((($activeBookings - $lastWeekActiveBookings) / $lastWeekActiveBookings) * 100, 1) : 0;
         
         // Calculate real analytics data
         // Client spending from completed payments
@@ -559,36 +528,41 @@ class DashboardController extends Controller
         // Top rated caregivers (4+ star rating)
         $topRatedCaregivers = Caregiver::where('rating', '>=', 4)->count();
 
-        // Pending contractor applications (caregiver, housekeeper, marketing, training_center with status pending)
+        // Pending contractor applications (limited to 20 for scalability)
         $pendingApplicationsCount = \App\Models\User::where('status', 'pending')
             ->whereIn('user_type', ['caregiver', 'housekeeper', 'marketing', 'training_center'])
             ->count();
-        
-        return response()->json([
-            'total_users' => $totalUsers,
-            'total_clients' => $totalClients,
-            'total_caregivers' => $totalCaregivers,
-            'total_housekeepers' => $totalHousekeepers,
-            'total_admins' => $totalAdmins,
-            'total_marketing' => $totalMarketing,
-            'total_training' => $totalTraining,
-            'active_bookings' => $activeBookings,
-            'total_revenue' => $totalRevenue,
-            'user_growth' => $userGrowth,
-            'booking_growth' => $bookingGrowth,
-            'recent_bookings' => $recentBookings,
-            'pending_applications_count' => $pendingApplicationsCount,
-            'pending_applications' => \App\Models\User::where('user_type', 'caregiver')->whereDoesntHave('caregiver')->get(),
-            // Real analytics data
-            'avg_client_spending' => round($avgClientSpending, 2),
-            'avg_caregiver_earnings' => round($avgCaregiverEarnings, 2),
-            'avg_housekeeper_earnings' => round($avgHousekeeperEarnings, 2),
-            'new_clients_this_week' => $newClientsThisWeek,
-            'available_caregivers' => $availableCaregivers,
-            'top_rated_caregivers' => $topRatedCaregivers,
-            'total_caregiver_earnings' => round($totalCaregiverEarnings, 2),
-            'total_housekeeper_earnings' => round($totalHousekeeperEarnings, 2),
-        ]);
+        $pendingApplications = \App\Models\User::where('user_type', 'caregiver')
+            ->whereDoesntHave('caregiver')
+            ->limit(20)
+            ->get()
+            ->toArray();
+
+            return [
+                'total_users' => $totalUsers,
+                'total_clients' => $totalClients,
+                'total_caregivers' => $totalCaregivers,
+                'total_housekeepers' => $totalHousekeepers,
+                'total_admins' => $totalAdmins,
+                'total_marketing' => $totalMarketing,
+                'total_training' => $totalTraining,
+                'active_bookings' => $activeBookings,
+                'total_revenue' => $totalRevenue,
+                'user_growth' => $userGrowth,
+                'booking_growth' => $bookingGrowth,
+                'recent_bookings' => $recentBookings,
+                'pending_applications_count' => $pendingApplicationsCount,
+                'pending_applications' => $pendingApplications,
+                'avg_client_spending' => round($avgClientSpending, 2),
+                'avg_caregiver_earnings' => round($avgCaregiverEarnings, 2),
+                'avg_housekeeper_earnings' => round($avgHousekeeperEarnings, 2),
+                'new_clients_this_week' => $newClientsThisWeek,
+                'available_caregivers' => $availableCaregivers,
+                'top_rated_caregivers' => $topRatedCaregivers,
+                'total_caregiver_earnings' => round($totalCaregiverEarnings, 2),
+                'total_housekeeper_earnings' => round($totalHousekeeperEarnings, 2),
+            ];
+        }));
     }
 
     /**
@@ -742,41 +716,61 @@ class DashboardController extends Controller
         ]);
     }
 
-    public function adminUsers(): JsonResponse
+    public function adminUsers(Request $request): JsonResponse
     {
+        $perPage = min((int) $request->input('per_page', 50), 100);
+        $paginated = \App\Models\User::with(['client:id,user_id,zip_code', 'caregiver:id,user_id,rating,preferred_hourly_rate_min,preferred_hourly_rate_max'])
+            ->select(['id', 'name', 'email', 'phone', 'user_type', 'status', 'zip_code', 'city', 'county', 'borough', 'state', 'address', 'date_of_birth', 'created_at', 'email_verified_at'])
+            ->orderBy('created_at', 'desc')
+            ->paginate($perPage);
+
+        $users = $paginated->map(function ($user) {
+            $zipCode = $user->zip_code;
+            if (($zipCode === null || $zipCode === '') && $user->user_type === 'client' && $user->client) {
+                $zipCode = $user->client->getAttribute('zip_code');
+            }
+            $zipCode = $zipCode !== null && $zipCode !== '' ? (string) $zipCode : $zipCode;
+            return [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'phone' => $user->phone,
+                'type' => ucfirst($user->user_type),
+                'status' => $user->status ?? 'Active',
+                'joined' => $user->created_at->format('M Y'),
+                'zip_code' => $zipCode,
+                'zip' => $zipCode,
+                'city' => $user->city,
+                'county' => $user->county,
+                'borough' => $user->borough,
+                'state' => $user->state,
+                'address' => $user->address,
+                'created_at' => $user->created_at?->toISOString(),
+                'email_verified_at' => $user->email_verified_at?->toISOString(),
+                'date_of_birth' => $user->date_of_birth,
+                'caregiver' => $user->caregiver ? [
+                    'id' => $user->caregiver->id,
+                    'rating' => $user->caregiver->rating,
+                    'preferred_hourly_rate_min' => $user->caregiver->preferred_hourly_rate_min,
+                    'preferred_hourly_rate_max' => $user->caregiver->preferred_hourly_rate_max
+                ] : null
+            ];
+        });
+
         return response()->json([
-            'users' => \App\Models\User::with(['client', 'caregiver'])->get()->map(function($user) {
-                $zipCode = $user->zip_code;
-                if (($zipCode === null || $zipCode === '') && $user->user_type === 'client' && $user->client) {
-                    $zipCode = $user->client->getAttribute('zip_code');
-                }
-                $zipCode = $zipCode !== null && $zipCode !== '' ? (string) $zipCode : $zipCode;
-                return [
-                    'id' => $user->id,
-                    'name' => $user->name,
-                    'email' => $user->email,
-                    'phone' => $user->phone,
-                    'type' => ucfirst($user->user_type),
-                    'status' => $user->status ?? 'Active',
-                    'joined' => $user->created_at->format('M Y'),
-                    'zip_code' => $zipCode,
-                    'zip' => $zipCode,
-                    'city' => $user->city,
-                    'county' => $user->county,
-                    'borough' => $user->borough,
-                    'state' => $user->state,
-                    'address' => $user->address,
-                    'created_at' => $user->created_at?->toISOString(),
-                    'email_verified_at' => $user->email_verified_at?->toISOString(),
-                    'date_of_birth' => $user->date_of_birth,
-                    'caregiver' => $user->caregiver ? [
-                        'id' => $user->caregiver->id,
-                        'rating' => $user->caregiver->rating,
-                        'preferred_hourly_rate_min' => $user->caregiver->preferred_hourly_rate_min,
-                        'preferred_hourly_rate_max' => $user->caregiver->preferred_hourly_rate_max
-                    ] : null
-                ];
-            })
+            'users' => $users,
+            'meta' => [
+                'current_page' => $paginated->currentPage(),
+                'last_page' => $paginated->lastPage(),
+                'per_page' => $paginated->perPage(),
+                'total' => $paginated->total(),
+            ],
+            'links' => [
+                'first' => $paginated->url(1),
+                'last' => $paginated->url($paginated->lastPage()),
+                'prev' => $paginated->previousPageUrl(),
+                'next' => $paginated->nextPageUrl(),
+            ],
         ]);
     }
 

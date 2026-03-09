@@ -1030,13 +1030,24 @@ class AdminController extends Controller
             // Calculate days per caregiver (typically 15 days each)
             $daysPerCaregiver = 15;
             $serviceDate = \Carbon\Carbon::parse($booking->service_date);
-            
+            $staffHours = app(\App\Services\StaffHoursService::class);
+
             foreach ($validated['caregiver_ids'] as $index => $caregiverId) {
                 $order = $index + 1; // 1-based ordering
                 
                 // Calculate start and end dates for this caregiver
                 $startDate = $serviceDate->copy()->addDays(($order - 1) * $daysPerCaregiver);
                 $endDate = $startDate->copy()->addDays($daysPerCaregiver - 1);
+                $assignStartStr = $startDate->format('Y-m-d');
+                $assignEndStr = $endDate->format('Y-m-d');
+
+                $newHoursPerWeek = $staffHours->getNewCaregiverAssignmentHoursPerWeek($booking, $assignStartStr, $assignEndStr);
+                $violation = $staffHours->checkCaregiverWeeklyLimit((int) $caregiverId, $assignStartStr, $assignEndStr, $newHoursPerWeek, (int) $bookingId);
+                if ($violation !== null) {
+                    $caregiver = \App\Models\Caregiver::with('user')->find($caregiverId);
+                    $name = $caregiver && $caregiver->user ? $caregiver->user->name : "Caregiver #{$caregiverId}";
+                    return response()->json(['success' => false, 'message' => $name . ': ' . $violation], 422);
+                }
                 
                 // First caregiver is active, others are pending
                 $isActive = ($order === 1);
@@ -1173,6 +1184,25 @@ class AdminController extends Controller
             $days = $validated['days'] ?? [];
             $schedules = $validated['schedules'] ?? [];
 
+            $staffHours = app(\App\Services\StaffHoursService::class);
+            $maxShiftHours = $staffHours->getMaxHoursPerShift();
+            foreach ($schedules as $day => $slot) {
+                if (isset($slot['start_time'], $slot['end_time'])) {
+                    $start = \Carbon\Carbon::parse($slot['start_time']);
+                    $end = \Carbon\Carbon::parse($slot['end_time']);
+                    if ($end->format('H:i') <= $start->format('H:i')) {
+                        $end->addDay();
+                    }
+                    $shiftHours = $start->diffInMinutes($end) / 60;
+                    if ($shiftHours > $maxShiftHours) {
+                        return response()->json([
+                            'success' => false,
+                            'message' => 'No single shift may exceed ' . $maxShiftHours . ' hours. Please adjust the time for ' . ucfirst((string) $day) . '.',
+                        ], 422);
+                    }
+                }
+            }
+
             DB::table('housekeeper_schedules')->updateOrInsert(
                 [
                     'booking_id' => $bookingId,
@@ -1293,11 +1323,22 @@ class AdminController extends Controller
         if (!empty($validated['housekeeper_ids'])) {
             $daysPerWorker = 15;
             $serviceDate = \Carbon\Carbon::parse($booking->service_date);
+            $staffHours = app(\App\Services\StaffHoursService::class);
 
             foreach ($validated['housekeeper_ids'] as $index => $housekeeperId) {
                 $order = $index + 1;
                 $startDate = $serviceDate->copy()->addDays(($order - 1) * $daysPerWorker);
                 $endDate = $startDate->copy()->addDays($daysPerWorker - 1);
+                $assignStartStr = $startDate->format('Y-m-d');
+                $assignEndStr = $endDate->format('Y-m-d');
+
+                $newHoursPerWeek = $staffHours->getNewHousekeeperAssignmentHoursPerWeek($booking, $assignStartStr, $assignEndStr);
+                $violation = $staffHours->checkHousekeeperWeeklyLimit((int) $housekeeperId, $assignStartStr, $assignEndStr, $newHoursPerWeek, (int) $bookingId);
+                if ($violation !== null) {
+                    $housekeeper = \App\Models\Housekeeper::with('user')->find($housekeeperId);
+                    $name = $housekeeper && $housekeeper->user ? $housekeeper->user->name : "Housekeeper #{$housekeeperId}";
+                    return response()->json(['success' => false, 'message' => $name . ': ' . $violation], 422);
+                }
 
                 $isActive = ($order === 1);
                 $assignedRate = $validated['assigned_rates'][$housekeeperId];

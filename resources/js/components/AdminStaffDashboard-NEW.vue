@@ -2750,6 +2750,15 @@
                       <span class="mx-2">•</span>
                       <v-icon size="14" class="mr-1">mdi-map-marker</v-icon>
                       {{ caregiver.borough }}
+                      <v-chip
+                        v-if="staffWeeklyHours.max_hours_per_week"
+                        :color="getCaregiverScheduledHours(caregiver.id) >= staffWeeklyHours.max_hours_per_week ? 'warning' : 'default'"
+                        size="x-small"
+                        variant="tonal"
+                        class="ml-2"
+                      >
+                        {{ getCaregiverScheduledHours(caregiver.id) }} / {{ staffWeeklyHours.max_hours_per_week }} hrs
+                      </v-chip>
                     </div>
                   </div>
                   <v-chip
@@ -5448,6 +5457,7 @@ const selectedBooking = ref(null);
 const assignCaregiverSearch = ref('');
 const assignAvailabilityFilter = ref('Available');
 const assignSelectedCaregivers = ref([]);
+const staffWeeklyHours = ref({ caregivers: {}, housekeepers: {}, max_hours_per_week: 40 });
 
 const paymentStats = ref([
   { title: 'Total Revenue', value: '$0', icon: 'mdi-currency-usd', color: 'success', change: '+15%', changeColor: 'success--text' },
@@ -7387,6 +7397,32 @@ const getAssignmentStatusColor = (assignmentStatus) => {
   return colors[assignmentStatus] || 'info';
 };
 
+const loadStaffWeeklyHours = async (bookingId, caregiverIds = []) => {
+  try {
+    const params = new URLSearchParams();
+    caregiverIds.forEach(id => params.append('caregiver_ids[]', id));
+    const url = `/api/bookings/${bookingId}/staff-weekly-hours?${params.toString()}`;
+    const response = await fetch(url, { credentials: 'include' });
+    const data = await response.json();
+    if (data.success && data.data) {
+      staffWeeklyHours.value = {
+        caregivers: data.data.caregivers || {},
+        housekeepers: data.data.housekeepers || {},
+        max_hours_per_week: data.data.max_hours_per_week ?? 40
+      };
+    }
+  } catch (_) {
+    staffWeeklyHours.value = { caregivers: {}, housekeepers: {}, max_hours_per_week: 40 };
+  }
+};
+
+const getCaregiverScheduledHours = (caregiverId) => {
+  const weeks = staffWeeklyHours.value.caregivers[String(caregiverId)];
+  if (!weeks || typeof weeks !== 'object') return 0;
+  const values = Object.values(weeks);
+  return values.length ? Math.max(...values) : 0;
+};
+
 const assignCaregiverDialog = async (booking) => {
   selectedBooking.value = booking;
   assignCaregiverSearch.value = '';
@@ -7394,6 +7430,8 @@ const assignCaregiverDialog = async (booking) => {
   
   // Load currently assigned caregivers for this booking
   assignSelectedCaregivers.value = caregiverAssignments.value[booking.id] || [];
+  const cgIds = (caregivers.value || []).map(c => c.id).filter(Boolean);
+  await loadStaffWeeklyHours(booking.id, cgIds);
   
   assignDialog.value = true;
 };
@@ -8801,7 +8839,7 @@ onMounted(() => {
   }
   
   // Refresh notification count every 30 seconds
-  setInterval(loadAdminNotificationCount, 30000);
+  setInterval(loadAdminNotificationCount, 60000); // 60s (was 30s - scalable for 10k users)
 });
 
 onBeforeUnmount(() => {

@@ -181,6 +181,26 @@
             gap: 1rem;
         }
 
+        .dob-row {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+        .dob-row .form-input {
+            flex: 1;
+            min-width: 140px;
+        }
+        .age-indicator {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #64748b;
+        }
+        .age-indicator::before {
+            content: 'Age: ';
+            font-weight: 500;
+        }
+
         .form-group {
             margin-bottom: 0.75rem;
         }
@@ -2475,6 +2495,32 @@
                 @enderror
             </div>
 
+            <div id="partnerOnlyFields" class="partner-only-fields" style="display: none;">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="gender">Gender</label>
+                        <select id="gender" name="gender" class="form-input" aria-label="Gender">
+                            <option value="">Select gender</option>
+                            <option value="male" {{ old('gender') === 'male' ? 'selected' : '' }}>Male</option>
+                            <option value="female" {{ old('gender') === 'female' ? 'selected' : '' }}>Female</option>
+                        </select>
+                        @error('gender')
+                            <div class="error-message">{{ $message }}</div>
+                        @enderror
+                    </div>
+                    <div class="form-group">
+                        <label for="date_of_birth">Date of Birth</label>
+                        <div class="dob-row">
+                            <input type="date" id="date_of_birth" name="date_of_birth" class="form-input" placeholder="YYYY-MM-DD" value="{{ old('date_of_birth') }}" max="{{ date('Y-m-d') }}" aria-label="Date of birth" onchange="updateAgeDisplay()">
+                            <span id="ageIndicator" class="age-indicator" aria-live="polite"></span>
+                        </div>
+                        @error('date_of_birth')
+                            <div class="error-message">{{ $message }}</div>
+                        @enderror
+                    </div>
+                </div>
+            </div>
+
             @if(!session('oauth_user'))
             <div class="form-group">
                 <label for="password">Password</label>
@@ -2826,9 +2872,31 @@
             }
         }
         
+        function updateAgeDisplay() {
+            const dobInput = document.getElementById('date_of_birth');
+            const ageEl = document.getElementById('ageIndicator');
+            if (!dobInput || !ageEl) return;
+            const val = dobInput.value;
+            if (!val) {
+                ageEl.textContent = '';
+                return;
+            }
+            const birth = new Date(val);
+            const today = new Date();
+            let age = today.getFullYear() - birth.getFullYear();
+            const m = today.getMonth() - birth.getMonth();
+            if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
+            ageEl.textContent = age >= 0 ? age + ' years' : '';
+        }
+
         // If partner type is specified in URL, skip modals and go directly to partner registration
         if (presetPartner && validPartnerTypes.includes(presetPartner)) {
             showPartnerRegistrationForm(presetPartner);
+            setTimeout(function() {
+                const partnerOnlyEl = document.getElementById('partnerOnlyFields');
+                if (partnerOnlyEl) partnerOnlyEl.style.display = 'block';
+                updateAgeDisplay();
+            }, 100);
         }
         // If show_partner_types parameter is set, show partner type selection modal directly
         else if (showPartnerTypes) {
@@ -2848,7 +2916,13 @@
             document.getElementById('registrationModal').classList.add('hidden');
             document.getElementById('authContainer').classList.remove('hidden');
             document.getElementById('userTypeInput').value = presetType;
-            
+            const partnerOnlyEl = document.getElementById('partnerOnlyFields');
+            if (presetType === 'caregiver' && partnerOnlyEl) {
+                partnerOnlyEl.style.display = 'block';
+                document.getElementById('authContainer').classList.add('partner-registration');
+            } else if (presetType === 'client' && partnerOnlyEl) {
+                partnerOnlyEl.style.display = 'none';
+            }
             // Update header text based on preset type
             const header = document.getElementById('registrationHeader');
             const subtitle = document.getElementById('registrationSubtitle');
@@ -2859,6 +2933,7 @@
                 header.textContent = 'Become a Care Partner';
                 subtitle.textContent = 'Join our network of independent care partners';
             }
+            updateAgeDisplay();
         }
 
         function selectRegistrationType(type) {
@@ -2878,6 +2953,8 @@
                 authContainer.classList.remove('hidden');
                 // Ensure partner-registration class is removed for client registration
                 authContainer.classList.remove('partner-registration');
+                const partnerOnlyEl = document.getElementById('partnerOnlyFields');
+                if (partnerOnlyEl) partnerOnlyEl.style.display = 'none';
                 
                 // Update header text based on selection
                 const header = document.getElementById('registrationHeader');
@@ -2925,6 +3002,8 @@
                 authContainer.classList.remove('hidden');
                 // Add partner-registration class for orange theme
                 authContainer.classList.add('partner-registration');
+                const partnerOnlyEl = document.getElementById('partnerOnlyFields');
+                if (partnerOnlyEl) partnerOnlyEl.style.display = 'block';
                 
                 // Update header text
                 const header = document.getElementById('registrationHeader');

@@ -157,7 +157,7 @@ let refreshInterval;
 
 onMounted(() => {
   loadNotifications();
-  refreshInterval = setInterval(loadNotifications, 30000);
+  refreshInterval = setInterval(loadNotifications, 60000); // 60s (was 30s - scalable for 10k users)
 });
 
 watch(() => props.userId, () => {

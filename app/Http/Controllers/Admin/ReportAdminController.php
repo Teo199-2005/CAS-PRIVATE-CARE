@@ -22,36 +22,35 @@ use Illuminate\Support\Facades\Schema;
 class ReportAdminController extends Controller
 {
     /**
-     * Get payment statistics for admin dashboard
+     * Get payment statistics for admin dashboard (aggregates, limited loads)
      */
     public function getPaymentStats()
     {
-        // Calculate total revenue from completed bookings
-        $completedBookings = Booking::where('status', 'completed')->get();
-        $totalRevenue = $completedBookings->sum(function($booking) {
-            $hours = $this->extractHours($booking->duty_type);
-            $rate = $booking->hourly_rate ?: 45;
-            return $hours * $booking->duration_days * $rate;
-        });
-        
-        // Calculate pending payments from approved bookings
-        $pendingBookings = Booking::whereIn('status', ['approved', 'confirmed'])->get();
-        $pendingPayments = $pendingBookings->sum(function($booking) {
-            $hours = $this->extractHours($booking->duty_type);
-            $rate = $booking->hourly_rate ?: 45;
-            return $hours * $booking->duration_days * $rate;
-        });
-        $pendingCount = $pendingBookings->count();
-        
-        // Calculate salaries due from time trackings
-        $timeTrackings = DB::table('time_trackings')
+        // Total revenue: use total_budget or Payment sum (efficient)
+        $totalRevenue = (float) (\App\Models\Payment::where('status', 'completed')->sum('amount') ?: 0);
+        if ($totalRevenue === 0.0) {
+            $totalRevenue = (float) Booking::where('status', 'completed')->sum(DB::raw('COALESCE(total_budget, duration_days * 8 * COALESCE(hourly_rate, 45))'));
+        }
+
+        // Pending payments: limited load (select only needed columns)
+        $pendingBookings = Booking::whereIn('status', ['approved', 'confirmed'])
+            ->select(['id', 'duty_type', 'duration_days', 'hourly_rate'])
+            ->limit(1000)
+            ->get();
+        $pendingPayments = $pendingBookings->sum(fn ($b) => $this->extractHours($b->duty_type) * $b->duration_days * ($b->hourly_rate ?: 45));
+        $pendingCount = (int) Booking::whereIn('status', ['approved', 'confirmed'])->count();
+
+        // Salaries due: aggregate (no full load)
+        $salariesDue = (float) (DB::table('time_trackings')
             ->where('status', 'completed')
             ->whereNotNull('clock_out_time')
-            ->get();
-        $salariesDue = $timeTrackings->sum(function($tracking) {
-            return ($tracking->hours_worked ?? 0) * 28;
-        });
-        $caregiversWithSalary = $timeTrackings->pluck('caregiver_id')->unique()->count();
+            ->selectRaw('SUM(COALESCE(hours_worked, 0) * 28) as total')
+            ->value('total') ?? 0);
+        $caregiversWithSalary = (int) DB::table('time_trackings')
+            ->where('status', 'completed')
+            ->whereNotNull('clock_out_time')
+            ->distinct()
+            ->count('caregiver_id');
         
         // Processing fees (2.5% of total revenue)
         $processingFees = $totalRevenue * 0.025;

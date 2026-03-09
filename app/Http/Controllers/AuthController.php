@@ -191,7 +191,7 @@ class AuthController extends Controller
     public function register(Request $request)
     {
         // Validate basic fields first with strong password requirements
-        $validated = $request->validate([
+        $rules = [
             'first_name' => 'required|string|max:255|regex:/^[a-zA-Z\s\-\']+$/',
             'last_name' => 'required|string|max:255|regex:/^[a-zA-Z\s\-\']+$/',
             'email' => ['required', 'email', 'max:255', 'unique:users', 'regex:/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/'],
@@ -206,8 +206,11 @@ class AuthController extends Controller
             ],
             'user_type' => 'required|in:client,caregiver,housekeeper,marketing,training_center',
             'partner_type' => 'nullable|in:caregiver,housekeeper,housekeeping,personal_assistant,marketing_partner,training_center',
-            'terms' => 'required|accepted'
-        ], [
+            'terms' => 'required|accepted',
+            'gender' => 'nullable|in:male,female',
+            'date_of_birth' => 'nullable|date|before:today',
+        ];
+        $validated = $request->validate($rules, [
             'password.min' => 'Password must be at least 12 characters long.',
             'zip_code.regex' => 'Please enter a valid 5-digit ZIP code.',
             'email.unique' => 'This email is already registered. Please log in or use Forgot password.',
@@ -229,6 +232,12 @@ class AuthController extends Controller
             $validated['user_type'] = $userTypeMap[$partnerType] ?? 'caregiver';
         }
 
+        // Require gender for caregiver and housekeeper registrations
+        if (in_array($validated['user_type'], ['caregiver', 'housekeeper'], true)) {
+            $request->validate(['gender' => 'required|in:male,female'], ['gender.required' => 'Please select your gender.']);
+            $validated['gender'] = $request->input('gender');
+        }
+
         // Check if this is OAuth registration
         $oauthUser = session('oauth_user');
         $password = $oauthUser ? Hash::make(\Illuminate\Support\Str::random(16)) : Hash::make($validated['password']);
@@ -242,7 +251,7 @@ class AuthController extends Controller
         $partnerTypes = ['caregiver', 'housekeeper', 'marketing', 'training_center'];
         $status = in_array($validated['user_type'], $partnerTypes) ? 'pending' : 'Active';
         
-        $user = User::create([
+        $userData = [
             'name' => $validated['first_name'] . ' ' . $validated['last_name'],
             'email' => $validated['email'],
             'phone' => $formattedPhone,
@@ -251,7 +260,11 @@ class AuthController extends Controller
             'user_type' => $validated['user_type'],
             'status' => $status,
             'email_verified_at' => $oauthUser ? now() : null
-        ]);
+        ];
+        if (! empty($validated['date_of_birth'] ?? null)) {
+            $userData['date_of_birth'] = $validated['date_of_birth'];
+        }
+        $user = User::create($userData);
 
         if ($validated['user_type'] === 'client') {
             Client::create([
@@ -264,7 +277,7 @@ class AuthController extends Controller
             // Note: first_name and last_name are stored in the users table, not caregivers table
             Caregiver::create([
                 'user_id' => $user->id,
-                'gender' => 'female',
+                'gender' => $validated['gender'] ?? 'female',
                 'availability_status' => 'available'
             ]);
         } elseif ($validated['user_type'] === 'housekeeper') {

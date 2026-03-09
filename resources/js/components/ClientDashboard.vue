@@ -5818,7 +5818,7 @@ onMounted(async () => {
     setTimeout(initSpendingChart, 300);
   }
   // Refresh notification count every 30 seconds
-  setInterval(loadNotificationCount, 30000);
+  setInterval(loadNotificationCount, 60000); // 60s (was 30s - scalable for 10k users)
   
   // Watch for spending chart period and year changes
   watch(spendingChartPeriod, () => {
