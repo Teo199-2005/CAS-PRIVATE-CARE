@@ -90,7 +90,7 @@ class User extends Authenticatable implements MustVerifyEmail
             'ssn' => 'encrypted',
             'itin' => 'encrypted',
             'ein' => 'encrypted',
-            'date_of_birth' => 'encrypted:date',
+            'date_of_birth' => 'date',
             // Boolean casts
             'w9_submitted' => 'boolean',
             'w9_verified' => 'boolean',
