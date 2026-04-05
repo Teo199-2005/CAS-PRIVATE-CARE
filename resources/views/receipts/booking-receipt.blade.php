@@ -79,7 +79,7 @@
                 <div class="company-tagline">Comfort and Support</div>
             </div>
             <div class="company-info">
-                123 Healthcare Avenue, New York, NY 10001<br>
+                {{ config('app.address', '481 8th Ave, New York, NY 10001') }}<br>
                 Phone: (646) 282-8282 | Email: billing@casprivatecare.com<br>
                 License: NYC-PC-2024-001 | Tax ID: 12-3456789
             </div>

@@ -69,7 +69,7 @@ return [
     | Business Contact (for footer, trust signals, and crawlers)
     |--------------------------------------------------------------------------
     */
-    'address' => env('APP_ADDRESS', 'New York, USA'),
+    'address' => env('APP_ADDRESS', '481 8th Ave, New York, NY 10001'),
     'phone' => env('APP_PHONE', '+1 (646) 282-8282'),
     'email' => env('APP_EMAIL', 'contact@casprivatecare.online'),
 

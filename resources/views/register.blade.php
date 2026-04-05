@@ -2369,7 +2369,7 @@
                         <i class="bi bi-people"></i>
                     </div>
                     <div class="option-title">I want to be a partner</div>
-                    <div class="option-description">Join our network of independent caregivers, housekeepers, marketing partners, and training centers.</div>
+                    <div class="option-description">Join our network of independent caregivers and marketing partners.</div>
                     <button class="option-button partner" onclick="event.stopPropagation(); showPartnerTypeModal()">Become a partner</button>
                 </div>
             </div>
@@ -2397,26 +2397,12 @@
                     <div class="partner-type-title">Caregiver</div>
                     <button class="partner-type-button" onclick="event.stopPropagation(); selectPartnerType('caregiver')">Select</button>
                 </div>
-                <div class="partner-type-option" data-partner-type="housekeeper" onclick="selectPartnerType('housekeeper')">
-                    <div class="partner-type-icon">
-                        <i class="bi bi-house-heart"></i>
-                    </div>
-                    <div class="partner-type-title">Housekeeper</div>
-                    <button class="partner-type-button" onclick="event.stopPropagation(); selectPartnerType('housekeeper')">Select</button>
-                </div>
                 <div class="partner-type-option" data-partner-type="marketing_partner" onclick="selectPartnerType('marketing_partner')">
                     <div class="partner-type-icon">
                         <i class="bi bi-people-fill"></i>
                     </div>
                     <div class="partner-type-title">Marketing Partner</div>
                     <button class="partner-type-button" onclick="event.stopPropagation(); selectPartnerType('marketing_partner')">Select</button>
-                </div>
-                <div class="partner-type-option" data-partner-type="training_center" onclick="selectPartnerType('training_center')">
-                    <div class="partner-type-icon">
-                        <i class="bi bi-building"></i>
-                    </div>
-                    <div class="partner-type-title">Training Center</div>
-                    <button class="partner-type-button" onclick="event.stopPropagation(); selectPartnerType('training_center')">Select</button>
                 </div>
             </div>
         </div>
@@ -2638,7 +2624,7 @@
                 <div class="legal-content">
                     <p><strong>Last Updated:</strong> {{ date('F j, Y') }}</p>
                     
-                    <p>Welcome to CAS Private Care LLC ("we," "our," or "us"). These Terms of Service ("Terms") govern your access to and use of our website, mobile application, and services (collectively, the "Service") provided by CAS Private Care LLC, a platform connecting families and individuals with professional caregivers, housekeeping services, personal assistants, marketing partners, and training centers.</p>
+                    <p>Welcome to CAS Private Care LLC ("we," "our," or "us"). These Terms of Service ("Terms") govern your access to and use of our website, mobile application, and services (collectively, the "Service") provided by CAS Private Care LLC, a platform connecting families and individuals with professional caregivers, personal assistants, marketing partners, and related home services.</p>
 
                     <p>By accessing or using our Service, you agree to be bound by these Terms. If you disagree with any part of these Terms, you may not access the Service.</p>
 
@@ -2649,11 +2635,9 @@
                     <p>CAS Private Care LLC operates an online marketplace platform that connects:</p>
                     <ul>
                         <li><strong>Clients:</strong> Individuals and families seeking caregiving, housekeeping, personal assistant, and related services</li>
-                        <li><strong>Caregivers:</strong> Professional caregivers providing care services</li>
-                        <li><strong>Housekeeping Providers:</strong> Professionals offering housekeeping and cleaning services</li>
+                        <li><strong>Caregivers:</strong> Professional caregivers providing care and eligible home services offered on the platform</li>
                         <li><strong>Personal Assistants:</strong> Individuals providing personal assistance services</li>
                         <li><strong>Marketing Partners:</strong> Partners assisting with marketing and business development</li>
-                        <li><strong>Training Centers:</strong> Organizations providing training and certification services</li>
                     </ul>
 
                     <h3>3. User Accounts and Registration</h3>
@@ -2661,7 +2645,7 @@
                     <p>To use certain features of our Service, you must register for an account. You agree to provide accurate, current, and complete information during registration and maintain the security of your account credentials.</p>
 
                     <h4>3.2 Account Approval (Service Providers)</h4>
-                    <p>Service providers (caregivers, housekeeping providers, personal assistants, etc.) must undergo an approval process. We reserve the right to approve or reject any application at our sole discretion. Service providers will not be able to access the platform until their application has been approved by an administrator.</p>
+                    <p>Service providers (caregivers, personal assistants, etc.) must undergo an approval process. We reserve the right to approve or reject any application at our sole discretion. Service providers will not be able to access the platform until their application has been approved by an administrator.</p>
 
                     <h3>4. User Responsibilities</h3>
                     <h4>4.1 Client Responsibilities</h4>
@@ -2681,11 +2665,11 @@
                         <li>Obtain and maintain all necessary licenses, certifications, and insurance</li>
                     </ul>
 
-                    <h3>5. Service Provider Classifications</h3>
-                    <p>Service providers on our platform are classified as independent contractors (1099 contractors), not employees of CAS Private Care LLC. Service providers are responsible for their own taxes, insurance, and compliance with applicable laws.</p>
+                    <h3>5. Caregiver employment (W-2)</h3>
+                    <p>CAS Private Care caregivers are W-2 employees where that relationship applies. Payroll withholding, pay stubs, and Form W-2 are handled through our payroll process. Clients use the platform to book and pay for services; caregiver wages are paid separately through payroll.</p>
 
                     <h3>6. Payments and Fees</h3>
-                    <p>Payments for services are processed through our secure payment system. Clients agree to pay all fees associated with booked services. Service providers will receive payouts according to our payment schedule and terms.</p>
+                    <p>Payments for services are processed through our secure payment system. Clients agree to pay all fees associated with booked services. Caregiver compensation is paid through payroll according to company policy and applicable law.</p>
 
                     <h3>7. Intellectual Property</h3>
                     <p>The Service and its original content, features, and functionality are owned by CAS Private Care LLC and are protected by international copyright, trademark, patent, trade secret, and other intellectual property laws.</p>
@@ -2704,7 +2688,7 @@
                     <p><strong>CAS Private Care LLC</strong><br>
                     Email: <a href="mailto:contact@casprivatecare.online">contact@casprivatecare.online</a><br>
                     Phone: <a href="tel:+16462828282">+1 (646) 282-8282</a><br>
-                    Address: New York, USA</p>
+                    Address: {{ config('app.address', '481 8th Ave, New York, NY 10001') }}</p>
                 </div>
             </div>
             <div class="legal-modal-footer">
@@ -2788,7 +2772,7 @@
                     <p><strong>CAS Private Care LLC</strong><br>
                     Email: <a href="mailto:hello@casprivatecare.com">hello@casprivatecare.com</a><br>
                     Phone: <a href="tel:+16462828282">+1 (646) 282-8282</a><br>
-                    Address: New York, USA</p>
+                    Address: {{ config('app.address', '481 8th Ave, New York, NY 10001') }}</p>
                 </div>
             </div>
             <div class="legal-modal-footer">
@@ -2810,13 +2794,13 @@
         // Map partner types to display names
         const partnerTypeNames = {
             'caregiver': 'Caregiver',
-            'housekeeper': 'Housekeeper',
+            'housekeeping': 'Caregiver',
+            'personal_assistant': 'Caregiver',
             'marketing_partner': 'Marketing Partner',
-            'training_center': 'Training Center'
         };
         
-        // Valid partner types
-    const validPartnerTypes = ['caregiver', 'housekeeper', 'marketing_partner', 'training_center'];
+        // Valid partner types (must match AuthController registration rules)
+        const validPartnerTypes = ['caregiver', 'housekeeping', 'personal_assistant', 'marketing_partner'];
         
         // Function to show partner registration form
         function showPartnerRegistrationForm(partnerType) {
@@ -2826,8 +2810,8 @@
             authContainer.classList.remove('hidden');
             authContainer.classList.add('partner-registration');
             
-            // Set form values
-            document.getElementById('userTypeInput').value = 'caregiver';
+            // Set form values (marketing_partner maps to user_type marketing on server)
+            document.getElementById('userTypeInput').value = partnerType === 'marketing_partner' ? 'marketing' : 'caregiver';
             document.getElementById('partnerTypeInput').value = partnerType;
             
             // Update URL to include partner type
@@ -2980,8 +2964,7 @@
         }
 
         function selectPartnerType(partnerType) {
-            // Set user type to caregiver (all partners are caregivers in the system)
-            document.getElementById('userTypeInput').value = 'caregiver';
+            document.getElementById('userTypeInput').value = partnerType === 'marketing_partner' ? 'marketing' : 'caregiver';
             document.getElementById('partnerTypeInput').value = partnerType;
             
             // Update URL to include partner type so OAuth can preserve it

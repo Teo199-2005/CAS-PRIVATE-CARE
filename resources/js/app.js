@@ -80,9 +80,6 @@ const ClientDashboard = defineAsyncComponent(() =>
 const CaregiverDashboard = defineAsyncComponent(() => 
     import(/* webpackChunkName: "caregiver-dashboard" */ './components/CaregiverDashboard.vue')
 );
-const HousekeeperDashboard = defineAsyncComponent(() => 
-    import(/* webpackChunkName: "housekeeper-dashboard" */ './components/HousekeeperDashboard.vue')
-);
 const AdminDashboard = defineAsyncComponent(() => 
     import(/* webpackChunkName: "admin-dashboard" */ './components/AdminDashboard.vue')
 );
@@ -92,10 +89,6 @@ const AdminSettings = defineAsyncComponent(() =>
 const MarketingDashboard = defineAsyncComponent(() => 
     import(/* webpackChunkName: "marketing-dashboard" */ './components/MarketingDashboard.vue')
 );
-const TrainingDashboard = defineAsyncComponent(() => 
-    import(/* webpackChunkName: "training-dashboard" */ './components/TrainingDashboard.vue')
-);
-
 // Lazy-loaded auth components
 const LoginPage = defineAsyncComponent(() => 
     import(/* webpackChunkName: "login-page" */ './components/LoginPage.vue')
@@ -181,20 +174,6 @@ if (document.getElementById('caregiver-dashboard-app')) {
     app.mount('#caregiver-dashboard-app');
 }
 
-if (document.getElementById('housekeeper-dashboard-app')) {
-    const app = createApp({
-        components: {
-            HousekeeperDashboard,
-            DashboardWrapper,
-            TaxPayrollSection,
-            ErrorBoundary,
-        },
-    });
-    app.use(vuetify);
-    configureErrorHandling(app);
-    app.mount('#housekeeper-dashboard-app');
-}
-
 if (document.getElementById('admin-dashboard-app')) {
     const app = createApp({
         components: {
@@ -230,19 +209,6 @@ if (document.getElementById('marketing-dashboard-app')) {
     app.use(vuetify);
     configureErrorHandling(app);
     app.mount('#marketing-dashboard-app');
-}
-
-if (document.getElementById('training-dashboard-app')) {
-    const app = createApp({
-        components: {
-            TrainingDashboard,
-            DashboardWrapper,
-            ErrorBoundary,
-        },
-    });
-    app.use(vuetify);
-    configureErrorHandling(app);
-    app.mount('#training-dashboard-app');
 }
 
 if (document.getElementById('payment-page-app')) {

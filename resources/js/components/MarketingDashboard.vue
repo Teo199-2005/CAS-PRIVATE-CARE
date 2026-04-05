@@ -1162,7 +1162,7 @@ const marketingTierLabel = ref('');
 const marketingTier = ref('');
 const marketingTierCommissionPerHour = ref(null);
 const referralCodeStats = ref({
-  discount_per_hour: 3.00,
+  discount_per_hour: 1.50,
   commission_per_hour: 1.00,
   usageCount: 0,
   totalEarned: '0.00',
@@ -1203,7 +1203,7 @@ const loadReferralCode = async () => {
       marketingTier.value = data.data.tier || '';
       marketingTierCommissionPerHour.value = data.data.commission_per_hour != null ? parseFloat(data.data.commission_per_hour) : 1.00;
       referralCodeStats.value = {
-        discount_per_hour: parseFloat(data.data.discount_per_hour) || 3.00,
+        discount_per_hour: parseFloat(data.data.discount_per_hour) || 1.50,
         commission_per_hour: parseFloat(data.data.commission_per_hour) || 1.00,
         usageCount: data.data.usage_count || 0,
         totalEarned: parseFloat(data.data.total_commission_earned || 0).toFixed(2),

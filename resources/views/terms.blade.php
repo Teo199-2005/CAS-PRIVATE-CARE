@@ -191,7 +191,7 @@
 
         <div class="content">
             <p>
-                Welcome to CAS Private Care LLC ("we," "our," or "us"). These Terms of Service ("Terms") govern your access to and use of our website, mobile application, and services (collectively, the "Service") provided by CAS Private Care LLC, a platform connecting families and individuals with professional caregivers, housekeeping services, personal assistants, marketing partners, and training centers.
+                Welcome to CAS Private Care LLC ("we," "our," or "us"). These Terms of Service ("Terms") govern your access to and use of our website, mobile application, and services (collectively, the "Service") provided by CAS Private Care LLC, a platform connecting families and individuals with professional caregivers, personal assistants, marketing partners, and related home services.
             </p>
 
             <p>
@@ -213,11 +213,9 @@
             </p>
             <ul>
                 <li><strong>Clients:</strong> Individuals and families seeking caregiving, housekeeping, personal assistant, and related services</li>
-                <li><strong>Caregivers:</strong> Professional caregivers providing care services</li>
-                <li><strong>Housekeeping Providers:</strong> Professionals offering housekeeping and cleaning services</li>
+                <li><strong>Caregivers:</strong> Professional caregivers providing care and eligible home services offered on the platform</li>
                 <li><strong>Personal Assistants:</strong> Individuals providing personal assistance services</li>
                 <li><strong>Marketing Partners:</strong> Partners assisting with marketing and business development</li>
-                <li><strong>Training Centers:</strong> Organizations providing training and certification services</li>
             </ul>
             <p>
                 Our Service facilitates the connection between service providers and clients, including but not limited to booking management, payment processing, communication tools, review systems, and profile management.
@@ -283,16 +281,14 @@
                 <li>Circumvent payment processing through our platform</li>
             </ul>
 
-            <h2>5. Service Provider Classifications</h2>
+            <h2>5. Caregiver employment (W-2)</h2>
             <p>
-                Service providers on our platform are classified as independent contractors (1099 contractors), not employees of CAS Private Care LLC. Service providers are responsible for:
+                In-home caregivers engaged through CAS Private Care LLC are W-2 employees of the company where that relationship applies. Employees are paid through payroll with applicable tax withholding and receive pay documentation (for example, pay stubs and Form W-2) as required. Employees must follow company scheduling, safety, and conduct policies communicated at hire or in the caregiver portal.
             </p>
             <ul>
-                <li>Their own taxes and tax reporting obligations</li>
-                <li>Obtaining their own insurance coverage</li>
-                <li>Complying with all applicable employment and tax laws</li>
-                <li>Setting their own schedules (subject to client agreements)</li>
-                <li>Using their own equipment and supplies (unless otherwise agreed)</li>
+                <li>Payroll taxes are withheld and remitted through our payroll process</li>
+                <li>Direct deposit and banking details are collected securely for payroll only</li>
+                <li>Other user types (for example, clients) remain subject to their respective terms and disclosures</li>
             </ul>
 
             <h2>6. Bookings and Services</h2>
@@ -317,9 +313,9 @@
                 Payments for services are processed through our secure payment system. Clients agree to pay all fees associated with booked services, including service fees and platform fees as disclosed at the time of booking.
             </p>
 
-            <h3>7.2 Service Provider Payouts</h3>
+            <h3>7.2 Caregiver pay</h3>
             <p>
-                Service providers will receive payouts according to our payment schedule and terms. Payouts are subject to verification and may be delayed for review. Service providers are responsible for providing accurate payment information.
+                W-2 caregivers are paid on a payroll schedule after time worked is approved. Net pay is deposited using bank information provided in payroll onboarding. Historical earnings may still appear in the portal for reference; actual wage payments are processed through payroll, not independent contractor payouts.
             </p>
 
             <h3>7.3 Pricing</h3>
@@ -430,7 +426,7 @@
                     <strong>CAS Private Care LLC</strong><br>
                     Email: <a href="mailto:contact@casprivatecare.online">contact@casprivatecare.online</a><br>
                     Phone: <a href="tel:+16462828282">+1 (646) 282-8282</a><br>
-                    Address: New York, USA
+                    Address: {{ config('app.address', '481 8th Ave, New York, NY 10001') }}
                 </p>
             </div>
 

@@ -80,27 +80,11 @@ class DashboardRedirectController extends Controller
     }
 
     /**
-     * Housekeeper Vue Dashboard
+     * Housekeeper Vue Dashboard (decommissioned)
      */
     public function housekeeperDashboardVue()
     {
-        $user = auth()->user();
-        
-        if ($user->user_type !== 'housekeeper') {
-            return redirect('/login');
-        }
-        
-        // Block rejected accounts
-        if ($user->status === 'rejected') {
-            Auth::logout();
-            request()->session()->invalidate();
-            request()->session()->regenerateToken();
-            return redirect('/login')->withErrors([
-                'email' => 'Your application has been rejected. Please contact support for more information.'
-            ]);
-        }
-        
-        return view('housekeeper-dashboard-vue');
+        abort(410, 'Housekeeper dashboard is no longer supported.');
     }
 
     /**
@@ -161,27 +145,11 @@ class DashboardRedirectController extends Controller
     }
 
     /**
-     * Training Dashboard
+     * Training Dashboard (decommissioned)
      */
     public function trainingDashboardVue()
     {
-        $user = auth()->user();
-        
-        if (!in_array($user->user_type, ['training', 'training_center'])) {
-            return redirect('/login');
-        }
-        
-        // Block rejected accounts
-        if ($user->status === 'rejected') {
-            Auth::logout();
-            request()->session()->invalidate();
-            request()->session()->regenerateToken();
-            return redirect('/login')->withErrors([
-                'email' => 'Your application has been rejected. Please contact support for more information.'
-            ]);
-        }
-        
-        return view('training-dashboard-vue');
+        abort(410, 'Training center dashboard is no longer supported.');
     }
 
     /**
@@ -194,22 +162,17 @@ class DashboardRedirectController extends Controller
         if (!$user || $user->user_type !== 'caregiver') {
             return redirect('/login');
         }
-        
-        return view('connect-bank-account');
+
+        return redirect('/caregiver/dashboard-vue?payroll_onboarding=1')
+            ->with('info', 'W-2 caregivers use Payroll onboarding on the dashboard (direct deposit), not Stripe Connect.');
     }
 
     /**
-     * Connect Bank Account - Housekeeper
+     * Connect Bank Account - Housekeeper (decommissioned)
      */
     public function connectBankAccountHousekeeper()
     {
-        $user = auth()->user();
-        
-        if (!$user || $user->user_type !== 'housekeeper') {
-            return redirect('/login');
-        }
-        
-        return view('connect-bank-account-housekeeper');
+        abort(410, 'Housekeeper Stripe Connect is no longer supported.');
     }
 
     /**
@@ -227,17 +190,11 @@ class DashboardRedirectController extends Controller
     }
 
     /**
-     * Connect Bank Account - Training
+     * Connect Bank Account - Training (decommissioned)
      */
     public function connectBankAccountTraining()
     {
-        $user = auth()->user();
-        
-        if (!in_array($user->user_type, ['training', 'training_center'])) {
-            return redirect('/login');
-        }
-        
-        return view('connect-bank-account-training');
+        abort(410, 'Training center onboarding is no longer supported.');
     }
 
     /**
@@ -278,8 +235,9 @@ class DashboardRedirectController extends Controller
         if (!$user || $user->user_type !== 'caregiver') {
             return redirect('/login');
         }
-        
-        return view('stripe-connect-onboarding');
+
+        return redirect('/caregiver/dashboard-vue?payroll_onboarding=1')
+            ->with('info', 'Stripe Connect is retired for W-2 caregivers. Use Payroll onboarding on your dashboard.');
     }
 
     /**

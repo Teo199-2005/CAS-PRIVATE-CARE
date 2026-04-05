@@ -6,10 +6,10 @@
     @include('partials.favicon')
     
     <!-- Primary Meta Tags -->
-    <title>Caregiver Contractor Jobs in New York (1099) | CAS Private Care LLC</title>
-    <meta name="title" content="Caregiver Contractor Jobs in New York (1099) | CAS Private Care LLC">
-    <meta name="description" content="Apply as a 1099 caregiver contractor in New York. Earn $28/hour, flexible scheduling, transparent pay, referral bonuses, and training incentives.">
-    <meta name="keywords" content="caregivers New York, home care services, elderly care, nanny services, housekeeping, personal care, verified caregivers, Manila caregivers, professional care services">
+    <title>W-2 Caregiver Careers in New York | CAS Private Care LLC</title>
+    <meta name="title" content="W-2 Caregiver Careers in New York | CAS Private Care LLC">
+    <meta name="description" content="Apply as a W-2 caregiver employee in New York. Payroll, direct deposit, competitive pay, and support across NYC.">
+    <meta name="keywords" content="W-2 caregiver jobs NYC, home care employment, elderly care, companion care, verified caregivers, CAS Private Care careers">
     <meta name="author" content="CAS Private Care LLC">
     <meta name="robots" content="index, follow">
     <link rel="canonical" href="{{ url('/contractor-partner') }}">
@@ -17,16 +17,16 @@
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website">
     <meta property="og:url" content="{{ url('/contractor-partner') }}">
-    <meta property="og:title" content="Caregiver Contractor Jobs in New York (1099) | CAS Private Care LLC">
-    <meta property="og:description" content="Apply as a 1099 caregiver contractor in New York. Earn $28/hour, flexible scheduling, transparent pay, referral bonuses, and training incentives.">
+    <meta property="og:title" content="W-2 Caregiver Careers in New York | CAS Private Care LLC">
+    <meta property="og:description" content="Apply as a W-2 caregiver employee in New York. Payroll, direct deposit, and team support.">
     <meta property="og:image" content="{{ asset('logo.png') }}">
     <meta property="og:site_name" content="CAS Private Care LLC">
     
     <!-- Twitter -->
     <meta property="twitter:card" content="summary_large_image">
     <meta property="twitter:url" content="{{ url('/contractor-partner') }}">
-    <meta property="twitter:title" content="Caregiver Contractor Jobs in New York (1099) | CAS Private Care LLC">
-    <meta property="twitter:description" content="Apply as a 1099 caregiver contractor in New York. Earn $28/hour, flexible scheduling, transparent pay, referral bonuses, and training incentives.">
+    <meta property="twitter:title" content="W-2 Caregiver Careers in New York | CAS Private Care LLC">
+    <meta property="twitter:description" content="Apply as a W-2 caregiver employee in New York. Payroll and direct deposit.">
     <meta property="twitter:image" content="{{ asset('logo.png') }}">
     
     <!-- Structured Data (JSON-LD) -->
@@ -43,14 +43,16 @@
       'priceRange' => '$$',
       'address' => [
         '@type' => 'PostalAddress',
+        'streetAddress' => '481 8th Ave',
         'addressLocality' => 'New York',
         'addressRegion' => 'NY',
+        'postalCode' => '10001',
         'addressCountry' => 'US'
       ],
       'geo' => [
         '@type' => 'GeoCoordinates',
-        'latitude' => 40.7128,
-        'longitude' => -74.0060
+        'latitude' => 40.75278,
+        'longitude' => -73.99361
       ],
       'areaServed' => [
         '@type' => 'City',
@@ -60,8 +62,8 @@
         '@type' => 'GeoCircle',
         'geoMidpoint' => [
           '@type' => 'GeoCoordinates',
-          'latitude' => 40.7128,
-          'longitude' => -74.0060
+          'latitude' => 40.75278,
+          'longitude' => -73.99361
         ]
       ],
       'openingHoursSpecification' => [
@@ -115,7 +117,7 @@
             '@type' => 'Offer',
             'itemOffered' => [
               '@type' => 'Service',
-              'name' => 'Housekeeping Services'
+              'name' => 'Companion & daily living support'
             ]
           ],
           [
@@ -144,16 +146,16 @@
     echo json_encode([
       '@context' => 'https://schema.org',
       '@type' => 'JobPosting',
-      'title' => '1099 Caregiver Contractor Jobs in New York',
-      'description' => 'Apply as a 1099 caregiver contractor in New York. Earn $28/hour, flexible scheduling, transparent pay, referral bonuses, and training incentives.',
+      'title' => 'W-2 Caregiver Jobs in New York',
+      'description' => 'Apply as a W-2 caregiver employee in New York. Payroll with tax withholding, direct deposit, and assignments across NYC.',
       'identifier' => [
         '@type' => 'PropertyValue',
         'name' => 'CAS Private Care LLC',
-        'value' => 'caregiver-contractor-1099-new-york'
+        'value' => 'caregiver-w2-new-york'
       ],
       'datePosted' => date('Y-m-d'),
       'validThrough' => date('Y-m-d', strtotime('+1 year')),
-      'employmentType' => 'CONTRACTOR',
+      'employmentType' => 'FULL_TIME',
       'hiringOrganization' => [
         '@type' => 'Organization',
         'name' => 'CAS Private Care LLC',
@@ -163,8 +165,10 @@
         '@type' => 'Place',
         'address' => [
           '@type' => 'PostalAddress',
+          'streetAddress' => '481 8th Ave',
           'addressLocality' => 'New York',
           'addressRegion' => 'NY',
+          'postalCode' => '10001',
           'addressCountry' => 'US'
         ]
       ],
@@ -192,26 +196,26 @@
       'mainEntity' => [
         [
           '@type' => 'Question',
-          'name' => 'Is this a W-2 job or 1099 contractor position?',
+          'name' => 'Is this a W-2 job or an independent contractor role?',
           'acceptedAnswer' => [
             '@type' => 'Answer',
-            'text' => 'This is a 1099 independent contractor position. You are self-employed and have flexibility over your schedule and which bookings to accept.'
+            'text' => 'Caregivers are hired as W-2 employees of CAS Private Care LLC where that relationship applies. Pay is through payroll with tax withholding and direct deposit after onboarding.'
           ]
         ],
         [
           '@type' => 'Question',
-          'name' => 'How do payments work?',
+          'name' => 'How do I get paid?',
           'acceptedAnswer' => [
             '@type' => 'Answer',
-            'text' => 'You earn $28 per hour as a caregiver contractor. Payments are processed on a regular schedule, and you\'ll receive detailed earnings reports. All rates are transparent and agreed upon before you accept any booking.'
+            'text' => 'You complete secure payroll onboarding with bank details for direct deposit. Wages are paid on the company payroll schedule; client billing runs separately through the platform.'
           ]
         ],
         [
           '@type' => 'Question',
-          'name' => 'Do I choose my clients?',
+          'name' => 'How are assignments coordinated?',
           'acceptedAnswer' => [
             '@type' => 'Answer',
-            'text' => 'Yes, as an independent contractor, you have full control over which bookings to accept. You can review client needs, schedule, location, and rate before accepting any booking.'
+            'text' => 'Assignments are coordinated with management based on your availability, client needs, and coverage across NYC. You use the caregiver dashboard for schedules and time tracking.'
           ]
         ],
         [
@@ -219,7 +223,7 @@
           'name' => 'What areas of New York do you serve?',
           'acceptedAnswer' => [
             '@type' => 'Answer',
-            'text' => 'We connect caregiver contractors with clients across all five NYC boroughs: Manhattan, Brooklyn, Queens, the Bronx, and Staten Island. You can choose jobs near you and work in the communities you know best.'
+            'text' => 'We serve families across all five NYC boroughs: Manhattan, Brooklyn, Queens, the Bronx, and Staten Island. Assignments are matched to coverage needs and your availability where possible.'
           ]
         ],
         [
@@ -227,7 +231,7 @@
           'name' => 'How flexible is the schedule?',
           'acceptedAnswer' => [
             '@type' => 'Answer',
-            'text' => 'You have complete flexibility over your schedule. Work when it suits you - choose your own hours and accept bookings that fit your availability. Build your income around your life.'
+            'text' => 'Schedules are coordinated as W-2 employment. You will discuss availability and shift expectations with your manager during onboarding.'
           ]
         ]
       ]
@@ -2918,8 +2922,8 @@ font-size: 1.1rem !important;
         </div>
         <div class="hero-content">
             <div class="hero-left">
-                <h1>1099 Caregiver Contractor Jobs in New York</h1>
-                <p id="hero-description" style="font-size: 1.2rem; color: white; margin: 1.5rem 0;">Join CAS Private Care as an independent contractor partner. Earn competitive rates with transparent income breakdown, flexible scheduling, and ongoing support.</p>
+                <h1>W-2 Caregiver Careers in New York</h1>
+                <p id="hero-description" style="font-size: 1.2rem; color: white; margin: 1.5rem 0;">Join CAS Private Care as a W-2 caregiver employee. Payroll, direct deposit, transparent assignments, and team support across NYC.</p>
                 
                 
                 <div class="hero-buttons">
@@ -2943,9 +2947,9 @@ font-size: 1.1rem !important;
         <div class="container" style="max-width: 1200px; margin: 0 auto;">
             <div class="section-header fade-in" style="text-align: center; margin-bottom: 4rem;">
                 <h2 style="font-size: 3rem; font-weight: 700; margin-bottom: 1rem;">
-                    <span style="color: #f97316;">Why Our 1099 Contractors Are</span> <span style="background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Reliable & Caring</span>
+                    <span style="color: #f97316;">Why Our W-2 Caregivers Are</span> <span style="background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Reliable & Caring</span>
                 </h2>
-                <p style="font-size: 1.2rem; color: #64748b;">Verified caregivers, housekeepers, and personal assistants serving New York City boroughs with excellent ratings</p>
+                <p style="font-size: 1.2rem; color: #64748b;">W-2 caregivers serving New York City families with background checks, training support, and strong ratings</p>
             </div>
             
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; margin-bottom: 3rem;">
@@ -2956,22 +2960,22 @@ font-size: 1.1rem !important;
                 </div>
                 
                 <div class="fade-in" style="background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); border: 1px solid #e5e7eb;">
-                    <div style="font-size: 2.5rem; font-weight: 800; color: #3b82f6; margin-bottom: 0.5rem; letter-spacing: -0.02em;">Housekeepers NY</div>
-                    <h3 style="font-size: 1.1rem; font-weight: 600; color: #374151; margin-bottom: 0.75rem; letter-spacing: -0.01em;">Trusted Housekeepers in New York</h3>
-                    <p style="color: #6b7280; line-height: 1.6; font-size: 0.9rem;">Reliable housekeepers across all NYC boroughs. Deep cleaning, regular maintenance, organizing, and household management services available 24/7.</p>
+                    <div style="font-size: 2.5rem; font-weight: 800; color: #3b82f6; margin-bottom: 0.5rem; letter-spacing: -0.02em;">Companion care</div>
+                    <h3 style="font-size: 1.1rem; font-weight: 600; color: #374151; margin-bottom: 0.75rem; letter-spacing: -0.01em;">Daily living &amp; engagement</h3>
+                    <p style="color: #6b7280; line-height: 1.6; font-size: 0.9rem;">Meaningful companionship, routines, light meal support, and social engagement so clients stay safe and comfortable at home.</p>
                 </div>
                 
                 <div class="fade-in" style="background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); border: 1px solid #e5e7eb;">
-                    <div style="font-size: 2.5rem; font-weight: 800; color: #f97316; margin-bottom: 0.5rem; letter-spacing: -0.02em;">Personal Assistants</div>
-                    <h3 style="font-size: 1.1rem; font-weight: 600; color: #374151; margin-bottom: 0.75rem; letter-spacing: -0.01em;">Personal Assistants in NYC</h3>
-                    <p style="color: #6b7280; line-height: 1.6; font-size: 0.9rem;">Skilled personal assistants throughout New York City. Errands, scheduling, companionship, transportation, and daily living assistance.</p>
+                    <div style="font-size: 2.5rem; font-weight: 800; color: #f97316; margin-bottom: 0.5rem; letter-spacing: -0.02em;">Family support</div>
+                    <h3 style="font-size: 1.1rem; font-weight: 600; color: #374151; margin-bottom: 0.75rem; letter-spacing: -0.01em;">Coordination you can trust</h3>
+                    <p style="color: #6b7280; line-height: 1.6; font-size: 0.9rem;">Clear communication with families, documented time, and a team behind you for scheduling and payroll—not gig payouts.</p>
                 </div>
             </div>
             
             <!-- Featured Caregivers with 5-Star Ratings -->
             <div style="margin-bottom: 3rem;">
                 <h3 style="font-size: 2rem; font-weight: 700; color: #111827; margin-bottom: 2rem; text-align: center;">
-                    <span style="color: #f97316;">Top-Rated</span> <span style="color: #3b82f6;">Professionals</span> in New York City
+                    <span style="color: #f97316;">Top-Rated</span> <span style="color: #3b82f6;">Caregivers</span> in New York City
                 </h3>
                 
                 <div class="contractor-cards-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 2rem;">
@@ -2998,13 +3002,13 @@ font-size: 1.1rem !important;
                         </div>
                     </div>
 
-                    <!-- Housekeeper 1 -->
+                    <!-- Caregiver testimonial (Brooklyn) -->
                     <div class="fade-in" style="background: white; padding: 2rem; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); border: 2px solid #3b82f6;">
                         <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
                             <div style="width: 60px; height: 60px; background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 1.5rem;">LR</div>
                             <div style="flex: 1;">
                                 <h4 style="font-size: 1.25rem; font-weight: 700; color: #111827; margin: 0;">Linda R.</h4>
-                                <p style="color: #6b7280; margin: 0; font-size: 0.9rem;">Professional Housekeeper - Brooklyn</p>
+                                <p style="color: #6b7280; margin: 0; font-size: 0.9rem;">Caregiver - Brooklyn</p>
                             </div>
                         </div>
                         <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem;">
@@ -3013,7 +3017,7 @@ font-size: 1.1rem !important;
                             <span style="color: #6b7280; font-size: 0.85rem;">(94 reviews)</span>
                         </div>
                         <div style="background: #eff6ff; padding: 1rem; border-radius: 8px; border-left: 3px solid #3b82f6; margin-bottom: 0.75rem;">
-                            <p style="color: #374151; font-style: italic; margin: 0; font-size: 0.9rem; line-height: 1.6;">"Best housekeeper in Brooklyn! Linda is thorough, trustworthy, and my home has never looked better. Worth every penny!"</p>
+                            <p style="color: #374151; font-style: italic; margin: 0; font-size: 0.9rem; line-height: 1.6;">"Linda is thorough, kind, and incredibly reliable with my mom in Brooklyn. We trust her completely."</p>
                         </div>
                         <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; color: #6b7280;">
                             <span><i class="bi bi-geo-alt-fill" style="color: #3b82f6;"></i> Brooklyn, NY</span>
@@ -3027,7 +3031,7 @@ font-size: 1.1rem !important;
                             <div style="width: 60px; height: 60px; background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 1.5rem;">JW</div>
                             <div style="flex: 1;">
                                 <h4 style="font-size: 1.25rem; font-weight: 700; color: #111827; margin: 0;">James W.</h4>
-                                <p style="color: #6b7280; margin: 0; font-size: 0.9rem;">Personal Assistant - Queens</p>
+                                <p style="color: #6b7280; margin: 0; font-size: 0.9rem;">Caregiver - Queens</p>
                             </div>
                         </div>
                         <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem;">
@@ -3036,7 +3040,7 @@ font-size: 1.1rem !important;
                             <span style="color: #6b7280; font-size: 0.85rem;">(156 reviews)</span>
                         </div>
                         <div style="background: #fff7ed; padding: 1rem; border-radius: 8px; border-left: 3px solid #f97316; margin-bottom: 0.75rem;">
-                            <p style="color: #374151; font-style: italic; margin: 0; font-size: 0.9rem; line-height: 1.6;">"James is incredibly organized and reliable. He manages my schedule perfectly and handles errands efficiently. A true professional!"</p>
+                            <p style="color: #374151; font-style: italic; margin: 0; font-size: 0.9rem; line-height: 1.6;">"James is patient, attentive, and wonderful with daily routines. Our family feels supported every week."</p>
                         </div>
                         <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; color: #6b7280;">
                             <span><i class="bi bi-geo-alt-fill" style="color: #f97316;"></i> Queens, NY</span>
@@ -3067,13 +3071,13 @@ font-size: 1.1rem !important;
                         </div>
                     </div>
 
-                    <!-- Housekeeper 2 -->
+                    <!-- Caregiver testimonial (Staten Island) -->
                     <div class="fade-in" style="background: white; padding: 2rem; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); border: 2px solid #3b82f6;">
                         <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
                             <div style="width: 60px; height: 60px; background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 1.5rem;">AG</div>
                             <div style="flex: 1;">
                                 <h4 style="font-size: 1.25rem; font-weight: 700; color: #111827; margin: 0;">Ana G.</h4>
-                                <p style="color: #6b7280; margin: 0; font-size: 0.9rem;">Expert Housekeeper - Staten Island</p>
+                                <p style="color: #6b7280; margin: 0; font-size: 0.9rem;">Caregiver - Staten Island</p>
                             </div>
                         </div>
                         <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem;">
@@ -3082,7 +3086,7 @@ font-size: 1.1rem !important;
                             <span style="color: #6b7280; font-size: 0.85rem;">(88 reviews)</span>
                         </div>
                         <div style="background: #eff6ff; padding: 1rem; border-radius: 8px; border-left: 3px solid #3b82f6; margin-bottom: 0.75rem;">
-                            <p style="color: #374151; font-style: italic; margin: 0; font-size: 0.9rem; line-height: 1.6;">"Ana is amazing! Detailed cleaning, always on time, and very respectful. The best housekeeper on Staten Island!"</p>
+                            <p style="color: #374151; font-style: italic; margin: 0; font-size: 0.9rem; line-height: 1.6;">"Ana is compassionate and detail-oriented with my father. We are grateful for her steady presence on Staten Island."</p>
                         </div>
                         <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; color: #6b7280;">
                             <span><i class="bi bi-geo-alt-fill" style="color: #3b82f6;"></i> Staten Island, NY</span>
@@ -3096,7 +3100,7 @@ font-size: 1.1rem !important;
                             <div style="width: 60px; height: 60px; background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 1.5rem;">SK</div>
                             <div style="flex: 1;">
                                 <h4 style="font-size: 1.25rem; font-weight: 700; color: #111827; margin: 0;">Sophie K.</h4>
-                                <p style="color: #6b7280; margin: 0; font-size: 0.9rem;">Personal Assistant - Manhattan</p>
+                                <p style="color: #6b7280; margin: 0; font-size: 0.9rem;">Caregiver - Manhattan</p>
                             </div>
                         </div>
                         <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem;">
@@ -3105,7 +3109,7 @@ font-size: 1.1rem !important;
                             <span style="color: #6b7280; font-size: 0.85rem;">(142 reviews)</span>
                         </div>
                         <div style="background: #fff7ed; padding: 1rem; border-radius: 8px; border-left: 3px solid #f97316; margin-bottom: 0.75rem;">
-                            <p style="color: #374151; font-style: italic; margin: 0; font-size: 0.9rem; line-height: 1.6;">"Sophie is a lifesaver! She handles everything from grocery shopping to appointment scheduling. Highly recommend in NYC!"</p>
+                            <p style="color: #374151; font-style: italic; margin: 0; font-size: 0.9rem; line-height: 1.6;">"Sophie brings calm and consistency. Medication reminders, meals, and companionship—she does it all with heart."</p>
                         </div>
                         <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; color: #6b7280;">
                             <span><i class="bi bi-geo-alt-fill" style="color: #f97316;"></i> Manhattan, NY</span>
@@ -3117,13 +3121,13 @@ font-size: 1.1rem !important;
             
             <div class="fade-in" style="background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%); padding: 2.5rem; border-radius: 16px; border: 2px solid #10b981; margin-bottom: 2rem;">
                 <h3 style="color: #111827; margin-bottom: 1.5rem; font-weight: 700; font-size: 1.5rem; text-align: center;">
-                    <span style="color: #10b981;">Caregivers New York</span> | <span style="color: #3b82f6;">Housekeepers NYC</span> | <span style="color: #f97316;">Personal Assistants</span>
+                    <span style="color: #10b981;">W-2 caregivers</span> across <span style="color: #3b82f6;">every NYC borough</span>
                 </h3>
                 <p style="color: #374151; line-height: 1.8; font-size: 1rem; margin: 0 0 1rem 0;">
-                    CAS Private Care connects you with <strong>verified 1099 independent contractors</strong> specializing in caregiving, housekeeping, and personal assistant services across all <strong>New York City boroughs</strong>: Manhattan, Brooklyn, Queens, Bronx, and Staten Island.
+                    CAS Private Care connects families with <strong>verified W-2 caregivers</strong> for non-medical home care across all <strong>New York City boroughs</strong>: Manhattan, Brooklyn, Queens, Bronx, and Staten Island.
                 </p>
                 <p style="color: #374151; line-height: 1.8; font-size: 1rem; margin: 0;">
-                    Our <strong>caregivers in New York</strong> provide elderly care, companion care, and medical support. <strong>Housekeepers in NYC</strong> offer deep cleaning, organizing, and household management. <strong>Personal assistants throughout New York</strong> handle errands, scheduling, and daily tasks. All contractors are background-checked, highly rated, and trusted by hundreds of New York families.
+                    Our <strong>employed caregivers</strong> focus on elderly care, companion care, daily living support, and respectful assistance at home. Team members are background-checked, trained for their role, and supported by payroll and management—not independent gig payouts.
                 </p>
             </div>
             
@@ -3136,11 +3140,11 @@ font-size: 1.1rem !important;
                     </div>
                     <div style="display: flex; align-items: center; gap: 0.5rem;">
                         <i class="bi bi-geo-alt-fill" style="color: #3b82f6; font-size: 1.2rem;"></i>
-                        <span style="color: #374151; font-weight: 600;">Housekeeper Brooklyn NY</span>
+                        <span style="color: #374151; font-weight: 600;">Caregiver Brooklyn NY</span>
                     </div>
                     <div style="display: flex; align-items: center; gap: 0.5rem;">
                         <i class="bi bi-geo-alt-fill" style="color: #f97316; font-size: 1.2rem;"></i>
-                        <span style="color: #374151; font-weight: 600;">Personal Assistant Queens</span>
+                        <span style="color: #374151; font-weight: 600;">Caregiver Queens NY</span>
                     </div>
                     <div style="display: flex; align-items: center; gap: 0.5rem;">
                         <i class="bi bi-geo-alt-fill" style="color: #10b981; font-size: 1.2rem;"></i>
@@ -3148,7 +3152,7 @@ font-size: 1.1rem !important;
                     </div>
                     <div style="display: flex; align-items: center; gap: 0.5rem;">
                         <i class="bi bi-geo-alt-fill" style="color: #3b82f6; font-size: 1.2rem;"></i>
-                        <span style="color: #374151; font-weight: 600;">Housekeeper Staten Island</span>
+                        <span style="color: #374151; font-weight: 600;">Caregiver Staten Island NY</span>
                     </div>
                     <div style="display: flex; align-items: center; gap: 0.5rem;">
                         <i class="bi bi-geo-alt-fill" style="color: #f97316; font-size: 1.2rem;"></i>
@@ -3170,7 +3174,7 @@ font-size: 1.1rem !important;
                 <h2 style="font-size: 3rem; font-weight: 700; margin-bottom: 1rem;">
                     <span style="color: #f97316;">How Our</span> <span style="background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Partnership Works</span>
                 </h2>
-                <p style="font-size: 1.2rem; color: #64748b;">Simple, transparent, and designed to help you succeed as an independent contractor</p>
+                <p style="font-size: 1.2rem; color: #64748b;">Simple, transparent onboarding and tools designed for employed caregivers</p>
             </div>
             
             <div class="steps-container">
@@ -3184,22 +3188,22 @@ font-size: 1.1rem !important;
                 <div class="step fade-in">
                     <div class="step-number">2</div>
                     <div class="step-content">
-                        <h3><span style="color: #f97316;">Browse Available</span> <span style="background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Bookings</span></h3>
-                        <p>View available client bookings in your area. See client needs, schedule, location, and rate before accepting.</p>
+                        <h3><span style="color: #f97316;">Receive</span> <span style="background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Assignments</span></h3>
+                        <p>View open assignments matched to your skills and availability. Your manager helps align coverage with family needs.</p>
                     </div>
                 </div>
                 <div class="step fade-in">
                     <div class="step-number">3</div>
                     <div class="step-content">
-                        <h3><span style="color: #f97316;">Accept</span> <span style="background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">& Provide Care</span></h3>
-                        <p>Accept bookings that fit your schedule. Provide quality care and build your reputation through client reviews.</p>
+                        <h3><span style="color: #f97316;">Deliver</span> <span style="background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">great care</span></h3>
+                        <p>Complete payroll onboarding, clock time through the dashboard, and provide consistent, compassionate support.</p>
                     </div>
                 </div>
                 <div class="step fade-in">
                     <div class="step-number">4</div>
                     <div class="step-content">
-                        <h3><span style="color: #f97316;">Get Paid</span> <span style="background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Regularly</span></h3>
-                        <p>Receive payments on a regular schedule. Track your earnings, view payment history, and access detailed reports anytime.</p>
+                        <h3><span style="color: #f97316;">Payroll</span> <span style="background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">direct deposit</span></h3>
+                        <p>Wages post through company payroll with tax withholding. Track hours and earnings history in your caregiver portal.</p>
                     </div>
                 </div>
             </div>
@@ -3256,30 +3260,30 @@ font-size: 1.1rem !important;
                 <div class="fade-in" style="background: white; padding: 2.5rem; border-radius: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); border: 1px solid #e5e7eb;">
                     <div style="display: flex; align-items: flex-start; gap: 1.5rem; margin-bottom: 2rem;">
                         <div style="width: 64px; height: 64px; background: #f3f4f6; border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                            <i class="bi bi-mortarboard-fill" style="font-size: 2rem; color: #1e40af;"></i>
+                            <i class="bi bi-shield-lock-fill" style="font-size: 2rem; color: #1e40af;"></i>
                         </div>
                         <div style="flex: 1;">
-                            <h3 style="font-size: 1.5rem; font-weight: 700; color: #111827; margin-bottom: 0.75rem; letter-spacing: -0.01em;">Training Center Alliance</h3>
-                            <p style="color: #6b7280; margin: 0; line-height: 1.6; font-size: 0.95rem;">Partner with certified training centers in New York to enhance your skills and credentials. Access ongoing education, certification programs, and professional development opportunities.</p>
+                            <h3 style="font-size: 1.5rem; font-weight: 700; color: #111827; margin-bottom: 0.75rem; letter-spacing: -0.01em;">Payroll onboarding</h3>
+                            <p style="color: #6b7280; margin: 0; line-height: 1.6; font-size: 0.95rem;">Secure collection of legal name, SSN, ID address, bank routing and account numbers, and emergency contacts for Gusto-style payroll. Sensitive fields are encrypted; we do not use Stripe Connect for caregiver wages.</p>
                         </div>
                     </div>
                     <div style="border-top: 1px solid #f3f4f6; padding-top: 1.5rem;">
                         <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 1rem;">
                             <li style="display: flex; align-items: center; gap: 0.875rem;">
                                 <i class="bi bi-check-circle-fill" style="color: #10b981; font-size: 1.1rem; flex-shrink: 0;"></i>
-                                <span style="color: #374151; font-size: 0.95rem;">Access certified training programs in NYC</span>
+                                <span style="color: #374151; font-size: 0.95rem;">W-2 tax withholding and pay stubs</span>
                             </li>
                             <li style="display: flex; align-items: center; gap: 0.875rem;">
                                 <i class="bi bi-check-circle-fill" style="color: #10b981; font-size: 1.1rem; flex-shrink: 0;"></i>
-                                <span style="color: #374151; font-size: 0.95rem;">Enhance your professional credentials</span>
+                                <span style="color: #374151; font-size: 0.95rem;">Direct deposit after profile completion</span>
                             </li>
                             <li style="display: flex; align-items: center; gap: 0.875rem;">
                                 <i class="bi bi-check-circle-fill" style="color: #10b981; font-size: 1.1rem; flex-shrink: 0;"></i>
-                                <span style="color: #374151; font-size: 0.95rem;">Ongoing career development support</span>
+                                <span style="color: #374151; font-size: 0.95rem;">Ongoing skills guidance from your manager</span>
                             </li>
                             <li style="display: flex; align-items: center; gap: 0.875rem;">
                                 <i class="bi bi-check-circle-fill" style="color: #10b981; font-size: 1.1rem; flex-shrink: 0;"></i>
-                                <span style="color: #374151; font-size: 0.95rem;">Connect with training graduates across New York</span>
+                                <span style="color: #374151; font-size: 0.95rem;">Caregiver dashboard for time and assignments</span>
                             </li>
                         </ul>
                     </div>
@@ -3299,7 +3303,7 @@ font-size: 1.1rem !important;
                 <h2 style="font-size: 3rem; font-weight: 700; margin-bottom: 1rem;">
                     <span style="color: #f97316;">Why Partner</span> <span style="background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">With CAS Private Care</span>
                 </h2>
-                <p style="font-size: 1.2rem; color: #64748b;">Benefits designed to help you succeed as an independent contractor</p>
+                <p style="font-size: 1.2rem; color: #64748b;">Support designed for W-2 team members delivering great care</p>
             </div>
             
             <div class="benefits-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 1.5rem;">
@@ -3318,8 +3322,8 @@ font-size: 1.1rem !important;
                         <i class="bi bi-calendar3" style="font-size: 1.75rem; color: #3b82f6;"></i>
                     </div>
                     <div style="flex: 1;">
-                        <h3 style="font-size: 1.25rem; font-weight: 700; color: #111827; margin-bottom: 0.5rem; letter-spacing: -0.01em;">Flexible Schedule</h3>
-                        <p style="color: #6b7280; line-height: 1.6; font-size: 0.95rem; margin: 0;">Choose your own hours and accept bookings that work for you</p>
+                        <h3 style="font-size: 1.25rem; font-weight: 700; color: #111827; margin-bottom: 0.5rem; letter-spacing: -0.01em;">Coordinated schedule</h3>
+                        <p style="color: #6b7280; line-height: 1.6; font-size: 0.95rem; margin: 0;">Discuss availability and shift expectations with your manager as part of W-2 employment</p>
                     </div>
                 </div>
                 
@@ -3524,8 +3528,8 @@ font-size: 1.1rem !important;
                     description.textContent = 'A modern and trustworthy caregiving marketplace where families effortlessly connect with verified caregivers and companions.';
                     if (findBtn) findBtn.textContent = 'Find a Caregiver';
                 } else if (type === 'housekeeping') {
-                    description.textContent = 'Professional housekeeping services connecting families with reliable and trusted house helpers for all your home maintenance needs.';
-                    if (findBtn) findBtn.textContent = 'Find a Housekeeper';
+                    description.textContent = 'We focus on W-2 caregivers for non-medical home care. Families book companion and daily living support through CAS Private Care.';
+                    if (findBtn) findBtn.textContent = 'Find a Caregiver';
                 } else if (type === 'personal') {
                     description.textContent = 'Compassionate personal care services connecting families with qualified personal care assistants for daily living support.';
                     if (findBtn) findBtn.textContent = 'Find Personal Care';

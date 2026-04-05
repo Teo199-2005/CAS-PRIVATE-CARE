@@ -4,13 +4,9 @@
     <div class="browse-header mb-6">
       <div class="d-flex justify-space-between align-items-center flex-wrap gap-2 mb-4">
         <div>
-          <h1 class="browse-title">Browse Caregivers & Housekeepers</h1>
-          <p class="browse-subtitle">Find the perfect caregiver or housekeeper for your needs</p>
+          <h1 class="browse-title">Browse Caregivers</h1>
+          <p class="browse-subtitle">Find the right caregiver for your needs</p>
         </div>
-        <v-btn-toggle v-model="browseTab" mandatory color="primary" density="comfortable">
-          <v-btn value="caregivers">Caregivers ({{ filteredCaregivers.length }})</v-btn>
-          <v-btn value="housekeepers">Housekeepers ({{ filteredHousekeepers.length }})</v-btn>
-        </v-btn-toggle>
       </div>
     </div>
 
@@ -22,7 +18,7 @@
             <v-text-field
               v-model="searchQuery"
               prepend-inner-icon="mdi-magnify"
-              :label="browseTab === 'caregivers' ? 'Search by name or specialty...' : 'Search by name or service...'"
+              label="Search by name or specialty..."
               variant="outlined"
               density="comfortable"
               hide-details
@@ -64,7 +60,7 @@
     </div>
 
     <!-- Caregivers Grid -->
-    <v-row v-else-if="browseTab === 'caregivers'">
+    <v-row v-else>
       <v-col
         v-for="caregiver in filteredCaregivers"
         :key="'cg-' + caregiver.id"
@@ -121,81 +117,17 @@
               <span v-if="caregiver.email">{{ caregiver.email }}</span>
               <span v-if="caregiver.phone" class="ml-1">{{ caregiver.phone }}</span>
             </div>
-            <v-btn color="primary" variant="outlined" size="small" block prepend-icon="mdi-information" @click="viewDetails(caregiver, 'caregiver')">Details</v-btn>
-          </v-card-text>
-        </v-card>
-      </v-col>
-    </v-row>
-
-    <!-- Housekeepers Grid -->
-    <v-row v-else>
-      <v-col
-        v-for="hk in filteredHousekeepers"
-        :key="'hk-' + hk.id"
-        cols="12"
-        sm="6"
-        md="4"
-        lg="3"
-      >
-        <v-card class="caregiver-card type-indicator type-housekeeper" elevation="2">
-          <div class="caregiver-image-wrapper">
-            <v-img
-              v-if="hk.hasCustomAvatar && hk.avatar"
-              :src="hk.avatar"
-              height="200"
-              cover
-              class="caregiver-image"
-            >
-              <template v-slot:error>
-                <div class="caregiver-avatar-fallback d-flex align-center justify-center" style="height: 200px; background: linear-gradient(135deg, #6A1B9A 0%, #4a148c 100%);">
-                  <span class="text-h2 font-weight-bold text-white">{{ hk.initials || getInitials(hk.name) }}</span>
-                </div>
-              </template>
-            </v-img>
-            <div v-else class="caregiver-avatar-fallback d-flex align-center justify-center" style="height: 200px; background: linear-gradient(135deg, #6A1B9A 0%, #4a148c 100%);">
-              <span class="text-h2 font-weight-bold text-white">{{ hk.initials || getInitials(hk.name) }}</span>
-            </div>
-            <v-chip color="deep-purple" size="x-small" class="type-chip" density="compact">Housekeeper</v-chip>
-            <v-chip :color="hk.availability === 'available' ? 'success' : 'warning'" size="small" class="availability-chip">
-              {{ hk.availability === 'available' ? 'Available' : 'Ongoing Contract' }}
-            </v-chip>
-          </div>
-          <v-card-text class="pa-4">
-            <h3 class="caregiver-name mb-1">{{ hk.name }}</h3>
-            <p class="caregiver-specialty mb-2">{{ hk.specialty }}</p>
-            <div class="d-flex align-center mb-2">
-              <v-rating :model-value="parseFloat(hk.rating || 0)" :length="5" :size="18" color="amber" active-color="amber" half-increments readonly density="compact"></v-rating>
-              <span class="ml-2 text-caption text-grey">{{ parseFloat(hk.rating || 0).toFixed(1) }} ({{ hk.reviews || hk.total_reviews || 0 }})</span>
-            </div>
-            <div class="info-grid mb-2">
-              <div class="info-item">
-                <v-icon size="16" color="grey-darken-1">mdi-briefcase</v-icon>
-                <span class="info-text">{{ hk.experience }} years</span>
-              </div>
-              <div class="info-item">
-                <v-icon size="16" color="grey-darken-1">mdi-certificate</v-icon>
-                <span class="info-text">{{ hk.certifications }}</span>
-              </div>
-              <div class="info-item">
-                <v-icon size="16" color="grey-darken-1">mdi-cash</v-icon>
-                <span class="info-text">${{ hk.hourly_rate || 20 }}/hr</span>
-              </div>
-            </div>
-            <div class="contact-preview text-caption text-grey mb-2">
-              <span v-if="hk.email">{{ hk.email }}</span>
-              <span v-if="hk.phone" class="ml-1">{{ hk.phone }}</span>
-            </div>
-            <v-btn color="deep-purple" variant="outlined" size="small" block prepend-icon="mdi-information" @click="viewDetails(hk, 'housekeeper')">Details</v-btn>
+            <v-btn color="primary" variant="outlined" size="small" block prepend-icon="mdi-information" @click="viewDetails(caregiver)">Details</v-btn>
           </v-card-text>
         </v-card>
       </v-col>
     </v-row>
 
     <!-- Empty State -->
-    <v-card v-if="!loading && (browseTab === 'caregivers' ? filteredCaregivers.length === 0 : filteredHousekeepers.length === 0)" elevation="0" class="empty-state mt-6">
+    <v-card v-if="!loading && filteredCaregivers.length === 0" elevation="0" class="empty-state mt-6">
       <v-card-text class="pa-12 text-center">
         <v-icon size="80" color="grey-lighten-1">mdi-account-search</v-icon>
-        <h2 class="mt-6 mb-3">{{ browseTab === 'caregivers' ? 'No Caregivers Found' : 'No Housekeepers Found' }}</h2>
+        <h2 class="mt-6 mb-3">No Caregivers Found</h2>
         <p class="text-grey mb-4">Try clearing search or changing sort and availability</p>
         <v-btn color="primary" variant="outlined" @click="resetFilters">Clear search & reset</v-btn>
       </v-card-text>
@@ -206,7 +138,7 @@
       <v-card v-if="selectedCaregiver">
         <v-card-title class="pa-6 view-caregiver-modal-header">
           <div class="d-flex align-center justify-space-between w-100">
-            <span class="section-title text-white">{{ selectedContractorType === 'housekeeper' ? 'Housekeeper' : 'Caregiver' }} Details</span>
+            <span class="section-title text-white">Caregiver Details</span>
             <v-btn icon="mdi-close" variant="text" color="white" @click="detailsDialog = false" aria-label="Close" />
           </div>
         </v-card-title>
@@ -395,7 +327,7 @@
                 </div>
                 <v-alert v-else type="info" variant="tonal" density="compact">
                   <v-icon>mdi-information</v-icon>
-                  No reviews yet for this {{ selectedContractorType === 'housekeeper' ? 'housekeeper' : 'caregiver' }}
+                  No reviews yet for this caregiver
                 </v-alert>
               </div>
             </v-col>
@@ -426,15 +358,11 @@ const sortOptions = [
   { title: 'Lowest hourly rate', value: 'rate' },
   { title: 'Name A–Z', value: 'name' },
 ];
-const browseTab = ref('caregivers');
 const detailsDialog = ref(false);
 const selectedCaregiver = ref(null);
-const selectedContractorType = ref('caregiver');
 const loading = ref(true);
 const caregiverReviews = ref([]);
 const loadingReviews = ref(false);
-const housekeepers = ref([]);
-
 
 const caregivers = ref([]);
 
@@ -449,18 +377,8 @@ const fetchCaregivers = async () => {
   }
 };
 
-const fetchHousekeepers = async () => {
-  try {
-    const response = await axios.get('/api/housekeepers');
-    housekeepers.value = response.data.housekeepers || [];
-  } catch (error) {
-    housekeepers.value = [];
-  }
-};
-
 onMounted(() => {
   fetchCaregivers();
-  fetchHousekeepers();
 });
 
 const filteredCaregivers = computed(() => {
@@ -482,40 +400,16 @@ const filteredCaregivers = computed(() => {
   return list;
 });
 
-const filteredHousekeepers = computed(() => {
-  let list = housekeepers.value.filter(h => {
-    const matchesSearch = !searchQuery.value ||
-      (h.name || '').toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-      (h.specialty || '').toLowerCase().includes(searchQuery.value.toLowerCase());
-    const matchesAvailability = availabilityFilter.value === 'all' || h.availability === 'available';
-    return matchesSearch && matchesAvailability;
-  });
-  const order = sortBy.value;
-  if (order === 'rating') {
-    list = [...list].sort((a, b) => parseFloat(b.rating || 0) - parseFloat(a.rating || 0));
-  } else if (order === 'rate') {
-    list = [...list].sort((a, b) => (Number(a.hourly_rate || 999) - Number(b.hourly_rate || 999)));
-  } else if (order === 'name') {
-    list = [...list].sort((a, b) => (a.name || '').localeCompare(b.name || ''));
-  }
-  return list;
-});
-
 const resetFilters = () => {
   searchQuery.value = '';
   availabilityFilter.value = 'all';
   sortBy.value = 'rating';
 };
 
-const viewDetails = async (person, type) => {
+const viewDetails = async (person) => {
   selectedCaregiver.value = person;
-  selectedContractorType.value = type || 'caregiver';
   detailsDialog.value = true;
-  if (type === 'caregiver') {
-    await loadCaregiverReviews(person.id);
-  } else {
-    caregiverReviews.value = [];
-  }
+  await loadCaregiverReviews(person.id);
 };
 
 const loadCaregiverReviews = async (caregiverId) => {

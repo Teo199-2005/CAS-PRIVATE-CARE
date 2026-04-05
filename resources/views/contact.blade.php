@@ -695,9 +695,8 @@
                                     <select id="service_type" name="service_type" class="form-select" required>
                                         <option value="">Select a service type</option>
                                         <option value="elderly-care">Elderly Care</option>
-                                        <option value="housekeeping">Housekeeping</option>
+                                        <option value="companion-care">Companion Care</option>
                                         <option value="special-needs">Special Needs Care</option>
-                                        <option value="training">Training Center</option>
                                         <option value="partner">Become a Partner</option>
                                         <option value="other">Other</option>
                                     </select>
@@ -770,7 +769,7 @@
                             <i class="bi bi-geo-alt-fill"></i>
                             <h4>Location</h4>
                             <p>Service Area</p>
-                            <p>New York, USA</p>
+                            <p>{{ config('app.address', '481 8th Ave, New York, NY 10001') }}</p>
                         </div>
 
                         <!-- Mini FAQ Links -->
@@ -781,7 +780,7 @@
                             </div>
                             <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.35rem;">
                 <li><a href="{{ url('/faq') }}" style="color: rgba(255, 255, 255, 0.95); font-size: 0.9rem; text-decoration: none; display: flex; align-items: center; gap: 0.4rem;"><i class="bi bi-arrow-right-circle" style="color: rgba(255, 255, 255, 0.95);"></i> View full FAQ</a></li>
-                <li><a href="{{ url('/services') }}" style="color: rgba(255, 255, 255, 0.95); font-size: 0.9rem; text-decoration: none; display: flex; align-items: center; gap: 0.4rem;"><i class="bi bi-arrow-right-circle" style="color: rgba(255, 255, 255, 0.95);"></i> Our Services</a></li>
+                <li><a href="{{ url('/caregiver-new-york') }}" style="color: rgba(255, 255, 255, 0.95); font-size: 0.9rem; text-decoration: none; display: flex; align-items: center; gap: 0.4rem;"><i class="bi bi-arrow-right-circle" style="color: rgba(255, 255, 255, 0.95);"></i> Caregiver Services</a></li>
                 <li><a href="{{ url('/contractors') }}" style="color: rgba(255, 255, 255, 0.95); font-size: 0.9rem; text-decoration: none; display: flex; align-items: center; gap: 0.4rem;"><i class="bi bi-arrow-right-circle" style="color: rgba(255, 255, 255, 0.95);"></i> Become a Partner</a></li>
                             </ul>
                         </div>

@@ -80,7 +80,7 @@
 <!-- Tax Reminder -->
 <div style="background: #fffbeb; border: 1px solid #fcd34d; border-radius: 8px; padding: 15px; margin-bottom: 20px;">
     <p style="margin: 0; font-size: 13px; color: #92400e;">
-        <strong>Tax Reminder:</strong> As an independent contractor, remember to set aside approximately 25-30% of your earnings for taxes. You can view your tax estimates in your dashboard.
+        <strong>Payroll note:</strong> W-2 earnings are subject to payroll tax withholding. For questions about your pay stub or W-2, contact payroll or your manager.
     </p>
 </div>
 

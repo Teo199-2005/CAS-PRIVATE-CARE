@@ -149,15 +149,10 @@ class SEOTest extends TestCase
     public function location_pages_are_accessible()
     {
         // Only test location pages that have existing views
-        $locations = [
-            '/caregiver-new-york',
-            '/housekeeper-new-york',
-        ];
-        
-        foreach ($locations as $location) {
-            $response = $this->get($location);
-            $response->assertStatus(200);
-        }
+        $response = $this->get('/caregiver-new-york');
+        $response->assertStatus(200);
+
+        $this->get('/housekeeper-new-york')->assertStatus(301);
     }
 
     /** @test */

@@ -1273,269 +1273,6 @@
       </v-card>
     </v-dialog>
 
-    <!-- Training Centers Management Section -->
-    <div v-if="currentSection === 'training-centers'">
-      <div class="mb-6">
-        <v-row class="align-center">
-          <v-col cols="12" md="3">
-            <v-text-field v-model="trainingCenterSearch" placeholder="Search training centers..." prepend-inner-icon="mdi-magnify" variant="outlined" density="compact" hide-details />
-          </v-col>
-          <v-col cols="12" md="2">
-            <v-select v-model="trainingCenterStatusFilter" :items="['All', 'Active', 'pending', 'Inactive']" label="All Status" variant="outlined" density="compact" hide-details />
-          </v-col>
-          <v-col cols="12" md="3">
-            <v-btn color="error" prepend-icon="mdi-plus" @click="openTrainingCenterDialog()">Add Training Center</v-btn>
-          </v-col>
-        </v-row>
-      </div>
-      <v-card elevation="0">
-        <v-card-title class="card-header pa-8 d-flex justify-space-between align-center">
-          <span class="section-title error--text">Accredited Training Center</span>
-          <v-btn v-if="selectedTrainingCenters.length > 0" color="error" variant="outlined" prepend-icon="mdi-delete" @click="deleteSelectedTrainingCenters">
-            Delete Selected ({{ selectedTrainingCenters.length }})
-          </v-btn>
-        </v-card-title>
-        <v-data-table v-model="selectedTrainingCenters" :headers="trainingCenterHeaders" :items="filteredTrainingCenters" :items-per-page="10" show-select item-value="id" class="elevation-0" density="compact">
-          <template v-slot:item.caregiverCount="{ item }">
-            <v-chip color="info" size="small">
-              <v-icon size="14" class="mr-1">mdi-account-heart</v-icon>
-              {{ item.caregiverCount }}
-            </v-chip>
-          </template>
-          <template v-slot:item.commissionEarned="{ item }">
-            <span class="font-weight-bold text-success">${{ item.commissionEarned }}</span>
-          </template>
-          <template v-slot:item.status="{ item }">
-            <v-chip :color="getUserStatusColor(item.status)" size="small" class="font-weight-bold" :prepend-icon="getStatusIcon(item.status)">{{ item.status }}</v-chip>
-          </template>
-          <template v-slot:item.actions="{ item }">
-            <div class="action-buttons">
-              <v-btn class="action-btn-view" icon="mdi-eye" size="small" @click="viewTrainingCenterDetails(item)"></v-btn>
-              <v-btn class="action-btn-edit" icon="mdi-pencil" size="small" @click="openTrainingCenterDialog(item)"></v-btn>
-            </div>
-          </template>
-        </v-data-table>
-      </v-card>
-    </div>
-
-    <!-- View Training Center Details Dialog -->
-    <v-dialog v-model="viewTrainingCenterDialog" max-width="900" scrollable>
-      <v-card v-if="viewingTrainingCenter">
-        <v-card-title class="pa-6" style="background: #dc2626; color: white;">
-          <div class="d-flex align-center justify-space-between w-100">
-            <span class="section-title" style="color: white;">Training Center Details</span>
-            <v-btn icon="mdi-close" variant="text" style="color: white;" @click="viewTrainingCenterDialog = false"></v-btn>
-          </div>
-        </v-card-title>
-        <v-card-text class="pa-6" style="max-height: calc(80vh - 140px); overflow-y: auto;">
-          <v-row>
-            <v-col cols="12" class="text-center mb-4">
-              <v-avatar size="120" color="warning" class="mb-3">
-                <v-icon size="60" color="white">mdi-school</v-icon>
-              </v-avatar>
-              <h2>{{ viewingTrainingCenter.name }}</h2>
-              <v-chip :color="getUserStatusColor(viewingTrainingCenter.status)" class="mt-2">{{ viewingTrainingCenter.status }}</v-chip>
-            </v-col>
-          </v-row>
-          
-          <v-divider class="mb-4"></v-divider>
-          
-          <v-row>
-            <v-col cols="12" md="6">
-              <div class="detail-section">
-                <div class="detail-label">Email</div>
-                <div class="detail-value">{{ viewingTrainingCenter.email }}</div>
-              </div>
-            </v-col>
-            <v-col cols="12" md="6">
-              <div class="detail-section">
-                <div class="detail-label">Phone</div>
-                <div class="detail-value">{{ viewingTrainingCenter.phone }}</div>
-              </div>
-            </v-col>
-            <v-col cols="12" md="6">
-              <div class="detail-section">
-                <div class="detail-label">Address</div>
-                <div class="detail-value">{{ viewingTrainingCenter.address || 'Not provided' }}</div>
-              </div>
-            </v-col>
-          </v-row>
-          
-          <v-divider class="my-4"></v-divider>
-          
-          <h3 class="mb-3">Commission Statistics</h3>
-          <v-row>
-            <v-col cols="12" md="4">
-              <v-card class="pa-4 text-center" color="info" variant="tonal">
-                <v-icon size="32" color="info">mdi-account-heart</v-icon>
-                <h4 class="mt-2">{{ viewingTrainingCenter.caregiverCount }}</h4>
-                <div class="text-caption">Caregivers</div>
-              </v-card>
-            </v-col>
-            <v-col cols="12" md="4">
-              <v-card class="pa-4 text-center" color="primary" variant="tonal">
-                <v-icon size="32" color="primary">mdi-clock</v-icon>
-                <h4 class="mt-2">{{ viewingTrainingCenter.totalHours }}</h4>
-                <div class="text-caption">Total Hours</div>
-              </v-card>
-            </v-col>
-            <v-col cols="12" md="4">
-              <v-card class="pa-4 text-center" color="success" variant="tonal">
-                <v-icon size="32" color="success">mdi-currency-usd</v-icon>
-                <h4 class="mt-2">${{ viewingTrainingCenter.commissionEarned }}</h4>
-                <div class="text-caption">Commission Earned</div>
-              </v-card>
-            </v-col>
-          </v-row>
-          
-          <v-row class="mt-4">
-            <v-col cols="12" md="6">
-              <div class="detail-section">
-                <div class="detail-label">Commission Rate</div>
-                <div class="detail-value">$0.50 per hour</div>
-              </div>
-            </v-col>
-            <v-col cols="12" md="6">
-              <div class="detail-section">
-                <div class="detail-label">Joined</div>
-                <div class="detail-value">{{ viewingTrainingCenter.joined }}</div>
-              </div>
-            </v-col>
-          </v-row>
-
-          <v-divider class="my-4" v-if="viewingTrainingCenter.caregivers && viewingTrainingCenter.caregivers.length > 0"></v-divider>
-          
-          <div v-if="viewingTrainingCenter.caregivers && viewingTrainingCenter.caregivers.length > 0">
-            <h3 class="mb-3">Caregivers Using This Training Center</h3>
-            <div style="max-height: 300px; overflow-y: auto;">
-              <v-table density="compact">
-                <thead style="position: sticky; top: 0; background-color: white; z-index: 1;">
-                  <tr>
-                    <th>Name</th>
-                    <th>Email</th>
-                    <th>Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr v-for="caregiver in viewingTrainingCenter.caregivers" :key="caregiver.id">
-                    <td>{{ caregiver.name }}</td>
-                    <td>{{ caregiver.email }}</td>
-                    <td><v-chip size="x-small" color="success">Active</v-chip></td>
-                  </tr>
-                </tbody>
-              </v-table>
-            </div>
-          </div>
-        </v-card-text>
-        <v-card-actions class="pa-6">
-          <v-spacer />
-          <v-btn color="grey" variant="outlined" @click="viewTrainingCenterDialog = false">Close</v-btn>
-          <v-btn color="error" @click="openTrainingCenterDialog(viewingTrainingCenter); viewTrainingCenterDialog = false">Edit</v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
-
-    <!-- Add/Edit Training Center Dialog -->
-    <v-dialog v-model="trainingCenterDialog" max-width="900" scrollable>
-      <v-card>
-        <v-card-title class="pa-6" style="background: #dc2626; color: white;">
-          <span class="section-title" style="color: white;">{{ editingTrainingCenter ? 'Edit Training Center' : 'Add Training Center' }}</span>
-        </v-card-title>
-        <v-card-text class="pa-6">
-          <div class="mb-4">
-            <h3 class="text-h6 mb-4">Training Center Information</h3>
-            <v-row>
-              <v-col cols="12">
-                <v-text-field v-model="trainingCenterFormData.name" label="Training Center Name *" variant="outlined" required />
-              </v-col>
-              <v-col cols="12" md="6">
-                <v-text-field v-model="trainingCenterFormData.email" label="Email *" type="email" variant="outlined" required />
-              </v-col>
-              <v-col cols="12" md="6">
-                <v-text-field 
-                  v-model="trainingCenterFormData.phone" 
-                  label="Phone" 
-                  variant="outlined"
-                  placeholder="(646) 282-8282"
-                  maxlength="14"
-                  @update:model-value="trainingCenterFormData.phone = formatPhoneNumber(trainingCenterFormData.phone)"
-                />
-              </v-col>
-              <v-col cols="12">
-                <v-text-field v-model="trainingCenterFormData.address" label="Address" variant="outlined" />
-              </v-col>
-              <v-col cols="12" md="6">
-                <v-text-field v-model="trainingCenterFormData.state" label="State" variant="outlined" readonly value="New York" />
-              </v-col>
-              <v-col cols="12" md="6">
-                <v-select v-model="trainingCenterFormData.county" :items="nyCounties" label="County" variant="outlined" />
-              </v-col>
-              <v-col cols="12" md="6">
-                <v-text-field v-model="trainingCenterFormData.city" label="City" variant="outlined" />
-              </v-col>
-              <v-col cols="12" md="6">
-                <v-text-field 
-                  v-model="trainingCenterFormData.zip_code" 
-                  label="ZIP Code" 
-                  variant="outlined"
-                  maxlength="5"
-                  :rules="[v => !v || /^\d{5}$/.test(v) || 'Please enter a valid 5-digit ZIP code']"
-                  placeholder="Enter ZIP code"
-                  @input="lookupTrainingCenterZipCode"
-                  @blur="lookupTrainingCenterZipCode"
-                >
-                  <template v-slot:prepend-inner>
-                    <v-icon>mdi-map-marker</v-icon>
-                  </template>
-                </v-text-field>
-                <div v-if="trainingCenterZipLocation" style="font-weight: 600; color: #000000; margin-top: -8px; font-size: 0.75rem; line-height: 1.2;">
-                  {{ trainingCenterZipLocation }}
-                </div>
-              </v-col>
-              <v-col cols="12" md="6">
-                <v-text-field 
-                  v-if="!editingTrainingCenter" 
-                  v-model="trainingCenterFormData.password" 
-                  label="Password (Optional)" 
-                  :type="showTrainingPassword ? 'text' : 'password'" 
-                  variant="outlined" 
-                  hint="Leave blank to auto-generate secure password" 
-                  persistent-hint
-                  :append-inner-icon="showTrainingPassword ? 'mdi-eye-off' : 'mdi-eye'"
-                  @click:append-inner="showTrainingPassword = !showTrainingPassword"
-                />
-                <div v-if="!editingTrainingCenter && trainingCenterFormData.password" class="password-requirements mt-2">
-                  <div class="requirement-item" :class="{ valid: passwordMeetsLength(trainingCenterFormData.password) }">
-                    <span class="requirement-icon">{{ passwordMeetsLength(trainingCenterFormData.password) ? '✓' : '✗' }}</span>
-                    <span class="requirement-text">At least 8 characters</span>
-                  </div>
-                  <div class="requirement-item" :class="{ valid: passwordMeetsUppercase(trainingCenterFormData.password) }">
-                    <span class="requirement-icon">{{ passwordMeetsUppercase(trainingCenterFormData.password) ? '✓' : '✗' }}</span>
-                    <span class="requirement-text">One capital letter</span>
-                  </div>
-                  <div class="requirement-item" :class="{ valid: passwordMeetsDigit(trainingCenterFormData.password) }">
-                    <span class="requirement-icon">{{ passwordMeetsDigit(trainingCenterFormData.password) ? '✓' : '✗' }}</span>
-                    <span class="requirement-text">One digit</span>
-                  </div>
-                  <div class="requirement-item" :class="{ valid: passwordMeetsSpecial(trainingCenterFormData.password) }">
-                    <span class="requirement-icon">{{ passwordMeetsSpecial(trainingCenterFormData.password) ? '✓' : '✗' }}</span>
-                    <span class="requirement-text">One special character</span>
-                  </div>
-                </div>
-              </v-col>
-              <v-col cols="12" md="6">
-                <v-select v-model="trainingCenterFormData.status" :items="['Active', 'Inactive']" label="Status *" variant="outlined" required />
-              </v-col>
-            </v-row>
-          </div>
-        </v-card-text>
-        <v-card-actions class="pa-6 pt-0">
-          <v-spacer />
-          <v-btn color="grey" variant="outlined" @click="trainingCenterDialog = false">Cancel</v-btn>
-          <v-btn color="error" @click="saveTrainingCenter">{{ editingTrainingCenter ? 'Update' : 'Create' }}</v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
 
     <!-- Contractors Application Section -->
     <div v-if="currentSection === 'pending'">
@@ -2483,13 +2220,6 @@
             <v-row>
               <v-col cols="12" md="6">
                 <v-text-field v-model="caregiverForm.experience" label="Years of Experience" variant="outlined" type="number" />
-              </v-col>
-              <v-col cols="12" md="6">
-                <v-checkbox v-model="caregiverForm.isCustomTrainingCenter" label="Custom Training Center" density="compact" hide-details />
-              </v-col>
-              <v-col cols="12" md="6">
-                <v-select v-if="!caregiverForm.isCustomTrainingCenter" v-model="caregiverForm.trainingCenter" :items="caregiverTrainingCenterOptions" label="Training Center" variant="outlined" no-data-text="No CAS training centers. Use Custom Training Center to enter one." />
-                <v-text-field v-else v-model="caregiverForm.customTrainingCenter" label="Custom Training Center" variant="outlined" />
               </v-col>
               <v-col cols="12" md="6">
                 <v-file-input v-model="caregiverForm.trainingCertificate" label="Training Certificate" variant="outlined" accept=".pdf,.jpg,.jpeg,.png" prepend-icon="mdi-certificate" hint="Accepted formats: PDF, JPG, PNG (Max 5MB)" persistent-hint />
@@ -4126,39 +3856,10 @@ const caregiverForm = ref({
   zip_code: '', 
   password: '',
   experience: '', 
-  trainingCenter: '', 
-  customTrainingCenter: '', 
-  isCustomTrainingCenter: false,
   trainingCertificate: null, 
   bio: '', 
   status: 'Active' 
 });
-
-// CAS training center partners only (loaded from API)
-const caregiverTrainingCenters = ref([]);
-// Include current form value so selector always shows what training center it is
-const caregiverTrainingCenterOptions = computed(() => {
-  const list = [...(caregiverTrainingCenters.value || [])];
-  const current = (caregiverForm.value?.trainingCenter || '').trim();
-  if (current && !list.includes(current)) list.unshift(current);
-  return list;
-});
-const loadCaregiverTrainingCenters = async () => {
-  try {
-    const response = await fetch('/api/training-centers?active_only=1', {
-      headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
-      credentials: 'include'
-    });
-    const data = await response.json().catch(() => ({}));
-    const centers = Array.isArray(data) ? data : (data.centers || data.training_centers || data.trainingCenters || []);
-    caregiverTrainingCenters.value = (centers || [])
-      .map(c => (typeof c === 'string' ? c : (c?.name || c?.title || '')))
-      .map(s => String(s || '').trim())
-      .filter(Boolean);
-  } catch (e) {
-    caregiverTrainingCenters.value = [];
-  }
-};
 
 const announcementData = ref({
   title: '',
@@ -4185,7 +3886,6 @@ const showCurrentPassword = ref(false);
 const showNewPassword = ref(false);
 const showConfirmPassword = ref(false);
 const showMarketingPassword = ref(false);
-const showTrainingPassword = ref(false);
 const showAddUserPassword = ref(false);
 const showClientPassword = ref(false);
 const showCaregiverPassword = ref(false);
@@ -4210,7 +3910,6 @@ const selectedUsers = ref([]);
 const selectedCaregivers = ref([]);
 const selectedClients = ref([]);
 const selectedMarketingStaff = ref([]);
-const selectedTrainingCenters = ref([]);
 const selectedBookings = ref([]);
 
 const pendingApplications = ref([]);
@@ -4296,38 +3995,6 @@ const adminStaffHeaders = [
   { title: 'Phone', key: 'phone' },
   { title: 'Last Login', key: 'last_login' },
   { title: 'Joined', key: 'joined' },
-  { title: 'Status', key: 'status' },
-  { title: 'Actions', key: 'actions', sortable: false },
-];
-
-// Training Centers Management
-const trainingCenters = ref([]);
-const trainingCenterSearch = ref('');
-const trainingCenterStatusFilter = ref('All');
-const trainingCenterDialog = ref(false);
-const editingTrainingCenter = ref(null);
-const viewTrainingCenterDialog = ref(false);
-const viewingTrainingCenter = ref(null);
-const trainingCenterFormData = ref({
-  name: '',
-  email: '',
-  phone: '',
-  address: '',
-  state: 'New York',
-  county: '',
-  city: '',
-  zip_code: '',
-  password: '',
-  status: 'Active'
-});
-const trainingCenterZipLocation = ref('');
-const trainingCenterHeaders = [
-  { title: 'Name', key: 'name' },
-  { title: 'Email', key: 'email' },
-  { title: 'Phone', key: 'phone' },
-  { title: 'Caregivers', key: 'caregiverCount' },
-  { title: 'Total Hours', key: 'totalHours' },
-  { title: 'Commission Earned', key: 'commissionEarned' },
   { title: 'Status', key: 'status' },
   { title: 'Actions', key: 'actions', sortable: false },
 ];
@@ -4441,7 +4108,6 @@ const navItems = ref([
       { icon: 'mdi-account-multiple', title: 'Clients', value: 'clients' },
       { icon: 'mdi-shield-account', title: 'Admin Staff', value: 'admin-staff' },
       { icon: 'mdi-bullhorn-variant', title: 'Marketing Partner', value: 'marketing-staff' },
-      { icon: 'mdi-school', title: 'Training Centers', value: 'training-centers' }
     ]
   },
   { icon: 'mdi-account-clock', title: 'Contractors Application', value: 'pending', category: 'APPLICATIONS' },
@@ -4821,16 +4487,6 @@ const lookupBookingZipCode = async () => {
   }
 
   bookingZipLocation.value = await resolveZipCityState(zip);
-};
-
-const lookupTrainingCenterZipCode = async () => {
-  const zip = normalizeZip5(trainingCenterFormData.value.zip_code);
-  if (!zip) {
-    trainingCenterZipLocation.value = '';
-    return;
-  }
-
-  trainingCenterZipLocation.value = await resolveZipCityState(zip);
 };
 
 // Phone number formatting function - NY format (XXX) XXX-XXXX
@@ -5880,15 +5536,6 @@ const filteredAdminStaff = computed(() => {
   });
 });
 
-// Training Centers filtering
-const filteredTrainingCenters = computed(() => {
-  return trainingCenters.value.filter(t => {
-    const matchesSearch = !trainingCenterSearch.value || t.name.toLowerCase().includes(trainingCenterSearch.value.toLowerCase()) || t.email.toLowerCase().includes(trainingCenterSearch.value.toLowerCase());
-    const matchesStatus = trainingCenterStatusFilter.value === 'All' || t.status === trainingCenterStatusFilter.value;
-    return matchesSearch && matchesStatus;
-  });
-});
-
 const locationFilterOptions = ref([
   'All',
   'Manhattan',
@@ -6622,175 +6269,7 @@ const deleteSelectedAdminStaff = () => {
   );
 };
 
-// Training Center Form Data and Methods
-const loadTrainingCenters = async () => {
-  try {
-    const response = await fetch('/api/admin/training-centers', {
-      headers: {
-        'Accept': 'application/json',
-        'X-Requested-With': 'XMLHttpRequest'
-      },
-      credentials: 'same-origin'
-    });
-    
-    if (!response.ok) {
-      const errorText = await response.text();
-      trainingCenters.value = [];
-      return;
-    }
-    
-    const data = await response.json();
-    
-    trainingCenters.value = data.centers || [];
-    
-    if (trainingCenters.value.length === 0) {
-    }
-  } catch (err) {
-    trainingCenters.value = [];
-  }
-};
-
-const viewTrainingCenterDetails = async (center) => {
-  viewingTrainingCenter.value = { ...center };
-  viewTrainingCenterDialog.value = true;
-  
-  // Load caregivers for this center
-  try {
-    const response = await fetch(`/api/admin/training-centers/${center.id}/caregivers`);
-    const data = await response.json();
-    viewingTrainingCenter.value.caregivers = data.caregivers || [];
-  } catch (err) {
-  }
-};
-
-const openTrainingCenterDialog = (center = null) => {
-  if (center) {
-    editingTrainingCenter.value = center;
-    trainingCenterFormData.value = {
-      name: center.name || '',
-      email: center.email || '',
-      phone: center.phone || '',
-      address: center.address || '',
-      state: center.state || 'New York',
-      county: center.county || '',
-      city: center.city || '',
-      zip_code: center.zip_code || '',
-      password: '',
-      status: center.status || 'Active'
-    };
-    if (center.zip_code) {
-      lookupTrainingCenterZipCode();
-    } else {
-      trainingCenterZipLocation.value = '';
-    }
-  } else {
-    editingTrainingCenter.value = null;
-    trainingCenterFormData.value = { 
-      name: '', 
-      email: '', 
-      phone: '', 
-      address: '', 
-      state: 'New York', 
-      county: '', 
-      city: '', 
-      zip_code: '', 
-      password: '', 
-      status: 'Active' 
-    };
-    trainingCenterZipLocation.value = '';
-  }
-  trainingCenterDialog.value = true;
-};
-
-const saveTrainingCenter = async () => {
-  try {
-    if (!trainingCenterFormData.value.name || !trainingCenterFormData.value.email) {
-      error('Please fill in required fields: Training Center Name and Email', 'Validation Error');
-      return;
-    }
-    
-    if (editingTrainingCenter.value && !editingTrainingCenter.value.id) {
-      error('Invalid training center data. Please refresh the page and try again.', 'Error');
-      return;
-    }
-    
-    const url = editingTrainingCenter.value 
-      ? `/api/admin/training-centers/${editingTrainingCenter.value.id}`
-      : '/api/admin/training-centers';
-    
-      isEdit: !!editingTrainingCenter.value,
-      id: editingTrainingCenter.value?.id,
-      url: url,
-      formData: trainingCenterFormData.value
-    });
-    
-    const formData = {
-      name: trainingCenterFormData.value.name.trim(),
-      email: trainingCenterFormData.value.email,
-      phone: trainingCenterFormData.value.phone || null,
-      address: trainingCenterFormData.value.address || null,
-      state: trainingCenterFormData.value.state || 'New York',
-      county: trainingCenterFormData.value.county || null,
-      city: trainingCenterFormData.value.city || null,
-      zip_code: trainingCenterFormData.value.zip_code || null,
-      status: trainingCenterFormData.value.status
-    };
-    
-    // Password is optional - backend will generate random password if not provided
-    if (!editingTrainingCenter.value && trainingCenterFormData.value.password) {
-      formData.password = trainingCenterFormData.value.password;
-    }
-
-    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-    const response = await fetch(url, {
-      method: editingTrainingCenter.value ? 'PUT' : 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-CSRF-TOKEN': csrfToken || '',
-        'Accept': 'application/json',
-        'X-Requested-With': 'XMLHttpRequest'
-      },
-      body: JSON.stringify(formData)
-    });
-
-    const data = await response.json();
-
-    if (response.ok && data.success) {
-      success(editingTrainingCenter.value ? 'Training center updated successfully!' : 'Training center created successfully!', editingTrainingCenter.value ? 'Training Center Updated' : 'Training Center Created');
-      trainingCenterDialog.value = false;
-      await loadTrainingCenters();
-    } else {
-      const errorMessage = data.message || (data.errors ? JSON.stringify(data.errors) : 'Failed to save training center. Please try again.');
-      error(errorMessage, 'Save Failed');
-    }
-  } catch (err) {
-    error('Failed to save training center: ' + err.message, 'Error');
-  }
-};
-
-const deleteTrainingCenter = (center) => {
-  showConfirm(
-    'Delete Training Center',
-    `Are you sure you want to delete ${center.name}? This action cannot be undone.`,
-    async () => {
-      try {
-        await fetch(`/api/admin/training-centers/${center.id}`, {
-          method: 'DELETE',
-          headers: {
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
-          }
-        });
-        success('Training center deleted!', 'Deleted');
-        loadTrainingCenters();
-      } catch (err) {
-        error('Failed to delete training center', 'Error');
-      }
-    }
-  );
-};
-
 const openCaregiverDialog = (caregiver = null) => {
-  loadCaregiverTrainingCenters(); // Populate Training Center dropdown with CAS partners
   if (caregiver) {
     editingCaregiver.value = true;
     const nameParts = (caregiver.name || '').split(' ');
@@ -6808,9 +6287,6 @@ const openCaregiverDialog = (caregiver = null) => {
       zip_code: caregiver.zip_code || '',
       password: '',
       experience: caregiver.years_experience || caregiver.experience || '',
-      trainingCenter: caregiver.training_center || '',
-      customTrainingCenter: '',
-      isCustomTrainingCenter: false,
       trainingCertificate: null,
       bio: caregiver.bio || '',
       status: caregiver.status || 'Active'
@@ -6833,9 +6309,6 @@ const openCaregiverDialog = (caregiver = null) => {
       zip_code: '', 
       password: '',
       experience: '', 
-      trainingCenter: '', 
-      customTrainingCenter: '', 
-      isCustomTrainingCenter: false,
       trainingCertificate: null, 
       bio: '', 
       status: 'Active' 
@@ -6962,7 +6435,7 @@ const saveCaregiver = async () => {
       borough: caregiverForm.value.city || null,
       zip_code: caregiverForm.value.zip_code || null,
       years_experience: caregiverForm.value.experience || null,
-      training_center: caregiverForm.value.isCustomTrainingCenter ? caregiverForm.value.customTrainingCenter : caregiverForm.value.trainingCenter || null,
+      training_center: null,
       bio: caregiverForm.value.bio || null,
       status: caregiverForm.value.status,
       user_type: 'caregiver'
@@ -7248,57 +6721,6 @@ const deleteSelectedMarketingStaff = async () => {
         await loadMarketingStaff();
       } catch (err) {
         error('Failed to delete marketing partner. Please try again.', 'Delete Failed');
-      }
-    }
-  );
-};
-
-const deleteSelectedTrainingCenters = async () => {
-  if (selectedTrainingCenters.value.length === 0) return;
-  showConfirm(
-    'Delete Selected Training Centers',
-    `Are you sure you want to delete ${selectedTrainingCenters.value.length} training center(s)? This action cannot be undone.`,
-    async () => {
-      try {
-        let deletedCount = 0;
-        let failedCount = 0;
-        const centerIdsToDelete = [...selectedTrainingCenters.value];
-        
-        for (const centerId of centerIdsToDelete) {
-          try {
-            const response = await fetch(`/api/admin/training-centers/${centerId}`, {
-              method: 'DELETE',
-              headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
-                'Accept': 'application/json'
-              }
-            });
-            
-            const data = await response.json();
-            
-            if (response.ok && data.success) {
-              deletedCount++;
-            } else {
-              failedCount++;
-            }
-          } catch (err) {
-            failedCount++;
-          }
-        }
-        
-        if (failedCount === 0) {
-          success(`${deletedCount} training center(s) deleted successfully!`, 'Training Centers Deleted');
-        } else if (deletedCount > 0) {
-          warning(`${deletedCount} training center(s) deleted, but ${failedCount} failed.`, 'Partial Success');
-        } else {
-          error('Failed to delete training centers. Please try again.', 'Delete Failed');
-        }
-        
-        selectedTrainingCenters.value = [];
-        await loadTrainingCenters();
-      } catch (err) {
-        error('Failed to delete training centers. Please try again.', 'Delete Failed');
       }
     }
   );
@@ -8765,10 +8187,6 @@ watch(currentSection, (newVal) => {
   if (newVal === 'analytics') {
     setTimeout(initCharts, 300);
   }
-  // Reload training centers when switching to training centers section
-  if (newVal === 'training') {
-    loadTrainingCenters();
-  }
 });
 
 // Function to add data-label attributes to table cells for mobile view
@@ -8842,7 +8260,6 @@ onMounted(() => {
   loadTimeTrackingData();
   loadMarketingStaff();
   loadAdminStaff();
-  loadTrainingCenters();
   loadQuickCaregivers();
   
   // Load payment & financial data from database
@@ -8881,7 +8298,7 @@ onMounted(() => {
   }, { deep: true });
   
   // Re-add labels when other table data changes
-  watch([caregivers, clients, pendingApplications, marketingStaff, trainingCenters], () => {
+  watch([caregivers, clients, pendingApplications, marketingStaff], () => {
     setTimeout(() => {
       addMobileTableLabels();
     }, 300);

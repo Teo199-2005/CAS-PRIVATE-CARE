@@ -29,7 +29,7 @@
               </div>
               <div class="detail-item">
                 <v-icon size="small" class="mr-2">mdi-map-marker</v-icon>
-                <span>{{ client.address || '123 Main St, New York, NY' }}</span>
+                <span>{{ client.address || '—' }}</span>
               </div>
             </div>
             

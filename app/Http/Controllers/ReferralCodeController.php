@@ -31,7 +31,7 @@ class ReferralCodeController extends Controller
             $referralCode = ReferralCode::create([
                 'user_id' => $user->id,
                 'code' => ReferralCode::generateCode($user->id),
-                'discount_per_hour' => 3.00, // Client gets $3/hr discount
+                'discount_per_hour' => 1.50, // Client gets $1.50/hr discount
                 'commission_per_hour' => 1.00, // Marketing earns $1/hr
                 'is_active' => true,
             ]);
@@ -145,7 +145,7 @@ class ReferralCodeController extends Controller
         $referralCode = ReferralCode::create([
             'user_id' => $request->user_id,
             'code' => strtoupper($code),
-            'discount_per_hour' => 3.00,
+            'discount_per_hour' => 1.50,
             'commission_per_hour' => 1.00,
             'is_active' => true,
         ]);

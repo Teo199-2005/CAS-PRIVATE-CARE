@@ -8,10 +8,10 @@
     <link rel="manifest" href="{{ asset('manifest.json') }}">
 
     <!-- Primary Meta Tags -->
-    <title>CAS Private Care LLC - Verified Caregivers & Home Care Services New York</title>
-    <meta name="title" content="CAS Private Care LLC - Verified Caregivers & Home Care Services New York">
-    <meta name="description" content="Connect with verified caregivers and home helpers in New York. Professional elderly care and housekeeping services. 24/7 support. Book trusted care professionals today.">
-    <meta name="keywords" content="caregivers New York, home care services, elderly care, nanny services, housekeeping, home helpers, verified caregivers, professional care services">
+    <title>CAS Private Care LLC - Verified Caregivers & Home Care New York</title>
+    <meta name="title" content="CAS Private Care LLC - Verified Caregivers & Home Care New York">
+    <meta name="description" content="Connect with verified caregivers in New York. Elderly care, companion care, and special needs support. 24/7 support. Book trusted care professionals today.">
+    <meta name="keywords" content="caregivers New York, home care services, elderly care, companion care, verified caregivers, professional caregiving NYC">
     <meta name="author" content="CAS Private Care LLC">
     <meta name="robots" content="index, follow">
     <link rel="canonical" href="{{ url('/') }}">
@@ -19,16 +19,16 @@
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website">
     <meta property="og:url" content="{{ url('/') }}">
-    <meta property="og:title" content="CAS Private Care LLC - Verified Caregivers & Home Care Services New York">
-    <meta property="og:description" content="Connect with verified caregivers and home helpers in New York. Professional elderly care and housekeeping services.">
+    <meta property="og:title" content="CAS Private Care LLC - Verified Caregivers & Home Care New York">
+    <meta property="og:description" content="Connect with verified caregivers in New York. Elderly care, companion care, and special needs support.">
     <meta property="og:image" content="{{ asset('logo.png') }}">
     <meta property="og:site_name" content="CAS Private Care LLC">
 
     <!-- Twitter -->
     <meta property="twitter:card" content="summary_large_image">
     <meta property="twitter:url" content="{{ url('/') }}">
-    <meta property="twitter:title" content="CAS Private Care LLC - Verified Caregivers & Home Care Services New York">
-    <meta property="twitter:description" content="Connect with verified caregivers and home helpers in New York. Professional elderly care and housekeeping services.">
+    <meta property="twitter:title" content="CAS Private Care LLC - Verified Caregivers & Home Care New York">
+    <meta property="twitter:description" content="Connect with verified caregivers in New York. Elderly care, companion care, and special needs support.">
     <meta property="twitter:image" content="{{ asset('logo.png') }}">
 
     <!-- Structured Data (JSON-LD) -->
@@ -45,14 +45,16 @@
         'priceRange' => '$$',
         'address' => [
             '@type' => 'PostalAddress',
+            'streetAddress' => '481 8th Ave',
             'addressLocality' => 'New York',
             'addressRegion' => 'NY',
+            'postalCode' => '10001',
             'addressCountry' => 'US'
         ],
         'geo' => [
             '@type' => 'GeoCoordinates',
-            'latitude' => 40.7128,
-            'longitude' => -74.0060
+            'latitude' => 40.75278,
+            'longitude' => -73.99361
         ],
         'areaServed' => [
             '@type' => 'City',
@@ -238,9 +240,9 @@
             position: relative;
             overflow: hidden; /* Critical: prevents horizontal scroll */
             overflow-x: clip; /* Enhanced overflow prevention */
-            min-height: 90vh;
+            min-height: calc(100vh - 72px); /* Viewport below fixed nav — pairs with vertical centering */
             display: flex;
-            align-items: flex-start;
+            align-items: center;
             justify-content: center;
             background: transparent !important;
             contain: layout style paint; /* Performance optimization */
@@ -323,13 +325,15 @@
 
         .hero-content {
             max-width: var(--container-lg, 1400px);
-            margin: 0 auto;
+            width: 100%;
+            margin-left: auto;
+            margin-right: auto;
             position: relative;
             z-index: 10;
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: var(--grid-gap-lg, 2rem);
-            align-items: start;
+            align-items: center;
             background: rgba(255, 255, 255, 0.22);
             -webkit-backdrop-filter: blur(20px);
             backdrop-filter: blur(20px);
@@ -5901,19 +5905,25 @@
            These styles reset any mobile overrides for large screens
            ============================================================= */
         @media (min-width: 1281px) {
-            /* Hero section - restore desktop layout, container near top */
+            /* Hero section — desktop: center card vertically and horizontally in viewport */
             .hero {
                 margin-top: 72px; /* Match nav height to remove white gap */
-                padding: 3rem 2rem 4rem;
-                min-height: 100vh;
-                align-items: flex-start;
+                padding: 2rem 2rem;
+                min-height: calc(100vh - 72px);
+                align-items: center;
+                justify-content: center;
             }
 
             .hero-content {
                 grid-template-columns: 1fr 1fr;
                 gap: 4rem;
+                align-items: center;
                 padding: 3rem;
                 max-width: 1400px;
+            }
+
+            .hero-image-container {
+                margin-top: 0;
             }
 
             .hero h1 {
@@ -6309,16 +6319,10 @@
                 <h1 style="text-shadow: 2px 2px 4px rgba(255, 255, 255, 1), -1px -1px 0 rgba(255, 255, 255, 1), 1px -1px 0 rgba(255, 255, 255, 1), -1px 1px 0 rgba(255, 255, 255, 1), 1px 1px 0 rgba(255, 255, 255, 1);"><span style="color: #f97316;">CAS Private Care</span> <span style="color: #3b82f6;">LLC</span></h1>
                 <p class="tagline">Comfort and Support</p>
                 
-                <div class="hero-service-toggle" role="tablist" aria-label="Service type">
-                    <div id="slider-bg" class="hero-toggle-slider" aria-hidden="true"></div>
-                    <button type="button" role="tab" id="btn-caregiver" aria-selected="true" aria-controls="hero-description" onclick="switchService('caregiver')" class="hero-toggle-btn">Caregiver</button>
-                    <button type="button" role="tab" id="btn-housekeeping" aria-selected="false" aria-controls="hero-description" onclick="switchService('housekeeping')" class="hero-toggle-btn">Housekeeping</button>
-                </div>
-                
-                <p id="hero-description" style="transition: opacity 0.5s ease;">A modern and trustworthy platform connecting families with verified caregivers and housekeepers. Background-checked professionals ready to support your family across all NYC boroughs.</p>
+                <p id="hero-description" style="transition: opacity 0.5s ease;">A modern and trustworthy caregiving marketplace where families effortlessly connect with verified caregivers and companions for exceptional care services.</p>
                 
                 <div class="hero-buttons">
-                    <a href="{{ url('/register') }}" class="btn-secondary" id="find-btn" style="transition: opacity 0.5s ease;">Find a Caregiver</a>
+                    <a href="{{ url('/register') }}?service=caregiver" class="btn-secondary" id="find-btn" style="transition: opacity 0.5s ease;">Find a Caregiver</a>
                     <a href="{{ url('/register') }}" class="btn-primary">Become a Partner</a>
                 </div>
                 <p class="hero-call-cta">
@@ -6348,7 +6352,7 @@
         <div style="max-width: 1200px; margin: 0 auto; display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 1rem 2.5rem; position: relative; z-index: 1;">
             <div style="display: flex; align-items: center; gap: 0.6rem;">
                 <div style="width: 32px; height: 32px; background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 900; font-size: 0.85rem;">1</div>
-                <span style="color: white; font-weight: 700; font-size: 0.95rem;">Browse Verified Partners</span>
+                <span style="color: white; font-weight: 700; font-size: 0.95rem;">Browse Verified Caregivers</span>
             </div>
             <i class="bi bi-arrow-right" style="color: rgba(255, 255, 255, 0.4); font-size: 1.1rem;"></i>
             <div style="display: flex; align-items: center; gap: 0.6rem;">
@@ -6391,7 +6395,7 @@
                     <span style="font-weight: 700; color: #1e40af; font-size: 0.95rem;">Trusted by 2,500+ New York Families</span>
                 </div>
                 
-                <p style="font-size: 1.1rem; color: #64748b; line-height: 1.8; margin-bottom: 2rem;">Your trusted platform connecting families with verified partners and contractors for quality care services. We make finding professional partners simple, safe, and reliable.</p>
+                <p style="font-size: 1.1rem; color: #64748b; line-height: 1.8; margin-bottom: 2rem;">Your trusted platform connecting families with verified caregivers for quality in-home support. We make finding the right professional simple, safe, and reliable.</p>
                 <div class="about-features-grid">
                     <div class="about-feature-card">
                         <div class="about-feature-icon">
@@ -6399,7 +6403,7 @@
                         </div>
                         <div class="about-feature-content">
                             <h3><span style="color: #f97316;">For</span> <span style="color: #1e40af;">Families</span></h3>
-                            <p>Browse verified partners and contractors. Book instantly with secure payments.</p>
+                            <p>Browse verified caregiver profiles. Book instantly with secure payments.</p>
                         </div>
                     </div>
                     <div class="about-feature-card">
@@ -6456,7 +6460,7 @@
                     </h2>
                     <p class="ceo-title">CEO / Founder</p>
                     <p class="ceo-bio">
-                        With a vision to transform the caregiving industry, Charles Andrew Santiago is dedicated to building a trusted platform that connects families with exceptional contractors. His goal is to ensure every family receives quality, compassionate care while creating meaningful opportunities for professional contractors. Through CAS Private Care LLC, he strives to make professional caregiving services accessible, reliable, and safe for everyone, fostering stronger communities one connection at a time.
+                        With a vision to transform the caregiving industry, Charles Andrew Santiago is dedicated to building a trusted platform that connects families with exceptional caregivers. His goal is to ensure every family receives quality, compassionate care while creating meaningful opportunities for professional caregivers. Through CAS Private Care LLC, he strives to make professional caregiving services accessible, reliable, and safe for everyone, fostering stronger communities one connection at a time.
                     </p>
                 </div>
             </div>
@@ -6493,8 +6497,8 @@
                     <div class="service-bg" style="background-image: url('https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=800');"></div>
                     <div class="service-overlay"></div>
                     <div class="service-content">
-                        <h4 itemprop="name">House Helpers</h4>
-                        <p class="service-description" itemprop="description">Reliable household assistance for a cleaner home. Professional helpers who manage cleaning, laundry, and household organization efficiently.</p>
+                        <h4 itemprop="name">Companion Care</h4>
+                        <p class="service-description" itemprop="description">Warm, consistent companionship and day-to-day support so your loved one stays engaged, comfortable, and socially connected at home.</p>
                         <div class="booking-btn-wrapper">
                             <a href="{{ url('/register') }}" class="book-now-btn" itemprop="url" onclick="return handleBookingClick(event, '{{ url('/register') }}')">Book Now</a>
                             <span class="maintenance-dot" title="Booking temporarily disabled"></span>
@@ -6518,8 +6522,8 @@
                     <div class="service-bg" style="background-image: url('https://images.unsplash.com/photo-1527515637462-cff94eecc1ac?w=800');"></div>
                     <div class="service-overlay"></div>
                     <div class="service-content">
-                        <h4 itemprop="name">Deep Cleaning</h4>
-                        <p class="service-description" itemprop="description">Thorough housekeeping for kitchens, bathrooms, and high-touch areas. Perfect for move-in/move-out and seasonal refreshes.</p>
+                        <h4 itemprop="name">Respite &amp; Family Support</h4>
+                        <p class="service-description" itemprop="description">Trusted caregivers step in so family caregivers can rest, work, or travel—without worrying about continuity of care.</p>
                         <div class="booking-btn-wrapper">
                             <a href="{{ url('/register') }}" class="book-now-btn" itemprop="url" onclick="return handleBookingClick(event, '{{ url('/register') }}')">Book Now</a>
                             <span class="maintenance-dot" title="Booking temporarily disabled"></span>
@@ -6541,9 +6545,9 @@
     <section class="section-dark" id="locations">
         <div class="container">
             <div class="section-header fade-in">
-                <h2><span style="color: #f97316;">Professional Partners</span> Available Throughout New York State</h2>
+                <h2><span style="color: #f97316;">Verified Caregivers</span> Available Throughout New York State</h2>
                 <p>
-                    Verified partners available across all of New York State. Find caregivers, housekeepers, and more in your area.
+                    Verified caregivers available across all of New York State. Find compassionate, background-checked professionals in your area.
                 </p>
             </div>
 
@@ -6552,40 +6556,40 @@
                     <div class="location-card-icon">
                         <i class="bi bi-building"></i>
                     </div>
-                    <h4>Manhattan Partners</h4>
-                    <p>Professional caregivers and housekeepers throughout Manhattan, from Upper East Side to Lower Manhattan. Available 24/7.</p>
+                    <h4>Manhattan Caregivers</h4>
+                    <p>Professional caregivers throughout Manhattan, from Upper East Side to Lower Manhattan. Available 24/7.</p>
                 </div>
 
                 <div class="location-card fade-in" style="background-image: url('https://images.unsplash.com/photo-1505843513577-22bb7d21e455?w=800&q=80');">
                     <div class="location-card-icon">
                         <i class="bi bi-geo-alt"></i>
                     </div>
-                    <h4>Brooklyn Partners</h4>
-                    <p>Trusted caregivers and housekeepers serving all Brooklyn neighborhoods. From Park Slope to Brighton Beach.</p>
+                    <h4>Brooklyn Caregivers</h4>
+                    <p>Trusted caregivers serving all Brooklyn neighborhoods. From Park Slope to Brighton Beach.</p>
                 </div>
 
                 <div class="location-card fade-in" style="background-image: url('https://images.unsplash.com/photo-1500916434205-0c77489c6cf7?w=800&q=80');">
                     <div class="location-card-icon">
                         <i class="bi bi-map"></i>
                     </div>
-                    <h4>Queens Partners</h4>
-                    <p>Reliable caregivers and housekeepers across Queens, including Astoria, Flushing, and Jamaica.</p>
+                    <h4>Queens Caregivers</h4>
+                    <p>Reliable caregivers across Queens, including Astoria, Flushing, and Jamaica.</p>
                 </div>
 
                 <div class="location-card fade-in" style="background-image: url('https://images.unsplash.com/photo-1514565131-fce0801e5785?w=800&q=80');">
                     <div class="location-card-icon">
                         <i class="bi bi-geo-fill"></i>
                     </div>
-                    <h4>Bronx Partners</h4>
-                    <p>Professional caregivers and housekeepers serving the Bronx communities. Specialized elderly care services available.</p>
+                    <h4>Bronx Caregivers</h4>
+                    <p>Professional caregivers serving Bronx communities. Specialized elderly care and memory support available.</p>
                 </div>
 
                 <div class="location-card fade-in" style="background-image: url('https://www.nyhabitat.com/blog/wp-content/uploads/2014/09/New-york-nyc-borough-staten-island-ferry-manhattan-skyline.jpg');">
                     <div class="location-card-icon">
                         <i class="bi bi-geo-alt-fill"></i>
                     </div>
-                    <h4>Staten Island Partners</h4>
-                    <p>Dedicated caregivers and housekeepers for Staten Island residents. Personalized connections for your family.</p>
+                    <h4>Staten Island Caregivers</h4>
+                    <p>Dedicated caregivers for Staten Island residents. Personalized matches for your family.</p>
                 </div>
             </div>
             
@@ -6593,11 +6597,11 @@
             <div class="fade-in" style="text-align: center; margin-top: 4rem;">
                 <a href="{{ url('/register?show_partner_types=true') }}" class="btn-primary" style="padding: 1.5rem 4rem; font-size: 1.3rem; display: inline-flex; align-items: center; gap: 1rem; box-shadow: 0 10px 40px rgba(59, 130, 246, 0.3);">
                     <i class="bi bi-person-plus-fill" style="font-size: 1.5rem;"></i>
-                    Join as Partner in New York State
+                    Join as a Caregiver in New York State
                     <i class="bi bi-arrow-right-circle-fill" style="font-size: 1.5rem;"></i>
                 </a>
                 <p style="margin-top: 1.5rem; color: #64748b; font-size: 1.1rem;">
-                    Start earning today as a caregiver or housekeeper across all NYC boroughs
+                    Start earning today as a caregiver or marketing partner across all NYC boroughs
                 </p>
             </div>
         </div>
@@ -6638,7 +6642,7 @@
                         <h3 style="font-size: 1.35rem; font-weight: 800; margin: 0 0 0.75rem; color: #0f172a;">
                             <span style="color: #f97316;">Browse</span> & Select
                         </h3>
-                        <p style="font-size: 0.95rem; color: #64748b; line-height: 1.7; margin: 0;">Clients search for caregivers or nannies, review their profiles, credentials, and ratings to find the perfect match.</p>
+                        <p style="font-size: 0.95rem; color: #64748b; line-height: 1.7; margin: 0;">Clients search for caregivers, review profiles, credentials, and ratings to find the right match.</p>
                     </div>
                 </div>
                 
@@ -6666,7 +6670,7 @@
                         <h3 style="font-size: 1.35rem; font-weight: 800; margin: 0 0 0.75rem; color: #0f172a;">
                             <span style="color: #10b981;">Connect</span> & Care
                         </h3>
-                        <p style="font-size: 0.95rem; color: #64748b; line-height: 1.7; margin: 0;">Partners and contractors receive bookings, connect with families, and deliver exceptional services while building their reputation.</p>
+                        <p style="font-size: 0.95rem; color: #64748b; line-height: 1.7; margin: 0;">Caregivers receive bookings, connect with families, and deliver exceptional support while building their reputation.</p>
                     </div>
                 </div>
                 
@@ -6696,7 +6700,7 @@
                 </div>
                 <div>
                     <div style="font-weight: 900; color: #0f172a; font-size: 0.95rem;">Background Checked</div>
-                    <div style="color: #64748b; font-size: 0.85rem;">All partners verified</div>
+                    <div style="color: #64748b; font-size: 0.85rem;">All caregivers verified</div>
                 </div>
             </div>
             <div style="display: flex; align-items: center; gap: 0.75rem;">
@@ -6769,11 +6773,11 @@
                 </div>
                 <div style="display: flex; align-items: center; gap: 1rem; padding: 1.25rem 2rem; background: white; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.06); border: 1px solid rgba(11, 79, 162, 0.15);">
                     <div style="width: 56px; height: 56px; background: linear-gradient(135deg, #0B4FA2 0%, #1e3a8a 100%); border-radius: 14px; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 24px rgba(11, 79, 162, 0.3);">
-                        <i class="bi bi-house-heart-fill" style="color: white; font-size: 1.5rem;"></i>
+                        <i class="bi bi-people-fill" style="color: white; font-size: 1.5rem;"></i>
                     </div>
                     <div>
-                        <div style="font-size: 1.5rem; font-weight: 900; color: #0f172a; line-height: 1;">4.9<span style="font-size: 1rem; color: #fbbf24; margin-left: 0.25rem;">★</span></div>
-                        <div style="font-size: 0.85rem; color: #64748b; font-weight: 600;">850+ Housekeeper Reviews</div>
+                        <div style="font-size: 1.5rem; font-weight: 900; color: #0f172a; line-height: 1;">2,000+</div>
+                        <div style="font-size: 0.85rem; color: #64748b; font-weight: 600;">Verified Family Reviews</div>
                     </div>
                 </div>
                 <div style="display: flex; align-items: center; gap: 1rem; padding: 1.25rem 2rem; background: white; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.06); border: 1px solid rgba(249, 115, 22, 0.15);">
@@ -6843,7 +6847,7 @@
                             <div style="flex: 1;">
                                 <h4 style="color: white; font-size: 1.15rem; font-weight: 800; margin: 0 0 0.25rem;">Carmen Torres</h4>
                                 <p style="color: rgba(255,255,255,0.9); font-size: 0.85rem; margin: 0; display: flex; align-items: center; gap: 0.35rem;">
-                                    <i class="bi bi-house-heart"></i> Housekeeper • Brooklyn, NY
+                                    <i class="bi bi-heart-pulse"></i> Caregiver • Brooklyn, NY
                                 </p>
                             </div>
                             <div style="background: rgba(255,255,255,0.2); padding: 0.4rem 0.75rem; border-radius: 999px; backdrop-filter: blur(10px);">
@@ -6858,11 +6862,11 @@
                                 <i class="bi bi-patch-check-fill" style="color: #0B4FA2;"></i> Verified Review
                             </span>
                             <span style="background: rgba(11, 79, 162, 0.08); color: #1e3a8a; padding: 0.4rem 0.85rem; border-radius: 999px; font-size: 0.75rem; font-weight: 700; border: 1px solid rgba(11, 79, 162, 0.15);">
-                                <i class="bi bi-stars"></i> 5-Star Cleaning
+                                <i class="bi bi-stars"></i> Compassionate Care
                             </span>
                         </div>
                         <blockquote style="font-size: 1rem; color: #334155; line-height: 1.75; margin: 0 0 1.25rem; position: relative; padding-left: 1rem; border-left: 3px solid #0B4FA2;">
-                            "Carmen is simply the best housekeeper in Brooklyn! Thorough, reliable, and always leaves our home spotless. She's been with us for over a year and we couldn't be happier."
+                            "Carmen has been a lifesaver for our family in Brooklyn. She is patient with my father, keeps us informed, and treats him with real dignity. We trust her completely."
                         </blockquote>
                         <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 1rem; border-top: 1px solid #f1f5f9;">
                             <div>
@@ -6972,7 +6976,7 @@
                             <div style="flex: 1;">
                                 <h4 style="color: white; font-size: 1.15rem; font-weight: 800; margin: 0 0 0.25rem;">Maria Silva</h4>
                                 <p style="color: rgba(255,255,255,0.9); font-size: 0.85rem; margin: 0; display: flex; align-items: center; gap: 0.35rem;">
-                                    <i class="bi bi-house-heart"></i> Housekeeper • Staten Island, NY
+                                    <i class="bi bi-heart-pulse"></i> Caregiver • Staten Island, NY
                                 </p>
                             </div>
                             <div style="background: rgba(255,255,255,0.2); padding: 0.4rem 0.75rem; border-radius: 999px; backdrop-filter: blur(10px);">
@@ -6987,11 +6991,11 @@
                                 <i class="bi bi-patch-check-fill" style="color: #0B4FA2;"></i> Verified Review
                             </span>
                             <span style="background: rgba(11, 79, 162, 0.08); color: #1e3a8a; padding: 0.4rem 0.85rem; border-radius: 999px; font-size: 0.75rem; font-weight: 700; border: 1px solid rgba(11, 79, 162, 0.15);">
-                                <i class="bi bi-eye"></i> Detail-Focused
+                                <i class="bi bi-eye"></i> Reliable &amp; Steady
                             </span>
                         </div>
                         <blockquote style="font-size: 1rem; color: #334155; line-height: 1.75; margin: 0 0 1.25rem; position: relative; padding-left: 1rem; border-left: 3px solid #0B4FA2;">
-                            "Maria is absolutely fantastic! She's been cleaning our home weekly for 8 months. Professional, trustworthy, and pays attention to every detail. Best housekeeper in Staten Island by far!"
+                            "Maria has supported my mother on Staten Island for eight months. She is punctual, kind, and notices small changes in health before we do. We are grateful every week."
                         </blockquote>
                         <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 1rem; border-top: 1px solid #f1f5f9;">
                             <div>
@@ -7015,7 +7019,7 @@
                             <div style="flex: 1;">
                                 <h4 style="color: white; font-size: 1.15rem; font-weight: 800; margin: 0 0 0.25rem;">Diana Lopez</h4>
                                 <p style="color: rgba(255,255,255,0.9); font-size: 0.85rem; margin: 0; display: flex; align-items: center; gap: 0.35rem;">
-                                    <i class="bi bi-house-heart"></i> Housekeeper • Manhattan, NY
+                                    <i class="bi bi-heart-pulse"></i> Caregiver • Manhattan, NY
                                 </p>
                             </div>
                             <div style="background: rgba(255,255,255,0.2); padding: 0.4rem 0.75rem; border-radius: 999px; backdrop-filter: blur(10px);">
@@ -7030,11 +7034,11 @@
                                 <i class="bi bi-patch-check-fill" style="color: #0B4FA2;"></i> Verified Review
                             </span>
                             <span style="background: rgba(11, 79, 162, 0.08); color: #1e3a8a; padding: 0.4rem 0.85rem; border-radius: 999px; font-size: 0.75rem; font-weight: 700; border: 1px solid rgba(11, 79, 162, 0.15);">
-                                <i class="bi bi-check2-circle"></i> Consistent Results
+                                <i class="bi bi-check2-circle"></i> Consistent Care
                             </span>
                         </div>
                         <blockquote style="font-size: 1rem; color: #334155; line-height: 1.75; margin: 0 0 1.25rem; position: relative; padding-left: 1rem; border-left: 3px solid #0B4FA2;">
-                            "Diana is consistent and detail-oriented. She leaves our apartment spotless and always checks in about priorities. The best housekeeper we've worked with in Manhattan."
+                            "Diana is consistent, professional, and thoughtful. She coordinates with our family in Midtown East and keeps my aunt calm on difficult days. We recommend her without hesitation."
                         </blockquote>
                         <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 1rem; border-top: 1px solid #f1f5f9;">
                             <div>
@@ -7108,7 +7112,7 @@
                     <img src="{{ asset('logo flower.png') }}" alt="CAS Private Care LLC Logo" width="120" height="120" loading="lazy" decoding="async">
                 </div>
                 <p>Connection that cares. Your trusted marketplace for professional caregiving services connecting families with verified care professionals.</p>
-                <p style="margin-top: 1rem;">We provide a safe, reliable platform where quality care meets convenience. From elderly care to childcare, our verified professionals are ready to support your family's unique needs with compassion and expertise.</p>
+                <p style="margin-top: 1rem;">We provide a safe, reliable platform where quality care meets convenience. From elderly support to companion care, our verified caregivers are ready to help your family with compassion and expertise.</p>
                 <div class="footer-social">
                     <a href="https://www.facebook.com/profile.php?id=61584831099232" target="_blank" rel="noopener noreferrer" class="social-icon" aria-label="Follow us on Facebook" onclick="window.open(this.href, '_blank'); return false;"><i class="bi bi-facebook"></i></a>
                     <a href="https://www.linkedin.com/in/CASprivatecare" target="_blank" rel="noopener noreferrer" class="social-icon" aria-label="Follow us on LinkedIn" onclick="window.open(this.href, '_blank'); return false;"><i class="bi bi-linkedin"></i></a>
@@ -7130,7 +7134,6 @@
                 <ul>
                     <li><a href="{{ url('/register') }}">Join as Caregiver</a></li>
                     <li><a href="{{ url('/register') }}">Marketing Partner</a></li>
-                    <li><a href="{{ url('/register') }}">Training Center</a></li>
                     <li><a href="{{ url('/') }}#how-it-works">How It Works</a></li>
                 </ul>
                 <h3 style="margin-top: 2rem;">Company</h3>
@@ -7144,7 +7147,7 @@
                 <h3>Contact Us</h3>
                 <div class="footer-location">
                     <i class="bi bi-geo-alt-fill"></i>
-                    <span>{{ config('app.address', 'New York, USA') }}</span>
+                    <span>{{ config('app.address', '481 8th Ave, New York, NY 10001') }}</span>
                 </div>
                 <div class="footer-location">
                     <i class="bi bi-telephone-fill"></i>
@@ -7161,14 +7164,14 @@
                     <button class="newsletter-btn">Subscribe</button>
                 </div>
                 <div style="margin-top: 1.5rem;">
-                    <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d387190.27991608967!2d-74.25987368715493!3d40.69767006377258!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x89c24fa5d33f083b%3A0xc80b8f06e177fe62!2sNew%20York%2C%20NY%2C%20USA!5e0!3m2!1sen!2sus!4v1234567890" width="100%" height="120" style="border:0; border-radius: 8px;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade" title="Map of New York area"></iframe>
+                    <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3022.637509!2d-73.99361!3d40.75278!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x89c259b5b8b8b8b8%3A0xb8b8b8b8b8b8b8b8!2s481%208th%20Ave%2C%20New%20York%2C%20NY%2010001!5e0!3m2!1sen!2sus!4v1234567890!5m2!1sen!2sus" width="100%" height="120" style="border:0; border-radius: 8px;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade" title="Map of 481 8th Ave, New York, NY 10001"></iframe>
                 </div>
             </div>
         </div>
         <div class="footer-divider"></div>
         <div class="footer-bottom">
             <p>&copy; 2026 CAS Private Care LLC. All rights reserved.</p>
-            <p class="footer-trust-line" style="font-size: 0.85rem; color: #94a3b8; margin-top: 0.5rem;">CAS Private Care LLC is a legitimate care marketplace based in New York, USA. Contact: {{ config('app.phone', '+1 (646) 282-8282') }} · {{ config('app.email', 'contact@casprivatecare.online') }}</p>
+            <p class="footer-trust-line" style="font-size: 0.85rem; color: #94a3b8; margin-top: 0.5rem;">CAS Private Care LLC is a legitimate care marketplace. Office: {{ config('app.address', '481 8th Ave, New York, NY 10001') }}. Contact: {{ config('app.phone', '+1 (646) 282-8282') }} · {{ config('app.email', 'contact@casprivatecare.online') }}</p>
             <div class="footer-bottom-links">
                 <a href="{{ url('/privacy') }}">Privacy Policy</a>
                 <a href="{{ url('/terms') }}">Terms of Service</a>
@@ -7297,64 +7300,6 @@
                 videoSectionObserver.observe(aboutSection);
             }
         });
-        
-        let currentService = 0;
-    const services = ['caregiver', 'housekeeping'];
-        
-        function switchService(type) {
-            const description = document.getElementById('hero-description');
-            const findBtn = document.getElementById('find-btn');
-            const sliderBg = document.getElementById('slider-bg');
-            const buttons = ['btn-caregiver', 'btn-housekeeping'];
-            
-            // Fade out
-            description.style.transition = 'opacity 0.3s ease';
-            findBtn.style.transition = 'opacity 0.3s ease';
-            description.style.opacity = '0';
-            findBtn.style.opacity = '0';
-            
-            buttons.forEach(id => {
-                const el = document.getElementById(id);
-                if (el) {
-                    el.style.color = '#64748b';
-                    el.setAttribute('aria-selected', 'false');
-                }
-            });
-            
-            if (type === 'caregiver') {
-                sliderBg.style.transform = 'translateX(0%)';
-                const btnCaregiver = document.getElementById('btn-caregiver');
-                if (btnCaregiver) { btnCaregiver.style.color = '#1e40af'; btnCaregiver.setAttribute('aria-selected', 'true'); }
-                currentService = 0;
-            } else if (type === 'housekeeping') {
-                sliderBg.style.transform = 'translateX(100%)';
-                const btnHousekeeping = document.getElementById('btn-housekeeping');
-                if (btnHousekeeping) { btnHousekeeping.style.color = '#1e40af'; btnHousekeeping.setAttribute('aria-selected', 'true'); }
-                currentService = 1;
-            }
-            
-            setTimeout(() => {
-                if (type === 'caregiver') {
-                    description.textContent = 'A modern and trustworthy caregiving marketplace where families effortlessly connect with verified caregivers and companions for exceptional care services.';
-                    findBtn.textContent = 'Find a Caregiver';
-                    findBtn.href = '{{ url("/register") }}?service=caregiver';
-                } else if (type === 'housekeeping') {
-                    description.textContent = 'Professional housekeeping services marketplace where families effortlessly connect with reliable and trusted house helpers for all your home maintenance.';
-                    findBtn.textContent = 'Find a Housekeeper';
-                    findBtn.href = '{{ url("/register") }}?service=housekeeping';
-                }
-                
-                // Fade in
-                description.style.opacity = '1';
-                findBtn.style.opacity = '1';
-            }, 300);
-        }
-        
-        // Auto-rotate services every 6 seconds
-        setInterval(() => {
-            currentService = (currentService + 1) % services.length;
-            switchService(services[currentService]);
-        }, 6000);
     </script>
 
     <!-- FAQ Chatbot (logo URL for dynamic messages - supports cookie-free domain when ASSET_CDN_URL is set) -->
@@ -8200,10 +8145,10 @@
         // FAQ Data
         const faqData = {
             'how do i become a partner': {
-                answer: 'To become a partner with CAS Private Care, click "Become a Partner" on our homepage or visit the registration page. Select your partner type (Caregiver, Housekeeping, Marketing Partner, or Training Center), complete the registration form with your credentials and information, and our team will review your application. Once approved, you\'ll be able to create your profile and start connecting with clients.'
+                answer: 'To become a partner with CAS Private Care, click "Become a Partner" on our homepage or visit the registration page. Select your partner type (Caregiver or Marketing Partner), complete the registration form with your credentials and information, and our team will review your application. Once approved, you\'ll be able to create your profile and start connecting with clients.'
             },
             'what types of partners do you have': {
-                answer: 'We have four types of partners: 1) Caregivers - providing companionship, reminders, light meal prep, and day-to-day support. 2) Housekeeping - offering cleaning, laundry, and home organization services. 3) Marketing Partners - promoting our platform and connecting us with potential clients and partners. 4) Training Centers - providing education and certification programs for our partners.'
+                answer: 'We have two partner types on the platform: 1) Caregivers - providing companionship, reminders, light meal prep, and day-to-day support for clients at home. 2) Marketing Partners - promoting our platform and connecting us with potential clients and partners.'
             },
             'how does the platform work': {
                 answer: 'Our platform connects families with verified partners in 4 simple steps: 1) Browse & Select - Families search and review partner profiles, credentials, and ratings. 2) Book & Schedule - Choose preferred dates/times and book instantly with secure payments. 3) Connect & Care - Partners receive bookings and deliver exceptional services. 4) Rate & Review - Share experiences and build trust within the community.'
@@ -8218,7 +8163,7 @@
                 answer: 'Partners providing medical services or home health aide services must be licensed by the New York State Department of Health. All partners undergo background checks and certification verification regardless of service type. We ensure all partners meet or exceed New York State requirements for their respective services.'
             },
             'what services do partners provide': {
-                answer: 'Our partners provide various services: Caregivers offer companionship, light meal prep, medication reminders, and day-to-day support. Housekeeping partners handle cleaning, laundry, home organization, and errands. Each partner specializes in their area of expertise to provide quality services.'
+                answer: 'Our caregivers focus on non-medical support at home: companionship, light meal prep, medication reminders, mobility assistance as appropriate, and day-to-day help so clients stay safe and comfortable. Each caregiver\'s profile shows their experience and focus areas.'
             },
             'how quickly can i get a partner': {
                 answer: 'For emergency situations, we can typically arrange a partner within 4-6 hours. For scheduled services, we recommend booking 24-48 hours in advance to ensure the best match. Our online platform allows instant browsing and booking of available partners. We maintain a large network across all NYC boroughs to ensure availability.'

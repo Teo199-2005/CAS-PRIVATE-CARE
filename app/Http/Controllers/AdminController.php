@@ -660,7 +660,7 @@ class AdminController extends Controller
                 \App\Models\ReferralCode::create([
                     'user_id' => $user->id,
                     'code' => \App\Models\ReferralCode::generateCode($user->id),
-                    'discount_per_hour' => 3.00,
+                    'discount_per_hour' => 1.50,
                     'commission_per_hour' => 1.00,
                     'is_active' => true,
                     'usage_count' => 0,
@@ -1386,7 +1386,7 @@ class AdminController extends Controller
                 $referralCode = \App\Models\ReferralCode::create([
                     'user_id' => $user->id,
                     'code' => \App\Models\ReferralCode::generateCode($user->id),
-                    'discount_per_hour' => 3.00,
+                    'discount_per_hour' => 1.50,
                     'commission_per_hour' => 1.00,
                     'is_active' => true,
                 ]);
@@ -1509,7 +1509,7 @@ class AdminController extends Controller
         $referralCode = \App\Models\ReferralCode::create([
             'user_id' => $user->id,
             'code' => \App\Models\ReferralCode::generateCode($user->id),
-            'discount_per_hour' => 3.00,
+            'discount_per_hour' => 1.50,
             'commission_per_hour' => 1.00,
             'is_active' => true,
             'usage_count' => 0,
@@ -1557,7 +1557,7 @@ class AdminController extends Controller
                     \App\Models\ReferralCode::create([
                         'user_id' => $user->id,
                         'code' => $code,
-                        'discount_per_hour' => 3.00,
+                        'discount_per_hour' => 1.50,
                         'commission_per_hour' => 1.00,
                         'is_active' => true,
                     ]);
@@ -2870,129 +2870,26 @@ class AdminController extends Controller
     }
 
     /**
-     * Get training center commissions for admin dashboard
+     * Training center commissions retired (no dashboard, no payouts).
      */
     public function getTrainingCommissions()
     {
-        $trainingCenters = User::where('user_type', 'training')
-            ->get();
-        
-        $commissions = $trainingCenters->map(function($user) {
-            // Get total and pending commissions from time_trackings (using training_center_user_id)
-            $totalCommission = \App\Models\TimeTracking::where('training_center_user_id', $user->id)
-                ->sum('training_center_commission');
-            
-            $pendingCommission = \App\Models\TimeTracking::where('training_center_user_id', $user->id)
-                ->where('training_paid', 0)
-                ->sum('training_center_commission');
-            
-            $paidCommission = $totalCommission - $pendingCommission;
-            
-            // Count how many caregivers they trained
-            $caregiversTrained = \App\Models\Caregiver::where('training_center_id', $user->id)->count();
-            
-            // Get bank account status
-            $bankConnected = !empty($user->stripe_connect_id);
-            
-            return [
-                'id' => $user->id,
-                'name' => $user->name,
-                'email' => $user->email,
-                'center_name' => $user->business_name ?? $user->name,
-                'caregivers_trained' => $caregiversTrained,
-                'total_commission' => $totalCommission,
-                'pending_commission' => $pendingCommission,
-                'paid_commission' => $paidCommission,
-                'total_display' => '$' . number_format($totalCommission, 2),
-                'pending_display' => '$' . number_format($pendingCommission, 2),
-                'bank_connected' => $bankConnected,
-                'bank_status' => $bankConnected ? 'Connected' : 'Not Connected',
-                'payment_status' => $pendingCommission > 0 ? 'Pending' : 'Paid',
-                'stripe_connect_id' => $user->stripe_connect_id,
-                'can_pay' => $bankConnected && $pendingCommission > 0
-            ];
-        })->filter(function($commission) {
-            return $commission['total_commission'] > 0;
-        })->values();
-        
-        return response()->json(['commissions' => $commissions]);
+        return response()->json([
+            'commissions' => [],
+            'retired' => true,
+            'message' => 'Training center commissions are no longer used.',
+        ]);
     }
 
     /**
-     * Pay training center commission
+     * Training center commission payouts retired.
      */
     public function payTrainingCommission($userId)
     {
-        // SECURITY: Wrap in transaction with row locking to prevent race conditions and double payments
-        return DB::transaction(function () use ($userId) {
-            $user = User::findOrFail($userId);
-            
-            // SECURITY: Lock rows for update to prevent concurrent payments
-            $pendingRecords = \App\Models\TimeTracking::where('training_center_id', $userId)
-                ->whereNull('training_commission_paid_at')
-                ->lockForUpdate()
-                ->get();
-            
-            $pendingCommission = $pendingRecords->sum('training_center_commission');
-            
-            if ($pendingCommission <= 0) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'No pending commission to pay'
-                ], 400);
-            }
-            
-            // Check if bank is connected
-            if (empty($user->stripe_connect_id)) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Bank account not connected. Please ask the training center to connect their bank account first.'
-                ], 400);
-            }
-            
-            // Transfer via Stripe Connect with idempotency key
-            \Stripe\Stripe::setApiKey(config('stripe.secret'));
-            
-            // SECURITY: Idempotency key prevents duplicate transfers if admin clicks twice
-            $idempotencyKey = 'training_commission_' . $userId . '_' . $pendingRecords->pluck('id')->implode('_');
-            
-            $transfer = \Stripe\Transfer::create([
-                'amount' => (int)($pendingCommission * 100), // Convert to cents
-                'currency' => 'usd',
-                'destination' => $user->stripe_connect_id,
-                'description' => "Training center commission payment for " . $user->name,
-                'metadata' => [
-                    'user_id' => $user->id,
-                    'user_type' => 'training',
-                    'commission_amount' => $pendingCommission,
-                    'record_count' => $pendingRecords->count()
-                ]
-            ], [
-                'idempotency_key' => $idempotencyKey
-            ]);
-            
-            // Mark all pending commissions as paid (inside transaction)
-            \App\Models\TimeTracking::whereIn('id', $pendingRecords->pluck('id'))
-                ->update([
-                    'training_commission_paid_at' => now(),
-                    'training_commission_stripe_transfer_id' => $transfer->id
-                ]);
-            
-            Log::info('Training commission payment processed', [
-                'user_id' => $userId,
-                'user_name' => $user->name,
-                'amount' => $pendingCommission,
-                'records_paid' => $pendingRecords->count(),
-                'transfer_id' => $transfer->id
-            ]);
-            
-            return response()->json([
-                'success' => true,
-                'message' => 'Commission paid successfully',
-                'transfer_id' => $transfer->id,
-                'amount' => $pendingCommission
-            ]);
-        }); // End transaction
+        return response()->json([
+            'success' => false,
+            'message' => 'Training center commission payouts are no longer supported.',
+        ], 410);
     }
 
     /**

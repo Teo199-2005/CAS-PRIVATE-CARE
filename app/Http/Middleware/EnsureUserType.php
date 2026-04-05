@@ -27,11 +27,8 @@ class EnsureUserType
 
         $user = auth()->user();
         
-        // Normalize user types (handle training vs training_center, and case-insensitive match)
+        // Normalize user types (case-insensitive match)
         $userType = $user->user_type;
-        if ($userType === 'training_center') {
-            $userType = 'training';
-        }
         $userTypeLower = is_string($userType) ? strtolower($userType) : (string) $userType;
         $typesLower = array_map('strtolower', $types);
         
@@ -52,11 +49,11 @@ class EnsureUserType
      */
     private function getDashboardRoute(string $userType): string
     {
-        return match($userType) {
+        return match ($userType) {
             'admin' => '/admin/dashboard-vue',
             'caregiver' => '/caregiver/dashboard-vue',
             'marketing' => '/marketing/dashboard-vue',
-            'training', 'training_center' => '/training/dashboard-vue',
+            'housekeeper', 'training', 'training_center' => '/login',
             default => '/client/dashboard-vue',
         };
     }

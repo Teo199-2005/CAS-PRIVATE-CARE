@@ -76,11 +76,11 @@ class PublicApiTest extends TestCase
     }
 
     /** @test */
-    public function services_page_loads()
+    public function services_page_redirects_to_caregiver_landing()
     {
         $response = $this->get('/services');
 
-        $response->assertStatus(200);
+        $response->assertRedirect(route('caregiver-new-york'));
     }
 
     /** @test */
@@ -157,12 +157,12 @@ class PublicApiTest extends TestCase
         $response = $this->getJson('/api/check-email-exists/existing@example.com');
 
         $response->assertStatus(200)
-            ->assertJson(['exists' => true]);
+            ->assertJsonPath('data.exists', true);
 
         $response2 = $this->getJson('/api/check-email-exists/nonexistent@example.com');
 
         $response2->assertStatus(200)
-            ->assertJson(['exists' => false]);
+            ->assertJsonPath('data.exists', false);
     }
 
     /** @test */
@@ -176,7 +176,7 @@ class PublicApiTest extends TestCase
     /** @test */
     public function seo_pages_have_meta_tags()
     {
-        $pages = ['/', '/services', '/about', '/contact'];
+        $pages = ['/', '/caregiver-new-york', '/about', '/contact'];
 
         foreach ($pages as $page) {
             $response = $this->get($page);
@@ -201,11 +201,11 @@ class PublicApiTest extends TestCase
     }
 
     /** @test */
-    public function housekeeper_new_york_page_loads()
+    public function housekeeper_new_york_redirects_to_housekeeping_page()
     {
         $response = $this->get('/housekeeper-new-york');
 
-        $response->assertStatus(200);
+        $response->assertStatus(301);
     }
 
     /** @test */

@@ -877,121 +877,21 @@ class ReportAdminController extends Controller
         });
     }
 
-    /**
-     * Get training center commissions for admin dashboard
-     */
     public function getTrainingCommissions()
     {
-        $trainingCenters = User::where('user_type', 'training')
-            ->get();
-        
-        $commissions = $trainingCenters->map(function($user) {
-            $totalCommission = \App\Models\TimeTracking::where('training_center_user_id', $user->id)
-                ->sum('training_center_commission');
-            
-            $pendingCommission = \App\Models\TimeTracking::where('training_center_user_id', $user->id)
-                ->where('training_paid', 0)
-                ->sum('training_center_commission');
-            
-            $paidCommission = $totalCommission - $pendingCommission;
-            
-            $caregiversTrained = Caregiver::where('training_center_id', $user->id)->count();
-            
-            $bankConnected = !empty($user->stripe_connect_id);
-            
-            return [
-                'id' => $user->id,
-                'name' => $user->name,
-                'email' => $user->email,
-                'center_name' => $user->business_name ?? $user->name,
-                'caregivers_trained' => $caregiversTrained,
-                'total_commission' => $totalCommission,
-                'pending_commission' => $pendingCommission,
-                'paid_commission' => $paidCommission,
-                'total_display' => '$' . number_format($totalCommission, 2),
-                'pending_display' => '$' . number_format($pendingCommission, 2),
-                'bank_connected' => $bankConnected,
-                'bank_status' => $bankConnected ? 'Connected' : 'Not Connected',
-                'payment_status' => $pendingCommission > 0 ? 'Pending' : 'Paid',
-                'stripe_connect_id' => $user->stripe_connect_id,
-                'can_pay' => $bankConnected && $pendingCommission > 0
-            ];
-        })->filter(function($commission) {
-            return $commission['total_commission'] > 0;
-        })->values();
-        
-        return response()->json(['commissions' => $commissions]);
+        return response()->json([
+            'commissions' => [],
+            'retired' => true,
+            'message' => 'Training center commissions are no longer used.',
+        ]);
     }
 
-    /**
-     * Pay training center commission
-     */
     public function payTrainingCommission($userId)
     {
-        return DB::transaction(function () use ($userId) {
-            $user = User::findOrFail($userId);
-            
-            $pendingRecords = \App\Models\TimeTracking::where('training_center_id', $userId)
-                ->whereNull('training_commission_paid_at')
-                ->lockForUpdate()
-                ->get();
-            
-            $pendingCommission = $pendingRecords->sum('training_center_commission');
-            
-            if ($pendingCommission <= 0) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'No pending commission to pay'
-                ], 400);
-            }
-            
-            if (empty($user->stripe_connect_id)) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Bank account not connected. Please ask the training center to connect their bank account first.'
-                ], 400);
-            }
-            
-            \Stripe\Stripe::setApiKey(config('stripe.secret'));
-            
-            $idempotencyKey = 'training_commission_' . $userId . '_' . $pendingRecords->pluck('id')->implode('_');
-            
-            $transfer = \Stripe\Transfer::create([
-                'amount' => (int)($pendingCommission * 100),
-                'currency' => 'usd',
-                'destination' => $user->stripe_connect_id,
-                'description' => "Training center commission payment for " . $user->name,
-                'metadata' => [
-                    'user_id' => $user->id,
-                    'user_type' => 'training',
-                    'commission_amount' => $pendingCommission,
-                    'record_count' => $pendingRecords->count()
-                ]
-            ], [
-                'idempotency_key' => $idempotencyKey
-            ]);
-            
-            \App\Models\TimeTracking::whereIn('id', $pendingRecords->pluck('id'))
-                ->update([
-                    'training_commission_paid_at' => now(),
-                    'training_commission_stripe_transfer_id' => $transfer->id
-                ]);
-            
-            Log::info('Training commission payment processed', [
-                'user_id' => $userId,
-                'user_name' => $user->name,
-                'amount' => $pendingCommission,
-                'records_paid' => $pendingRecords->count(),
-                'transfer_id' => $transfer->id
-            ]);
-            
-            return response()->json([
-                'success' => true,
-                'message' => 'Commission paid successfully',
-                'transfer_id' => $transfer->id,
-                'amount' => $pendingCommission
-            ]);
-        });
+        return response()->json([
+            'success' => false,
+            'message' => 'Training center commission payouts are no longer supported.',
+        ], 410);
     }
 
     /**

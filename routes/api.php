@@ -7,7 +7,6 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Hash;
 use App\Models\User;
 use App\Models\Caregiver;
-use App\Models\Housekeeper;
 use App\Models\BookingAssignment;
 use App\Models\Booking;
 use Illuminate\Support\Facades\DB;
@@ -69,19 +68,14 @@ Route::get('/zipcode-lookup/{zip}', [UtilityApiController::class, 'lookupZipCode
 // Application Status Endpoints (for checking approval status)
 Route::get('/caregiver/application-status', [UtilityApiController::class, 'caregiverApplicationStatus']);
 Route::get('/marketing/application-status', [UtilityApiController::class, 'marketingApplicationStatus']);
-Route::get('/housekeeper/application-status', [UtilityApiController::class, 'housekeeperApplicationStatus']);
-Route::get('/training/application-status', [UtilityApiController::class, 'applicationStatus']);
 
 // Payout Method Management Routes
 Route::delete('/caregiver/payout-method', [\App\Http\Controllers\StripeController::class, 'removePayoutMethod']);
-Route::delete('/housekeeper/payout-method', [\App\Http\Controllers\StripeController::class, 'removeHousekeeperPayoutMethod']);
 Route::delete('/marketing/payout-method', [\App\Http\Controllers\StripeController::class, 'removeMarketingPayoutMethod']);
-Route::delete('/training/payout-method', [\App\Http\Controllers\StripeController::class, 'removeTrainingPayoutMethod']);
 Route::get('/caregiver/payout-methods', [\App\Http\Controllers\StripeController::class, 'getPayoutMethods']);
-Route::get('/housekeeper/payout-methods', [\App\Http\Controllers\StripeController::class, 'getHousekeeperPayoutMethods']);
 
 // User Profile Routes - GET /profile and POST /profile/update are in web.php (session auth)
-// so dashboards (Caregiver, Housekeeper, etc.) use session and don't get Unauthenticated.
+// so dashboards (e.g. caregiver) use session and don't get Unauthenticated.
 Route::put('/user/{id}/profile', [UserProfileController::class, 'updateProfile']);
 Route::post('/profile/change-password', [UserProfileController::class, 'changePassword']);
 
@@ -93,20 +87,10 @@ Route::get('/ny-cities/{county}', [LocationController::class, 'getCitiesForCount
 // Apply caching to stats endpoints (5 minute cache)
 Route::middleware('cache.api:5')->group(function () {
     Route::get('/caregiver/{id}/stats', [\App\Http\Controllers\DashboardController::class, 'caregiverStats']);
-    Route::get('/housekeeper/{id}/stats', [\App\Http\Controllers\HousekeeperController::class, 'stats']);
     Route::get('/admin/stats', [\App\Http\Controllers\DashboardController::class, 'adminStats']);
     Route::get('/admin/platform-metrics', [\App\Http\Controllers\Api\PlatformMetricsController::class, 'index']);
     Route::get('/admin/quick-caregivers', [\App\Http\Controllers\DashboardController::class, 'quickCaregivers']);
 });
-
-// Housekeeper-specific API routes
-Route::get('/housekeeper/available-clients', [\App\Http\Controllers\HousekeeperController::class, 'getAvailableClients']);
-Route::post('/housekeeper/apply-client/{id}', [\App\Http\Controllers\HousekeeperController::class, 'applyForClient']);
-Route::get('/housekeeper/{id}/earnings', [\App\Http\Controllers\HousekeeperController::class, 'getEarningsReport']);
-
-// Admin: Get all housekeepers
-Route::get('/admin/housekeepers', [\App\Http\Controllers\Admin\UserAdminController::class, 'getHousekeepers']);
-Route::get('/admin/housekeepers/{userId}', [\App\Http\Controllers\Admin\UserAdminController::class, 'getHousekeeperProfile']);
 
 Route::post('/admin/platform-metrics/clear-cache', [\App\Http\Controllers\Api\PlatformMetricsController::class, 'clearCache']);
 // Admin: get all bookings (full details)
@@ -163,22 +147,17 @@ Route::middleware(['auth', 'throttle:5,1'])->prefix('client/subscriptions')->gro
 // Caregiver assignment/unassignment
 Route::post('/bookings/{id}/assign', [\App\Http\Controllers\AdminController::class, 'assignCaregivers']);
 Route::post('/bookings/{id}/unassign', [\App\Http\Controllers\AdminController::class, 'unassignCaregiver']);
-Route::post('/bookings/{id}/assign-housekeepers', [\App\Http\Controllers\AdminController::class, 'assignHousekeepers']);
-Route::post('/bookings/{id}/unassign-housekeeper', [\App\Http\Controllers\AdminController::class, 'unassignHousekeeper']);
-
 // Caregiver Schedule Management - refactored to CaregiverScheduleController
 Route::get('/bookings/{bookingId}/caregiver/{caregiverId}/schedule', [\App\Http\Controllers\Api\CaregiverScheduleController::class, 'getSchedule']);
 Route::post('/bookings/{bookingId}/caregiver/{caregiverId}/schedule', [\App\Http\Controllers\Api\CaregiverScheduleController::class, 'updateSchedule']);
 Route::delete('/bookings/{bookingId}/caregiver/{caregiverId}/schedule', [\App\Http\Controllers\Api\CaregiverScheduleController::class, 'deleteSchedule']);
 
-// My Weekly Schedule - for caregivers/housekeepers to see their own schedule
+// My Weekly Schedule - for caregivers to see their own schedule
 Route::get('/caregiver/{caregiverId}/weekly-schedule', [\App\Http\Controllers\Api\CaregiverScheduleController::class, 'getMyWeeklySchedule']);
-Route::get('/housekeeper/{housekeeperId}/weekly-schedule', [\App\Http\Controllers\Api\CaregiverScheduleController::class, 'getHousekeeperWeeklySchedule']);
-
 // Time Tracking PDF Report - refactored to ReportPdfController
 Route::post('/reports/time-tracking-pdf', [\App\Http\Controllers\Api\ReportPdfController::class, 'timeTrackingPdf']);
 
-// Payment Reports PDF Export (Caregiver, Marketing, Training)
+// Payment Reports PDF Export (Caregiver, Marketing)
 // TODO: Migrate to ReportPdfController::paymentPdf when time permits
 Route::post('/reports/payment-pdf', function (Request $request) {
     try {
@@ -266,7 +245,7 @@ Route::post('/reports/payment-pdf', function (Request $request) {
                 <td>
                     <div class="company-name">CAS PRIVATE CARE LLC</div>
                     <div class="company-tagline">Comfort & Support Healthcare Services</div>
-                    <div class="company-address">Licensed Healthcare Provider | New York</div>
+                    <div class="company-address">Licensed Healthcare Provider | ' . htmlspecialchars(config('app.address', '481 8th Ave, New York, NY 10001'), ENT_QUOTES, 'UTF-8') . '</div>
                 </td>
                 <td class="date-cell">
                     <strong>Report Date:</strong><br>
@@ -371,6 +350,7 @@ Route::post('/reports/payment-pdf', function (Request $request) {
             <tr>
                 <td class="footer-left">
                     <strong>CAS Private Care LLC</strong><br>
+                    ' . htmlspecialchars(config('app.address', '481 8th Ave, New York, NY 10001'), ENT_QUOTES, 'UTF-8') . '<br>
                     &copy; ' . date('Y') . ' All Rights Reserved
                 </td>
                 <td class="footer-center">
@@ -497,7 +477,7 @@ Route::post('/reports/client-analytics-pdf', function (Request $request) {
                 <td>
                     <div class="company-name">CAS PRIVATE CARE LLC</div>
                     <div class="company-tagline">Comfort & Support Healthcare Services</div>
-                    <div class="company-address">Licensed Healthcare Provider | New York</div>
+                    <div class="company-address">Licensed Healthcare Provider | ' . htmlspecialchars(config('app.address', '481 8th Ave, New York, NY 10001'), ENT_QUOTES, 'UTF-8') . '</div>
                 </td>
                 <td class="date-cell">
                     <strong>Report Date:</strong><br>
@@ -631,6 +611,7 @@ Route::post('/reports/client-analytics-pdf', function (Request $request) {
             <tr>
                 <td class="footer-left">
                     <strong>CAS Private Care LLC</strong><br>
+                    ' . htmlspecialchars(config('app.address', '481 8th Ave, New York, NY 10001'), ENT_QUOTES, 'UTF-8') . '<br>
                     &copy; ' . date('Y') . ' All Rights Reserved
                 </td>
                 <td class="footer-center">
@@ -746,23 +727,9 @@ Route::delete('/admin/users/{id}', [\App\Http\Controllers\Admin\UserAdminControl
 
 // Note: Password Resets routes are defined in web.php with proper auth middleware
 
-// Admin: get training commissions
-Route::get('/admin/training-commissions', [\App\Http\Controllers\Admin\ReportAdminController::class, 'getTrainingCommissions']);
-
 // Admin: caregivers list (minimal payload) used by AdminDashboard caregivers table
 Route::get('/admin/caregivers', [\App\Http\Controllers\Admin\UserAdminController::class, 'getCaregivers']);
-
-// Admin: housekeepers list (minimal payload) used by AdminDashboard housekeepers table
-Route::get('/housekeepers', [\App\Http\Controllers\DashboardController::class, 'housekeepers']);
 
 // Admin: single caregiver full profile for the details modal
 Route::get('/admin/caregivers/{userId}', [\App\Http\Controllers\Admin\UserAdminController::class, 'getCaregiverProfile']);
 
-// Admin: Training Centers Management
-Route::get('/admin/training-centers', [\App\Http\Controllers\Admin\StaffAdminController::class, 'getTrainingCenters']);
-Route::post('/admin/training-centers', [\App\Http\Controllers\Admin\StaffAdminController::class, 'storeTrainingCenter']);
-Route::put('/admin/training-centers/{id}', [\App\Http\Controllers\Admin\StaffAdminController::class, 'updateTrainingCenter']);
-Route::delete('/admin/training-centers/{id}', [\App\Http\Controllers\Admin\StaffAdminController::class, 'deleteTrainingCenter']);
-
-// Public list of training centers (used by caregiver & admin caregiver forms)
-Route::get('/training-centers', [\App\Http\Controllers\Admin\StaffAdminController::class, 'getTrainingCenters']);

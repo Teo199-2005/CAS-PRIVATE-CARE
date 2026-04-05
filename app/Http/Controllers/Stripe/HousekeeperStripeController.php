@@ -29,6 +29,17 @@ class HousekeeperStripeController extends Controller
     ) {}
 
     /**
+     * Housekeeper / training-center Stripe Connect is decommissioned.
+     */
+    private function decommissionedJson(): JsonResponse
+    {
+        return response()->json([
+            'success' => false,
+            'error' => 'This account type is no longer supported for Stripe Connect.',
+        ], 410);
+    }
+
+    /**
      * Start Stripe Connect onboarding for housekeeper
      * POST /api/housekeeper/stripe/onboard
      */
@@ -40,19 +51,7 @@ class HousekeeperStripeController extends Controller
             return response()->json(['error' => 'Unauthorized'], 403);
         }
 
-        $result = $this->connectService->createHousekeeperAccount($user);
-
-        if ($result['success']) {
-            return response()->json([
-                'success' => true,
-                'url' => $result['url']
-            ]);
-        }
-
-        return response()->json([
-            'success' => false,
-            'error' => $result['error']
-        ], 400);
+        return $this->decommissionedJson();
     }
 
     /**
@@ -67,20 +66,7 @@ class HousekeeperStripeController extends Controller
             return redirect('/login')->with('error', 'Please log in to continue');
         }
 
-        $result = $this->connectService->handleHousekeeperCallback($user);
-
-        if ($result['success'] && $result['status'] === 'active') {
-            return redirect('/housekeeper/dashboard')
-                ->with('success', 'Stripe account connected successfully! You can now receive payments.');
-        }
-
-        if ($result['status'] === 'pending') {
-            return redirect('/housekeeper/dashboard')
-                ->with('info', 'Stripe account setup is pending verification.');
-        }
-
-        return redirect('/housekeeper/dashboard')
-            ->with('warning', 'Stripe setup incomplete. Please complete all required information.');
+        return redirect('/login')->with('error', 'Housekeeper Stripe Connect is no longer available.');
     }
 
     /**
@@ -98,18 +84,11 @@ class HousekeeperStripeController extends Controller
             return redirect('/login');
         }
 
-        $result = $this->connectService->createHousekeeperAccount($user);
-
         if ($request->wantsJson()) {
-            return response()->json($result);
+            return $this->decommissionedJson();
         }
 
-        if ($result['success']) {
-            return redirect($result['url']);
-        }
-
-        return redirect('/housekeeper/dashboard')
-            ->with('error', 'Failed to refresh Stripe onboarding. Please try again.');
+        return redirect('/login')->with('error', 'Housekeeper Stripe Connect is no longer available.');
     }
 
     /**
@@ -124,9 +103,7 @@ class HousekeeperStripeController extends Controller
             return response()->json(['error' => 'Unauthorized'], 403);
         }
 
-        $result = $this->connectService->getHousekeeperAccountStatus($user);
-
-        return response()->json($result);
+        return $this->decommissionedJson();
     }
 
     /**
@@ -141,19 +118,7 @@ class HousekeeperStripeController extends Controller
             return response()->json(['error' => 'Unauthorized'], 403);
         }
 
-        $result = $this->connectService->getDashboardLink($user);
-
-        if ($result['success']) {
-            return response()->json([
-                'success' => true,
-                'url' => $result['url']
-            ]);
-        }
-
-        return response()->json([
-            'success' => false,
-            'error' => $result['error']
-        ], 400);
+        return $this->decommissionedJson();
     }
 
     /**
@@ -164,15 +129,10 @@ class HousekeeperStripeController extends Controller
     {
         $user = Auth::user();
         
-        if (!$user || $user->user_type !== 'housekeeper' || !$user->stripe_account_id) {
-            return response()->json([
-                'success' => false,
-                'error' => 'No Stripe account connected'
-            ], 400);
+        if (!$user || $user->user_type !== 'housekeeper') {
+            return response()->json(['error' => 'Unauthorized'], 403);
         }
 
-        $result = $this->connectService->getAccountBalance($user->stripe_account_id);
-
-        return response()->json($result);
+        return $this->decommissionedJson();
     }
 }

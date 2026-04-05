@@ -39,15 +39,6 @@
                   <div class="mb-3">
                     <div class="d-flex justify-space-between align-center mb-1">
                       <div class="d-flex align-center">
-                        <v-icon color="purple" size="18" class="mr-2">mdi-broom</v-icon>
-                        <span class="summary-label-compact">Housekeepers</span>
-                      </div>
-                      <span class="summary-value-compact" style="color: #6A1B9A;">{{ housekeepersCount }}</span>
-                    </div>
-                  </div>
-                  <div class="mb-3">
-                    <div class="d-flex justify-space-between align-center mb-1">
-                      <div class="d-flex align-center">
                         <v-icon color="info" size="18" class="mr-2">mdi-account-group</v-icon>
                         <span class="summary-label-compact">Clients</span>
                       </div>
@@ -353,10 +344,6 @@ const props = defineProps({
     default: () => []
   },
   caregiversCount: {
-    type: Number,
-    default: 0
-  },
-  housekeepersCount: {
     type: Number,
     default: 0
   },

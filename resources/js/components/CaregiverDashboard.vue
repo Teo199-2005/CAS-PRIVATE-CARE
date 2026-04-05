@@ -78,12 +78,11 @@
 
     <!-- Onboarding Progress Component - Shows setup steps for contractors -->
     <OnboardingProgress
-      v-if="applicationStatus !== 'approved' || !stripeConnected"
+      v-if="applicationStatus !== 'approved' || !payrollProfileComplete"
       role="caregiver"
       :user-data="profile"
       :application-status="applicationStatus"
-      :bank-connected="stripeConnected"
-      :w9-submitted="w9Submitted"
+      :payroll-complete="payrollProfileComplete"
       :profile-complete="profileComplete"
       @step-click="handleOnboardingStepClick"
     />
@@ -99,16 +98,12 @@
     >
       <v-alert-title class="font-weight-bold">Application Pending Approval</v-alert-title>
       <div class="mt-2">
-        Your contractor application is currently under review. Some features are restricted until your application is approved.
+        Your caregiver application is currently under review. Some features are restricted until your application is approved.
         <br /><br />
-        <strong>To complete your application:</strong>
-        <ol class="mt-2 mb-2" style="margin-left: 20px;">
-          <li>Download and complete the W9 form</li>
-          <li>Submit the completed form to our office</li>
-          <li>Wait for admin approval (typically 1-2 business days)</li>
-        </ol>
-        <v-btn color="primary" variant="outlined" size="small" prepend-icon="mdi-file-document" @click="viewW9Form" class="mt-2">
-          View W9 Form
+        <strong>After approval:</strong> complete <strong>Payroll onboarding</strong> (W-2) in your dashboard for tax ID and direct deposit. Admin may request additional documents separately.
+        <br /><br />
+        <v-btn color="primary" variant="outlined" size="small" prepend-icon="mdi-bank" @click="handleSectionChange('payroll')" class="mt-2">
+          Open payroll onboarding
         </v-btn>
       </div>
     </v-alert>
@@ -500,139 +495,33 @@
           <v-row>
             <v-col cols="12" md="8">
               <v-card elevation="0" class="mb-6">
-                <v-card-title class="card-header pa-8 d-flex justify-space-between align-center">
-                  <span class="section-title success--text">Payout Method</span>
+                <v-card-title class="card-header pa-8 d-flex justify-space-between align-center flex-wrap gap-2">
+                  <span class="section-title success--text">Pay &amp; direct deposit</span>
                   <v-btn
-                    v-if="!stripeConnected"
-                    color="success"
-                    prepend-icon="mdi-wallet-plus"
-                    @click="connectBankAccount"
-                    :loading="connectingBank"
+                    color="primary"
+                    variant="flat"
+                    prepend-icon="mdi-briefcase-account"
+                    @click="handleSectionChange('payroll')"
                   >
-                    Connect Payout Method
+                    Payroll onboarding
                   </v-btn>
-                  <v-chip v-else color="success" prepend-icon="mdi-check-circle">
-                    Connected
-                  </v-chip>
                 </v-card-title>
                 <v-card-text class="pa-8">
-                  <!-- Payout Method Not Connected -->
-                  <div v-if="!stripeConnected" class="text-center py-8">
-                    <v-icon size="80" color="grey-lighten-1" class="mb-4">mdi-wallet-outline</v-icon>
-                    <h3 class="text-h6 mb-2">Connect Your Payout Method</h3>
-                    <p class="text-body-2 text-grey mb-6">
-                      Connect your preferred payout method via Stripe to receive weekly payments.<br>
-                      Your payment information is securely encrypted and never shared.
-                    </p>
-
-                    <!-- Stripe Connect Not Enabled Warning -->
-                    <v-alert type="warning" variant="tonal" class="mb-4 text-left">
-                      <div class="font-weight-bold mb-2">Stripe Connect Setup Required</div>
-                      <p class="text-body-2 mb-2">
-                        The platform administrator needs to enable Stripe Connect to allow caregiver payouts.
-                      </p>
-                      <p class="text-body-2">
-                        Once enabled, you'll be able to connect your bank account, debit card, or digital wallet to receive payments.
-                      </p>
-                    </v-alert>
-
-                    <!-- Available Payout Methods -->
-                    <v-alert color="info" variant="tonal" class="mb-4 text-left">
-                      <div class="font-weight-bold mb-3">Available Payout Methods (Coming Soon):</div>
-                      <div class="d-flex align-center mb-2">
-                        <v-icon color="info" class="mr-2">mdi-bank</v-icon>
-                        <span><strong>Bank Account</strong> - Direct deposit (ACH) to your bank</span>
-                      </div>
-                      <div class="d-flex align-center mb-2">
-                        <v-icon color="info" class="mr-2">mdi-credit-card</v-icon>
-                        <span><strong>Debit Card</strong> - Instant transfer to your card</span>
-                      </div>
-                      <div class="d-flex align-center mb-2">
-                        <v-icon color="info" class="mr-2">mdi-cash</v-icon>
-                        <span><strong>Cash App</strong> - Direct to Cash App account</span>
-                      </div>
-                      <div class="d-flex align-center">
-                        <v-icon color="info" class="mr-2">mdi-wallet</v-icon>
-                        <span><strong>Other Digital Wallets</strong> - Alipay, Venmo, etc.</span>
-                      </div>
-                    </v-alert>
+                  <v-alert type="info" variant="tonal" class="mb-4">
+                    W-2 caregivers are paid through company payroll. Complete payroll onboarding for encrypted tax ID and bank details (Gusto-oriented). Stripe Connect is not used for wages.
+                  </v-alert>
+                  <div v-if="payrollProfileComplete" class="d-flex align-center flex-wrap gap-2 mb-2">
+                    <v-chip color="success" prepend-icon="mdi-check-circle" size="small">Payroll profile on file</v-chip>
+                    <span v-if="payrollMaskedSsn" class="text-body-2 text-grey">SSN: {{ payrollMaskedSsn }}</span>
+                    <span v-if="payrollMaskedAccount" class="text-body-2 text-grey">Account: {{ payrollMaskedAccount }}</span>
                   </div>
-
-                  <!-- Payout Method Connected -->
-                  <v-row v-else>
-                    <v-col cols="12">
-                      <div class="bank-account-card-stripe">
-                        <div class="d-flex align-center mb-4">
-                          <v-icon size="48" color="success" class="mr-4">mdi-wallet</v-icon>
-                          <div class="flex-grow-1">
-                            <div class="text-h6 font-weight-bold">Payout Method Connected</div>
-                            <div class="text-body-2 text-grey">Stripe Connect • Verified</div>
-                          </div>
-                          <v-chip color="success" prepend-icon="mdi-check-circle" size="small">
-                            Active
-                          </v-chip>
-                        </div>
-
-                        <v-divider class="my-4"></v-divider>
-
-                        <div class="d-flex justify-space-between align-center mb-3">
-                          <span class="text-body-2 text-grey">Payout Method:</span>
-                          <span class="font-weight-medium">Bank Transfer (ACH)</span>
-                        </div>
-
-                        <div class="d-flex justify-space-between align-center mb-3">
-                          <span class="text-body-2 text-grey">Payout Schedule:</span>
-                          <span class="font-weight-medium">Weekly (Every Friday)</span>
-                        </div>
-
-                        <div class="d-flex justify-space-between align-center mb-3">
-                          <span class="text-body-2 text-grey">Next Payout:</span>
-                          <span class="font-weight-bold success--text">{{ nextPayoutDate }}</span>
-                        </div>
-
-                        <v-divider class="my-4"></v-divider>
-
-                        <v-alert type="success" variant="tonal" density="compact">
-                          <div class="d-flex align-center">
-                            <v-icon class="mr-2">mdi-shield-check</v-icon>
-                            <span class="text-body-2">
-                              Your bank account is securely connected via Stripe. Funds are transferred automatically after each session is completed and approved.
-                            </span>
-                          </div>
-                        </v-alert>
-
-                        <div class="mt-4 d-flex flex-wrap gap-2">
-                          <v-btn
-                            color="success"
-                            variant="flat"
-                            size="small"
-                            prepend-icon="mdi-swap-horizontal"
-                            @click="connectBankAccount"
-                          >
-                            Change Payout Method
-                          </v-btn>
-                          <v-btn
-                            color="primary"
-                            variant="outlined"
-                            size="small"
-                            prepend-icon="mdi-open-in-new"
-                            @click="openStripeDashboard"
-                          >
-                            Manage on Stripe
-                          </v-btn>
-                          <v-btn
-                            color="error"
-                            variant="outlined"
-                            size="small"
-                            prepend-icon="mdi-delete"
-                            @click="showRemovePayoutDialog = true"
-                          >
-                            Remove Method
-                          </v-btn>
-                        </div>
-                      </div>
-                    </v-col>
-                  </v-row>
+                  <div v-else class="mb-2">
+                    <v-chip color="warning" prepend-icon="mdi-alert" size="small" class="mr-2">Payroll onboarding incomplete</v-chip>
+                    <span class="text-body-2 text-grey">Open Payroll onboarding to add direct deposit details.</span>
+                  </div>
+                  <v-alert v-if="stripeConnected" type="warning" variant="tonal" density="compact" class="mt-4">
+                    A legacy Stripe Connect record may still exist on your account; payroll is the supported path for new pay.
+                  </v-alert>
                 </v-card-text>
               </v-card>
 
@@ -686,19 +575,19 @@
                   <div v-if="applicationStatus === 'pending'" class="mt-4">
                     <v-alert type="warning" variant="tonal" class="mb-4" density="compact">
                       <div class="text-body-2">
-                        <strong>Action Required:</strong> Please view and print the W9 form, then submit it to the office to complete your application approval.
+                        <strong>Application pending:</strong> after approval, finish payroll onboarding for W-2 direct deposit.
                       </div>
                     </v-alert>
                     <v-btn
                       color="primary"
                       block
                       size="large"
-                      prepend-icon="mdi-file-document"
-                      @click="viewW9Form"
+                      prepend-icon="mdi-briefcase-account"
+                      @click="handleSectionChange('payroll')"
                       class="mb-3"
                       elevation="2"
                     >
-                      View W9 Form
+                      Payroll onboarding
                     </v-btn>
                   </div>
                 </v-card-text>
@@ -1174,6 +1063,124 @@
           <notification-center user-type="caregiver" :user-id="2" @open-settings="notificationSettings = true" @action-clicked="handleAction" />
         </div>
 
+        <!-- Payroll onboarding (W-2 / Gusto-oriented) -->
+        <div v-if="currentSection === 'payroll'">
+          <v-card elevation="0" class="mb-6">
+            <v-card-title class="card-header pa-8">
+              <span class="section-title success--text">Payroll onboarding</span>
+            </v-card-title>
+            <v-card-text class="pa-8">
+              <p class="text-body-2 text-medium-emphasis mb-6">
+                Provide information that matches your government ID. SSN and bank numbers are encrypted at rest and are used only for employment and payroll.
+              </p>
+              <v-row>
+                <v-col cols="12" md="4">
+                  <v-text-field v-model="payrollForm.legal_first_name" label="Legal first name" variant="outlined" density="comfortable" />
+                </v-col>
+                <v-col cols="12" md="4">
+                  <v-text-field v-model="payrollForm.legal_middle_name" label="Legal middle name" variant="outlined" density="comfortable" />
+                </v-col>
+                <v-col cols="12" md="4">
+                  <v-text-field v-model="payrollForm.legal_last_name" label="Legal last name" variant="outlined" density="comfortable" />
+                </v-col>
+                <v-col cols="12" md="4">
+                  <v-text-field
+                    v-model="payrollForm.ssn"
+                    label="SSN (9 digits, encrypted)"
+                    variant="outlined"
+                    density="comfortable"
+                    type="password"
+                    autocomplete="off"
+                    :hint="payrollDisplaySsn ? `On file: ${payrollDisplaySsn}` : ''"
+                    persistent-hint
+                  />
+                </v-col>
+                <v-col cols="12" md="4">
+                  <v-text-field v-model="payrollForm.date_of_birth" label="Date of birth" type="date" variant="outlined" density="comfortable" />
+                </v-col>
+                <v-col cols="12" md="8">
+                  <v-text-field v-model="payrollForm.address_line1" label="Address line 1 (must match ID)" variant="outlined" density="comfortable" />
+                </v-col>
+                <v-col cols="12" md="8">
+                  <v-text-field v-model="payrollForm.address_line2" label="Address line 2" variant="outlined" density="comfortable" />
+                </v-col>
+                <v-col cols="12" md="4">
+                  <v-text-field v-model="payrollForm.city" label="City" variant="outlined" density="comfortable" />
+                </v-col>
+                <v-col cols="12" md="4">
+                  <v-text-field v-model="payrollForm.region" label="State / region" variant="outlined" density="comfortable" />
+                </v-col>
+                <v-col cols="12" md="4">
+                  <v-text-field v-model="payrollForm.postal_code" label="Postal code" variant="outlined" density="comfortable" />
+                </v-col>
+                <v-col cols="12" md="4">
+                  <v-text-field v-model="payrollForm.country" label="Country (ISO)" variant="outlined" density="comfortable" hint="US" persistent-hint />
+                </v-col>
+                <v-col cols="12" md="4">
+                  <v-text-field v-model="payrollForm.payroll_email" label="Payroll email" variant="outlined" density="comfortable" type="email" />
+                </v-col>
+                <v-col cols="12" md="4">
+                  <v-text-field v-model="payrollForm.payroll_phone" label="Payroll phone" variant="outlined" density="comfortable" />
+                </v-col>
+                <v-col cols="12" md="4">
+                  <v-text-field
+                    v-model="payrollForm.bank_routing_number"
+                    label="Bank routing (9 digits)"
+                    variant="outlined"
+                    density="comfortable"
+                    :hint="payrollDisplayRouting || ''"
+                    persistent-hint
+                  />
+                </v-col>
+                <v-col cols="12" md="4">
+                  <v-text-field
+                    v-model="payrollForm.bank_account_number"
+                    label="Bank account number"
+                    variant="outlined"
+                    density="comfortable"
+                    type="password"
+                    autocomplete="off"
+                    :hint="payrollDisplayAccount || ''"
+                    persistent-hint
+                  />
+                </v-col>
+                <v-col cols="12" md="4">
+                  <v-select
+                    v-model="payrollForm.bank_account_type"
+                    :items="['checking', 'savings']"
+                    label="Account type"
+                    variant="outlined"
+                    density="comfortable"
+                  />
+                </v-col>
+                <v-col cols="12" md="4">
+                  <v-text-field v-model="payrollForm.emergency_contact_name" label="Emergency contact name" variant="outlined" density="comfortable" />
+                </v-col>
+                <v-col cols="12" md="4">
+                  <v-text-field v-model="payrollForm.emergency_contact_phone" label="Emergency contact phone" variant="outlined" density="comfortable" />
+                </v-col>
+                <v-col cols="12" md="4">
+                  <v-text-field v-model="payrollForm.emergency_contact_relationship" label="Relationship" variant="outlined" density="comfortable" />
+                </v-col>
+              </v-row>
+              <v-checkbox
+                v-model="payrollMarkComplete"
+                label="I confirm this information is accurate and authorize CAS Private Care to use it for payroll and tax withholding."
+                density="comfortable"
+                class="mt-2"
+              />
+              <div class="d-flex flex-wrap gap-2 mt-4">
+                <v-btn color="success" :loading="payrollSaving" prepend-icon="mdi-content-save" @click="savePayrollProfile">
+                  Save payroll profile
+                </v-btn>
+                <v-chip v-if="payrollProfileComplete" color="success" variant="tonal" size="small" class="align-self-center">
+                  Marked complete {{ payrollCompletedAt || '' }}
+                </v-chip>
+              </div>
+            </v-card-text>
+          </v-card>
+        </div>
+
         <!-- Profile Section -->
         <div v-if="currentSection === 'profile'">
           <v-row>
@@ -1270,24 +1277,7 @@
                       <v-text-field v-model="profile.experience" label="Years of Experience" variant="outlined" type="number" />
                     </v-col>
                     <v-col cols="12" md="6">
-                      <v-select v-if="!isCustomTrainingCenter" v-model="profile.trainingCenter" :items="trainingCenterOptions" label="Training Center" variant="outlined" no-data-text="No CAS training centers yet. Use Custom Training Center below to enter yours." />
-                      <v-text-field v-else v-model="profile.customTrainingCenter" label="Custom Training Center" variant="outlined" />
-                      <v-alert v-if="profile.trainingCenter && trainingCenterApprovalStatus === 'pending'" type="info" density="compact" class="mt-2" variant="tonal" border="start">
-                        <div class="d-flex align-center">
-                          <v-icon size="20" class="mr-2" color="warning">mdi-clock-outline</v-icon>
-                          <span>Your training center must approve your request. You'll see an update here once they respond.</span>
-                        </div>
-                      </v-alert>
-                      <v-chip v-else-if="profile.trainingCenter && trainingCenterApprovalStatus === 'approved'" size="small" color="success" variant="tonal" class="mt-2">
-                        <v-icon start size="16">mdi-check-circle</v-icon>
-                        Training center approved
-                      </v-chip>
-                    </v-col>
-                    <v-col cols="12" md="6">
                       <v-file-input v-model="profile.trainingCertificate" label="Training Certificate" variant="outlined" accept=".pdf,.jpg,.jpeg,.png" prepend-icon="mdi-certificate" hint="Accepted formats: PDF, JPG, PNG (Max 5MB)" persistent-hint />
-                    </v-col>
-                    <v-col cols="12" md="6" class="d-flex align-center">
-                      <v-checkbox v-model="isCustomTrainingCenter" label="Custom Training Center" density="compact" hide-details />
                     </v-col>
 
                     <!-- Professional Certifications -->
@@ -1766,7 +1756,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch, nextTick } from 'vue';
+import { ref, computed, onMounted, watch, nextTick, reactive } from 'vue';
 import DashboardTemplate from './DashboardTemplate.vue';
 import StatCard from './shared/StatCard.vue';
 import ClientProfileModal from './shared/ClientProfileModal.vue';
@@ -2036,9 +2026,16 @@ const navItems = computed(() => [
   { icon: 'mdi-view-dashboard', title: 'Dashboard', value: 'dashboard', disabled: false },
   { icon: 'mdi-bell', title: 'Notifications', value: 'notifications', badge: sidebarUnreadCount.value > 0, disabled: false },
   {
-    icon: 'mdi-credit-card',
-    title: 'Payment Information',
+    icon: 'mdi-cash-multiple',
+    title: 'Earnings & payments',
     value: 'payment',
+    category: 'FINANCIAL',
+    disabled: false
+  },
+  {
+    icon: 'mdi-briefcase-account',
+    title: 'Payroll onboarding',
+    value: 'payroll',
     category: 'FINANCIAL',
     disabled: false
   },
@@ -2063,7 +2060,7 @@ const navItems = computed(() => [
     category: 'WORK',
     disabled: false
   },
-  { icon: 'mdi-account-circle', title: 'Profile (1099 Contractors)', value: 'profile', category: 'ACCOUNT', disabled: false }
+  { icon: 'mdi-account-circle', title: 'Profile (W-2 caregiver)', value: 'profile', category: 'ACCOUNT', disabled: false }
 ]);
 
 const loadSidebarNotificationCount = async () => {
@@ -2492,11 +2489,6 @@ const isLoadingProfile = ref(false);
 
 const loadProfile = async () => {
   try {
-    // Load training centers first to ensure dropdown has the options
-    if (trainingCenters.value.length === 0) {
-      await loadTrainingCenters();
-    }
-
     const response = await fetch('/api/profile?user_type=caregiver', { credentials: 'same-origin' });
     const data = await response.json();
     // API returns { success, message, data: { user, caregiver } }; support both wrapped and unwrapped
@@ -2530,9 +2522,6 @@ const loadProfile = async () => {
         rn_type: typeof caregiverData.has_rn
       });
 
-      // Preserve training center if API omits it (e.g. after save); normalize "x x" -> "x"
-      const apiTc = (caregiverData.training_center_name ?? '').toString().trim();
-      const savedTrainingCenter = normalizeTrainingCenterLabel(apiTc || (profile.value?.trainingCenter ?? '')) || apiTc || (profile.value?.trainingCenter ?? '');
       profile.value = {
         firstName: nameParts[0] || '',
         lastName: nameParts.slice(1).join(' ') || '',
@@ -2545,8 +2534,6 @@ const loadProfile = async () => {
         zip: user.zip_code || '',
         birthdate: user.date_of_birth || '',
         experience: caregiverData.years_experience || '',
-        trainingCenter: savedTrainingCenter,
-        customTrainingCenter: '',
         trainingCertificate: null,
         specializations: caregiverData.specializations || [],
         bio: caregiverData.bio || '',
@@ -2587,8 +2574,6 @@ const loadProfile = async () => {
         caregiverId.value = caregiverData.id;
       }
 
-      trainingCenterApprovalStatus.value = caregiverData.training_center_approval_status ?? trainingCenterApprovalStatus.value ?? '';
-
       // Set W9 submitted status from user data
       // If user is approved, W9 is considered submitted (approval requires physical W9 submission)
       w9Submitted.value = Boolean(user.w9_submitted) || user.status === 'Active';
@@ -2615,8 +2600,6 @@ const loadProfile = async () => {
         ssn: '',
         itin: '',
         experience: '5',
-        trainingCenter: '',
-        customTrainingCenter: '',
         trainingCertificate: null,
         specializations: [],
         bio: 'Demo caregiver account'
@@ -3287,7 +3270,7 @@ const handleSectionChange = (section) => {
 const handleDisabledNavClick = (sectionValue) => {
   notification.type = 'warning';
   notification.title = 'Approval Required';
-  notification.message = 'This feature requires account approval. Please submit your W9 form and wait for admin approval.';
+  notification.message = 'This feature requires account approval. Complete any open steps and wait for admin approval.';
   notification.show = true;
 };
 
@@ -3382,6 +3365,36 @@ const removingPayout = ref(false);
 
 // Onboarding progress tracking
 const w9Submitted = ref(false);
+const payrollProfileComplete = ref(false);
+const payrollMaskedSsn = ref('');
+const payrollMaskedAccount = ref('');
+const payrollDisplaySsn = ref('');
+const payrollDisplayRouting = ref('');
+const payrollDisplayAccount = ref('');
+const payrollCompletedAt = ref('');
+const payrollSaving = ref(false);
+const payrollMarkComplete = ref(false);
+const payrollForm = reactive({
+  legal_first_name: '',
+  legal_middle_name: '',
+  legal_last_name: '',
+  ssn: '',
+  date_of_birth: '',
+  address_line1: '',
+  address_line2: '',
+  city: '',
+  region: '',
+  postal_code: '',
+  country: 'US',
+  payroll_email: '',
+  payroll_phone: '',
+  bank_routing_number: '',
+  bank_account_number: '',
+  bank_account_type: 'checking',
+  emergency_contact_name: '',
+  emergency_contact_phone: '',
+  emergency_contact_relationship: '',
+});
 const profileComplete = computed(() => {
   return profile.value.firstName && profile.value.lastName && profile.value.phone;
 });
@@ -3392,6 +3405,10 @@ const handleOnboardingStepClick = (step) => {
   switch (step.action) {
     case 'view-application':
       // Already on dashboard, show status
+      break;
+    case 'payroll-onboarding':
+      handleSectionChange('payroll');
+      loadPayrollProfile();
       break;
     case 'submit-w9':
       viewW9Form();
@@ -3407,18 +3424,139 @@ const handleOnboardingStepClick = (step) => {
   }
 };
 
+const applyPayrollDisplayFromApi = (p) => {
+  payrollDisplaySsn.value = p.ssn_masked || '';
+  payrollDisplayRouting.value = p.bank_routing_masked ? `On file: ${p.bank_routing_masked}` : '';
+  payrollDisplayAccount.value = p.bank_account_masked ? `On file: ${p.bank_account_masked}` : '';
+  payrollMaskedSsn.value = p.ssn_masked || '';
+  payrollMaskedAccount.value = p.bank_account_masked || '';
+};
+
+const loadPayrollProfile = async () => {
+  try {
+    const res = await fetch('/api/caregiver/payroll-profile', {
+      credentials: 'include',
+      headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+    });
+    const data = await res.json();
+    if (!data.success || !data.profile) {
+      return;
+    }
+    const p = data.profile;
+    payrollForm.legal_first_name = p.legal_first_name || '';
+    payrollForm.legal_middle_name = p.legal_middle_name || '';
+    payrollForm.legal_last_name = p.legal_last_name || '';
+    payrollForm.date_of_birth = p.date_of_birth || '';
+    payrollForm.address_line1 = p.address_line1 || '';
+    payrollForm.address_line2 = p.address_line2 || '';
+    payrollForm.city = p.city || '';
+    payrollForm.region = p.region || '';
+    payrollForm.postal_code = p.postal_code || '';
+    payrollForm.country = p.country || 'US';
+    payrollForm.payroll_email = p.payroll_email || '';
+    payrollForm.payroll_phone = p.payroll_phone || '';
+    payrollForm.bank_account_type = p.bank_account_type || 'checking';
+    payrollForm.emergency_contact_name = p.emergency_contact_name || '';
+    payrollForm.emergency_contact_phone = p.emergency_contact_phone || '';
+    payrollForm.emergency_contact_relationship = p.emergency_contact_relationship || '';
+    payrollForm.ssn = '';
+    payrollForm.bank_routing_number = '';
+    payrollForm.bank_account_number = '';
+    applyPayrollDisplayFromApi(p);
+    payrollProfileComplete.value = !!p.profile_completed_at;
+    payrollCompletedAt.value = p.profile_completed_at
+      ? new Date(p.profile_completed_at).toLocaleString()
+      : '';
+  } catch (_) {
+    /* ignore */
+  }
+};
+
+const savePayrollProfile = async () => {
+  try {
+    payrollSaving.value = true;
+    const csrf = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+    const body = {
+      legal_first_name: payrollForm.legal_first_name || null,
+      legal_middle_name: payrollForm.legal_middle_name || null,
+      legal_last_name: payrollForm.legal_last_name || null,
+      date_of_birth: payrollForm.date_of_birth || null,
+      address_line1: payrollForm.address_line1 || null,
+      address_line2: payrollForm.address_line2 || null,
+      city: payrollForm.city || null,
+      region: payrollForm.region || null,
+      postal_code: payrollForm.postal_code || null,
+      country: payrollForm.country || null,
+      payroll_email: payrollForm.payroll_email || null,
+      payroll_phone: payrollForm.payroll_phone || null,
+      bank_account_type: payrollForm.bank_account_type || null,
+      emergency_contact_name: payrollForm.emergency_contact_name || null,
+      emergency_contact_phone: payrollForm.emergency_contact_phone || null,
+      emergency_contact_relationship: payrollForm.emergency_contact_relationship || null,
+      mark_complete: payrollMarkComplete.value,
+    };
+    const ssnDigits = (payrollForm.ssn || '').replace(/\D/g, '');
+    if (/^\d{9}$/.test(ssnDigits)) {
+      body.ssn = ssnDigits;
+    }
+    const routeDigits = (payrollForm.bank_routing_number || '').replace(/\D/g, '');
+    if (/^\d{9}$/.test(routeDigits)) {
+      body.bank_routing_number = routeDigits;
+    }
+    const acct = (payrollForm.bank_account_number || '').trim();
+    if (acct.length >= 4) {
+      body.bank_account_number = acct;
+    }
+    const res = await fetch('/api/caregiver/payroll-profile', {
+      method: 'PUT',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+        'X-CSRF-TOKEN': csrf,
+        'X-Requested-With': 'XMLHttpRequest',
+      },
+      body: JSON.stringify(body),
+    });
+    const data = await res.json();
+    if (!res.ok || !data.success) {
+      throw new Error(data.message || 'Save failed');
+    }
+    payrollForm.ssn = '';
+    payrollForm.bank_routing_number = '';
+    payrollForm.bank_account_number = '';
+    applyPayrollDisplayFromApi(data.profile);
+    payrollProfileComplete.value = !!data.profile.profile_completed_at;
+    payrollCompletedAt.value = data.profile.profile_completed_at
+      ? new Date(data.profile.profile_completed_at).toLocaleString()
+      : '';
+    await loadPaymentData();
+    notification.value = {
+      show: true,
+      type: 'success',
+      title: 'Saved',
+      message: 'Payroll profile updated.',
+      timeout: 4000,
+    };
+  } catch (e) {
+    notification.value = {
+      show: true,
+      type: 'error',
+      title: 'Payroll',
+      message: e.message || 'Could not save payroll profile',
+      timeout: 6000,
+    };
+  } finally {
+    payrollSaving.value = false;
+  }
+};
+
 // Stripe Connect Functions
 const connectBankAccount = async () => {
-  try {
-    connectingBank.value = true;
-
-    // Navigate to YOUR custom styled page (like payment page)
-    window.location.href = '/connect-bank-account';
-
-  } catch (error) {
-    alert('An error occurred. Please try again.');
-    connectingBank.value = false;
-  }
+  connectingBank.value = true;
+  handleSectionChange('payroll');
+  await loadPayrollProfile();
+  connectingBank.value = false;
 };
 
 const reconnectBankAccount = async () => {
@@ -3565,27 +3703,18 @@ const loadPaymentData = async () => {
         transactions.value = [];
       }
 
-      // Update Stripe connection status
+      if (data.payroll_profile) {
+        payrollProfileComplete.value = !!data.payroll_profile.profile_complete;
+      }
+
+      // Update Stripe connection status (legacy)
       if (data.stripe_info) {
         stripeConnected.value = data.stripe_info.connected;
         stripeOnboardingComplete.value = data.stripe_info.onboarding_complete;
-
-        if (!data.stripe_info.connected) {
-          // Show connect bank account prompt
-          paymentMethods.value = [];
-        } else {
-          // Update paymentMethods to show connected bank account
-          paymentMethods.value = [{
-            id: 'stripe_bank',
-            type: 'bank_account',
-            icon: 'mdi-bank',
-            last4: 'Connected',
-            holder: profile.value.name || 'Bank Account',
-            isDefault: true,
-            brandName: 'Stripe Bank Transfer'
-          }];
-        }
+        paymentMethods.value = [];
       }
+
+      await loadPayrollProfile();
 
       // Update statistics
       if (data.statistics) {
@@ -3739,48 +3868,6 @@ const nyZipCodes = [
   '13201', '13202', '13203', '13204', '13205', '13206', '13207', '13208', '13209', '13210'
 ];
 
-const trainingCenters = ref([]);
-const isCustomTrainingCenter = ref(false);
-const trainingCenterApprovalStatus = ref(''); // 'pending' | 'approved' | 'rejected' | ''
-
-// Normalize duplicated label "x x" -> "x" so display and save use a single value
-const normalizeTrainingCenterLabel = (val) => {
-  if (val == null || typeof val !== 'string') return (val ?? '').toString().trim();
-  const s = String(val).trim();
-  const m = s.match(/^(.+)\s+\1$/u);
-  return m ? m[1].trim() : s;
-};
-
-// Dropdown options: CAS partners + current profile value (deduped, normalized)
-const trainingCenterOptions = computed(() => {
-  const raw = [...(trainingCenters.value || [])];
-  const current = normalizeTrainingCenterLabel(profile.value?.trainingCenter || '');
-  if (current && !raw.some((x) => normalizeTrainingCenterLabel(x) === current)) raw.unshift(current);
-  const normalized = raw.map((x) => normalizeTrainingCenterLabel(typeof x === 'string' ? x : (x?.name ?? x?.email ?? x ?? ''))).filter(Boolean);
-  return [...new Set(normalized)];
-});
-
-const loadTrainingCenters = async () => {
-  try {
-    // Use /api/training-centers (web route with auth returns Active + pending; name or email as label)
-    const response = await fetch('/api/training-centers', {
-      headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
-      credentials: 'same-origin'
-    });
-    if (response.ok) {
-      const data = await response.json();
-      const raw = data.trainingCenters || data.centers || [];
-      trainingCenters.value = Array.isArray(raw)
-        ? raw.map(c => (typeof c === 'string' ? c : (c?.name || c?.email || c?.title || ''))).filter(Boolean)
-        : [];
-    } else {
-      trainingCenters.value = [];
-    }
-  } catch (err) {
-    trainingCenters.value = [];
-  }
-};
-
 // Avatar upload
 const avatarInput = ref(null);
 const userAvatar = ref('');
@@ -3803,8 +3890,6 @@ const profile = ref({
   zip: '',
   birthdate: '',
   experience: '5',
-  trainingCenter: '',
-  customTrainingCenter: '',
   trainingCertificate: null,
   specializations: [],
   bio: 'Demo caregiver account',
@@ -4049,12 +4134,6 @@ if (profile.value.trainingCertificate) {
       // File info logged
     }
 
-    // Normalize training center to a single string (dedupe "x x" -> "x") for both FormData and JSON
-    const tcRaw = profile.value.trainingCenter != null
-      ? (Array.isArray(profile.value.trainingCenter) ? (profile.value.trainingCenter[0] ?? '') : profile.value.trainingCenter)
-      : '';
-    const trainingCenterForSave = normalizeTrainingCenterLabel(typeof tcRaw === 'string' ? tcRaw : String(tcRaw || ''));
-
     let response;
     if (hasFile) {
       // Use FormData for file uploads
@@ -4070,8 +4149,8 @@ if (profile.value.trainingCertificate) {
       if (profile.value.state) formData.append('state', profile.value.state);
       if (profile.value.zip) formData.append('zip', profile.value.zip);
       if (profile.value.experience) formData.append('experience', profile.value.experience);
-      formData.append('trainingCenter', trainingCenterForSave);
-      formData.append('customTrainingCenter', profile.value.customTrainingCenter ?? '');
+      formData.append('trainingCenter', '');
+      formData.append('customTrainingCenter', '');
       if (profile.value.bio) formData.append('bio', profile.value.bio);
       // Add certifications
       formData.append('hasHHA', profile.value.hasHHA ? '1' : '0');
@@ -4116,8 +4195,6 @@ if (profile.value.trainingCertificate) {
         address: profile.value.address ?? '',
         zip: profile.value.zip ?? '',
         zip_code: profile.value.zip ?? profile.value.zip_code ?? '',
-        trainingCenter: trainingCenterForSave,
-        customTrainingCenter: profile.value.customTrainingCenter ?? '',
         hasHHA: profile.value.hasHHA,
         hhaNumber: profile.value.hhaNumber,
         hasCNA: profile.value.hasCNA,
@@ -4175,35 +4252,13 @@ if (profile.value.trainingCertificate) {
         if (savedUser.zip_code != null) profile.value.zip = savedUser.zip_code;
       }
 
-      // Apply training center from save response (normalized) so it persists and doesn't clear
-      const savedTcName = caregiver?.training_center_name != null ? normalizeTrainingCenterLabel(caregiver.training_center_name) || caregiver.training_center_name : null;
-      if (savedTcName) {
-        profile.value.trainingCenter = savedTcName;
-      }
-      if (caregiver != null && caregiver.training_center_approval_status != null) {
-        trainingCenterApprovalStatus.value = caregiver.training_center_approval_status;
-      }
-
       // Clear the file input after successful upload
       if (hasFile) {
         profile.value.trainingCertificate = null;
       }
 
-      const isPendingApproval = (caregiver?.training_center_approval_status || trainingCenterApprovalStatus.value) === 'pending';
-      if (isPendingApproval && profile.value.trainingCenter) {
-        success(
-          'Profile saved. Your training center must approve your request—you\'ll see an update here once they respond.',
-          'Profile saved'
-        );
-      } else {
-        success('Profile changes saved successfully!');
-      }
-      // Reload profile but preserve training center if API returns empty (avoid clearing after save)
+      success('Profile changes saved successfully!');
       await loadProfile();
-      if (savedTcName && (!profile.value.trainingCenter || !profile.value.trainingCenter.trim())) {
-        profile.value.trainingCenter = savedTcName;
-        trainingCenterApprovalStatus.value = caregiver?.training_center_approval_status ?? trainingCenterApprovalStatus.value;
-      }
     } else {
       let errorMessage = 'Failed to save profile';
       let errorData = null;
@@ -4376,12 +4431,12 @@ watch(currentSection, (newVal) => {
   if (newVal === 'analytics') {
     setTimeout(initCharts, 300);
   }
-  if (newVal === 'profile') {
-    loadTrainingCenters(); // Load training centers when profile section is accessed
-  }
   if (newVal === 'payment') {
     loadPaymentMethods(); // Load payment methods when payment section is accessed
     checkApplicationStatus(); // Check approval status when opening payment section
+  }
+  if (newVal === 'payroll') {
+    loadPayrollProfile();
   }
 });
 
@@ -4393,7 +4448,6 @@ onMounted(async () => {
 
   const loadingTasks = [
     { fn: loadNYLocationData, weight: 5 },
-    { fn: loadTrainingCenters, weight: 5 },
     { fn: loadNotifications, weight: 5 },
     { fn: loadAvailableClients, weight: 10 },
     { fn: loadSidebarNotificationCount, weight: 3 }
@@ -4454,6 +4508,12 @@ onMounted(async () => {
 
   if (currentSection.value === 'analytics') {
     setTimeout(initCharts, 500);
+  }
+
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('payroll_onboarding') === '1') {
+    handleSectionChange('payroll');
+    await loadPayrollProfile();
   }
 
   // Update time every minute for responsive dates

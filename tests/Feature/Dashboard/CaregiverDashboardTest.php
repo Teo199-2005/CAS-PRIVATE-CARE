@@ -155,7 +155,7 @@ class CaregiverDashboardTest extends TestCase
         $response = $this->actingAs($this->caregiver)
             ->get('/connect-bank-account');
 
-        $response->assertStatus(200);
+        $response->assertRedirect('/caregiver/dashboard-vue?payroll_onboarding=1');
     }
 
     /** @test */

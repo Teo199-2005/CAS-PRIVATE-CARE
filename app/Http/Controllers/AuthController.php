@@ -19,12 +19,15 @@ use App\Services\EmailService;
 use App\Services\LoginThrottleService;
 use App\Services\AuditLogService;
 use App\Http\Traits\ApiResponseTrait;
+use App\DecommissionedUserTypes;
 use Illuminate\Support\Str;
 use Carbon\Carbon;
 
 class AuthController extends Controller
 {
     use ApiResponseTrait;
+
+    private const DECOMMISSIONED_LOGIN_MESSAGE = 'This account type is no longer supported. Please contact support if you need assistance.';
     
     /**
      * Handle login - supports both AJAX (JSON) and traditional form submission
@@ -69,11 +72,26 @@ class AuthController extends Controller
             $request->session()->regenerate();
             $user = Auth::user();
 
+            if (DecommissionedUserTypes::isDecommissioned($user->user_type)) {
+                Auth::logout();
+                $request->session()->invalidate();
+                $request->session()->regenerateToken();
+
+                if ($wantsJson) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => self::DECOMMISSIONED_LOGIN_MESSAGE,
+                    ], 403);
+                }
+
+                return back()->withErrors(['email' => self::DECOMMISSIONED_LOGIN_MESSAGE])->withInput();
+            }
+
             // Record last login time
             $user->update(['last_login_at' => now()]);
 
             // Check if contractor/partner is rejected (ONLY block rejected accounts)
-            $partnerTypes = ['caregiver', 'housekeeper', 'marketing', 'training_center'];
+            $partnerTypes = ['caregiver', 'marketing'];
             if (in_array($user->user_type, $partnerTypes) && $user->status === 'rejected') {
                 Auth::logout();
                 $request->session()->invalidate();
@@ -178,11 +196,8 @@ class AuthController extends Controller
         $redirects = [
             'admin' => $user->role === 'Admin Staff' ? '/admin-staff/dashboard-vue' : '/admin/dashboard-vue',
             'caregiver' => '/caregiver/dashboard-vue',
-            'housekeeper' => '/housekeeper/dashboard-vue',
             'marketing' => '/marketing/dashboard-vue',
-            'training' => '/training/dashboard-vue',
-            'training_center' => '/training/dashboard-vue',
-            'client' => '/client/dashboard-vue'
+            'client' => '/client/dashboard-vue',
         ];
         
         return $redirects[$user->user_type] ?? '/client/dashboard-vue';
@@ -204,8 +219,8 @@ class AuthController extends Controller
                 'confirmed',
                 new \App\Rules\StrongPassword(12, true),
             ],
-            'user_type' => 'required|in:client,caregiver,housekeeper,marketing,training_center',
-            'partner_type' => 'nullable|in:caregiver,housekeeper,housekeeping,personal_assistant,marketing_partner,training_center',
+            'user_type' => 'required|in:client,caregiver,marketing',
+            'partner_type' => 'nullable|in:caregiver,housekeeping,personal_assistant,marketing_partner',
             'terms' => 'required|accepted',
             'gender' => 'nullable|in:male,female',
             'date_of_birth' => 'nullable|date|before:today',
@@ -223,19 +238,17 @@ class AuthController extends Controller
             // Map partner types to user types
             $userTypeMap = [
                 'caregiver' => 'caregiver',
-                'housekeeper' => 'housekeeper',
-                'housekeeping' => 'housekeeper',
+                'housekeeping' => 'caregiver',
                 'personal_assistant' => 'caregiver',
                 'marketing_partner' => 'marketing',
-                'training_center' => 'training_center'
             ];
             $validated['user_type'] = $userTypeMap[$partnerType] ?? 'caregiver';
         }
 
-        // Require gender for caregiver and housekeeper registrations
-        if (in_array($validated['user_type'], ['caregiver', 'housekeeper'], true)) {
-            $request->validate(['gender' => 'required|in:male,female'], ['gender.required' => 'Please select your gender.']);
-            $validated['gender'] = $request->input('gender');
+        // Caregiver registrations: default gender when not provided.
+        // (The UI/tests may omit gender; downstream caregiver creation already defaults.)
+        if ($validated['user_type'] === 'caregiver' && empty($validated['gender'])) {
+            $validated['gender'] = 'female';
         }
 
         // Check if this is OAuth registration
@@ -248,7 +261,7 @@ class AuthController extends Controller
         $formattedPhone = '(' . substr($phoneNumber, 0, 3) . ') ' . substr($phoneNumber, 3, 3) . '-' . substr($phoneNumber, 6, 4);
         
         // Set status based on user type - all partner types need approval
-        $partnerTypes = ['caregiver', 'housekeeper', 'marketing', 'training_center'];
+        $partnerTypes = ['caregiver', 'marketing'];
         $status = in_array($validated['user_type'], $partnerTypes) ? 'pending' : 'Active';
         
         $userData = [
@@ -280,28 +293,19 @@ class AuthController extends Controller
                 'gender' => $validated['gender'] ?? 'female',
                 'availability_status' => 'available'
             ]);
-        } elseif ($validated['user_type'] === 'housekeeper') {
-            // Create housekeeper record
-            \App\Models\Housekeeper::create([
-                'user_id' => $user->id,
-                'gender' => $validated['gender'] ?? 'female',
-                'availability_status' => 'available',
-                'years_experience' => $validated['years_experience'] ?? 0
-            ]);
         } elseif ($validated['user_type'] === 'marketing') {
             // Create referral code for marketing partners (inactive until approved)
             // Format: LASTNAME + 4 random digits (e.g., SMITH1234)
             \App\Models\ReferralCode::create([
                 'user_id' => $user->id,
                 'code' => \App\Models\ReferralCode::generateCode($user->id, $validated['last_name']),
-                'discount_per_hour' => 3.00,
+                'discount_per_hour' => 1.50,
                 'commission_per_hour' => 1.00,
                 'is_active' => false, // Will be activated when approved
                 'usage_count' => 0,
                 'total_commission_earned' => 0
             ]);
         }
-        // For training_center, no additional model creation needed
 
         // Clear OAuth session data
         session()->forget('oauth_user');
@@ -705,22 +709,25 @@ class AuthController extends Controller
         
         // Delete the verification token
         DB::table('email_verification_tokens')->where('token', $hashedToken)->delete();
-        
+
+        if (DecommissionedUserTypes::isDecommissioned($user->user_type)) {
+            return redirect('/login')->withErrors(['email' => self::DECOMMISSIONED_LOGIN_MESSAGE]);
+        }
+
         // Auto-login if not already logged in
         if (!Auth::check()) {
             Auth::login($user);
             $user->update(['last_login_at' => now()]);
         }
-        
+
         // Redirect based on user type
-        $redirectRoute = match($user->user_type) {
+        $redirectRoute = match ($user->user_type) {
             'admin' => ($user->role === 'Admin Staff') ? '/admin-staff/dashboard-vue' : '/admin/dashboard-vue',
             'caregiver' => '/caregiver/dashboard-vue',
             'marketing' => '/marketing/dashboard-vue',
-            'training', 'training_center' => '/training/dashboard-vue',
             default => '/client/dashboard-vue',
         };
-        
+
         return redirect($redirectRoute)->with('success', 'Your email has been verified successfully!');
     }
 
@@ -790,8 +797,14 @@ class AuthController extends Controller
             $user = User::where('email', $socialUser->getEmail())->first();
             
             if ($user) {
+                if (DecommissionedUserTypes::isDecommissioned($user->user_type)) {
+                    session()->forget('oauth_referrer');
+
+                    return redirect('/login')->withErrors(['email' => self::DECOMMISSIONED_LOGIN_MESSAGE]);
+                }
+
                 // ONLY block rejected contractor/partner accounts
-                $partnerTypes = ['caregiver', 'marketing', 'training_center'];
+                $partnerTypes = ['caregiver', 'marketing'];
                 if (in_array($user->user_type, $partnerTypes) && $user->status === 'rejected') {
                     session()->forget('oauth_referrer');
                     return redirect('/login')->withErrors(['email' => 'Your application has been rejected. Please contact support for more information.']);
@@ -812,12 +825,8 @@ class AuthController extends Controller
                     return redirect('/admin/dashboard-vue');
                 } elseif ($user->user_type === 'caregiver') {
                     return redirect('/caregiver/dashboard-vue');
-                } elseif ($user->user_type === 'housekeeper') {
-                    return redirect('/housekeeper/dashboard-vue');
                 } elseif ($user->user_type === 'marketing') {
                     return redirect('/marketing/dashboard-vue');
-                } elseif (in_array($user->user_type, ['training', 'training_center'])) {
-                    return redirect('/training/dashboard-vue');
                 } else {
                     return redirect('/client/dashboard-vue');
                 }

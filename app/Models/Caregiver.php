@@ -86,6 +86,11 @@ class Caregiver extends Model
         return $this->hasMany(TimeTracking::class);
     }
 
+    public function payrollProfile()
+    {
+        return $this->hasOne(CaregiverPayrollProfile::class);
+    }
+
     public function getCurrentTimeTracking()
     {
         return $this->timeTrackings()

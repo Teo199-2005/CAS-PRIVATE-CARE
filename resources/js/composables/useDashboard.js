@@ -1,8 +1,8 @@
 /**
  * useDashboard Composable
  * 
- * Shared dashboard functionality extracted from ClientDashboard, CaregiverDashboard,
- * and HousekeeperDashboard components to reduce code duplication.
+ * Shared dashboard functionality extracted from ClientDashboard and CaregiverDashboard
+ * components to reduce code duplication.
  * 
  * Features:
  * - User data management

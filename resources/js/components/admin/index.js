@@ -19,7 +19,6 @@
  *   AdminBookingsManagement,
  *   AdminUsersManagement,
  *   AdminClientsManagement,
- *   AdminHousekeepersManagement,
  *   AdminPendingApplications,
  *   AdminDashboardOverview,
  *   AdminTimeTrackingSection,
@@ -45,10 +44,8 @@ export { default as AdminCaregiversManagement } from './AdminCaregiversManagemen
 export { default as AdminBookingsManagement } from './AdminBookingsManagement.vue';
 export { default as AdminUsersManagement } from './AdminUsersManagement.vue';
 export { default as AdminClientsManagement } from './AdminClientsManagement.vue';
-export { default as AdminHousekeepersManagement } from './AdminHousekeepersManagement.vue';
 export { default as AdminMarketingStaffManagement } from './AdminMarketingStaffManagement.vue';
 export { default as AdminStaffManagement } from './AdminStaffManagement.vue';
-export { default as AdminTrainingCentersManagement } from './AdminTrainingCentersManagement.vue';
 
 // Dashboard & Overview Components
 export { default as AdminPendingApplications } from './AdminPendingApplications.vue';
@@ -78,10 +75,8 @@ export default {
   AdminBookingsManagement: () => import('./AdminBookingsManagement.vue'),
   AdminUsersManagement: () => import('./AdminUsersManagement.vue'),
   AdminClientsManagement: () => import('./AdminClientsManagement.vue'),
-  AdminHousekeepersManagement: () => import('./AdminHousekeepersManagement.vue'),
   AdminMarketingStaffManagement: () => import('./AdminMarketingStaffManagement.vue'),
   AdminStaffManagement: () => import('./AdminStaffManagement.vue'),
-  AdminTrainingCentersManagement: () => import('./AdminTrainingCentersManagement.vue'),
   
   // Dashboard & Overview
   AdminPendingApplications: () => import('./AdminPendingApplications.vue'),

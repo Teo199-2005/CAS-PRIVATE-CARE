@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Booking;
 use App\Models\BookingAssignment;
 use App\Models\Caregiver;
+use App\Models\CaregiverPayrollProfile;
 use App\Models\TimeTracking;
 use App\Models\User;
 use Carbon\Carbon;
@@ -54,7 +55,10 @@ class CaregiverDataController extends Controller
         // Calculate next payout date (next Friday)
         $nextFriday = $this->getNextPayoutDate();
         
-        // Get Stripe connection status
+        $payrollProfile = CaregiverPayrollProfile::where('caregiver_id', $caregiver->id)->first();
+        $payrollComplete = (bool) ($payrollProfile && $payrollProfile->profile_completed_at);
+
+        // Legacy Stripe Connect (retired for W-2 caregivers; kept for dashboard compatibility)
         $stripeConnected = !empty($user->stripe_connect_id);
         $stripeOnboardingComplete = $user->stripe_onboarding_complete ?? false;
         
@@ -70,7 +74,7 @@ class CaregiverDataController extends Controller
             'account_balance' => number_format($pendingEarnings, 2),
             'next_payout_date' => $nextFriday->format('M d, Y'),
             'payout_frequency' => 'Weekly',
-            'payout_method' => $stripeConnected ? 'Bank Transfer (Stripe)' : 'Not Connected',
+            'payout_method' => $payrollComplete ? 'Payroll (Direct Deposit)' : ($stripeConnected ? 'Bank Transfer (Stripe — legacy)' : 'Payroll onboarding required'),
         ];
         
         // Stripe connection info
@@ -78,7 +82,14 @@ class CaregiverDataController extends Controller
             'connected' => $stripeConnected,
             'onboarding_complete' => $stripeOnboardingComplete,
             'account_id' => $user->stripe_connect_id,
-            'needs_setup' => !$stripeConnected || !$stripeOnboardingComplete,
+            'needs_setup' => ! $payrollComplete,
+            'retired_for_w2' => true,
+        ];
+
+        $payrollInfo = [
+            'profile_complete' => $payrollComplete,
+            'ssn_on_file' => (bool) ($payrollProfile && $payrollProfile->ssn_last_four),
+            'bank_on_file' => (bool) ($payrollProfile && $payrollProfile->bank_account_number_encrypted),
         ];
         
         return response()->json([
@@ -86,6 +97,7 @@ class CaregiverDataController extends Controller
             'payment_summary' => $paymentSummary,
             'transactions' => $transactions,
             'stripe_info' => $stripeInfo,
+            'payroll_profile' => $payrollInfo,
             'statistics' => [
                 'total_hours_worked' => round($timeTrackings->sum('hours_worked') ?? 0, 2),
                 'total_sessions' => $timeTrackings->count(),

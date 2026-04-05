@@ -7,7 +7,7 @@
  * - User profile management
  * - Dashboard statistics
  * - Booking management
- * - User management (clients, caregivers, housekeepers)
+ * - User management (clients, caregivers)
  * - Application approvals
  * - Settings
  * 
@@ -38,7 +38,6 @@ const state = reactive({
   bookings: [],
   clients: [],
   caregivers: [],
-  housekeepers: [],
   applications: [],
   announcements: [],
   
@@ -120,7 +119,7 @@ export function useAdminStaffState() {
   });
   
   const activeUsers = computed(() => {
-    return [...state.clients, ...state.caregivers, ...state.housekeepers]
+    return [...state.clients, ...state.caregivers]
       .filter(u => u.status === 'Active');
   });
   
@@ -199,16 +198,14 @@ export function useAdminStaffState() {
   const fetchUsers = async () => {
     state.loading.users = true;
     try {
-      const [usersRes, caregiversRes, housekeepersRes] = await Promise.all([
+      const [usersRes, caregiversRes] = await Promise.all([
         axios.get('/api/admin/users', { params: { per_page: 50 } }).catch(() => ({ data: { users: [] } })),
         axios.get('/api/admin/caregivers', { params: { per_page: 50 } }).catch(() => ({ data: { caregivers: [] } })),
-        axios.get('/api/admin/housekeepers', { params: { per_page: 50 } }).catch(() => ({ data: { housekeepers: [] } })),
       ]);
 
       const allUsers = usersRes.data?.users ?? [];
       state.clients = allUsers.filter(u => u.type === 'Client');
       state.caregivers = caregiversRes.data?.caregivers ?? caregiversRes.data?.data ?? [];
-      state.housekeepers = housekeepersRes.data?.housekeepers ?? housekeepersRes.data?.data ?? [];
     } catch (error) {
       console.error('Failed to fetch users:', error);
     } finally {

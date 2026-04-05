@@ -426,7 +426,7 @@ const settings = reactive({
     supportEmail: 'support@casprivatecare.com',
     supportPhone: '(718) 555-0100',
     timezone: 'America/New_York',
-    companyAddress: '123 Care Street, New York, NY 10001',
+    companyAddress: '481 8th Ave, New York, NY 10001',
   },
   booking: {
     minAdvanceBookingHours: 24,

@@ -132,10 +132,20 @@ class PayrollController extends Controller
                 'label' => 'Connect Bank Account'
             ]
         ];
-        
-        // Check certification for caregivers
+
         if ($user->user_type === 'caregiver') {
             $caregiver = $user->caregiver;
+            $payroll = $caregiver?->payrollProfile;
+            $payrollDone = $payroll && $payroll->profile_completed_at;
+            $steps['tax_info'] = [
+                'complete' => $payrollDone || ($user->w9_submitted ?? false),
+                'verified' => (bool) ($payroll?->verified_by_admin_at),
+                'label' => 'Payroll tax & ID (W-2)',
+            ];
+            $steps['bank_account'] = [
+                'complete' => (bool) ($payroll && $payroll->bank_account_number_encrypted),
+                'label' => 'Payroll direct deposit',
+            ];
             $steps['certification'] = [
                 'complete' => $caregiver && ($caregiver->has_hha || $caregiver->has_cna || $caregiver->has_rn),
                 'label' => 'Add Certifications'

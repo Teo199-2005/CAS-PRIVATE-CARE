@@ -100,7 +100,7 @@ class ReportPdfController extends Controller
                     <td>
                         <div class="company-name">CAS PRIVATE CARE LLC</div>
                         <div class="company-tagline">Comfort & Support Healthcare Services</div>
-                        <div class="company-address">Licensed Healthcare Provider | New York</div>
+                        <div class="company-address">Licensed Healthcare Provider | ' . htmlspecialchars(config('app.address', '481 8th Ave, New York, NY 10001'), ENT_QUOTES, 'UTF-8') . '</div>
                     </td>
                     <td class="date-cell">
                         <strong>Report Date:</strong><br>
@@ -124,6 +124,7 @@ class ReportPdfController extends Controller
                 <tr>
                     <td class="footer-left">
                         <strong>CAS Private Care LLC</strong><br>
+                        ' . htmlspecialchars(config('app.address', '481 8th Ave, New York, NY 10001'), ENT_QUOTES, 'UTF-8') . '<br>
                         &copy; ' . date('Y') . ' All Rights Reserved
                     </td>
                     <td class="footer-center">

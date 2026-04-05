@@ -39,6 +39,10 @@ return Application::configure(basePath: dirname(__DIR__))
         
         // Enable session authentication for API routes
         $middleware->statefulApi();
+
+        $middleware->web(append: [
+            \App\Http\Middleware\RejectDecommissionedUserTypes::class,
+        ]);
         
         // Exclude Stripe webhook and auth-protected API from CSRF verification
         // (these routes are same-origin and protected by auth / user.type middleware)
@@ -46,8 +50,6 @@ return Application::configure(basePath: dirname(__DIR__))
             'api/stripe/webhook',
             'api/webhooks/stripe',
             'stripe/webhook',
-            'api/training/caregivers/*/approve',
-            'api/training/caregivers/*/reject',
             'api/profile/update',
         ]);
         

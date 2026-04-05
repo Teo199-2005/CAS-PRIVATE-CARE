@@ -15,6 +15,11 @@ class TimeTrackingController extends Controller
 {
     public function clockIn(Request $request)
     {
+        $user = auth()->user();
+        if (!$user || $user->user_type !== 'caregiver') {
+            return response()->json(['error' => 'Time tracking is no longer supported for this account type.'], 410);
+        }
+
         // Validate - allow either caregiver_id OR housekeeper_id
         $request->validate([
             'caregiver_id' => 'nullable|exists:caregivers,id',
@@ -31,6 +36,10 @@ class TimeTrackingController extends Controller
         // Determine provider type
         $providerType = $request->housekeeper_id ? 'housekeeper' : 'caregiver';
         $providerId = $request->housekeeper_id ?? $request->caregiver_id;
+
+        if ($providerType === 'housekeeper') {
+            return response()->json(['error' => 'Housekeeper time tracking is no longer supported.'], 410);
+        }
 
         // Check if provider is already clocked in
         $activeSessionQuery = TimeTracking::where('status', 'active')
@@ -106,6 +115,11 @@ class TimeTrackingController extends Controller
 
     public function clockOut(Request $request)
     {
+        $user = auth()->user();
+        if (!$user || $user->user_type !== 'caregiver') {
+            return response()->json(['error' => 'Time tracking is no longer supported for this account type.'], 410);
+        }
+
         // Validate - allow either caregiver_id OR housekeeper_id
         $request->validate([
             'caregiver_id' => 'nullable|exists:caregivers,id',
@@ -120,6 +134,10 @@ class TimeTrackingController extends Controller
         // Determine provider type
         $providerType = $request->housekeeper_id ? 'housekeeper' : 'caregiver';
         $providerId = $request->housekeeper_id ?? $request->caregiver_id;
+
+        if ($providerType === 'housekeeper') {
+            return response()->json(['error' => 'Housekeeper time tracking is no longer supported.'], 410);
+        }
 
         // Find active session for this provider
         $activeSessionQuery = TimeTracking::where('status', 'active')
@@ -228,7 +246,7 @@ class TimeTrackingController extends Controller
             
         } else {
             // Get caregiver info
-            $provider = \App\Models\Caregiver::with(['user', 'trainingCenter'])->find($timeTracking->caregiver_id);
+            $provider = \App\Models\Caregiver::with(['user'])->find($timeTracking->caregiver_id);
             if (!$provider) {
                 return;
             }
@@ -244,12 +262,10 @@ class TimeTrackingController extends Controller
             
             // Check if booking has referral code
             $hasReferral = $booking && $booking->referral_code_id && $booking->referralCode;
-            $hasTrainingCenter = $provider->has_training_center && $provider->training_center_id;
             
             // Use PricingService for caregiver rates
             $providerRate = $assignment->assigned_hourly_rate ?? \App\Services\PricingService::getCaregiverRate();
             $clientChargeRate = \App\Services\PricingService::getClientRate($hasReferral);
-            $trainingRate = \App\Services\PricingService::TRAINING_CENTER_RATE;
             
             // Calculate provider earnings
             $providerEarnings = $hoursWorked * $providerRate;
@@ -267,20 +283,15 @@ class TimeTrackingController extends Controller
                 }
             }
             
-            // Training center commission (only for caregivers with training centers)
+            // Training center commission retired — agency receives former training pool via remainder
             $trainingCenterId = null;
             $trainingCommission = 0;
-            
-            if ($hasTrainingCenter) {
-                $trainingCenterId = $provider->training_center_id;
-                $trainingCommission = $hoursWorked * $trainingRate;
-            }
             
             // Calculate total client charge
             $totalClientCharge = $hoursWorked * $clientChargeRate;
             
             // Calculate agency commission (remainder)
-            $agencyCommission = $totalClientCharge - $providerEarnings - $marketingCommission - $trainingCommission;
+            $agencyCommission = $totalClientCharge - $providerEarnings - $marketingCommission;
         }
 
         // Update time tracking record with all earnings
@@ -299,6 +310,11 @@ class TimeTrackingController extends Controller
 
     public function getCurrentSession($caregiverId)
     {
+        $user = auth()->user();
+        if (!$user || $user->user_type !== 'caregiver') {
+            return response()->json(['error' => 'Time tracking is no longer supported for this account type.'], 410);
+        }
+
         $activeSession = TimeTracking::where('caregiver_id', $caregiverId)
             ->where('status', 'active')
             ->whereNull('clock_out_time')
@@ -322,6 +338,11 @@ class TimeTrackingController extends Controller
 
     public function getTodaySummary($caregiverId)
     {
+        $user = auth()->user();
+        if (!$user || $user->user_type !== 'caregiver') {
+            return response()->json(['error' => 'Time tracking is no longer supported for this account type.'], 410);
+        }
+
         $today = Carbon::now()->toDateString();
         
         // Get all sessions for today
@@ -355,6 +376,11 @@ class TimeTrackingController extends Controller
 
     public function getWeeklyHistory($caregiverId)
     {
+        $user = auth()->user();
+        if (!$user || $user->user_type !== 'caregiver') {
+            return response()->json(['error' => 'Time tracking is no longer supported for this account type.'], 410);
+        }
+
         $startOfWeek = Carbon::now()->startOfWeek();
         $endOfWeek = Carbon::now()->endOfWeek();
 

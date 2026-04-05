@@ -879,7 +879,7 @@
             <div class="container">
                 <div class="section-header">
                     <h2><span style="color: #f97316;">What</span> <span style="background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">We Do</span></h2>
-                    <p>A modern marketplace connecting families with independent 1099 contractors</p>
+                    <p>A care platform connecting NYC families with employed W-2 caregivers</p>
                 </div>
                 
                 <div class="what-we-do-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 2rem;">
@@ -890,7 +890,7 @@
                             </div>
                             <h3 style="font-size: 1.25rem; font-weight: 700; color: #1e293b; margin: 0;">We Connect</h3>
                         </div>
-                        <p style="color: #475569; line-height: 1.8; margin: 0;">We bridge the gap between NYC families seeking quality care and verified independent contractors looking for flexible work opportunities.</p>
+                        <p style="color: #475569; line-height: 1.8; margin: 0;">We bridge the gap between NYC families seeking quality care and professional W-2 caregivers supported by payroll and training.</p>
                     </div>
                     
                     <div style="background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border-radius: 20px; padding: 2.5rem; border-left: 4px solid #10b981;">
@@ -900,7 +900,7 @@
                             </div>
                             <h3 style="font-size: 1.25rem; font-weight: 700; color: #1e293b; margin: 0;">We Verify</h3>
                         </div>
-                        <p style="color: #475569; line-height: 1.8; margin: 0;">Every contractor undergoes comprehensive background checks, ID verification, and credential validation before joining our trusted network.</p>
+                        <p style="color: #475569; line-height: 1.8; margin: 0;">Every caregiver undergoes comprehensive background checks, ID verification, and credential validation before joining our team.</p>
                     </div>
                     
                     <div style="background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border-radius: 20px; padding: 2.5rem; border-left: 4px solid #f97316;">
@@ -910,14 +910,14 @@
                             </div>
                             <h3 style="font-size: 1.25rem; font-weight: 700; color: #1e293b; margin: 0;">We Facilitate</h3>
                         </div>
-                        <p style="color: #475569; line-height: 1.8; margin: 0;">Our platform handles secure payments, scheduling, and communication so both families and contractors can focus on what matters most—quality care.</p>
+                        <p style="color: #475569; line-height: 1.8; margin: 0;">Our platform handles secure client payments, scheduling, and communication so families and caregivers can focus on what matters most—quality care.</p>
                     </div>
                 </div>
                 
                 <div style="margin-top: 3rem; background: white; border-radius: 16px; padding: 2rem; box-shadow: 0 4px 20px rgba(0,0,0,0.06); text-align: center;">
                     <p style="color: #64748b; font-size: 1.05rem; margin: 0; line-height: 1.8;">
                         <i class="bi bi-info-circle" style="color: #3b82f6;"></i> 
-                        <strong>1099 Contractor Model:</strong> All service providers on our platform are independent contractors, not employees. They set their own rates, choose their clients, and manage their own schedules.
+                        <strong>W-2 caregiver employment:</strong> In-home caregivers working with CAS Private Care LLC are hired as W-2 employees where that relationship applies, with payroll, tax withholding, and policies communicated at onboarding.
                     </p>
                 </div>
             </div>

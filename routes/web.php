@@ -33,9 +33,9 @@ use App\Http\Controllers\PaymentPageController;
 use App\Http\Controllers\PublicApiController;
 use App\Http\Controllers\ApplicationStatusController;
 use App\Http\Controllers\CaregiverDataController;
+use App\Http\Controllers\CaregiverPayrollProfileController;
 use App\Http\Controllers\PricingController;
 use App\Http\Controllers\MarketingStaffController;
-use App\Http\Controllers\TrainingCenterController;
 use App\Http\Controllers\DebugController;
 use App\Http\Controllers\AvatarController;
 use App\Http\Controllers\FeaturedPostController;
@@ -69,7 +69,9 @@ Route::get('/sitemap.xml', [\App\Http\Controllers\SitemapController::class, 'ind
 
 // Static SEO Pages
 Route::get('/caregiver-new-york', [PageController::class, 'caregiverNewYork'])->name('caregiver-new-york');
-Route::get('/housekeeper-new-york', [PageController::class, 'housekeeperNewYork'])->name('housekeeper-new-york');
+Route::get('/housekeeper-new-york', function () {
+    return redirect('/contractors', 301);
+})->name('housekeeper-new-york');
 Route::get('/hire-caregiver-new-york', [PageController::class, 'hireCaregiverNewYork'])->name('hire-caregiver-new-york');
 Route::get('/caregiver-brooklyn', [PageController::class, 'caregiverBrooklyn'])->name('caregiver-brooklyn');
 Route::get('/caregiver-manhattan', [PageController::class, 'caregiverManhattan'])->name('caregiver-manhattan');
@@ -81,10 +83,16 @@ Route::get('/faq', [PageController::class, 'faq'])->name('faq');
 Route::get('/about', [PageController::class, 'about'])->name('about');
 Route::get('/privacy', [PageController::class, 'privacy'])->name('privacy');
 Route::get('/terms', [PageController::class, 'terms'])->name('terms');
-Route::get('/housekeeping-personal-assistant', [PageController::class, 'housekeepingPersonalAssistant'])->name('housekeeping-personal-assistant');
-Route::get('/housekeeping-new-york', [PageController::class, 'housekeepingNewYork'])->name('housekeeping-new-york');
+Route::get('/housekeeping-personal-assistant', function () {
+    return redirect('/contractors', 301);
+})->name('housekeeping-personal-assistant');
+Route::get('/housekeeping-new-york', function () {
+    return redirect('/contractors', 301);
+})->name('housekeeping-new-york');
 Route::get('/personal-assistant-new-york', [PageController::class, 'personalAssistantNewYork'])->name('personal-assistant-new-york');
-Route::get('/training-center', [PageController::class, 'trainingCenter'])->name('training-center');
+Route::get('/training-center', function () {
+    return redirect('/contractors', 301);
+})->name('training-center');
 Route::get('/services', [PageController::class, 'services'])->name('services');
 Route::get('/contractors', [PageController::class, 'contractors'])->name('contractors');
 
@@ -187,11 +195,17 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/caregiver/dashboard-vue', [DashboardRedirectController::class, 'caregiverDashboardVue'])->name('caregiver.dashboard');
     
     // Housekeeper Dashboard
-    Route::get('/housekeeper/dashboard-vue', [DashboardRedirectController::class, 'housekeeperDashboardVue'])->name('housekeeper.dashboard');
+    Route::get('/housekeeper/dashboard-vue', function () {
+        abort(410, 'Housekeeper dashboard is no longer supported.');
+    })->middleware('user.type:housekeeper')->name('housekeeper.dashboard');
     
-    // Admin Dashboards
-    Route::get('/admin/dashboard-vue', [DashboardRedirectController::class, 'adminDashboardVue'])->name('admin.dashboard');
-    Route::get('/admin-staff/dashboard-vue', [DashboardRedirectController::class, 'adminStaffDashboardVue'])->name('admin-staff.dashboard');
+    // Admin Dashboards (2FA required for admin / admin staff)
+    Route::get('/admin/dashboard-vue', [DashboardRedirectController::class, 'adminDashboardVue'])
+        ->middleware('2fa')
+        ->name('admin.dashboard');
+    Route::get('/admin-staff/dashboard-vue', [DashboardRedirectController::class, 'adminStaffDashboardVue'])
+        ->middleware('2fa')
+        ->name('admin-staff.dashboard');
     Route::get('/admin/settings', [AdminController::class, 'settings'])->middleware('user.type:admin,adminstaff');
     Route::post('/admin/settings', [AdminController::class, 'updateSettings'])->middleware('user.type:admin,adminstaff');
     
@@ -199,13 +213,19 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/marketing/dashboard-vue', [DashboardRedirectController::class, 'marketingDashboardVue'])->name('marketing.dashboard');
     
     // Training Dashboard
-    Route::get('/training/dashboard-vue', [DashboardRedirectController::class, 'trainingDashboardVue'])->name('training.dashboard');
+    Route::get('/training/dashboard-vue', function () {
+        abort(410, 'Training center dashboard is no longer supported.');
+    })->middleware('user.type:training,training_center')->name('training.dashboard');
     
     // Bank Connection Pages
     Route::get('/connect-bank-account', [DashboardRedirectController::class, 'connectBankAccount'])->name('connect.bank.account');
-    Route::get('/connect-bank-account-housekeeper', [DashboardRedirectController::class, 'connectBankAccountHousekeeper'])->name('connect.bank.account.housekeeper');
+    Route::get('/connect-bank-account-housekeeper', function () {
+        abort(410, 'Housekeeper Stripe Connect is no longer supported.');
+    })->middleware('user.type:housekeeper')->name('connect.bank.account.housekeeper');
     Route::get('/connect-bank-account-marketing', [DashboardRedirectController::class, 'connectBankAccountMarketing'])->name('marketing.connect.bank');
-    Route::get('/connect-bank-account-training', [DashboardRedirectController::class, 'connectBankAccountTraining'])->name('training.connect.bank');
+    Route::get('/connect-bank-account-training', function () {
+        abort(410, 'Training center onboarding is no longer supported.');
+    })->middleware('user.type:training,training_center')->name('training.connect.bank');
     
     // Payment Method Pages
     Route::get('/link-payment-method', [DashboardRedirectController::class, 'linkPaymentMethod'])->name('link.payment.method');
@@ -248,7 +268,6 @@ Route::prefix('api')->middleware(['web', 'auth', 'throttle:dashboard'])->group(f
     // Application Status
     Route::get('/caregiver/application-status', [ApplicationStatusController::class, 'caregiverStatus']);
     Route::get('/marketing/application-status', [ApplicationStatusController::class, 'marketingStatus']);
-    Route::get('/training/application-status', [ApplicationStatusController::class, 'trainingStatus']);
     
     // Bookings
     Route::post('/bookings', [BookingController::class, 'store'])->middleware('throttle:10,1');
@@ -290,7 +309,6 @@ Route::prefix('api')->middleware(['web', 'auth', 'throttle:dashboard'])->group(f
     
     // Caregiver Data
     Route::get('/caregivers', [\App\Http\Controllers\DashboardController::class, 'caregivers']);
-    Route::get('/housekeepers', [\App\Http\Controllers\DashboardController::class, 'housekeepers']);
     Route::get('/caregiver/{id}/stats', [\App\Http\Controllers\DashboardController::class, 'caregiverStats']);
     Route::get('/caregiver/{id}/earnings-report', [CaregiverController::class, 'getEarningsReport']);
     Route::post('/caregiver/earnings-report-pdf', [CaregiverController::class, 'generateEarningsReportPdf'])
@@ -300,6 +318,8 @@ Route::prefix('api')->middleware(['web', 'auth', 'throttle:dashboard'])->group(f
     Route::get('/caregiver/payment-data', [CaregiverDataController::class, 'paymentData']);
     Route::get('/caregiver/past-bookings', [CaregiverDataController::class, 'pastBookings']);
     Route::get('/caregiver/schedule-events', [CaregiverDataController::class, 'scheduleEvents']);
+    Route::get('/caregiver/payroll-profile', [CaregiverPayrollProfileController::class, 'show']);
+    Route::put('/caregiver/payroll-profile', [CaregiverPayrollProfileController::class, 'update']);
     
     // Notifications
     Route::get('/notifications', [\App\Http\Controllers\NotificationController::class, 'index']);
@@ -320,11 +340,6 @@ Route::prefix('api')->middleware(['web', 'auth', 'throttle:dashboard'])->group(f
     Route::get('/time-tracking/weekly-history/{caregiverId}', [\App\Http\Controllers\TimeTrackingController::class, 'getWeeklyHistory']);
     Route::get('/time-tracking/today-summary/{caregiverId}', [\App\Http\Controllers\TimeTrackingController::class, 'getTodaySummary']);
     
-    // Housekeeper Time Tracking
-    Route::get('/time-tracking/housekeeper/current-session/{housekeeperId}', [\App\Http\Controllers\TimeTrackingController::class, 'getHousekeeperCurrentSession']);
-    Route::get('/time-tracking/housekeeper/weekly-history/{housekeeperId}', [\App\Http\Controllers\TimeTrackingController::class, 'getHousekeeperWeeklyHistory']);
-    Route::get('/time-tracking/housekeeper/today-summary/{housekeeperId}', [\App\Http\Controllers\TimeTrackingController::class, 'getHousekeeperTodaySummary']);
-    
     // Referral Codes
     Route::get('/referral-codes/my-code', [\App\Http\Controllers\ReferralCodeController::class, 'getMyCode']);
     Route::post('/referral-codes/validate', [\App\Http\Controllers\ReferralCodeController::class, 'validateCode']);
@@ -332,7 +347,6 @@ Route::prefix('api')->middleware(['web', 'auth', 'throttle:dashboard'])->group(f
     // Marketing stats (same auth as my-code so session is always valid; returns only current user's stats)
     Route::get('/marketing/stats', [\App\Http\Controllers\MarketingStaffController::class, 'stats']);
     
-    // Training Centers dropdown: handled by api.php GET /api/training-centers (no auth) so caregiver/housekeeper profile always gets the list
     // Receipts
     Route::get('/receipts/payment/{bookingId}', [\App\Http\Controllers\ReceiptController::class, 'generatePaymentReceipt'])->name('receipt.payment');
     Route::get('/receipts/payment/{bookingId}/download', [\App\Http\Controllers\ReceiptController::class, 'downloadPaymentReceipt'])->name('receipt.payment.download');
@@ -386,6 +400,8 @@ Route::prefix('api')->middleware(['web', 'auth', 'user.type:admin,adminstaff', '
     Route::put('/admin/users/{id}', [UserAdminController::class, 'updateUser']);
     Route::put('/admin/users/{id}/status', [UserAdminController::class, 'updateUserStatus']);
     Route::put('/admin/caregivers/{id}/status', [UserAdminController::class, 'updateCaregiverStatus']);
+    Route::get('/admin/caregivers/{userId}/payroll-profile', [CaregiverPayrollProfileController::class, 'adminShow']);
+    Route::put('/admin/caregivers/{userId}/payroll-profile', [CaregiverPayrollProfileController::class, 'adminUpdate']);
     Route::delete('/admin/users/{id}', [UserAdminController::class, 'deleteUser']);
     Route::get('/admin/applications', [UserAdminController::class, 'getApplications']);
     Route::post('/admin/applications/{id}/approve', [UserAdminController::class, 'approveApplication']);
@@ -403,13 +419,6 @@ Route::prefix('api')->middleware(['web', 'auth', 'user.type:admin,adminstaff', '
     Route::put('/admin/admin-staff/{id}', [StaffAdminController::class, 'updateAdminStaff']);
     Route::delete('/admin/admin-staff/{id}', [StaffAdminController::class, 'deleteAdminStaff']);
     Route::get('/admin/admin-staff/permissions', [StaffAdminController::class, 'getAdminStaffPermissions']);
-    
-    // Training Center Management (StaffAdminController)
-    Route::get('/admin/training-centers', [StaffAdminController::class, 'getTrainingCenters']);
-    Route::post('/admin/training-centers', [StaffAdminController::class, 'storeTrainingCenter']);
-    Route::put('/admin/training-centers/{id}', [StaffAdminController::class, 'updateTrainingCenter']);
-    Route::delete('/admin/training-centers/{id}', [StaffAdminController::class, 'deleteTrainingCenter']);
-    Route::get('/admin/training-centers/{id}/caregivers', [StaffAdminController::class, 'getTrainingCenterCaregivers']);
     
     // Password Resets (UserAdminController)
     Route::get('/admin/password-resets', [UserAdminController::class, 'getPasswordResets']);
@@ -429,28 +438,20 @@ Route::prefix('api')->middleware(['web', 'auth', 'user.type:admin,adminstaff', '
     
     // Booking Assignments (BookingAdminController)
     Route::post('/bookings/{id}/assign', [BookingAdminController::class, 'assignCaregivers']);
-    Route::post('/bookings/{id}/assign-housekeepers', [BookingAdminController::class, 'assignHousekeepers']);
     Route::post('/bookings/{id}/unassign', [BookingAdminController::class, 'unassignCaregiver']);
-    Route::post('/bookings/{id}/unassign-housekeeper', [BookingAdminController::class, 'unassignHousekeeper']);
-    Route::get('/bookings/{id}/housekeeper/{housekeeperId}/schedule', [BookingAdminController::class, 'getHousekeeperSchedule']);
-    Route::post('/bookings/{id}/housekeeper/{housekeeperId}/schedule', [BookingAdminController::class, 'updateHousekeeperSchedule']);
     Route::get('/bookings/{id}/staff-weekly-hours', [BookingAdminController::class, 'getStaffWeeklyHours']);
     
     // Payments & Analytics (ReportAdminController)
     Route::get('/admin/payment-stats', [ReportAdminController::class, 'getPaymentStats']);
     Route::get('/admin/transactions', [ReportAdminController::class, 'getTransactions']);
     Route::get('/admin/client-payments', [ReportAdminController::class, 'getClientPayments']);
+    Route::get('/admin/training-commissions', [AdminController::class, 'getTrainingCommissions']);
     Route::get('/admin/caregiver-salaries', [ReportAdminController::class, 'getCaregiverSalaries']);
-    Route::get('/admin/housekeeper-salaries', [ReportAdminController::class, 'getHousekeeperSalaries']);
     Route::post('/admin/pay-caregiver', [ReportAdminController::class, 'payCaregiver']);
-    Route::post('/admin/pay-housekeeper', [ReportAdminController::class, 'payHousekeeper']);
     
     // Commissions (ReportAdminController)
     Route::get('/admin/marketing-commissions', [ReportAdminController::class, 'getMarketingCommissions']);
     Route::post('/admin/pay-marketing-commission/{id}', [ReportAdminController::class, 'payMarketingCommission']);
-    Route::get('/admin/training-commissions', [ReportAdminController::class, 'getTrainingCommissions']);
-    Route::post('/admin/pay-training-commission/{id}', [ReportAdminController::class, 'payTrainingCommission']);
-    
     // Payment Monitoring
     Route::get('/admin/money-flow-dashboard', [\App\Http\Controllers\PaymentMonitoringController::class, 'getMoneyFlowDashboard']);
     Route::get('/admin/verify-payout/{id}', [\App\Http\Controllers\PaymentMonitoringController::class, 'verifyPayoutDetails']);
@@ -518,17 +519,6 @@ Route::prefix('api')->middleware(['web', 'auth', 'user.type:admin,adminstaff', '
 // Note: /api/marketing/stats is under the general auth group above so it always receives the same session as /api/referral-codes/my-code
 
 // ============================================
-// TRAINING CENTER API ROUTES
-// ============================================
-
-Route::prefix('api')->middleware(['web', 'auth', 'user.type:training,training_center'])->group(function () {
-    Route::get('/training/pending-caregivers', [TrainingCenterController::class, 'pendingCaregivers']);
-    Route::post('/training/caregivers/{id}/approve', [TrainingCenterController::class, 'approveCaregiver']);
-    Route::post('/training/caregivers/{id}/reject', [TrainingCenterController::class, 'rejectCaregiver']);
-    Route::get('/training/stats', [TrainingCenterController::class, 'stats']);
-});
-
-// ============================================
 // DEVELOPMENT-ONLY ROUTES
 // ============================================
 
@@ -565,15 +555,8 @@ Route::middleware(['auth'])->prefix('api/stripe')->group(function () {
     Route::post('/connect-payout-method', [\App\Http\Controllers\StripeController::class, 'connectPayoutMethod']);
     Route::get('/connection-status', [\App\Http\Controllers\StripeController::class, 'getConnectionStatus']);
     
-    // Housekeeper Bank Connection
-    Route::post('/housekeeper/create-onboarding-link', [\App\Http\Controllers\StripeController::class, 'createHousekeeperOnboardingLink']);
-    Route::post('/housekeeper/connect-payout-method', [\App\Http\Controllers\StripeController::class, 'connectHousekeeperPayoutMethod']);
-    Route::get('/housekeeper/onboarding-status', [\App\Http\Controllers\StripeController::class, 'checkHousekeeperOnboardingStatus']);
-    Route::get('/housekeeper/connection-status', [\App\Http\Controllers\StripeController::class, 'getHousekeeperConnectionStatus']);
-    
-    // Marketing & Training Bank Connection
+    // Marketing Bank Connection
     Route::post('/connect-bank-account-marketing', [\App\Http\Controllers\StripeController::class, 'connectMarketingBankAccount']);
-    Route::post('/connect-bank-account-training', [\App\Http\Controllers\StripeController::class, 'connectTrainingBankAccount']);
     
     // Admin Payment Processing
     Route::post('/process-payment/{timeTrackingId}', [\App\Http\Controllers\StripeController::class, 'processPayment'])
@@ -587,8 +570,6 @@ Route::middleware(['auth'])->prefix('api/stripe')->group(function () {
     
     // Admin Commission Payments
     Route::post('/admin/pay-marketing-commission/{userId}', [\App\Http\Controllers\StripeController::class, 'payMarketingCommission'])
-        ->middleware('user.type:admin,adminstaff');
-    Route::post('/admin/pay-training-commission/{userId}', [\App\Http\Controllers\StripeController::class, 'payTrainingCommission'])
         ->middleware('user.type:admin,adminstaff');
 });
 

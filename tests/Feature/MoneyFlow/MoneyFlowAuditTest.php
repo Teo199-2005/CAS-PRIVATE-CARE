@@ -45,25 +45,25 @@ class MoneyFlowAuditTest extends TestCase
     /** @test */
     public function caregiver_earnings_calculated_correctly_with_referral()
     {
-        // Scenario: 8 hours worked, with referral ($40/hr client rate)
+        // Scenario: 8 hours worked, with referral ($43.50/hr client rate, $1.50/hr marketing)
         $hours = 8;
-        $clientRate = 40.00;
+        $clientRate = 43.50;
         $caregiverRate = 28.00;
         $marketingCommission = 1.00;
-        $trainingCommission = 0.50;
+        $trainingCommission = 0.00;
         
-        $totalClientCharge = $hours * $clientRate; // $320
+        $totalClientCharge = $hours * $clientRate; // $348
         $caregiverEarnings = $hours * $caregiverRate; // $224
         $marketingPayout = $hours * $marketingCommission; // $8
-        $trainingPayout = $hours * $trainingCommission; // $4
+        $trainingPayout = $hours * $trainingCommission; // $0
         $agencyProfit = $totalClientCharge - $caregiverEarnings - $marketingPayout - $trainingPayout;
         
         // Verify math adds up
-        $this->assertEquals(320, $totalClientCharge);
+        $this->assertEquals(348, $totalClientCharge);
         $this->assertEquals(224, $caregiverEarnings);
         $this->assertEquals(8, $marketingPayout);
-        $this->assertEquals(4, $trainingPayout);
-        $this->assertEquals(84, $agencyProfit);
+        $this->assertEquals(0, $trainingPayout);
+        $this->assertEquals(116, $agencyProfit);
         
         // All distributions should equal client charge
         $totalDistributed = $caregiverEarnings + $marketingPayout + $trainingPayout + $agencyProfit;
@@ -78,20 +78,20 @@ class MoneyFlowAuditTest extends TestCase
         $clientRate = 45.00;
         $caregiverRate = 28.00;
         $marketingCommission = 0.00; // No referral
-        $trainingCommission = 0.50;
+        $trainingCommission = 0.00;
         
         $totalClientCharge = $hours * $clientRate; // $360
         $caregiverEarnings = $hours * $caregiverRate; // $224
         $marketingPayout = $hours * $marketingCommission; // $0
-        $trainingPayout = $hours * $trainingCommission; // $4
+        $trainingPayout = $hours * $trainingCommission; // $0
         $agencyProfit = $totalClientCharge - $caregiverEarnings - $marketingPayout - $trainingPayout;
         
         // Verify math adds up
         $this->assertEquals(360, $totalClientCharge);
         $this->assertEquals(224, $caregiverEarnings);
         $this->assertEquals(0, $marketingPayout);
-        $this->assertEquals(4, $trainingPayout);
-        $this->assertEquals(132, $agencyProfit);
+        $this->assertEquals(0, $trainingPayout);
+        $this->assertEquals(136, $agencyProfit);
         
         // All distributions should equal client charge
         $totalDistributed = $caregiverEarnings + $marketingPayout + $trainingPayout + $agencyProfit;
@@ -104,12 +104,12 @@ class MoneyFlowAuditTest extends TestCase
         // Scenario: 7 hours 45 minutes worked (465 minutes)
         $minutes = 465;
         $hours = $minutes / 60; // 7.75 hours
-        $clientRate = 40.00;
+        $clientRate = 43.50;
         
         $totalCharge = round($hours * $clientRate, 2);
         $caregiverEarnings = round($hours * 28.00, 2);
         
-        $this->assertEquals(310.00, $totalCharge);
+        $this->assertEquals(337.13, $totalCharge);
         $this->assertEquals(217.00, $caregiverEarnings);
     }
 
@@ -367,24 +367,23 @@ class MoneyFlowAuditTest extends TestCase
     }
 
     /** @test */
-    public function training_commission_is_fixed_at_50_cents()
+    public function training_commission_is_retired_at_zero()
     {
-        // Training center commission is $0.50/hr
-        $trainingRate = 0.50;
+        $trainingRate = 0.00;
         
-        $this->assertEquals(0.50, $trainingRate);
+        $this->assertEquals(0.00, $trainingRate);
     }
 
     /** @test */
-    public function client_rates_are_45_without_referral_40_with_referral()
+    public function client_rates_are_45_without_referral_43_50_with_referral()
     {
         $standardRate = 45.00;
-        $referralRate = 40.00;
+        $referralRate = 43.50;
         $referralDiscount = $standardRate - $referralRate;
         
         $this->assertEquals(45.00, $standardRate);
-        $this->assertEquals(40.00, $referralRate);
-        $this->assertEquals(5.00, $referralDiscount);
+        $this->assertEquals(43.50, $referralRate);
+        $this->assertEquals(1.50, $referralDiscount);
     }
 
     // ==========================================

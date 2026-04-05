@@ -161,7 +161,7 @@
                 <img src="https://casprivatecare.online/logo%20flower.png" alt="CAS" style="width: 40px; height: 40px; border-radius: 50%;">
             </div>
             <p style="font-size: 14px; color: #ffffff; margin-bottom: 10px;"><strong>CAS Private Care LLC</strong></p>
-            <p>New York, NY</p>
+            <p>{{ config('app.address', '481 8th Ave, New York, NY 10001') }}</p>
             <p>
                 <a href="tel:+16462828282">(646) 282-8282</a> | 
                 <a href="mailto:casprivatecare@casprivatecare.com">casprivatecare@casprivatecare.com</a>

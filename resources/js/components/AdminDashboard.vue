@@ -117,15 +117,6 @@
                     <div class="mb-3">
                       <div class="d-flex justify-space-between align-center mb-1">
                         <div class="d-flex align-center">
-                          <v-icon color="purple" size="18" class="mr-2">mdi-broom</v-icon>
-                          <span class="summary-label-compact">Housekeepers</span>
-                        </div>
-                        <span class="summary-value-compact" style="color: #6A1B9A;">{{ housekeepers.length }}</span>
-                      </div>
-                    </div>
-                    <div class="mb-3">
-                      <div class="d-flex justify-space-between align-center mb-1">
-                        <div class="d-flex align-center">
                           <v-icon color="info" size="18" class="mr-2">mdi-account-group</v-icon>
                           <span class="summary-label-compact">Clients</span>
                         </div>
@@ -253,21 +244,6 @@
                       <v-icon size="28" class="mb-2">mdi-account-heart</v-icon>
                       <span class="text-caption font-weight-medium">Caregivers</span>
                       <span class="text-h6 font-weight-bold">{{ caregivers.length }}</span>
-                    </div>
-                  </v-btn>
-                </v-col>
-                <v-col cols="6" sm="4" md="2">
-                  <v-btn 
-                    variant="tonal" 
-                    color="purple" 
-                    block 
-                    class="quick-action-btn py-6"
-                    @click="currentSection = 'housekeepers'"
-                  >
-                    <div class="d-flex flex-column align-center">
-                      <v-icon size="28" class="mb-2">mdi-broom</v-icon>
-                      <span class="text-caption font-weight-medium">Housekeepers</span>
-                      <span class="text-h6 font-weight-bold">{{ housekeepers.length }}</span>
                     </div>
                   </v-btn>
                 </v-col>
@@ -581,20 +557,12 @@
                     <span class="stat-text">Caregivers: {{ caregiverMetrics[0].value }}</span>
                   </div>
                   <div class="user-stat-item">
-                    <div class="stat-dot" style="background-color: #8b5cf6;"></div>
-                    <span class="stat-text">Housekeepers: {{ housekeeperMetrics[0].value }}</span>
-                  </div>
-                  <div class="user-stat-item">
                     <div class="stat-dot" style="background-color: #dc2626;"></div>
                     <span class="stat-text">Admins: {{ adminCount }}</span>
                   </div>
                   <div class="user-stat-item">
                     <div class="stat-dot" style="background-color: #f59e0b;"></div>
                     <span class="stat-text">Marketing: {{ marketingCount }}</span>
-                  </div>
-                  <div class="user-stat-item">
-                    <div class="stat-dot" style="background-color: #06b6d4;"></div>
-                    <span class="stat-text">Training: {{ trainingCenterCount }}</span>
                   </div>
                 </div>
               </div>
@@ -695,24 +663,6 @@
         <v-col cols="12" md="4">
           <v-card elevation="0" class="mb-3" style="border: 1px solid #c5c5c5ff;">
             <v-card-title class="compact-header pa-4">
-              <span class="compact-title deep-purple--text">Housekeeper Analytics</span>
-            </v-card-title>
-            <v-card-text class="pa-4">
-              <v-row>
-                <v-col cols="6" v-for="metric in housekeeperMetrics" :key="metric.label">
-                  <div class="metric-box">
-                    <div class="metric-number" :class="metric.color + '--text'">{{ metric.value }}</div>
-                    <div class="metric-text">{{ metric.label }}</div>
-                  </div>
-                </v-col>
-              </v-row>
-            </v-card-text>
-          </v-card>
-        </v-col>
-
-        <v-col cols="12" md="4">
-          <v-card elevation="0" class="mb-3" style="border: 1px solid #c5c5c5ff;">
-            <v-card-title class="compact-header pa-4">
               <span class="compact-title error--text">Admin Staff Analytics</span>
             </v-card-title>
             <v-card-text class="pa-4">
@@ -746,23 +696,6 @@
           </v-card>
         </v-col>
 
-        <v-col cols="12" md="4">
-          <v-card elevation="0" class="mb-3" style="border: 1px solid #c5c5c5ff;">
-            <v-card-title class="compact-header pa-4">
-              <span class="compact-title info--text">Training Center Analytics</span>
-            </v-card-title>
-            <v-card-text class="pa-4">
-              <v-row>
-                <v-col cols="6" v-for="metric in trainingCenterMetrics" :key="metric.label">
-                  <div class="metric-box">
-                    <div class="metric-number" :class="metric.color + '--text'">{{ metric.value }}</div>
-                    <div class="metric-text">{{ metric.label }}</div>
-                  </div>
-                </v-col>
-              </v-row>
-            </v-card-text>
-          </v-card>
-        </v-col>
       </v-row>
 
 </div>
@@ -1546,334 +1479,6 @@
           <v-spacer />
           <v-btn color="grey" variant="outlined" @click="viewClientDialog = false">Close</v-btn>
           <v-btn color="error" @click="openClientDialog(viewingClient); viewClientDialog = false">Edit</v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
-
-    <!-- Housekeepers Management Section -->
-    <div v-if="currentSection === 'housekeepers'">
-      <div class="mb-6">
-        <v-row class="align-center">
-          <v-col cols="12" md="3">
-            <v-text-field v-model="housekeeperSearch" placeholder="Search housekeepers..." prepend-inner-icon="mdi-magnify" variant="outlined" density="compact" hide-details />
-          </v-col>
-          <v-col cols="12" sm="6" md="2">
-            <v-select v-model="housekeeperLocationFilter" :items="housekeeperLocationOptions" label="Location" variant="outlined" density="compact" hide-details />
-          </v-col>
-          <v-col cols="12" sm="6" md="2">
-            <v-select v-model="housekeeperCountyFilter" :items="housekeeperCountyOptions" label="County/Borough" variant="outlined" density="compact" hide-details />
-          </v-col>
-          <v-col cols="12" sm="6" md="2">
-            <v-select v-model="housekeeperCityFilter" :items="housekeeperCityOptions" label="City" variant="outlined" density="compact" hide-details :disabled="housekeeperCountyFilter === 'All'" />
-          </v-col>
-          <v-col cols="12" sm="6" md="2">
-            <v-select v-model="housekeeperContractFilter" :items="['All', 'Ongoing contract', 'No contract']" label="Contract" variant="outlined" density="compact" hide-details />
-          </v-col>
-          <v-col cols="12" sm="6" md="2">
-            <v-btn color="error" prepend-icon="mdi-plus" @click="openHousekeeperDialog()">Add Housekeeper</v-btn>
-          </v-col>
-        </v-row>
-      </div>
-      <v-card elevation="0">
-        <v-card-title class="card-header pa-4 pa-md-8 d-flex justify-space-between align-center flex-wrap ga-2">
-          <span class="section-title deep-purple--text">Housekeepers</span>
-          <v-btn v-if="selectedHousekeepers.length > 0" color="error" variant="outlined" prepend-icon="mdi-delete" size="small" @click="deleteSelectedHousekeepers">
-            Delete ({{ selectedHousekeepers.length }})
-          </v-btn>
-        </v-card-title>
-        
-        <!-- Desktop Table View -->
-        <v-data-table v-if="!isMobile" v-model="selectedHousekeepers" :headers="housekeeperHeaders" :items="filteredHousekeepers" :items-per-page="10" show-select item-value="userId" class="elevation-0" density="compact">
-          <template v-slot:item.location="{ item }">
-            {{ item.location || 'Unknown' }}
-          </template>
-          <template v-slot:item.hourly_rate="{ item }">
-            <span>${{ item.hourly_rate ?? 20 }}/hr</span>
-          </template>
-          <template v-slot:item.status="{ item }">
-            <v-chip
-              :color="getUserStatusColor(item.status)"
-              size="small"
-              class="font-weight-bold"
-              :style="(String(item.status).toLowerCase() === 'pending') ? 'background-color: #f59e0b !important; color: #ffffff !important;' : ''"
-            >{{ item.status }}</v-chip>
-          </template>
-          <template v-slot:item.rating="{ item }">
-            <div class="d-flex align-center">
-              <v-rating
-                :model-value="parseFloat(item.rating || 0)"
-                :length="5"
-                :size="18"
-                color="amber"
-                active-color="amber"
-                half-increments
-                readonly
-                density="compact"
-              ></v-rating>
-              <span class="ml-1 text-caption">{{ parseFloat(item.rating || 0).toFixed(1) }}</span>
-            </div>
-          </template>
-          <template v-slot:item.actions="{ item }">
-            <div class="action-buttons">
-              <v-btn class="action-btn-view" icon="mdi-eye" size="small" @click="viewHousekeeperDetails(item)"></v-btn>
-              <v-btn class="action-btn-unapprove" icon="mdi-undo" size="small" @click="unapproveApplication(item)" :title="'Unapprove (set back to pending)'"></v-btn>
-              <v-btn class="action-btn-edit" icon="mdi-pencil" size="small" @click="openHousekeeperDialog(item)"></v-btn>
-            </div>
-          </template>
-        </v-data-table>
-        
-        <!-- Mobile Card View -->
-        <div v-else class="mobile-cards-container pa-3">
-          <v-card v-for="item in filteredHousekeepers" :key="item.userId" class="mobile-data-card mb-3" elevation="2">
-            <v-card-text class="pa-0">
-              <div class="mobile-card-header d-flex justify-space-between align-center pa-3 housekeeper-mobile-header" style="background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);">
-                <div class="d-flex align-center">
-                  <v-checkbox v-model="selectedHousekeepers" :value="item.userId" hide-details density="compact" color="white" class="mr-2 mobile-card-checkbox"></v-checkbox>
-                  <span class="text-white font-weight-bold">{{ item.first_name }} {{ item.last_name }}</span>
-                </div>
-                <v-chip
-                  :color="getUserStatusColor(item.status)"
-                  size="small"
-                  class="font-weight-bold mobile-header-status-chip"
-                  :class="{ 'chip-pending-on-dark': String(item.status).toLowerCase() === 'pending' }"
-                  variant="flat"
-                >{{ item.status }}</v-chip>
-              </div>
-              <div class="mobile-card-body pa-3">
-                <div class="mobile-card-row d-flex justify-space-between py-2" style="border-bottom: 1px solid #f3f4f6;">
-                  <span class="mobile-card-label text-grey-darken-1">Email:</span>
-                  <span class="mobile-card-value text-primary font-weight-medium" style="word-break: break-all;">{{ item.email }}</span>
-                </div>
-                <div class="mobile-card-row d-flex justify-space-between py-2" style="border-bottom: 1px solid #f3f4f6;">
-                  <span class="mobile-card-label text-grey-darken-1">Phone:</span>
-                  <span class="mobile-card-value">{{ item.phone || 'N/A' }}</span>
-                </div>
-                <div class="mobile-card-row d-flex justify-space-between py-2" style="border-bottom: 1px solid #f3f4f6;">
-                  <span class="mobile-card-label text-grey-darken-1">Location:</span>
-                  <span class="mobile-card-value">{{ item.location || 'Unknown' }}</span>
-                </div>
-                <div class="mobile-card-row d-flex justify-space-between py-2" style="border-bottom: 1px solid #f3f4f6;">
-                  <span class="mobile-card-label text-grey-darken-1">Preferred Hourly Rate:</span>
-                  <span class="mobile-card-value font-weight-bold deep-purple--text">${{ item.hourly_rate ?? 20 }}/hr</span>
-                </div>
-                <div class="mobile-card-row mobile-card-row-rating py-2">
-                  <span class="mobile-card-label text-grey-darken-1 d-block mb-1">Rating:</span>
-                  <div class="d-flex align-center flex-wrap">
-                    <v-rating :model-value="parseFloat(item.rating || 0)" :length="5" :size="14" color="amber" active-color="amber" half-increments readonly density="compact" class="caregiver-mobile-rating"></v-rating>
-                    <span class="ml-1 text-caption">{{ parseFloat(item.rating || 0).toFixed(1) }}</span>
-                  </div>
-                </div>
-              </div>
-              <div class="mobile-card-actions d-flex justify-center ga-2 pa-3" style="background: #f9fafb; border-top: 1px solid #e5e7eb;">
-                <v-btn color="primary" variant="tonal" size="small" prepend-icon="mdi-eye" @click="viewHousekeeperDetails(item)">View</v-btn>
-                <v-btn color="warning" variant="tonal" size="small" prepend-icon="mdi-undo" @click="unapproveApplication(item)">Undo</v-btn>
-                <v-btn color="info" variant="tonal" size="small" prepend-icon="mdi-pencil" @click="openHousekeeperDialog(item)">Edit</v-btn>
-              </div>
-            </v-card-text>
-          </v-card>
-        </div>
-      </v-card>
-    </div>
-
-    <!-- View Housekeeper Details Dialog -->
-    <v-dialog v-model="viewHousekeeperDialog" :max-width="isMobile ? undefined : 800" :fullscreen="isMobile" scrollable>
-      <v-card v-if="viewingHousekeeper">
-        <v-card-title class="pa-6" style="background: #6A1B9A; color: white;">
-          <div class="d-flex align-center justify-space-between w-100">
-            <span class="section-title" style="color: white;">Housekeeper Details</span>
-            <v-btn icon="mdi-close" variant="text" style="color: white;" @click="viewHousekeeperDialog = false" aria-label="Close housekeeper details dialog"></v-btn>
-          </div>
-        </v-card-title>
-        <v-card-text class="pa-6" style="max-height: 60vh; overflow-y: auto;">
-          <v-row>
-            <v-col cols="12" class="text-center mb-4">
-              <v-avatar size="120" color="#6A1B9A" class="mb-3">
-                <span class="text-h3 font-weight-bold text-white">{{ (viewingHousekeeper.name || '').split(' ').map(n => n[0]).join('') || '?' }}</span>
-              </v-avatar>
-              <h2>{{ viewingHousekeeper.name }}</h2>
-              <v-chip :color="getUserStatusColor(viewingHousekeeper.status)" class="mt-2">{{ viewingHousekeeper.status }}</v-chip>
-              <v-chip :color="viewingHousekeeper.verified ? 'success' : 'warning'" class="mt-2 ml-2">
-                <v-icon size="16" class="mr-1">{{ viewingHousekeeper.verified ? 'mdi-shield-check' : 'mdi-shield-alert' }}</v-icon>
-                {{ viewingHousekeeper.verified ? 'Verified' : 'Pending' }}
-              </v-chip>
-              <!-- Rating Display -->
-              <div class="mt-4">
-                <div class="d-flex align-center justify-center">
-                  <v-rating
-                    :model-value="parseFloat(viewingHousekeeper.rating || 0)"
-                    :length="5"
-                    :size="32"
-                    color="amber"
-                    active-color="amber"
-                    half-increments
-                    readonly
-                    density="compact"
-                  ></v-rating>
-                  <span class="ml-2 text-h6">{{ parseFloat(viewingHousekeeper.rating || 0).toFixed(1) }}</span>
-                </div>
-              </div>
-            </v-col>
-          </v-row>
-
-          <v-divider class="mb-4"></v-divider>
-
-          <v-row>
-            <v-col cols="12" md="6">
-              <div class="detail-section">
-                <div class="detail-label">First Name</div>
-                <div class="detail-value">{{ viewingHousekeeper.first_name || (viewingHousekeeper.name ? viewingHousekeeper.name.split(' ')[0] : '') || 'N/A' }}</div>
-              </div>
-            </v-col>
-            <v-col cols="12" md="6">
-              <div class="detail-section">
-                <div class="detail-label">Last Name</div>
-                <div class="detail-value">{{ viewingHousekeeper.last_name || (viewingHousekeeper.name ? viewingHousekeeper.name.split(' ').slice(1).join(' ') : '') || 'N/A' }}</div>
-              </div>
-            </v-col>
-            <v-col cols="12" md="6">
-              <div class="detail-section">
-                <div class="detail-label">Email</div>
-                <div class="detail-value">{{ viewingHousekeeper.email || 'N/A' }}</div>
-              </div>
-            </v-col>
-            <v-col cols="12" md="6">
-              <div class="detail-section">
-                <div class="detail-label">Phone</div>
-                <div class="detail-value">{{ viewingHousekeeper.phone || 'N/A' }}</div>
-              </div>
-            </v-col>
-            <v-col cols="12" md="6">
-              <div class="detail-section">
-                <div class="detail-label">Birthdate</div>
-                <div class="detail-value">{{ viewingHousekeeper.birthdate || 'N/A' }}</div>
-              </div>
-            </v-col>
-            <v-col cols="12" md="6">
-              <div class="detail-section">
-                <div class="detail-label">Age</div>
-                <div class="detail-value">{{ viewingHousekeeper.age || 'N/A' }}</div>
-              </div>
-            </v-col>
-            <v-col cols="12" md="6">
-              <div class="detail-section">
-                <div class="detail-label">Gender</div>
-                <div class="detail-value">{{ viewingHousekeeper.gender || 'N/A' }}</div>
-              </div>
-            </v-col>
-            <v-col cols="12" md="6">
-              <div class="detail-section">
-                <div class="detail-label">Address</div>
-                <div class="detail-value">{{ viewingHousekeeper.address || 'N/A' }}</div>
-              </div>
-            </v-col>
-            <v-col cols="12" md="6">
-              <div class="detail-section">
-                <div class="detail-label">State</div>
-                <div class="detail-value">{{ viewingHousekeeper.state || 'N/A' }}</div>
-              </div>
-            </v-col>
-            <v-col cols="12" md="6">
-              <div class="detail-section">
-                <div class="detail-label">County/Borough</div>
-                <div class="detail-value">{{ viewingHousekeeper.county || viewingHousekeeper.borough || 'N/A' }}</div>
-              </div>
-            </v-col>
-            <v-col cols="12" md="6">
-              <div class="detail-section">
-                <div class="detail-label">City</div>
-                <div class="detail-value">{{ viewingHousekeeper.city || 'N/A' }}</div>
-              </div>
-            </v-col>
-            <v-col cols="12" md="6">
-              <div class="detail-section">
-                <div class="detail-label">ZIP Code</div>
-                <div class="detail-value">{{ viewingHousekeeper.zip_code || 'Unknown ZIP' }}</div>
-              </div>
-            </v-col>
-            <v-col cols="12" md="6">
-              <div class="detail-section">
-                <div class="detail-label">Location</div>
-                <div class="detail-value">{{ viewingHousekeeper.place_indicator || viewingHousekeeper.location || 'Unknown' }}</div>
-              </div>
-            </v-col>
-            <v-col cols="12" md="6">
-              <div class="detail-section">
-                <div class="detail-label">Joined</div>
-                <div class="detail-value">{{ viewingHousekeeper.joined || 'N/A' }}</div>
-              </div>
-            </v-col>
-            <v-col cols="12" md="6">
-              <div class="detail-section">
-                <div class="detail-label">Verification Status</div>
-                <div class="detail-value">
-                  <v-chip :color="viewingHousekeeper.verified ? 'success' : 'warning'" size="small">
-                    {{ viewingHousekeeper.verified ? 'Verified' : 'Pending' }}
-                  </v-chip>
-                </div>
-              </div>
-            </v-col>
-            <v-col cols="12" md="6">
-              <div class="detail-section">
-                <div class="detail-label">Experience</div>
-                <div class="detail-value">{{ viewingHousekeeper.years_experience ?? 0 }} years</div>
-              </div>
-            </v-col>
-            <v-col cols="12" md="6">
-              <div class="detail-section">
-                <div class="detail-label">Hourly Rate</div>
-                <div class="detail-value">
-                  <v-chip color="success" size="small">
-                    <v-icon size="14" class="mr-1">mdi-cash</v-icon>
-                    ${{ viewingHousekeeper.hourly_rate ?? 20 }}/hr
-                  </v-chip>
-                </div>
-              </div>
-            </v-col>
-          </v-row>
-
-          <v-divider class="my-4"></v-divider>
-
-          <!-- Professional Details -->
-          <v-row>
-            <v-col cols="12">
-              <div class="detail-label mb-3">
-                <v-icon class="mr-2">mdi-broom</v-icon>
-                Professional Details
-              </div>
-            </v-col>
-            <v-col cols="12" md="6">
-              <div class="detail-section">
-                <div class="detail-label">Cleaning Specialties</div>
-                <div class="detail-value">
-                  <template v-if="(viewingHousekeeper.cleaningSpecialties || viewingHousekeeper.specializations || []).length">
-                    <v-chip v-for="(s, i) in (viewingHousekeeper.cleaningSpecialties || viewingHousekeeper.specializations)" :key="i" size="small" class="mr-1 mb-1">{{ s }}</v-chip>
-                  </template>
-                  <span v-else>None specified</span>
-                </div>
-              </div>
-            </v-col>
-            <v-col cols="12" md="6">
-              <div class="detail-section">
-                <div class="detail-label">Has Own Supplies</div>
-                <div class="detail-value">
-                  <v-chip :color="viewingHousekeeper.has_own_supplies ? 'success' : 'grey'" size="small">
-                    {{ viewingHousekeeper.has_own_supplies ? 'Yes' : 'No' }}
-                  </v-chip>
-                </div>
-              </div>
-            </v-col>
-            <v-col cols="12" v-if="viewingHousekeeper.bio">
-              <div class="detail-section">
-                <div class="detail-label">About Me</div>
-                <div class="detail-value" style="white-space: pre-wrap;">{{ viewingHousekeeper.bio }}</div>
-              </div>
-            </v-col>
-          </v-row>
-        </v-card-text>
-        <v-card-actions class="pa-6 pt-0">
-          <v-spacer />
-          <v-btn color="grey" variant="outlined" @click="viewHousekeeperDialog = false">Close</v-btn>
-          <v-btn color="error" @click="openHousekeeperDialog(viewingHousekeeper); viewHousekeeperDialog = false">Edit</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -2959,422 +2564,6 @@
       </v-card>
     </v-dialog>
 
-    <!-- Training Centers Management Section -->
-    <div v-if="currentSection === 'training-centers'">
-      <div class="mb-6">
-        <v-row class="align-center">
-          <v-col cols="12" md="3">
-            <v-text-field v-model="trainingCenterSearch" placeholder="Search training centers..." prepend-inner-icon="mdi-magnify" variant="outlined" density="compact" hide-details />
-          </v-col>
-          <v-col cols="12" sm="6" md="2">
-            <v-select v-model="trainingCenterCountyFilter" :items="trainingCenterCountyOptions" label="County" variant="outlined" density="compact" hide-details />
-          </v-col>
-          <v-col cols="12" sm="6" md="2">
-            <v-select v-model="trainingCenterStatusFilter" :items="['All', 'Active', 'Pending', 'Inactive']" label="All Status" variant="outlined" density="compact" hide-details />
-          </v-col>
-          <v-col cols="12" sm="6" md="3">
-            <v-btn color="error" prepend-icon="mdi-plus" @click="openTrainingCenterDialog()">Add Training Center</v-btn>
-          </v-col>
-        </v-row>
-      </div>
-      <v-card elevation="0">
-        <v-card-title class="card-header pa-4 pa-md-8 d-flex justify-space-between align-center flex-wrap ga-2">
-          <span class="section-title error--text">Accredited Training Center</span>
-          <v-btn v-if="selectedTrainingCenters.length > 0" color="error" variant="outlined" prepend-icon="mdi-delete" size="small" @click="deleteSelectedTrainingCenters">
-            Delete ({{ selectedTrainingCenters.length }})
-          </v-btn>
-        </v-card-title>
-        
-        <!-- Desktop Table View -->
-        <v-data-table v-if="!isMobile" v-model="selectedTrainingCenters" :headers="trainingCenterHeaders" :items="filteredTrainingCenters" :items-per-page="10" show-select item-value="id" class="elevation-0" density="compact">
-          <template v-slot:item.location="{ item }">
-            <span style="display:none">{{ ensureItemPlaceIndicator(item) }}</span>
-            {{ item.place_indicator || item.location || 'Unknown ZIP' }}
-          </template>
-          <template v-slot:item.zip_code="{ item }">
-            {{ item.zip_code || 'Unknown ZIP' }}
-          </template>
-          <template v-slot:item.caregiverCount="{ item }">
-            <v-chip color="info" size="small">
-              <v-icon size="14" class="mr-1">mdi-account-heart</v-icon>
-              {{ item.caregiverCount }}
-            </v-chip>
-          </template>
-          <template v-slot:item.commissionEarned="{ item }">
-            <span class="font-weight-bold text-success">${{ item.commissionEarned }}</span>
-          </template>
-          <template v-slot:item.status="{ item }">
-            <v-chip
-              :color="getUserStatusColor(item.status)"
-              size="small"
-              class="font-weight-bold"
-              :style="(String(item.status).toLowerCase() === 'pending') ? 'background-color: #f59e0b !important; color: #ffffff !important;' : ''"
-              :prepend-icon="getStatusIcon(item.status)"
-            >{{ item.status }}</v-chip>
-          </template>
-          <template v-slot:item.actions="{ item }">
-            <div class="action-buttons">
-              <v-btn class="action-btn-view" icon="mdi-eye" size="small" @click="viewTrainingCenterDetails(item)"></v-btn>
-              <v-btn class="action-btn-unapprove" icon="mdi-undo" size="small" @click="unapproveApplication(item)" :title="'Unapprove (set back to pending)'"></v-btn>
-              <v-btn class="action-btn-edit" icon="mdi-pencil" size="small" @click="openTrainingCenterDialog(item)"></v-btn>
-              <v-btn 
-                v-if="parseFloat(item.commissionEarned) > 0" 
-                class="action-btn-pay" 
-                icon="mdi-cash-multiple" 
-                size="small" 
-                color="success"
-                @click="payTrainingCommission(item)"
-                :loading="payingCommission === item.id"
-              ></v-btn>
-            </div>
-          </template>
-        </v-data-table>
-        
-        <!-- Mobile Card View -->
-        <div v-else class="mobile-cards-container pa-3">
-          <v-card v-for="item in filteredTrainingCenters" :key="item.id" class="mobile-data-card mb-3" elevation="2">
-            <v-card-text class="pa-0">
-              <div class="mobile-card-header d-flex justify-space-between align-center pa-3" style="background: linear-gradient(135deg, #ea580c 0%, #c2410c 100%);">
-                <div class="d-flex align-center">
-                  <v-checkbox v-model="selectedTrainingCenters" :value="item.id" hide-details density="compact" color="white" class="mr-2 mobile-card-checkbox"></v-checkbox>
-                  <span class="text-white font-weight-bold">{{ item.name }}</span>
-                </div>
-                <v-chip :color="getUserStatusColor(item.status)" size="small" class="font-weight-bold">{{ item.status }}</v-chip>
-              </div>
-              <div class="mobile-card-body pa-3">
-                <div class="mobile-card-row d-flex justify-space-between py-2" style="border-bottom: 1px solid #f3f4f6;">
-                  <span class="mobile-card-label text-grey-darken-1">Email:</span>
-                  <span class="mobile-card-value text-primary font-weight-medium" style="word-break: break-all;">{{ item.email }}</span>
-                </div>
-                <div class="mobile-card-row d-flex justify-space-between py-2" style="border-bottom: 1px solid #f3f4f6;">
-                  <span class="mobile-card-label text-grey-darken-1">Phone:</span>
-                  <span class="mobile-card-value">{{ item.phone || 'N/A' }}</span>
-                </div>
-                <div class="mobile-card-row d-flex justify-space-between py-2" style="border-bottom: 1px solid #f3f4f6;">
-                  <span class="mobile-card-label text-grey-darken-1">Location:</span>
-                  <span class="mobile-card-value">{{ item.place_indicator || item.location || 'Unknown' }}</span>
-                </div>
-                <div class="mobile-card-row d-flex justify-space-between py-2" style="border-bottom: 1px solid #f3f4f6;">
-                  <span class="mobile-card-label text-grey-darken-1">Caregivers:</span>
-                  <v-chip color="info" size="small">{{ item.caregiverCount }}</v-chip>
-                </div>
-                <div class="mobile-card-row d-flex justify-space-between py-2">
-                  <span class="mobile-card-label text-grey-darken-1">Commission:</span>
-                  <span class="font-weight-bold text-success">${{ item.commissionEarned }}</span>
-                </div>
-              </div>
-              <div class="mobile-card-actions d-flex justify-center flex-wrap ga-2 pa-3" style="background: #f9fafb; border-top: 1px solid #e5e7eb;">
-                <v-btn color="primary" variant="tonal" size="small" prepend-icon="mdi-eye" @click="viewTrainingCenterDetails(item)">View</v-btn>
-                <v-btn color="warning" variant="tonal" size="small" prepend-icon="mdi-undo" @click="unapproveApplication(item)">Undo</v-btn>
-                <v-btn color="info" variant="tonal" size="small" prepend-icon="mdi-pencil" @click="openTrainingCenterDialog(item)">Edit</v-btn>
-                <v-btn v-if="parseFloat(item.commissionEarned) > 0" color="success" variant="tonal" size="small" prepend-icon="mdi-cash-multiple" @click="payTrainingCommission(item)" :loading="payingCommission === item.id">Pay</v-btn>
-              </div>
-            </v-card-text>
-          </v-card>
-        </div>
-      </v-card>
-    </div>
-
-    <!-- View Training Center Details Dialog -->
-    <v-dialog v-model="viewTrainingCenterDialog" :max-width="isMobile ? undefined : 900" :fullscreen="isMobile" scrollable>
-      <v-card v-if="viewingTrainingCenter">
-        <v-card-title class="pa-6" style="background: #ea580c; color: white;">
-          <div class="d-flex align-center justify-space-between w-100">
-            <span class="section-title" style="color: white;">Training Center Details</span>
-            <v-btn icon="mdi-close" variant="text" style="color: white;" @click="viewTrainingCenterDialog = false" aria-label="Close training center details"></v-btn>
-          </div>
-        </v-card-title>
-        <v-card-text class="pa-6" style="max-height: 60vh; overflow-y: auto;">
-          <v-row>
-            <v-col cols="12" class="text-center mb-4">
-              <v-avatar size="120" color="warning" class="mb-3">
-                <v-icon size="60" color="white">mdi-school</v-icon>
-              </v-avatar>
-              <h2>{{ viewingTrainingCenter.name }}</h2>
-              <v-chip :color="getUserStatusColor(viewingTrainingCenter.status)" class="mt-2">{{ viewingTrainingCenter.status }}</v-chip>
-            </v-col>
-          </v-row>
-
-          <v-divider class="mb-4"></v-divider>
-
-          <!-- Contact Information -->
-          <div class="mb-4">
-            <h3 class="text-subtitle-1 font-weight-bold mb-3 d-flex align-center">
-              <v-icon color="warning" class="mr-2">mdi-card-account-details</v-icon>
-              Contact Information
-            </h3>
-            <v-row>
-              <v-col cols="12" md="6">
-                <div class="detail-section">
-                  <div class="detail-label">Email</div>
-                  <div class="detail-value">{{ viewingTrainingCenter.email || 'N/A' }}</div>
-                </div>
-              </v-col>
-              <v-col cols="12" md="6">
-                <div class="detail-section">
-                  <div class="detail-label">Phone</div>
-                  <div class="detail-value">{{ viewingTrainingCenter.phone || 'N/A' }}</div>
-                </div>
-              </v-col>
-            </v-row>
-          </div>
-
-          <v-divider class="mb-4"></v-divider>
-
-          <!-- Address Information -->
-          <div class="mb-4">
-            <h3 class="text-subtitle-1 font-weight-bold mb-3 d-flex align-center">
-              <v-icon color="warning" class="mr-2">mdi-map-marker</v-icon>
-              Address Information
-            </h3>
-            <v-row>
-              <v-col cols="12">
-                <div class="detail-section">
-                  <div class="detail-label">Address</div>
-                  <div class="detail-value">{{ viewingTrainingCenter.address || 'N/A' }}</div>
-                </div>
-              </v-col>
-              <v-col cols="12" md="6">
-                <div class="detail-section">
-                  <div class="detail-label">City</div>
-                  <div class="detail-value">{{ viewingTrainingCenter.city || 'N/A' }}</div>
-                </div>
-              </v-col>
-              <v-col cols="12" md="6">
-                <div class="detail-section">
-                  <div class="detail-label">State</div>
-                  <div class="detail-value">{{ viewingTrainingCenter.state || 'N/A' }}</div>
-                </div>
-              </v-col>
-              <v-col cols="12" md="6">
-                <div class="detail-section">
-                  <div class="detail-label">County/Borough</div>
-                  <div class="detail-value">{{ viewingTrainingCenter.county || viewingTrainingCenter.borough || 'N/A' }}</div>
-                </div>
-              </v-col>
-              <v-col cols="12" md="6">
-                <div class="detail-section">
-                  <div class="detail-label">ZIP Code</div>
-                  <div class="detail-value">{{ viewingTrainingCenter.zip_code || viewingTrainingCenter.zip || 'N/A' }}</div>
-                </div>
-              </v-col>
-              <v-col cols="12" md="6">
-                <div class="detail-section">
-                  <div class="detail-label">Location</div>
-                  <div class="detail-value">{{ viewingTrainingCenter.place_indicator || viewingTrainingCenter.location || 'N/A' }}</div>
-                </div>
-              </v-col>
-            </v-row>
-          </div>
-
-          <v-divider class="mb-4"></v-divider>
-
-          <!-- Account Information -->
-          <div class="mb-4">
-            <h3 class="text-subtitle-1 font-weight-bold mb-3 d-flex align-center">
-              <v-icon color="warning" class="mr-2">mdi-account-circle</v-icon>
-              Account Information
-            </h3>
-            <v-row>
-              <v-col cols="12" md="6">
-                <div class="detail-section">
-                  <div class="detail-label">Joined</div>
-                  <div class="detail-value">{{ viewingTrainingCenter.joined || viewingTrainingCenter.created_at || 'N/A' }}</div>
-                </div>
-              </v-col>
-              <v-col cols="12" md="6">
-                <div class="detail-section">
-                  <div class="detail-label">Status</div>
-                  <div class="detail-value">
-                    <v-chip :color="getUserStatusColor(viewingTrainingCenter.status)" size="small">{{ viewingTrainingCenter.status || 'N/A' }}</v-chip>
-                  </div>
-                </div>
-              </v-col>
-            </v-row>
-          </div>
-
-          <v-divider class="my-4"></v-divider>
-
-          <h3 class="mb-3 d-flex align-center">
-            <v-icon color="warning" class="mr-2">mdi-chart-bar</v-icon>
-            Commission Statistics
-          </h3>
-          <v-row>
-            <v-col cols="12" md="4">
-              <v-card class="pa-4 text-center" color="info" variant="tonal">
-                <v-icon size="32" color="info">mdi-account-heart</v-icon>
-                <h4 class="mt-2">{{ viewingTrainingCenter.caregiverCount ?? 0 }}</h4>
-                <div class="text-caption">Caregivers</div>
-              </v-card>
-            </v-col>
-            <v-col cols="12" md="4">
-              <v-card class="pa-4 text-center" color="primary" variant="tonal">
-                <v-icon size="32" color="primary">mdi-clock</v-icon>
-                <h4 class="mt-2">{{ viewingTrainingCenter.totalHours ?? 0 }}</h4>
-                <div class="text-caption">Total Hours</div>
-              </v-card>
-            </v-col>
-            <v-col cols="12" md="4">
-              <v-card class="pa-4 text-center" color="success" variant="tonal">
-                <v-icon size="32" color="success">mdi-currency-usd</v-icon>
-                <h4 class="mt-2">${{ viewingTrainingCenter.commissionEarned ?? '0' }}</h4>
-                <div class="text-caption">Commission Earned</div>
-              </v-card>
-            </v-col>
-          </v-row>
-          
-          <v-row class="mt-4">
-            <v-col cols="12" md="6">
-              <div class="detail-section">
-                <div class="detail-label">Commission Rate</div>
-                <div class="detail-value">$0.50 per hour</div>
-              </div>
-            </v-col>
-            <v-col cols="12" md="6">
-              <div class="detail-section">
-                <div class="detail-label">Joined</div>
-                <div class="detail-value">{{ viewingTrainingCenter.joined || 'N/A' }}</div>
-              </div>
-            </v-col>
-          </v-row>
-
-          <v-divider class="my-4" v-if="viewingTrainingCenter.caregivers && viewingTrainingCenter.caregivers.length > 0"></v-divider>
-
-          <div v-if="viewingTrainingCenter.caregivers && viewingTrainingCenter.caregivers.length > 0">
-            <h3 class="mb-3 d-flex align-center">
-              <v-icon color="warning" class="mr-2">mdi-account-group</v-icon>
-              Caregivers Using This Training Center
-            </h3>
-            <div style="max-height: 300px; overflow-y: auto;">
-              <v-table density="compact">
-                <thead style="position: sticky; top: 0; background-color: white; z-index: 1;">
-                  <tr>
-                    <th>Name</th>
-                    <th>Email</th>
-                    <th>Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr v-for="caregiver in viewingTrainingCenter.caregivers" :key="caregiver.id">
-                    <td>{{ caregiver.name }}</td>
-                    <td>{{ caregiver.email }}</td>
-                    <td><v-chip size="x-small" color="success">Active</v-chip></td>
-                  </tr>
-                </tbody>
-              </v-table>
-            </div>
-          </div>
-        </v-card-text>
-        <v-card-actions class="pa-6 pt-0">
-          <v-spacer />
-          <v-btn color="grey" variant="outlined" @click="viewTrainingCenterDialog = false">Close</v-btn>
-          <v-btn color="error" @click="openTrainingCenterDialog(viewingTrainingCenter); viewTrainingCenterDialog = false">Edit</v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
-
-    <!-- Add/Edit Training Center Dialog -->
-    <v-dialog v-model="trainingCenterDialog" :max-width="isMobile ? undefined : 900" :fullscreen="isMobile" scrollable>
-      <v-card>
-        <v-card-title class="pa-6" style="background: #dc2626; color: white;">
-          <span class="section-title" style="color: white;">{{ editingTrainingCenter ? 'Edit Training Center' : 'Add Training Center' }}</span>
-        </v-card-title>
-        <v-card-text class="pa-6">
-          <div class="mb-4">
-            <h3 class="text-h6 mb-4">Training Center Information</h3>
-            <v-row>
-              <v-col cols="12">
-                <v-text-field v-model="trainingCenterFormData.name" label="Training Center Name *" variant="outlined" required />
-              </v-col>
-              <v-col cols="12" md="6">
-                <v-text-field v-model="trainingCenterFormData.email" label="Email *" type="email" variant="outlined" required />
-              </v-col>
-              <v-col cols="12" md="6">
-                <v-text-field 
-                  v-model="trainingCenterFormData.phone" 
-                  label="Phone" 
-                  variant="outlined"
-                  placeholder="(646) 282-8282"
-                  maxlength="14"
-                  @update:model-value="trainingCenterFormData.phone = formatPhoneNumber(trainingCenterFormData.phone)"
-                />
-              </v-col>
-              <v-col cols="12">
-                <v-text-field v-model="trainingCenterFormData.address" label="Address" variant="outlined" />
-              </v-col>
-              <v-col cols="12" md="6">
-                <v-text-field v-model="trainingCenterFormData.state" label="State" variant="outlined" readonly value="New York" />
-              </v-col>
-              <v-col cols="12" md="6">
-                <v-select v-model="trainingCenterFormData.county" :items="nyCounties" label="County" variant="outlined" />
-              </v-col>
-              <v-col cols="12" md="6">
-                <v-text-field v-model="trainingCenterFormData.city" label="City" variant="outlined" />
-              </v-col>
-              <v-col cols="12" md="6">
-                <v-text-field 
-                  v-model="trainingCenterFormData.zip_code" 
-                  label="ZIP Code" 
-                  variant="outlined"
-                  maxlength="5"
-                  :rules="[v => !v || /^\d{5}$/.test(v) || 'Enter 5-digit ZIP', v => !v || /^(00501|00544|06390|1[0-4]\d{3})$/.test(v) || 'Must be NY ZIP (10xxx-14xxx)']"
-                  placeholder="Enter ZIP code"
-                  @input="lookupTrainingCenterZipCode"
-                  @blur="lookupTrainingCenterZipCode"
-                >
-                  <template v-slot:prepend-inner>
-                    <v-icon>mdi-map-marker</v-icon>
-                  </template>
-                </v-text-field>
-                <div v-if="trainingCenterZipLocation" style="font-weight: 600; color: #64748b; margin-top: 0.5rem; font-size: 0.95rem; line-height: 1.35;">
-                  {{ trainingCenterZipLocation }}
-                </div>
-              </v-col>
-              <v-col cols="12" md="6">
-                <v-text-field 
-                  v-if="!editingTrainingCenter" 
-                  v-model="trainingCenterFormData.password" 
-                  label="Password (Optional)" 
-                  :type="showTrainingPassword ? 'text' : 'password'" 
-                  variant="outlined" 
-                  hint="Leave blank to auto-generate secure password" 
-                  persistent-hint
-                  :append-inner-icon="showTrainingPassword ? 'mdi-eye-off' : 'mdi-eye'"
-                  @click:append-inner="showTrainingPassword = !showTrainingPassword"
-                />
-                <div v-if="!editingTrainingCenter && trainingCenterFormData.password" class="password-requirements mt-2">
-                  <div class="requirement-item" :class="{ valid: passwordMeetsLength(trainingCenterFormData.password) }">
-                    <span class="requirement-icon">{{ passwordMeetsLength(trainingCenterFormData.password) ? '✓' : '✗' }}</span>
-                    <span class="requirement-text">At least 8 characters</span>
-                  </div>
-                  <div class="requirement-item" :class="{ valid: passwordMeetsUppercase(trainingCenterFormData.password) }">
-                    <span class="requirement-icon">{{ passwordMeetsUppercase(trainingCenterFormData.password) ? '✓' : '✗' }}</span>
-                    <span class="requirement-text">One capital letter</span>
-                  </div>
-                  <div class="requirement-item" :class="{ valid: passwordMeetsDigit(trainingCenterFormData.password) }">
-                    <span class="requirement-icon">{{ passwordMeetsDigit(trainingCenterFormData.password) ? '✓' : '✗' }}</span>
-                    <span class="requirement-text">One digit</span>
-                  </div>
-                  <div class="requirement-item" :class="{ valid: passwordMeetsSpecial(trainingCenterFormData.password) }">
-                    <span class="requirement-icon">{{ passwordMeetsSpecial(trainingCenterFormData.password) ? '✓' : '✗' }}</span>
-                    <span class="requirement-text">One special character</span>
-                  </div>
-                </div>
-              </v-col>
-              <v-col cols="12" md="6">
-                <v-select v-model="trainingCenterFormData.status" :items="['Active', 'Inactive']" label="Status *" variant="outlined" required />
-              </v-col>
-            </v-row>
-          </div>
-        </v-card-text>
-        <v-card-actions class="pa-6 pt-0">
-          <v-spacer />
-          <v-btn color="grey" variant="outlined" @click="trainingCenterDialog = false">Cancel</v-btn>
-          <v-btn color="error" @click="saveTrainingCenter">{{ editingTrainingCenter ? 'Update' : 'Create' }}</v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
-
     <!-- Contractors Application Section -->
     <div v-if="currentSection === 'pending'">
       <v-card elevation="0">
@@ -3914,33 +3103,22 @@
               <v-btn v-if="item.status === 'pending'" class="action-btn-approve" icon="mdi-check" size="small" @click="approveBooking(item)"></v-btn>
               <v-btn v-if="item.status === 'pending'" class="action-btn-reject" icon="mdi-close" size="small" @click="rejectBooking(item)"></v-btn>
               <v-btn class="action-btn-view" icon="mdi-eye" size="small" title="View Booking Details" @click="viewBooking(item)"></v-btn>
-              <!-- View assigned caregivers/housekeepers -->
               <v-btn
-                v-if="(item.status === 'approved' || item.status === 'confirmed') && !String(item.service || item.service_type || '').toLowerCase().includes('housekeeping')"
+                v-if="item.status === 'approved' || item.status === 'confirmed'"
                 class="action-btn-caregivers"
                 icon="mdi-account-group"
                 size="small"
-                title="View Assigned Caregivers"
+                title="View assigned caregivers"
                 @click="viewAssignedCaregivers(item)"
               ></v-btn>
 
               <v-btn
-                v-if="(item.status === 'approved' || item.status === 'confirmed') && String(item.service || item.service_type || '').toLowerCase().includes('housekeeping')"
-                class="action-btn-view-assigned"
-                icon="mdi-account-eye"
-                size="small"
-                title="View Assigned Housekeepers"
-                @click="viewAssignedHousekeepers(item)"
-              ></v-btn>
-
-              <!-- Assign caregivers/housekeepers -->
-              <v-btn
                 v-if="item.status === 'approved' || item.status === 'confirmed'"
-                :class="String(item.service || item.service_type || '').toLowerCase().includes('housekeeping') ? 'action-btn-assign' : 'action-btn-assign'"
-                :icon="String(item.service || item.service_type || '').toLowerCase().includes('housekeeping') ? 'mdi-account-plus' : 'mdi-account-plus'"
+                class="action-btn-assign"
+                icon="mdi-account-plus"
                 size="small"
-                :title="String(item.service || item.service_type || '').toLowerCase().includes('housekeeping') ? 'Assign Housekeepers' : 'Assign Caregivers'"
-                @click="String(item.service || item.service_type || '').toLowerCase().includes('housekeeping') ? assignHousekeeperDialog(item) : assignCaregiverDialog(item)"
+                title="Assign caregivers"
+                @click="assignCaregiverDialog(item)"
               ></v-btn>
             </div>
           </template>
@@ -3994,7 +3172,7 @@
                 <v-btn v-if="item.status === 'pending'" color="success" variant="tonal" size="small" prepend-icon="mdi-check" @click="approveBooking(item)">Approve</v-btn>
                 <v-btn v-if="item.status === 'pending'" color="error" variant="tonal" size="small" prepend-icon="mdi-close" @click="rejectBooking(item)">Reject</v-btn>
                 <v-btn color="primary" variant="tonal" size="small" prepend-icon="mdi-eye" @click="viewBooking(item)">View</v-btn>
-                <v-btn v-if="(item.status === 'approved' || item.status === 'confirmed')" color="info" variant="tonal" size="small" prepend-icon="mdi-account-plus" @click="String(item.service || item.service_type || '').toLowerCase().includes('housekeeping') ? assignHousekeeperDialog(item) : assignCaregiverDialog(item)">Assign</v-btn>
+                <v-btn v-if="(item.status === 'approved' || item.status === 'confirmed')" color="info" variant="tonal" size="small" prepend-icon="mdi-account-plus" @click="assignCaregiverDialog(item)">Assign</v-btn>
               </div>
             </v-card-text>
           </v-card>
@@ -4294,9 +3472,7 @@
         <v-tab value="company-account">Company Account</v-tab>
         <v-tab value="client-payments">Client Payments</v-tab>
         <v-tab value="caregiver-payments">Caregiver Payments</v-tab>
-  <v-tab value="housekeeper-payments">Housekeeper Payments</v-tab>
         <v-tab value="marketing-commissions">Marketing Commissions</v-tab>
-        <v-tab value="training-commissions">Training Commissions</v-tab>
         <v-tab value="transactions">All Transactions</v-tab>
       </v-tabs>
 
@@ -4955,112 +4131,6 @@
           </v-card>
         </v-tabs-window-item>
 
-        <!-- Housekeeper Payments Tab -->
-        <v-tabs-window-item value="housekeeper-payments">
-          <div class="mb-4">
-            <v-row class="align-center">
-              <v-col cols="12" md="3">
-                <v-text-field v-model="housekeeperSalarySearch" placeholder="Search housekeepers..." prepend-inner-icon="mdi-magnify" variant="outlined" density="compact" hide-details />
-              </v-col>
-              <v-col cols="12" md="2">
-                <v-select v-model="housekeeperSalaryStatusFilter" :items="['All', 'Paid', 'Pending', 'Partial', 'No Hours']" variant="outlined" density="compact" hide-details />
-              </v-col>
-              <v-col cols="12" md="2">
-                <v-select v-model="housekeeperSalaryPeriodFilter" :items="['Current Month', 'Last Month', 'Last 3 Months']" variant="outlined" density="compact" hide-details />
-              </v-col>
-              <v-col cols="12" md="3" class="d-flex gap-2">
-                <v-btn 
-                  color="success" 
-                  variant="elevated"
-                  size="large"
-                  class="font-weight-bold text-none"
-                  elevation="4"
-                  @click="exportHousekeeperPaymentsPDF"
-                >
-                  <v-icon size="large" class="mr-2">mdi-file-pdf-box</v-icon>
-                  Export PDF
-                </v-btn>
-              </v-col>
-            </v-row>
-          </div>
-
-          <v-card elevation="0">
-            <v-card-title class="card-header pa-4">
-              <span class="section-title-compact error--text">Housekeeper Payments</span>
-            </v-card-title>
-            <!-- Desktop Table View -->
-            <v-data-table v-if="!isMobile" :headers="housekeeperPaymentHeaders" :items="filteredHousekeeperPayments" :items-per-page="10" class="elevation-0 table-no-checkbox">
-              <template v-slot:item.bank_status="{ item }">
-                <v-chip :color="item.bank_connected ? 'success' : 'warning'" size="small" variant="flat">
-                  <v-icon start size="small">{{ item.bank_connected ? 'mdi-check-circle' : 'mdi-alert-circle' }}</v-icon>
-                  {{ item.bank_status }}
-                </v-chip>
-              </template>
-              <template v-slot:item.status="{ item }">
-                <v-chip :color="getPaymentStatusColor(item.status)" size="small" class="font-weight-bold">{{ item.status }}</v-chip>
-              </template>
-              <template v-slot:item.actions="{ item }">
-                <div class="action-buttons">
-                  <v-btn class="action-btn-view" icon="mdi-eye" size="small" @click="viewHousekeeperPaymentDetails(item)"></v-btn>
-                  <v-tooltip v-if="item.can_pay && isFriday" text="Process Payment">
-                    <template v-slot:activator="{ props }">
-                      <v-btn 
-                        v-bind="props" 
-                        class="action-btn-pay-now" 
-                        icon="mdi-cash-fast" 
-                        size="small" 
-                        color="success" 
-                        @click="payHousekeeper(item)"
-                      ></v-btn>
-                    </template>
-                  </v-tooltip>
-                  <v-tooltip v-else-if="!item.bank_connected" text="Bank account not connected">
-                    <template v-slot:activator="{ props }">
-                      <v-btn v-bind="props" icon="mdi-bank-off" size="small" color="grey" disabled></v-btn>
-                    </template>
-                  </v-tooltip>
-                </div>
-              </template>
-            </v-data-table>
-            <!-- Mobile Card View -->
-            <div v-else class="mobile-cards-container pa-3">
-              <div v-if="filteredHousekeeperPayments.length === 0" class="text-center py-8 text-grey">
-                No housekeeper payments found
-              </div>
-              <v-card v-for="item in filteredHousekeeperPayments" :key="item.id" class="mobile-data-card mb-3" elevation="2" rounded="lg">
-                <v-card-text class="pa-0">
-                  <div class="mobile-card-header d-flex align-center justify-space-between pa-3" style="background: linear-gradient(135deg, #6A1B9A 0%, #4A148C 100%);">
-                    <span class="text-white font-weight-bold text-body-1">{{ item.name }}</span>
-                    <v-chip :color="getPaymentStatusColor(item.status)" size="small" class="font-weight-bold">{{ item.status }}</v-chip>
-                  </div>
-                  <div class="mobile-card-body pa-3">
-                    <div class="mobile-card-row d-flex justify-space-between py-2" style="border-bottom: 1px solid #f3f4f6;">
-                      <span class="mobile-card-label text-grey-darken-1">Bank Status:</span>
-                      <v-chip :color="item.bank_connected ? 'success' : 'warning'" size="x-small" variant="flat">
-                        <v-icon start size="x-small">{{ item.bank_connected ? 'mdi-check-circle' : 'mdi-alert-circle' }}</v-icon>
-                        {{ item.bank_status }}
-                      </v-chip>
-                    </div>
-                    <div class="mobile-card-row d-flex justify-space-between py-2" style="border-bottom: 1px solid #f3f4f6;">
-                      <span class="mobile-card-label text-grey-darken-1">Hours Worked:</span>
-                      <span class="mobile-card-value">{{ item.hours_worked || item.hours }} hrs</span>
-                    </div>
-                    <div class="mobile-card-row d-flex justify-space-between py-2" style="border-bottom: 1px solid #f3f4f6;">
-                      <span class="mobile-card-label text-grey-darken-1">Amount Due:</span>
-                      <span class="mobile-card-value font-weight-bold text-success">${{ item.amount || item.total }}</span>
-                    </div>
-                  </div>
-                  <div class="mobile-card-actions d-flex justify-center ga-2 pa-3" style="background: #f9fafb; border-top: 1px solid #e5e7eb;">
-                    <v-btn color="primary" variant="tonal" size="small" prepend-icon="mdi-eye" @click="viewHousekeeperPaymentDetails(item)">View</v-btn>
-                    <v-btn v-if="item.can_pay && isFriday" color="success" variant="tonal" size="small" prepend-icon="mdi-cash-fast" @click="payHousekeeper(item)">Pay</v-btn>
-                    <v-chip v-else-if="!item.bank_connected" color="warning" size="small">No Bank</v-chip>
-                  </div>
-                </v-card-text>
-              </v-card>
-            </div>
-          </v-card>
-        </v-tabs-window-item>
-
         <!-- Marketing Commissions Tab -->
         <v-tabs-window-item value="marketing-commissions">
           <!-- Friday Payout Notice Banner -->
@@ -5277,222 +4347,6 @@
                   <div class="mobile-card-actions d-flex justify-center ga-2 pa-3" style="background: #f9fafb; border-top: 1px solid #e5e7eb;">
                     <v-btn color="primary" variant="tonal" size="small" prepend-icon="mdi-eye" @click="viewMarketingCommissionDetails(item)">View</v-btn>
                     <v-btn v-if="item.pending_commission > 0 && item.bank_connected && isFriday" color="success" variant="tonal" size="small" prepend-icon="mdi-cash-fast" @click="payMarketingCommission(item)" :loading="item.paying">Pay</v-btn>
-                    <v-chip v-else-if="item.pending_commission > 0 && !isFriday" color="grey" size="small">Friday Only</v-chip>
-                    <v-chip v-else-if="!item.bank_connected" color="warning" size="small">No Bank</v-chip>
-                  </div>
-                </v-card-text>
-              </v-card>
-            </div>
-          </v-card>
-        </v-tabs-window-item>
-
-        <!-- Training Commissions Tab -->
-        <v-tabs-window-item value="training-commissions">
-          <!-- Friday Payout Notice Banner -->
-          <v-alert 
-            :color="isFriday ? 'success' : 'info'"
-            :variant="isFriday ? 'tonal' : 'outlined'"
-            :border="isFriday ? 'start' : 'start'"
-            border-color="primary"
-            class="mb-4"
-            prominent
-          >
-            <template v-slot:prepend>
-              <v-icon :color="isFriday ? 'success' : 'primary'" size="x-large">
-                {{ isFriday ? 'mdi-check-circle' : 'mdi-information' }}
-              </v-icon>
-            </template>
-            <div class="d-flex flex-column">
-              <div class="text-h6 font-weight-bold mb-2">
-                {{ isFriday ? 'Today is Payout Day!' : 'Payout Schedule Information' }}
-              </div>
-              <div class="text-body-1 mb-2">
-                {{ isFriday 
-                  ? 'All payment buttons are now active. You can process training commission payments today.' 
-                  : 'Training commission payments are processed only on Fridays along with all other staff payments.' 
-                }}
-              </div>
-              <div class="text-body-2 text-medium-emphasis">
-                <strong>Why Fridays Only?</strong> 
-                Synchronized payment processing ensures training centers receive payments on the same schedule as all staff members, 
-                simplifying financial tracking and maintaining professional payment standards.
-              </div>
-              <v-chip 
-                v-if="!isFriday"
-                :color="'primary'" 
-                variant="flat" 
-                size="small" 
-                class="mt-2 align-self-start"
-              >
-                <v-icon start size="small">mdi-calendar</v-icon>
-                Next Payout: This Friday
-              </v-chip>
-            </div>
-          </v-alert>
-          
-          <div class="mb-4">
-            <v-row class="align-center">
-              <v-col cols="12" md="3">
-                <v-text-field 
-                  v-model="trainingCommissionSearch" 
-                  placeholder="Search training centers..." 
-                  prepend-inner-icon="mdi-magnify" 
-                  variant="outlined" 
-                  density="compact" 
-                  hide-details 
-                />
-              </v-col>
-              <v-col cols="12" md="2">
-                <v-select 
-                  v-model="trainingCommissionStatusFilter" 
-                  :items="['All', 'Paid', 'Pending']" 
-                  variant="outlined" 
-                  density="compact" 
-                  hide-details 
-                />
-              </v-col>
-              <v-col cols="12" md="2">
-                <v-select 
-                  v-model="trainingCommissionPeriodFilter" 
-                  :items="['Current Month', 'Last Month', 'Last 3 Months']" 
-                  variant="outlined" 
-                  density="compact" 
-                  hide-details 
-                />
-              </v-col>
-              <v-col cols="12" md="3" class="d-flex gap-2">
-                <v-btn 
-                  color="success" 
-                  @click="exportTrainingCommissionsPDF" 
-                  variant="elevated"
-                  size="large"
-                  class="font-weight-bold text-none"
-                  elevation="4"
-                >
-                  <v-icon size="large" class="mr-2">mdi-file-pdf-box</v-icon>
-                  Export PDF
-                </v-btn>
-                <v-tooltip :text="isFriday ? 'Process all training commissions' : 'Payments are processed only on Fridays'">
-                  <template v-slot:activator="{ props }">
-                    <v-btn 
-                      v-bind="props"
-                      color="error" 
-                      prepend-icon="mdi-cash-multiple" 
-                      @click="payAllTrainingCommissions"
-                      :disabled="!isFriday"
-                    >
-                      Pay All
-                    </v-btn>
-                  </template>
-                </v-tooltip>
-              </v-col>
-            </v-row>
-          </div>
-
-          <v-card elevation="0">
-            <v-card-title class="card-header pa-4">
-              <span class="section-title-compact error--text">Training Center Commissions</span>
-            </v-card-title>
-            <!-- Desktop Table View -->
-            <v-data-table 
-              v-if="!isMobile"
-              :headers="trainingCommissionHeaders" 
-              :items="filteredTrainingCommissions" 
-              :items-per-page="10" 
-              class="elevation-0 table-no-checkbox"
-              :loading="loadingTrainingCommissions"
-            >
-              <template v-slot:item.bank_status="{ item }">
-                <v-chip :color="item.bank_connected ? 'success' : 'warning'" size="small" variant="flat">
-                  <v-icon start size="small">{{ item.bank_connected ? 'mdi-check-circle' : 'mdi-alert-circle' }}</v-icon>
-                  {{ item.bank_status }}
-                </v-chip>
-              </template>
-              <template v-slot:item.payment_status="{ item }">
-                <v-chip :color="item.payment_status === 'Paid' ? 'success' : 'warning'" size="small" class="font-weight-bold">
-                  {{ item.payment_status }}
-                </v-chip>
-              </template>
-              <template v-slot:item.actions="{ item }">
-                <div class="action-buttons">
-                  <v-btn 
-                    class="action-btn-view" 
-                    icon="mdi-eye" 
-                    size="small" 
-                    @click="viewTrainingCommissionDetails(item)"
-                  ></v-btn>
-                  <v-tooltip v-if="item.pending_commission > 0 && item.bank_connected && isFriday" text="Process Payment">
-                    <template v-slot:activator="{ props }">
-                      <v-btn 
-                        v-bind="props"
-                        class="action-btn-pay-now" 
-                        icon="mdi-cash-fast" 
-                        size="small" 
-                        color="success" 
-                        @click="payTrainingCommission(item)"
-                        :loading="item.paying"
-                      ></v-btn>
-                    </template>
-                  </v-tooltip>
-                  <v-tooltip v-else-if="item.pending_commission > 0 && item.bank_connected && !isFriday" text="Payments are processed only on Fridays">
-                    <template v-slot:activator="{ props }">
-                      <v-btn 
-                        v-bind="props"
-                        icon="mdi-cash-clock" 
-                        size="small" 
-                        color="grey" 
-                        disabled
-                      ></v-btn>
-                    </template>
-                  </v-tooltip>
-                  <v-tooltip v-else-if="!item.bank_connected" text="Bank account not connected">
-                    <template v-slot:activator="{ props }">
-                      <v-btn v-bind="props" icon="mdi-bank-off" size="small" color="grey" disabled></v-btn>
-                    </template>
-                  </v-tooltip>
-                  <v-tooltip v-else text="No pending commission">
-                    <template v-slot:activator="{ props }">
-                      <v-btn v-bind="props" icon="mdi-cash-off" size="small" color="grey" disabled></v-btn>
-                    </template>
-                  </v-tooltip>
-                </div>
-              </template>
-            </v-data-table>
-            <!-- Mobile Card View -->
-            <div v-else class="mobile-cards-container pa-3">
-              <div v-if="filteredTrainingCommissions.length === 0" class="text-center py-8 text-grey">
-                No training commissions found
-              </div>
-              <v-card v-for="item in filteredTrainingCommissions" :key="item.id" class="mobile-data-card mb-3" elevation="2" rounded="lg">
-                <v-card-text class="pa-0">
-                  <div class="mobile-card-header d-flex align-center justify-space-between pa-3" style="background: linear-gradient(135deg, #d97706 0%, #b45309 100%);">
-                    <span class="text-white font-weight-bold text-body-1">{{ item.name }}</span>
-                    <v-chip :color="item.payment_status === 'Paid' ? 'success' : 'warning'" size="small" class="font-weight-bold">{{ item.payment_status }}</v-chip>
-                  </div>
-                  <div class="mobile-card-body pa-3">
-                    <div class="mobile-card-row d-flex justify-space-between py-2" style="border-bottom: 1px solid #f3f4f6;">
-                      <span class="mobile-card-label text-grey-darken-1">Bank Status:</span>
-                      <v-chip :color="item.bank_connected ? 'success' : 'warning'" size="x-small" variant="flat">
-                        <v-icon start size="x-small">{{ item.bank_connected ? 'mdi-check-circle' : 'mdi-alert-circle' }}</v-icon>
-                        {{ item.bank_status }}
-                      </v-chip>
-                    </div>
-                    <div class="mobile-card-row d-flex justify-space-between py-2" style="border-bottom: 1px solid #f3f4f6;">
-                      <span class="mobile-card-label text-grey-darken-1">Caregivers:</span>
-                      <span class="mobile-card-value">{{ item.caregiver_count || 0 }}</span>
-                    </div>
-                    <div class="mobile-card-row d-flex justify-space-between py-2" style="border-bottom: 1px solid #f3f4f6;">
-                      <span class="mobile-card-label text-grey-darken-1">Total Earned:</span>
-                      <span class="mobile-card-value font-weight-bold">${{ item.total_earned || 0 }}</span>
-                    </div>
-                    <div class="mobile-card-row d-flex justify-space-between py-2">
-                      <span class="mobile-card-label text-grey-darken-1">Pending:</span>
-                      <span class="mobile-card-value font-weight-bold text-warning">${{ item.pending_commission || 0 }}</span>
-                    </div>
-                  </div>
-                  <div class="mobile-card-actions d-flex justify-center ga-2 pa-3" style="background: #f9fafb; border-top: 1px solid #e5e7eb;">
-                    <v-btn color="primary" variant="tonal" size="small" prepend-icon="mdi-eye" @click="viewTrainingCommissionDetails(item)">View</v-btn>
-                    <v-btn v-if="item.pending_commission > 0 && item.bank_connected && isFriday" color="success" variant="tonal" size="small" prepend-icon="mdi-cash-fast" @click="payTrainingCommission(item)" :loading="item.paying">Pay</v-btn>
                     <v-chip v-else-if="item.pending_commission > 0 && !isFriday" color="grey" size="small">Friday Only</v-chip>
                     <v-chip v-else-if="!item.bank_connected" color="warning" size="small">No Bank</v-chip>
                   </div>
@@ -6355,7 +5209,7 @@
                 <div class="flex-grow-1">
                   <div class="d-flex align-center gap-2 flex-wrap">
                     <div class="caregiver-name-large">{{ contractor.name }}</div>
-                    <v-chip size="small" density="compact" :color="contractor.contractorType === 'Caregiver' ? 'error' : 'deep-purple'" variant="tonal" class="contractor-type-chip">{{ contractor.contractorType }}</v-chip>
+                    <v-chip size="small" density="compact" color="error" variant="tonal" class="contractor-type-chip">{{ contractor.contractorType }}</v-chip>
                   </div>
                   <div class="caregiver-details">{{ contractor.email }} • {{ contractor.phone || 'N/A' }}</div>
                   <div class="caregiver-location">{{ contractor.zip_code || '' }}{{ contractor.zip_code && contractor.location ? ' - ' : '' }}{{ contractor.location || contractor.borough || '' }}</div>
@@ -6483,13 +5337,6 @@
                 <v-text-field v-model="caregiverForm.experience" label="Years of Experience" variant="outlined" type="number" />
               </v-col>
               <v-col cols="12" md="6">
-                <v-checkbox v-model="caregiverForm.isCustomTrainingCenter" label="Custom Training Center" density="compact" hide-details />
-              </v-col>
-              <v-col cols="12" md="6">
-                <v-select v-if="!caregiverForm.isCustomTrainingCenter" v-model="caregiverForm.trainingCenter" :items="caregiverTrainingCenterOptions" label="Training Center" variant="outlined" no-data-text="No CAS training centers. Use Custom Training Center to enter one." />
-                <v-text-field v-else v-model="caregiverForm.customTrainingCenter" label="Custom Training Center" variant="outlined" />
-              </v-col>
-              <v-col cols="12" md="6">
                 <v-text-field v-model="caregiverForm.preferred_hourly_rate_min" label="Preferred Hourly Rate (Min)" variant="outlined" type="number" />
               </v-col>
               <v-col cols="12" md="6">
@@ -6528,160 +5375,6 @@
         <v-card-actions class="pa-6 pt-0">
           <v-btn color="grey" variant="outlined" @click="closeCaregiverDialog">Cancel</v-btn>
           <v-btn color="error" @click="saveCaregiver">{{ editingCaregiver ? 'Update' : 'Add' }}</v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
-
-    <!-- Add/Edit Housekeeper Dialog -->
-    <v-dialog v-model="housekeeperDialog" :max-width="isMobile ? undefined : 900" :fullscreen="isMobile" scrollable>
-      <v-card>
-        <v-card-title class="pa-6" style="background: #dc2626; color: white;">
-          <span class="section-title" style="color: white;">{{ editingHousekeeper ? 'Edit Housekeeper' : 'Add Housekeeper' }}</span>
-        </v-card-title>
-        <v-card-text class="pa-6">
-          <div class="mb-6">
-            <h3 class="text-h6 mb-4">Personal Information</h3>
-            <v-row>
-              <v-col cols="12" md="6">
-                <v-text-field v-model="housekeeperForm.firstName" label="First Name *" variant="outlined" required @update:model-value="housekeeperForm.firstName = filterLettersOnly(housekeeperForm.firstName)" />
-              </v-col>
-              <v-col cols="12" md="6">
-                <v-text-field v-model="housekeeperForm.lastName" label="Last Name *" variant="outlined" required @update:model-value="housekeeperForm.lastName = filterLettersOnly(housekeeperForm.lastName)" />
-              </v-col>
-              <v-col cols="12" md="6">
-                <v-text-field v-model="housekeeperForm.email" label="Email *" variant="outlined" type="email" required />
-              </v-col>
-              <v-col cols="12" md="6">
-                <v-text-field 
-                  v-model="housekeeperForm.phone" 
-                  label="Phone" 
-                  variant="outlined"
-                  placeholder="(646) 282-8282"
-                  maxlength="14"
-                  @update:model-value="housekeeperForm.phone = formatPhoneNumber(housekeeperForm.phone)"
-                />
-              </v-col>
-              <v-col cols="12" md="6">
-                <v-text-field v-model="housekeeperForm.birthdate" label="Birthdate" variant="outlined" type="date" />
-              </v-col>
-              <v-col cols="12" md="6">
-                <v-text-field :model-value="calculateAge(housekeeperForm.birthdate)" label="Age" variant="outlined" readonly />
-              </v-col>
-              <v-col cols="12" md="6">
-                <v-select v-model="housekeeperForm.gender" :items="[{ title: 'Male', value: 'male' }, { title: 'Female', value: 'female' }]" item-title="title" item-value="value" label="Gender" variant="outlined" clearable />
-              </v-col>
-              <v-col cols="12">
-                <v-text-field v-model="housekeeperForm.address" label="Address" variant="outlined" />
-              </v-col>
-              <v-col cols="12" md="6">
-                <v-text-field v-model="housekeeperForm.state" label="State" variant="outlined" readonly value="New York" />
-              </v-col>
-              <v-col cols="12" md="6">
-                <v-select v-model="housekeeperForm.county" :items="nyCounties" label="County" variant="outlined" />
-              </v-col>
-              <v-col cols="12" md="6">
-                <v-select v-model="housekeeperForm.city" :items="housekeeperCities" label="City" variant="outlined" :disabled="!housekeeperForm.county" />
-              </v-col>
-              <v-col cols="12" md="6">
-                <v-text-field 
-                  v-model="housekeeperForm.zip_code" 
-                  label="ZIP Code" 
-                  variant="outlined"
-                  maxlength="5"
-                  :rules="[v => !v || /^\d{5}$/.test(v) || 'Enter 5-digit ZIP', v => !v || /^(00501|00544|06390|1[0-4]\d{3})$/.test(v) || 'Must be NY ZIP (10xxx-14xxx)']"
-                  placeholder="Enter ZIP code"
-                  @input="lookupHousekeeperZipCode"
-                  @blur="lookupHousekeeperZipCode"
-                >
-                  <template v-slot:prepend-inner>
-                    <v-icon>mdi-map-marker</v-icon>
-                  </template>
-                </v-text-field>
-                <div v-if="housekeeperZipLocation" style="font-weight: 600; color: #000000; margin-top: -8px; font-size: 0.75rem; line-height: 1.2;">
-                  {{ housekeeperZipLocation }}
-                </div>
-              </v-col>
-              <v-col cols="12" v-if="!editingHousekeeper">
-                <v-text-field 
-                  v-model="housekeeperForm.password" 
-                  label="Password *" 
-                  :type="showHousekeeperPassword ? 'text' : 'password'" 
-                  variant="outlined" 
-                  required
-                  :append-inner-icon="showHousekeeperPassword ? 'mdi-eye-off' : 'mdi-eye'"
-                  @click:append-inner="showHousekeeperPassword = !showHousekeeperPassword"
-                />
-                <div v-if="housekeeperForm.password" class="password-requirements mt-2">
-                  <div class="requirement-item" :class="{ valid: passwordMeetsLength(housekeeperForm.password) }">
-                    <span class="requirement-icon">{{ passwordMeetsLength(housekeeperForm.password) ? '✓' : '✗' }}</span>
-                    <span class="requirement-text">At least 8 characters</span>
-                  </div>
-                  <div class="requirement-item" :class="{ valid: passwordMeetsUppercase(housekeeperForm.password) }">
-                    <span class="requirement-icon">{{ passwordMeetsUppercase(housekeeperForm.password) ? '✓' : '✗' }}</span>
-                    <span class="requirement-text">One capital letter</span>
-                  </div>
-                  <div class="requirement-item" :class="{ valid: passwordMeetsDigit(housekeeperForm.password) }">
-                    <span class="requirement-icon">{{ passwordMeetsDigit(housekeeperForm.password) ? '✓' : '✗' }}</span>
-                    <span class="requirement-text">One digit</span>
-                  </div>
-                  <div class="requirement-item" :class="{ valid: passwordMeetsSpecial(housekeeperForm.password) }">
-                    <span class="requirement-icon">{{ passwordMeetsSpecial(housekeeperForm.password) ? '✓' : '✗' }}</span>
-                    <span class="requirement-text">One special character</span>
-                  </div>
-                </div>
-              </v-col>
-            </v-row>
-          </div>
-
-          <div class="mb-4">
-            <h3 class="text-h6 mb-4">Professional Details</h3>
-            <v-row>
-              <v-col cols="12" md="6">
-                <v-text-field v-model="housekeeperForm.experience" label="Years of Experience" variant="outlined" type="number" />
-              </v-col>
-              <v-col cols="12" md="6">
-                <v-text-field v-model="housekeeperForm.hourly_rate" label="Hourly Rate ($)" variant="outlined" type="number" prefix="$" />
-              </v-col>
-              <v-col cols="12" md="6">
-                <v-checkbox v-model="housekeeperForm.has_own_supplies" label="Has Own Cleaning Supplies" density="compact" hide-details />
-              </v-col>
-              <v-col cols="12" md="6">
-                <v-checkbox v-model="housekeeperForm.available_for_transport" label="Available for Transport" density="compact" hide-details />
-              </v-col>
-              <v-col cols="12">
-                <v-select 
-                  v-model="housekeeperForm.skills" 
-                  :items="['Deep Cleaning', 'Laundry', 'Ironing', 'Cooking', 'Pet Care', 'Organization', 'Window Cleaning', 'Carpet Cleaning']" 
-                  label="Skills" 
-                  variant="outlined" 
-                  multiple 
-                  chips 
-                  closable-chips
-                />
-              </v-col>
-              <v-col cols="12">
-                <v-select 
-                  v-model="housekeeperForm.specializations" 
-                  :items="['Residential', 'Commercial', 'Move In/Out', 'Post-Construction', 'Green Cleaning', 'Senior Care']" 
-                  label="Specializations" 
-                  variant="outlined" 
-                  multiple 
-                  chips 
-                  closable-chips
-                />
-              </v-col>
-              <v-col cols="12">
-                <v-textarea v-model="housekeeperForm.bio" label="Bio" variant="outlined" rows="3" />
-              </v-col>
-              <v-col cols="12">
-                <v-select v-model="housekeeperForm.status" :items="['Active', 'Inactive', 'Suspended']" label="Status *" variant="outlined" required />
-              </v-col>
-            </v-row>
-          </div>
-        </v-card-text>
-        <v-card-actions class="pa-6 pt-0">
-          <v-btn color="grey" variant="outlined" @click="closeHousekeeperDialog">Cancel</v-btn>
-          <v-btn color="error" @click="saveHousekeeper">{{ editingHousekeeper ? 'Update' : 'Add' }}</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -6857,8 +5550,8 @@
         <v-card-title class="assign-dialog-header pa-6">
           <div class="d-flex align-center justify-space-between w-100">
             <div>
-              <span class="assign-dialog-title">Assign {{ selectedBooking?.service_type === 'Housekeeping' ? 'Housekeepers' : 'Caregivers' }}</span>
-              <div class="assign-dialog-subtitle">Select {{ selectedBooking?.service_type === 'Housekeeping' ? 'housekeepers' : 'caregivers' }} for this booking</div>
+              <span class="assign-dialog-title">Assign Caregivers</span>
+              <div class="assign-dialog-subtitle">Select caregivers for this booking</div>
             </div>
             <div>
               <v-chip 
@@ -6871,7 +5564,7 @@
               </v-chip>
               <div v-if="assignSelectedCaregivers.length > (customCaregiversNeeded || selectedBooking?.caregiversNeeded || 0)" class="text-warning text-caption mt-1">
                 <v-icon size="12" class="mr-1">mdi-information</v-icon>
-                Too many {{ selectedBooking?.service_type === 'Housekeeping' ? 'housekeepers' : 'caregivers' }} selected. This booking needs {{ customCaregiversNeeded || selectedBooking?.caregiversNeeded || 0 }}.
+                Too many caregivers selected. This booking needs {{ customCaregiversNeeded || selectedBooking?.caregiversNeeded || 0 }}.
               </div>
             </div>
           </div>
@@ -6917,19 +5610,19 @@
                 <v-alert color="info" variant="tonal" density="compact" class="mb-2">
                   <div class="d-flex align-center">
                     <v-icon size="18" class="mr-2">mdi-information</v-icon>
-                    <span class="text-caption">Recommended: <strong>{{ selectedBooking.caregiversNeeded }} {{ selectedBooking?.service_type === 'Housekeeping' ? 'housekeeper(s)' : 'caregiver(s)' }}</strong> based on {{ selectedBooking.dutyType }}</span>
+                    <span class="text-caption">Recommended: <strong>{{ selectedBooking.caregiversNeeded }} caregiver(s)</strong> based on {{ selectedBooking.dutyType }}</span>
                   </div>
                 </v-alert>
                 <v-text-field
                   v-model.number="customCaregiversNeeded"
-                  :label="`Number of ${selectedBooking?.service_type === 'Housekeeping' ? 'Housekeepers' : 'Caregivers'} Needed`"
+                  label="Number of Caregivers Needed"
                   type="number"
                   variant="outlined"
                   density="compact"
                   min="1"
                   max="10"
                   prepend-inner-icon="mdi-account-multiple"
-                  :hint="`Customize the number of ${selectedBooking?.service_type === 'Housekeeping' ? 'housekeepers' : 'caregivers'} for this booking`"
+                  hint="Customize the number of caregivers for this booking"
                   persistent-hint
                 >
                   <template v-slot:append-inner>
@@ -6954,7 +5647,7 @@
               <v-col cols="8">
                 <v-text-field
                   v-model="assignCaregiverSearch"
-                  :placeholder="`Search ${selectedBooking?.service_type === 'Housekeeping' ? 'housekeepers' : 'caregivers'} by name...`"
+                  placeholder="Search caregivers by name..."
                   prepend-inner-icon="mdi-magnify"
                   variant="outlined"
                   density="compact"
@@ -6985,7 +5678,7 @@
                   <div>
                     <div class="text-h6 font-weight-bold">Assign Hourly Rates</div>
                     <div class="text-caption" style="opacity: 0.9;">
-                      Set rates within each {{ selectedBooking?.service_type === 'Housekeeping' ? 'housekeeper\'s' : 'caregiver\'s' }} preferred range
+                      Set rates within each caregiver's preferred range
                     </div>
                   </div>
                 </div>
@@ -7037,7 +5730,7 @@
               <v-alert type="info" variant="tonal" density="compact" class="mb-0">
                 <div class="text-caption">
                   <v-icon size="16" class="mr-1">mdi-information</v-icon>
-                  <strong>Next Step:</strong> After assignment, use the "Weekly Schedule" tab to assign {{ selectedBooking?.service_type === 'Housekeeping' ? 'housekeepers' : 'caregivers' }} to specific days. Profit calculations will be available after scheduling is complete.
+                  <strong>Next Step:</strong> After assignment, use the "Weekly Schedule" tab to assign caregivers to specific days. Profit calculations will be available after scheduling is complete.
                 </div>
               </v-alert>
             </v-card-text>
@@ -7112,251 +5805,6 @@
       </v-card>
     </v-dialog>
 
-    <!-- Assign Housekeeper Dialog (custom, copied from caregiver assign dialog) -->
-    <v-dialog v-model="assignHousekeeperDialogOpen" :max-width="isMobile ? undefined : 1200" :fullscreen="isMobile" scrollable>
-      <v-card class="assign-dialog-card">
-        <v-card-title class="assign-dialog-header pa-6">
-          <div class="d-flex align-center justify-space-between w-100">
-            <div>
-              <span class="assign-dialog-title">Assign Housekeepers</span>
-              <div class="assign-dialog-subtitle">Select housekeepers for this booking</div>
-            </div>
-            <div>
-              <v-chip
-                :color="assignSelectedHousekeepers.length > (customHousekeepersNeeded || selectedBooking?.caregiversNeeded || 0) ? 'warning' : 'error'"
-                size="large"
-                class="font-weight-bold selection-counter"
-              >
-                {{ assignSelectedHousekeepers.length }} / {{ customHousekeepersNeeded || selectedBooking?.caregiversNeeded || 0 }} Selected
-                <v-icon v-if="assignSelectedHousekeepers.length > (customHousekeepersNeeded || selectedBooking?.caregiversNeeded || 0)" size="16" class="ml-1">mdi-alert</v-icon>
-              </v-chip>
-              <div v-if="assignSelectedHousekeepers.length > (customHousekeepersNeeded || selectedBooking?.caregiversNeeded || 0)" class="text-warning text-caption mt-1">
-                <v-icon size="12" class="mr-1">mdi-information</v-icon>
-                Too many housekeepers selected. This booking needs {{ customHousekeepersNeeded || selectedBooking?.caregiversNeeded || 0 }}.
-              </div>
-            </div>
-          </div>
-        </v-card-title>
-
-        <v-card-text class="pa-6" style="max-height: 70vh; overflow-y: auto;">
-          <v-container fluid>
-            <div v-if="selectedBooking" class="booking-details-card mb-6" style="background: #f5f5f5; border-radius: 12px; padding: 20px;">
-              <div class="text-h6 font-weight-bold mb-4" style="color: #7B1FA2;">
-                <v-icon color="deep-purple" class="mr-2">mdi-information</v-icon>
-                Booking Details
-              </div>
-              <v-row class="booking-details-content">
-                <v-col cols="12" md="3">
-                  <div class="detail-item">
-                    <v-icon color="deep-purple" size="16" class="mr-2">mdi-account</v-icon>
-                    <span class="detail-label">Client:</span>
-                    <span class="detail-value font-weight-bold">{{ selectedBooking.client }}</span>
-                  </div>
-                  <div class="detail-item">
-                    <v-icon color="deep-purple" size="16" class="mr-2">mdi-calendar</v-icon>
-                    <span class="detail-label">Date:</span>
-                    <span class="detail-value">{{ selectedBooking.date }}</span>
-                  </div>
-                </v-col>
-                <v-col cols="6">
-                  <div class="detail-item">
-                    <v-icon color="deep-purple" size="16" class="mr-2">mdi-medical-bag</v-icon>
-                    <span class="detail-label">Service:</span>
-                    <span class="detail-value">{{ selectedBooking.service }}</span>
-                  </div>
-                  <div class="detail-item">
-                    <v-icon color="deep-purple" size="16" class="mr-2">mdi-clock</v-icon>
-                    <span class="detail-label">Duration:</span>
-                    <span class="detail-value">{{ selectedBooking.duration }}</span>
-                  </div>
-                </v-col>
-              </v-row>
-
-              <!-- Customizable Housekeepers Needed -->
-              <v-divider class="my-3" />
-              <v-row>
-                <v-col cols="12">
-                  <v-alert color="info" variant="tonal" density="compact" class="mb-2">
-                    <div class="d-flex align-center">
-                      <v-icon size="18" class="mr-2">mdi-information</v-icon>
-                      <span class="text-caption">Recommended: <strong>{{ selectedBooking.caregiversNeeded }} housekeeper(s)</strong> based on {{ selectedBooking.dutyType }}</span>
-                    </div>
-                  </v-alert>
-                  <v-text-field
-                    v-model.number="customHousekeepersNeeded"
-                    label="Number of Housekeepers Needed"
-                    type="number"
-                    variant="outlined"
-                    density="compact"
-                    min="1"
-                    max="10"
-                    prepend-inner-icon="mdi-account-multiple"
-                    hint="Customize the number of housekeepers for this booking"
-                    persistent-hint
-                  >
-                    <template v-slot:append-inner>
-                      <v-btn
-                        size="x-small"
-                        variant="text"
-                        color="primary"
-                        @click="customHousekeepersNeeded = selectedBooking.caregiversNeeded"
-                      >
-                        Reset
-                      </v-btn>
-                    </template>
-                  </v-text-field>
-                </v-col>
-              </v-row>
-            </div>
-
-            <v-divider class="mb-4" />
-
-            <div class="mb-4">
-              <v-row>
-                <v-col cols="8">
-                  <v-text-field
-                    v-model="assignHousekeeperSearch"
-                    placeholder="Search housekeepers by name..."
-                    prepend-inner-icon="mdi-magnify"
-                    variant="outlined"
-                    density="compact"
-                    hide-details
-                    class="search-field"
-                  />
-                </v-col>
-                <v-col cols="4">
-                  <v-select
-                    v-model="assignHousekeeperAvailabilityFilter"
-                    :items="['All', 'Available', 'Assigned', 'Unavailable']"
-                    variant="outlined"
-                    density="compact"
-                    hide-details
-                    prepend-inner-icon="mdi-filter"
-                    class="filter-select"
-                  />
-                </v-col>
-              </v-row>
-            </div>
-
-            <!-- Assigned Hourly Rate Section -->
-            <v-card v-if="assignSelectedHousekeepers.length > 0" elevation="0" class="mb-4" style="border: 2px solid #4caf50; border-radius: 8px;">
-              <v-card-title class="pa-4" style="background: #4caf50; color: white;">
-                <div class="d-flex align-center justify-space-between w-100">
-                  <div class="d-flex align-center">
-                    <v-icon size="24" class="mr-2" color="white">mdi-cash-multiple</v-icon>
-                    <div>
-                      <div class="text-h6 font-weight-bold">Assign Hourly Rates</div>
-                      <div class="text-caption" style="opacity: 0.9;">Set rates for each housekeeper</div>
-                    </div>
-                  </div>
-                  <v-chip size="small" style="background: rgba(255,255,255,0.25); color: white;" class="font-weight-bold px-3">
-                    {{ assignSelectedHousekeepers.length }} Selected
-                  </v-chip>
-                </div>
-              </v-card-title>
-
-              <v-card-text class="pa-4">
-                <v-row>
-                  <v-col v-for="housekeeperId in assignSelectedHousekeepers" :key="`hk-rate-${housekeeperId}`" cols="12" md="6">
-                    <v-card elevation="0" class="pa-3" style="border: 1px solid #e0e0e0; border-radius: 8px; background: #fafafa;">
-                      <div class="d-flex align-center mb-3">
-                        <v-avatar size="40" color="success" class="mr-3">
-                          <span class="text-white font-weight-bold">{{ (getHousekeeperById(housekeeperId)?.name || 'H').split(' ').map(n => n[0]).join('') }}</span>
-                        </v-avatar>
-                        <div class="flex-grow-1">
-                          <div class="text-subtitle-2 font-weight-bold">{{ getHousekeeperById(housekeeperId)?.name }}</div>
-                          <div class="text-caption text-grey">
-                            Default: ${{ getHousekeeperById(housekeeperId)?.hourly_rate || 20 }}/hr
-                          </div>
-                        </div>
-                      </div>
-
-                      <v-text-field
-                        v-model="assignedHousekeeperRates[housekeeperId]"
-                        type="number"
-                        label="Hourly Rate"
-                        prefix="$"
-                        suffix="/hr"
-                        variant="outlined"
-                        density="compact"
-                        step="1"
-                        hide-details
-                        color="success"
-                        class="mb-2"
-                      />
-                    </v-card>
-                  </v-col>
-                </v-row>
-
-                <v-divider class="my-4" />
-                <v-alert type="info" variant="tonal" density="compact" class="mb-0">
-                  <div class="text-caption">
-                    <v-icon size="16" class="mr-1">mdi-information</v-icon>
-                    <strong>Next Step:</strong> After assignment, use the "Weekly Schedule" tab to assign housekeepers to specific days.
-                  </div>
-                </v-alert>
-              </v-card-text>
-            </v-card>
-
-            <div class="caregivers-list-container">
-              <div v-for="hk in filteredAssignHousekeepers" :key="hk.id" class="caregiver-assign-card">
-                <div class="d-flex align-center justify-space-between">
-                  <div class="d-flex align-center flex-grow-1">
-                    <v-checkbox
-                      :model-value="assignSelectedHousekeepers.includes(hk.id)"
-                      @update:model-value="(val) => toggleHousekeeperSelection(hk.id, val)"
-                      color="error"
-                      hide-details
-                      class="mr-3"
-                    />
-                    <v-avatar size="48" :color="(['inactive','unavailable'].includes(String(hk.status || hk.availability_status || '').toLowerCase()) ? 'grey' : (String(hk.status || hk.availability_status || '').toLowerCase() === 'assigned' ? 'info' : 'success'))" class="mr-4">
-                      <span class="text-white font-weight-bold text-h6">{{ (hk.name || 'H').split(' ').map(n => n[0]).join('') }}</span>
-                    </v-avatar>
-                    <div class="flex-grow-1">
-                      <div class="caregiver-assign-name">{{ hk.name }}</div>
-                      <div class="caregiver-assign-details">
-                        <v-icon size="14" class="mr-1">mdi-email</v-icon>
-                        {{ hk.email || '—' }}
-                        <v-chip
-                          v-if="staffWeeklyHours.max_hours_per_week"
-                          :color="getHousekeeperScheduledHours(hk.id) >= staffWeeklyHours.max_hours_per_week ? 'warning' : 'default'"
-                          size="x-small"
-                          variant="tonal"
-                          class="ml-2"
-                        >
-                          {{ getHousekeeperScheduledHours(hk.id) }} / {{ staffWeeklyHours.max_hours_per_week }} hrs
-                        </v-chip>
-                      </div>
-                    </div>
-                    <v-chip
-                      :color="(['inactive','unavailable'].includes(String(hk.status || hk.availability_status || '').toLowerCase()) ? 'grey' : (String(hk.status || hk.availability_status || '').toLowerCase() === 'assigned' ? 'info' : 'success'))"
-                      size="small"
-                      class="font-weight-bold"
-                    >
-                      {{ (String(hk.status || hk.availability_status || '').toLowerCase() === 'assigned') ? 'Assigned' : (['inactive','unavailable'].includes(String(hk.status || hk.availability_status || '').toLowerCase()) ? 'Unavailable' : 'Available') }}
-                    </v-chip>
-                  </div>
-                </div>
-              </div>
-
-              <div v-if="filteredAssignHousekeepers.length === 0" class="no-caregivers">
-                <v-icon size="64" color="grey-lighten-1">mdi-account-search</v-icon>
-                <div class="text-grey mt-2">No housekeepers found</div>
-              </div>
-            </div>
-          </v-container>
-        </v-card-text>
-
-        <v-card-actions class="pa-4" style="border-top: 1px solid #e0e0e0; background: #fafafa;">
-          <v-spacer />
-          <v-btn color="grey" variant="text" @click="closeAssignHousekeeperDialog">Cancel</v-btn>
-          <v-btn color="deep-purple" variant="elevated" @click="confirmAssignHousekeepers">
-            {{ assignSelectedHousekeepers.length === 0 ? 'Unassign All' : `Assign ${assignSelectedHousekeepers.length} Housekeeper${assignSelectedHousekeepers.length !== 1 ? 's' : ''}` }}
-          </v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
-
     <!-- View Booking Details Dialog -->
     <v-dialog v-model="viewBookingDialog" :max-width="isMobile ? undefined : 900" :fullscreen="isMobile" scrollable>
       <v-card v-if="viewingBooking" max-height="80vh">
@@ -7412,7 +5860,7 @@
                     <div class="booking-detail-item">
                       <v-icon color="error" size="18" class="mr-2">mdi-account-group</v-icon>
                       <span class="booking-detail-label">
-                        {{ (viewingBooking.service && viewingBooking.service.toLowerCase().includes('housekeeping')) ? 'Housekeepers Assigned:' : 'Caregivers Assigned:' }}
+                        Caregivers Assigned:
                       </span>
                       <v-chip :color="(viewingBooking.assignedCount || 0) >= (viewingBooking.caregiversNeeded || 1) ? 'success' : 'warning'" size="small" class="ml-2">
                         {{ viewingBooking.assignedCount || 0 }} / {{ viewingBooking.caregiversNeeded || 1 }} Assigned
@@ -7592,59 +6040,36 @@
             </v-col>
           </v-row>
 
-          <!-- Assigned Caregivers/Housekeepers Section -->
-          <v-row v-if="(isHousekeepingBooking(viewingBooking) ? getAssignedHousekeepers(viewingBooking.id).length : getAssignedCaregivers(viewingBooking.id).length) > 0" class="mb-4">
+          <!-- Assigned caregivers (housekeeper assignments retired) -->
+          <v-row v-if="getAssignedCaregivers(viewingBooking.id).length > 0" class="mb-4">
             <v-col cols="12">
               <div class="booking-overview-card" style="border: 2px solid #4caf50;">
                 <div class="booking-overview-header">
-                  <v-icon color="success" size="24" class="mr-3">{{ isHousekeepingBooking(viewingBooking) ? 'mdi-broom' : 'mdi-account-heart' }}</v-icon>
-                  <span class="booking-overview-title">{{ isHousekeepingBooking(viewingBooking) ? 'Assigned Housekeepers' : 'Assigned Caregivers' }}</span>
+                  <v-icon color="success" size="24" class="mr-3">mdi-account-heart</v-icon>
+                  <span class="booking-overview-title">Assigned Caregivers</span>
                   <v-chip size="small" color="success" class="ml-2">
-                    {{ isHousekeepingBooking(viewingBooking) ? getAssignedHousekeepers(viewingBooking.id).length : getAssignedCaregivers(viewingBooking.id).length }} Active
+                    {{ getAssignedCaregivers(viewingBooking.id).length }} Active
                   </v-chip>
                 </div>
                 <v-divider class="my-3" />
                 <v-row>
-                  <!-- Show housekeepers for housekeeping bookings -->
-                  <template v-if="isHousekeepingBooking(viewingBooking)">
-                    <v-col v-for="housekeeper in getAssignedHousekeepers(viewingBooking.id)" :key="housekeeper.id" cols="12" md="6">
-                      <v-card elevation="1" class="pa-3" style="border: 1px solid #e0e0e0; border-radius: 8px; background: #f9f9f9;">
-                        <div class="d-flex align-center">
-                          <v-avatar size="48" color="purple" class="mr-3">
-                            <span class="text-white font-weight-bold">{{ housekeeper.name.split(' ').map(n => n[0]).join('') }}</span>
-                          </v-avatar>
-                          <div class="flex-grow-1">
-                            <div class="text-subtitle-2 font-weight-bold">{{ housekeeper.name }}</div>
-                            <div class="text-caption text-grey">{{ housekeeper.email }}</div>
-                            <v-chip size="x-small" color="purple" class="mt-1">
-                              <v-icon size="14" class="mr-1">mdi-cash</v-icon>
-                              ${{ housekeeper.hourly_rate || 20 }}/hr
-                            </v-chip>
-                          </div>
+                  <v-col v-for="caregiver in getAssignedCaregivers(viewingBooking.id)" :key="caregiver.id" cols="12" md="6">
+                    <v-card elevation="1" class="pa-3" style="border: 1px solid #e0e0e0; border-radius: 8px; background: #f9f9f9;">
+                      <div class="d-flex align-center">
+                        <v-avatar size="48" color="success" class="mr-3">
+                          <span class="text-white font-weight-bold">{{ caregiver.name.split(' ').map(n => n[0]).join('') }}</span>
+                        </v-avatar>
+                        <div class="flex-grow-1">
+                          <div class="text-subtitle-2 font-weight-bold">{{ caregiver.name }}</div>
+                          <div class="text-caption text-grey">{{ caregiver.email }}</div>
+                          <v-chip size="x-small" color="success" class="mt-1">
+                            <v-icon size="14" class="mr-1">mdi-cash</v-icon>
+                            Assigned: ${{ caregiver.hourly_rate || caregiver.hourlyRate || 20 }}/hr
+                          </v-chip>
                         </div>
-                      </v-card>
-                    </v-col>
-                  </template>
-                  <!-- Show caregivers for non-housekeeping bookings -->
-                  <template v-else>
-                    <v-col v-for="caregiver in getAssignedCaregivers(viewingBooking.id)" :key="caregiver.id" cols="12" md="6">
-                      <v-card elevation="1" class="pa-3" style="border: 1px solid #e0e0e0; border-radius: 8px; background: #f9f9f9;">
-                        <div class="d-flex align-center">
-                          <v-avatar size="48" color="success" class="mr-3">
-                            <span class="text-white font-weight-bold">{{ caregiver.name.split(' ').map(n => n[0]).join('') }}</span>
-                          </v-avatar>
-                          <div class="flex-grow-1">
-                            <div class="text-subtitle-2 font-weight-bold">{{ caregiver.name }}</div>
-                            <div class="text-caption text-grey">{{ caregiver.email }}</div>
-                            <v-chip size="x-small" color="success" class="mt-1">
-                              <v-icon size="14" class="mr-1">mdi-cash</v-icon>
-                              Assigned: ${{ caregiver.hourly_rate || caregiver.hourlyRate || 20 }}/hr
-                            </v-chip>
-                          </div>
-                        </div>
-                      </v-card>
-                    </v-col>
-                  </template>
+                      </div>
+                    </v-card>
+                  </v-col>
                 </v-row>
               </div>
             </v-col>
@@ -7681,15 +6106,15 @@
                   <div v-if="viewingBooking.assignedCount > 0" class="timeline-item">
                     <div class="timeline-dot timeline-dot-info"></div>
                     <div class="timeline-content">
-                      <div class="timeline-title">{{ isHousekeepingBooking(viewingBooking) ? 'Housekeepers Assigned' : 'Caregivers Assigned' }}</div>
-                      <div class="timeline-subtitle">{{ viewingBooking.assignedCount }} {{ isHousekeepingBooking(viewingBooking) ? 'housekeeper(s)' : 'caregiver(s)' }} assigned</div>
+                      <div class="timeline-title">Caregivers Assigned</div>
+                      <div class="timeline-subtitle">{{ viewingBooking.assignedCount }} caregiver(s) assigned</div>
                     </div>
                   </div>
                   <div v-if="viewingBooking.status === 'Assigned'" class="timeline-item">
                     <div class="timeline-dot timeline-dot-success"></div>
                     <div class="timeline-content">
                       <div class="timeline-title">Fully Assigned</div>
-                      <div class="timeline-subtitle">All required {{ isHousekeepingBooking(viewingBooking) ? 'housekeepers' : 'caregivers' }} assigned</div>
+                      <div class="timeline-subtitle">All required caregivers assigned</div>
                     </div>
                   </div>
                   <div v-if="viewingBooking.status === 'In Progress'" class="timeline-item">
@@ -8399,276 +6824,6 @@
       </v-card>
     </v-dialog>
 
-  <v-dialog v-model="viewAssignedHousekeepersDialog" :max-width="isMobile ? undefined : 1200" :fullscreen="isMobile" scrollable>
-      <v-card v-if="viewingBookingHousekeepers">
-        <v-toolbar color="purple" dark>
-          <v-toolbar-title>
-            <div class="d-flex align-center">
-              <v-icon class="mr-2">mdi-broom</v-icon>
-              <div>
-                <div class="text-h6">Housekeeper Management</div>
-                <div class="text-caption opacity-90">{{ viewingBookingHousekeepers.client }} - {{ viewingBookingHousekeepers.service }}</div>
-              </div>
-            </div>
-          </v-toolbar-title>
-          <v-spacer />
-          <v-btn icon @click="viewAssignedHousekeepersDialog = false">
-            <v-icon>mdi-close</v-icon>
-          </v-btn>
-        </v-toolbar>
-
-        <!-- Booking Info Card (match Caregiver Management layout) -->
-        <v-card-text class="pa-6 bg-grey-lighten-4">
-          <v-card elevation="0" class="rounded-lg">
-            <v-card-text class="pa-4">
-              <v-row dense>
-                <v-col cols="12" md="3">
-                  <div class="text-caption text-grey-darken-1 mb-1">Date & Time</div>
-                  <div class="text-body-2 font-weight-bold">{{ viewingBookingHousekeepers.date }}</div>
-                  <div class="text-body-2 font-weight-bold">{{ viewingBookingHousekeepers.time }}</div>
-                </v-col>
-                <v-col cols="12" md="2">
-                  <div class="text-caption text-grey-darken-1 mb-1">Duration</div>
-                  <div class="text-body-2 font-weight-bold">{{ viewingBookingHousekeepers.duration }}</div>
-                </v-col>
-                <v-col cols="12" md="2">
-                  <div class="text-caption text-grey-darken-1 mb-1">Needed</div>
-                  <div class="text-body-2 font-weight-bold">{{ viewingBookingHousekeepers.caregiversNeeded }} housekeepers</div>
-                </v-col>
-                <v-col cols="12" md="2">
-                  <div class="text-caption text-grey-darken-1 mb-1">Assigned</div>
-                  <div class="text-body-2 font-weight-bold">{{ getAssignedHousekeepers(viewingBookingHousekeepers.id).length }} housekeepers</div>
-                </v-col>
-                <v-col cols="12" md="3" class="d-flex align-center justify-end">
-                  <v-chip :color="getBookingStatusColor(viewingBookingHousekeepers.status)" class="text-white font-weight-bold">
-                    {{ viewingBookingHousekeepers.status }}
-                  </v-chip>
-                </v-col>
-              </v-row>
-            </v-card-text>
-          </v-card>
-        </v-card-text>
-
-        <!-- Tabs -->
-        <v-tabs v-model="assignedHousekeepersTab" color="purple" bg-color="white">
-          <v-tab value="housekeepers">
-            <v-icon class="mr-2">mdi-broom</v-icon>
-            Housekeepers ({{ getAssignedHousekeepers(viewingBookingHousekeepers.id).length }})
-          </v-tab>
-          <v-tab value="schedule">
-            <v-icon class="mr-2">mdi-calendar-week</v-icon>
-            Weekly Schedule
-          </v-tab>
-        </v-tabs>
-
-        <v-divider />
-
-        <!-- Tab Content -->
-        <v-card-text class="pa-0" style="height: 500px; overflow-y: auto;">
-          <v-tabs-window v-model="assignedHousekeepersTab">
-            <!-- Housekeepers List Tab -->
-            <v-tabs-window-item value="housekeepers">
-              <div class="pa-6">
-                <div v-if="getAssignedHousekeepers(viewingBookingHousekeepers.id).length > 0">
-                  <v-row>
-                    <v-col v-for="hk in getAssignedHousekeepers(viewingBookingHousekeepers.id)" :key="hk.id" cols="12">
-                      <v-card elevation="2" class="rounded-lg hover-card">
-                        <v-card-text class="pa-4">
-                          <div class="d-flex align-start">
-                            <!-- Avatar -->
-                            <v-avatar size="64" color="purple" class="mr-4">
-                              <span class="text-white font-weight-bold text-h5">{{ (hk.name || 'H').split(' ').map(n => n[0]).join('') }}</span>
-                            </v-avatar>
-
-                            <!-- Housekeeper Info -->
-                            <div class="flex-grow-1">
-                              <div class="text-h6 font-weight-bold mb-1 text-grey-darken-3">{{ hk.name }}</div>
-                              <div class="d-flex flex-wrap gap-2 mb-2">
-                                <v-chip size="small" color="grey-lighten-2">
-                                  <v-icon size="16" class="mr-1" style="color: #1a1a1a !important;">mdi-email</v-icon>
-                                  <span class="text-grey-darken-3">{{ hk.email }}</span>
-                                </v-chip>
-                                <v-chip size="small" color="grey-lighten-2">
-                                  <v-icon size="16" class="mr-1" style="color: #1a1a1a !important;">mdi-phone</v-icon>
-                                  <span class="text-grey-darken-3">{{ hk.phone || '(646) 282-8282' }}</span>
-                                </v-chip>
-                                <v-chip size="small" color="purple" variant="elevated">
-                                  <v-icon size="16" class="mr-1">mdi-cash</v-icon>
-                                  <span class="font-weight-bold">${{ hk.hourly_rate || 20 }}/hr</span>
-                                </v-chip>
-                              </div>
-
-                              <!-- Schedule Info -->
-                              <div v-if="getHousekeeperScheduleDays(hk.id).length > 0" class="mt-2">
-                                <v-chip size="small" color="primary" variant="tonal" prepend-icon="mdi-calendar-check">
-                                  {{ getHousekeeperScheduleDays(hk.id).length }} days scheduled
-                                </v-chip>
-                                <span class="text-caption text-grey ml-2">
-                                  {{ getHousekeeperScheduleDays(hk.id).map(d => d.charAt(0).toUpperCase() + d.slice(1, 3)).join(', ') }}
-                                </span>
-                              </div>
-                              <div v-else class="mt-2">
-                                <v-chip size="small" color="warning" variant="tonal" prepend-icon="mdi-calendar-alert">
-                                  No schedule assigned
-                                </v-chip>
-                              </div>
-                            </div>
-
-                            <!-- Actions -->
-                            <div class="d-flex flex-column gap-2">
-                              <v-btn color="error" variant="outlined" size="small" prepend-icon="mdi-close" @click="unassignHousekeeper(hk.id, viewingBookingHousekeepers.id)">
-                                Unassign
-                              </v-btn>
-                            </div>
-                          </div>
-                        </v-card-text>
-                      </v-card>
-                    </v-col>
-                  </v-row>
-                </div>
-
-                <!-- Empty State -->
-                <div v-else class="text-center py-12">
-                  <v-icon size="80" color="grey-lighten-2">mdi-broom</v-icon>
-                  <div class="text-h6 text-grey-darken-1 mt-4">No Housekeepers Assigned</div>
-                  <div class="text-body-2 text-grey mt-2 mb-4">Assign housekeepers to this booking to get started.</div>
-                  <v-btn color="purple" size="large" prepend-icon="mdi-broom" @click="assignHousekeeperDialog(viewingBookingHousekeepers); viewAssignedHousekeepersDialog = false">
-                    Assign Housekeepers
-                  </v-btn>
-                </div>
-              </div>
-            </v-tabs-window-item>
-
-            <!-- Weekly Schedule Tab -->
-            <v-tabs-window-item value="schedule">
-              <div class="pa-6">
-                <div v-if="getAssignedHousekeepers(viewingBookingHousekeepers.id).length > 0">
-                  <div class="d-flex justify-end mb-4">
-                    <v-btn
-                      color="error"
-                      variant="outlined"
-                      size="small"
-                      prepend-icon="mdi-close-circle"
-                      @click="clearAllHousekeeperSchedules"
-                    >
-                      Clear All Schedules
-                    </v-btn>
-                  </div>
-
-                  <v-row>
-                    <v-col
-                      v-for="day in getAvailableDays(viewingBookingHousekeepers)"
-                      :key="day.value"
-                      cols="12"
-                      sm="6"
-                      md="4"
-                      lg="3"
-                    >
-                      <v-card
-                        :class="['day-schedule-card', { 'today-card': isTodayHousekeeper(day.value) }]"
-                        :color="isTodayHousekeeper(day.value) ? 'blue-lighten-5' : ''"
-                        elevation="2"
-                      >
-                        <v-card-title class="pa-3 d-flex align-center justify-space-between" :class="{ 'bg-blue-lighten-4': isTodayHousekeeper(day.value) }" style="color: #1a1a1a !important;">
-                          <div class="d-flex align-center">
-                            <v-icon size="20" class="mr-2" :style="{ color: isTodayHousekeeper(day.value) ? '#1565c0 !important' : '#1a1a1a !important' }">
-                              {{ isTodayHousekeeper(day.value) ? 'mdi-calendar-star' : 'mdi-calendar' }}
-                            </v-icon>
-                            <div>
-                              <div class="text-body-2 font-weight-bold" style="color: #1a1a1a !important;">{{ day.label }}</div>
-                              <div v-if="isTodayHousekeeper(day.value)" class="text-caption font-weight-bold" style="color: #1565c0 !important;">TODAY</div>
-                              <div class="text-caption d-flex align-center mt-1" style="color: #616161 !important;">
-                                <v-icon size="12" class="mr-1" style="color: #616161 !important;">mdi-clock-outline</v-icon>
-                                {{ getTimeForDay(viewingBookingHousekeepers, day.value) }}
-                              </div>
-                            </div>
-                          </div>
-                        </v-card-title>
-
-                        <v-divider />
-
-                        <v-card-text class="pa-3">
-                          <div class="mb-3">
-                            <v-chip
-                              v-if="getHousekeeperForDay(day.value)"
-                              :color="isTodayHousekeeper(day.value) ? 'blue' : 'purple'"
-                              size="small"
-                              class="text-white font-weight-bold"
-                              block
-                            >
-                              <v-icon size="14" class="mr-1">mdi-account-check</v-icon>
-                              Assigned
-                            </v-chip>
-                            <v-chip
-                              v-else
-                              color="grey-lighten-2"
-                              size="small"
-                              block
-                            >
-                              <v-icon size="14" class="mr-1" color="grey-darken-2">mdi-account-off</v-icon>
-                              <span class="text-grey-darken-2">Unassigned</span>
-                            </v-chip>
-                          </div>
-
-                          <div v-if="getHousekeeperForDay(day.value)" class="mb-3">
-                            <div class="pa-2 bg-purple-lighten-5 rounded d-flex align-center">
-                              <v-avatar size="32" color="purple" class="mr-2">
-                                <span class="text-white text-caption font-weight-bold">
-                                  {{ getHousekeeperForDay(day.value).name.split(' ').map(n => n[0]).join('') }}
-                                </span>
-                              </v-avatar>
-                              <div class="flex-grow-1" style="min-width: 0;">
-                                <div class="text-body-2 font-weight-bold text-truncate text-grey-darken-3">
-                                  {{ getHousekeeperForDay(day.value).name }}
-                                </div>
-                                <div class="text-caption text-grey-darken-1">Currently assigned</div>
-                              </div>
-                            </div>
-                          </div>
-
-                          <v-select
-                            :model-value="getHousekeeperForDay(day.value)?.id"
-                            @update:model-value="(val) => assignHousekeeperToDay(day.value, val)"
-                            :items="getAssignedHousekeepers(viewingBookingHousekeepers.id)"
-                            item-title="name"
-                            item-value="id"
-                            label="Assign Housekeeper"
-                            variant="outlined"
-                            density="compact"
-                            prepend-inner-icon="mdi-broom"
-                            clearable
-                            hide-details
-                          />
-                        </v-card-text>
-                      </v-card>
-                    </v-col>
-                  </v-row>
-                </div>
-
-                <div v-else class="text-center py-12">
-                  <v-icon size="80" color="grey-lighten-2">mdi-broom</v-icon>
-                  <div class="text-h6 text-grey-darken-1 mt-4">No Housekeepers Assigned</div>
-                  <div class="text-body-2 text-grey mt-2 mb-4">Please assign housekeepers to this booking first.</div>
-                  <v-btn color="purple" size="large" prepend-icon="mdi-broom" @click="assignHousekeeperDialog(viewingBookingHousekeepers); viewAssignedHousekeepersDialog = false">
-                    Assign Housekeepers
-                  </v-btn>
-                </div>
-              </div>
-            </v-tabs-window-item>
-          </v-tabs-window>
-        </v-card-text>
-
-        <!-- Actions -->
-        <v-divider />
-        <v-card-actions class="pa-4 bg-grey-lighten-5">
-          <v-spacer />
-          <v-btn variant="text" @click="viewAssignedHousekeepersDialog = false">Close</v-btn>
-          <v-btn color="purple" variant="flat" prepend-icon="mdi-broom" @click="assignHousekeeperDialog(viewingBookingHousekeepers); viewAssignedHousekeepersDialog = false">
-            Manage Assignment
-          </v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
 
     <!-- Schedule Management Dialog -->
     <v-dialog v-model="scheduleDialog" :max-width="isMobile ? undefined : 1000" :fullscreen="isMobile" persistent scrollable>
@@ -9169,9 +7324,6 @@ const caregiverForm = ref({
   zip_code: '', 
   password: '',
   experience: '', 
-  trainingCenter: '', 
-  customTrainingCenter: '', 
-  isCustomTrainingCenter: false,
   trainingCertificate: null, 
   bio: '', 
   preferred_hourly_rate_min: null,
@@ -9211,8 +7363,6 @@ const housekeeperForm = ref({
   specializations: [],
   status: 'Active'
 });
-
-// caregiverTrainingCenters is loaded dynamically via loadCaregiverTrainingCenters()
 
 const announcementData = ref({
   title: '',
@@ -9416,7 +7566,6 @@ const showCurrentPassword = ref(false);
 const showNewPassword = ref(false);
 const showConfirmPassword = ref(false);
 const showMarketingPassword = ref(false);
-const showTrainingPassword = ref(false);
 const showAddUserPassword = ref(false);
 const showClientPassword = ref(false);
 const showCaregiverPassword = ref(false);
@@ -9450,7 +7599,6 @@ const selectedCaregivers = ref([]);
 const selectedHousekeepers = ref([]);
 const selectedClients = ref([]);
 const selectedMarketingStaff = ref([]);
-const selectedTrainingCenters = ref([]);
 const selectedBookings = ref([]);
 
 const pendingApplications = ref([]);
@@ -9554,11 +7702,9 @@ const getDefaultPagePermissions = () => ({
   notifications: true,
   users: true,
   caregivers: true,
-  housekeepers: true,
   clients: true,
   'admin-staff': true,
   'marketing-staff': true,
-  'training-centers': true,
   pending: true,
   'client-bookings': true,
   'time-tracking': true,
@@ -9579,11 +7725,9 @@ const permissionPages = {
   users: [
     { value: 'users', title: 'Users', icon: 'mdi-account-group' },
     { value: 'caregivers', title: 'Caregivers', icon: 'mdi-account-heart' },
-    { value: 'housekeepers', title: 'Housekeepers', icon: 'mdi-broom' },
     { value: 'clients', title: 'Clients', icon: 'mdi-account-multiple' },
     { value: 'admin-staff', title: 'Admin Staff', icon: 'mdi-shield-account' },
     { value: 'marketing-staff', title: 'Marketing Partner', icon: 'mdi-bullhorn-variant' },
-    { value: 'training-centers', title: 'Training Centers', icon: 'mdi-school' },
   ],
   applications: [
     { value: 'pending', title: 'Contractors Application', icon: 'mdi-account-clock' },
@@ -9628,71 +7772,6 @@ const adminStaffHeaders = [
   { title: 'Phone', key: 'phone' },
   { title: 'Last Login', key: 'last_login' },
   { title: 'Joined', key: 'joined' },
-  { title: 'Status', key: 'status' },
-  { title: 'Actions', key: 'actions', sortable: false },
-];
-
-// Training Centers Management
-const trainingCenters = ref([]);
-const trainingCenterSearch = ref('');
-const trainingCenterStatusFilter = ref('All');
-const trainingCenterCountyFilter = ref('All');
-const trainingCenterDialog = ref(false);
-const editingTrainingCenter = ref(null);
-const viewTrainingCenterDialog = ref(false);
-const viewingTrainingCenter = ref(null);
-const trainingCenterFormData = ref({
-  name: '',
-  email: '',
-  phone: '',
-  address: '',
-  state: 'New York',
-  county: '',
-  city: '',
-  zip_code: '',
-  password: '',
-  status: 'Active'
-});
-const trainingCenterZipLocation = ref('');
-
-// Use the same training center list pattern as the caregiver profile (API-backed)
-const caregiverTrainingCenters = ref([]);
-// Include current form value so selector always shows what training center it is
-const caregiverTrainingCenterOptions = computed(() => {
-  const list = [...(caregiverTrainingCenters.value || [])];
-  const current = (caregiverForm.value?.trainingCenter || '').trim();
-  if (current && !list.includes(current)) list.unshift(current);
-  return list;
-});
-const loadCaregiverTrainingCenters = async () => {
-  try {
-    const response = await fetch('/api/training-centers?active_only=1', {
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
-      },
-      credentials: 'include'
-    });
-
-    const data = await response.json().catch(() => ({}));
-    // Accept a few possible shapes (centers, training_centers, trainingCenters)
-    const centers = Array.isArray(data) ? data : (data.centers || data.training_centers || data.trainingCenters || []);
-    caregiverTrainingCenters.value = (centers || [])
-      .map(c => (typeof c === 'string' ? c : (c.name || c.title || '')))
-      .map(s => String(s || '').trim())
-      .filter(Boolean);
-  } catch (e) {
-    caregiverTrainingCenters.value = [];
-  }
-};
-const trainingCenterHeaders = [
-  { title: 'Name', key: 'name' },
-  { title: 'Email', key: 'email' },
-  { title: 'Phone', key: 'phone' },
-  { title: 'Zip Code', key: 'zip_code' },
-  { title: 'Caregivers', key: 'caregiverCount' },
-  { title: 'Total Hours', key: 'totalHours' },
-  { title: 'Commission Earned', key: 'commissionEarned' },
   { title: 'Status', key: 'status' },
   { title: 'Actions', key: 'actions', sortable: false },
 ];
@@ -9831,11 +7910,9 @@ const navItems = ref([
     expanded: true,
     children: [
       { icon: 'mdi-account-heart', title: 'Caregivers', value: 'caregivers' },
-      { icon: 'mdi-broom', title: 'Housekeepers', value: 'housekeepers' },
       { icon: 'mdi-account-multiple', title: 'Clients', value: 'clients' },
       { icon: 'mdi-shield-account', title: 'Admin Staff', value: 'admin-staff' },
       { icon: 'mdi-bullhorn-variant', title: 'Marketing Partner', value: 'marketing-staff' },
-      { icon: 'mdi-school', title: 'Training Centers', value: 'training-centers' }
     ]
   },
   { icon: 'mdi-account-clock', title: 'Contractors Application', value: 'pending', category: 'APPLICATIONS' },
@@ -9856,11 +7933,9 @@ const pagePermissions = ref({
   notifications: true,
   users: true,
   caregivers: true,
-  housekeepers: true,
   clients: true,
   'admin-staff': true,
   'marketing-staff': true,
-  'training-centers': true,
   pending: true,
   'client-bookings': true,
   'time-tracking': true,
@@ -9907,11 +7982,9 @@ const showAccessDeniedNotification = (pageValue) => {
     notifications: 'Notifications',
     users: 'Users',
     caregivers: 'Caregivers',
-    housekeepers: 'Housekeepers',
     clients: 'Clients',
     'admin-staff': 'Admin Staff',
     'marketing-staff': 'Marketing Partner',
-    'training-centers': 'Training Centers',
     pending: 'Contractors Application',
     'client-bookings': 'Client Bookings',
     'time-tracking': 'Time Tracking',
@@ -10059,7 +8132,7 @@ const stats = ref([
   { title: 'Total Users', value: '0', icon: 'mdi-account-group', color: 'error', change: '+12% this month', changeColor: 'text-success', changeIcon: 'mdi-arrow-up' },
   { title: 'Active Bookings', value: '0', icon: 'mdi-calendar-check', color: 'error', change: '+8% this week', changeColor: 'text-success', changeIcon: 'mdi-arrow-up' },
   { title: 'Total Revenue', value: '$0', icon: 'mdi-currency-usd', color: 'error', change: '+15% this month', changeColor: 'text-success', changeIcon: 'mdi-arrow-up' },
-  { title: 'Total Contractors', value: '0', icon: 'mdi-account-hard-hat', color: 'error', change: 'Caregivers & Housekeepers', changeColor: 'text-info', changeIcon: 'mdi-information' },
+  { title: 'Total Contractors', value: '0', icon: 'mdi-account-hard-hat', color: 'error', change: 'Active caregivers', changeColor: 'text-info', changeIcon: 'mdi-information' },
 ]);
 
 const loadAdminStats = async () => {
@@ -10253,13 +8326,6 @@ const caregiverMetrics = ref([
   { label: 'Avg Earnings', value: '$0', color: 'error' },
 ]);
 
-const housekeeperMetrics = ref([
-  { label: 'Total Housekeepers', value: '0', color: 'deep-purple' },
-  { label: 'Active Today', value: '0', color: 'purple' },
-  { label: 'Assigned', value: '0', color: 'purple-lighten-2' },
-  { label: 'Avg Earnings', value: '$0', color: 'deep-purple' },
-]);
-
 const adminStaffMetrics = ref([
   { label: 'Total Admins', value: '0', color: 'error' },
   { label: 'Active', value: '—', color: 'grey' },
@@ -10274,16 +8340,8 @@ const marketingMetrics = ref([
   { label: '—', value: '—', color: 'grey' },
 ]);
 
-const trainingCenterMetrics = ref([
-  { label: 'Total Centers', value: '0', color: 'info' },
-  { label: 'Active', value: '—', color: 'grey' },
-  { label: 'Caregivers Linked', value: '—', color: 'grey' },
-  { label: '—', value: '—', color: 'grey' },
-]);
-
 const adminCount = ref('0');
 const marketingCount = ref('0');
-const trainingCenterCount = ref('0');
 const pendingApplicationsCount = ref('0');
 const userProgress = ref(0);
 const userGrowth = ref('+0% this month');
@@ -10314,26 +8372,22 @@ const loadMetrics = async () => {
     const totalUsers = data.total_users || 0;
     const totalCaregivers = data.total_caregivers || 0;
     const totalClients = data.total_clients || 0;
-    const totalHousekeepers = data.total_housekeepers || 0;
     const totalAdmins = data.total_admins || 0;
     const totalMarketing = data.total_marketing || 0;
-    const totalTraining = data.total_training || 0;
     const totalRevenue = data.total_revenue || 0;
     
     // Update counts
     clientMetrics.value[0].value = totalClients.toString();
     caregiverMetrics.value[0].value = totalCaregivers.toString();
-    housekeeperMetrics.value[0].value = totalHousekeepers.toString();
     adminCount.value = totalAdmins.toString();
     marketingCount.value = totalMarketing.toString();
-    trainingCenterCount.value = totalTraining.toString();
     pendingApplicationsCount.value = (data.pending_applications_count ?? 0).toString();
     totalUsersForChart.value = totalUsers.toString();
     
-    // Admin, Marketing, Training analytics
+    // Admin, Marketing analytics
+    
     adminStaffMetrics.value[0].value = totalAdmins.toString();
     marketingMetrics.value[0].value = totalMarketing.toString();
-    trainingCenterMetrics.value[0].value = totalTraining.toString();
     
     // Use REAL analytics data from API
     // Client metrics
@@ -10344,9 +8398,6 @@ const loadMetrics = async () => {
     caregiverMetrics.value[1].value = (data.available_caregivers || 0).toString(); // Available Now
     caregiverMetrics.value[2].value = (data.top_rated_caregivers || 0).toString(); // Top Rated
     caregiverMetrics.value[3].value = '$' + (data.avg_caregiver_earnings || 0).toFixed(0); // Avg Earnings
-    
-    // Housekeeper metrics
-    housekeeperMetrics.value[3].value = '$' + (data.avg_housekeeper_earnings || 0).toFixed(0); // Avg Earnings
     
     // Lightweight booking counts (no full list)
     try {
@@ -10362,16 +8413,6 @@ const loadMetrics = async () => {
       }
     } catch (statsErr) {
       // Keep defaults
-    }
-    // Housekeeper analytics (active/assigned) – optional, non-blocking
-    try {
-      const hkResp = await fetch('/api/admin/housekeeper-salaries', { credentials: 'include' });
-      const hkData = await hkResp.json();
-      const payments = hkData.payments || [];
-      housekeeperMetrics.value[1].value = payments.filter(p => p.days_worked > 0).length.toString();
-      housekeeperMetrics.value[2].value = payments.filter(p => p.status !== 'No Hours').length.toString();
-    } catch (hkError) {
-      // Keep default values
     }
     
     setTimeout(initCharts, 100);
@@ -10564,126 +8605,12 @@ const loadUsers = async () => {
 };
 
 const loadHousekeepers = async () => {
-  try {
-    const response = await fetch('/api/admin/housekeepers', {
-      credentials: 'include'
-    });
-    const data = await response.json();
-  const nameParts = (h) => {
-    const n = (h.name || '').trim();
-    if (!n) return { first_name: '', last_name: '' };
-    const parts = n.split(/\s+/);
-    return { first_name: parts[0] || '', last_name: parts.slice(1).join(' ') || '' };
-  };
-  housekeepers.value = (data.housekeepers || []).map(h => {
-    const { first_name, last_name } = nameParts(h);
-    const dob = h.date_of_birth || '';
-    const birthdate = dob ? new Date(dob).toLocaleDateString() : '';
-    let age = '';
-    if (dob) {
-      const d = new Date(dob);
-      if (!Number.isNaN(d.getTime())) {
-        const today = new Date();
-        let a = today.getFullYear() - d.getFullYear();
-        const m = today.getMonth() - d.getMonth();
-        if (m < 0 || (m === 0 && today.getDate() < d.getDate())) a--;
-        age = a;
-      }
-    }
-    return {
-      id: h.housekeeper?.id,
-      userId: h.id,
-      name: h.name,
-      first_name,
-      last_name,
-      email: h.email,
-      phone: h.phone || 'N/A',
-      zip_code: h.zip_code || '',
-      city: h.city || '',
-      county: h.county || '',
-      borough: h.borough || '',
-      location: h.location || 'Unknown',
-      status: h.status || 'Active',
-      date_of_birth: dob,
-      birthdate,
-      age,
-      gender: h.housekeeper?.gender || '',
-      years_experience: h.years_experience ?? h.housekeeper?.years_experience ?? 0,
-      rating: h.housekeeper?.rating ?? h.rating ?? 0,
-      hourly_rate: h.housekeeper?.hourly_rate ?? 20,
-      joined: h.joined
-    };
-  }).filter(h => !!h.id);
-  } catch (error) {
-    console.error('Error loading housekeepers:', error);
-    housekeepers.value = [];
-  }
+  housekeepers.value = [];
 };
 
 const viewHousekeeperDetails = async (housekeeper) => {
   viewHousekeeperDialog.value = true;
-  viewingHousekeeper.value = null;
-  const userId = housekeeper.userId || housekeeper.user_id || housekeeper.id;
-  try {
-    const resp = await fetch(`/api/admin/housekeepers/${userId}`, { credentials: 'include' });
-    const text = await resp.text();
-    if (!text || !text.trim().startsWith('{')) {
-      viewingHousekeeper.value = housekeeper;
-      return;
-    }
-    const data = JSON.parse(text);
-    if (!data || !data.user) {
-      viewingHousekeeper.value = housekeeper;
-      return;
-    }
-    const u = data.user;
-    const hk = data.housekeeper || {};
-    const zipVal = String(u.zip_code || u.zip || '');
-    const placeIndicator = await resolveZipCityState(zipVal);
-    const nameParts = (u.name || '').trim().split(/\s+/);
-    viewingHousekeeper.value = {
-      id: hk.id || housekeeper.id,
-      userId: u.id,
-      name: u.name,
-      first_name: nameParts[0] || '',
-      last_name: nameParts.slice(1).join(' ') || '',
-      email: u.email,
-      phone: u.phone || housekeeper.phone || '',
-      birthdate: u.date_of_birth ? new Date(u.date_of_birth).toLocaleDateString() : '',
-      age: (() => {
-        const dob = u.date_of_birth;
-        if (!dob) return '';
-        const d = new Date(dob);
-        if (Number.isNaN(d.getTime())) return '';
-        const today = new Date();
-        let a = today.getFullYear() - d.getFullYear();
-        const m = today.getMonth() - d.getMonth();
-        if (m < 0 || (m === 0 && today.getDate() < d.getDate())) a--;
-        return a;
-      })(),
-      gender: hk.gender || housekeeper.gender || '',
-      address: u.address || '',
-      state: u.state || 'New York',
-      county: u.county || u.borough || '',
-      city: u.city || '',
-      zip_code: u.zip_code || u.zip || '',
-      borough: u.borough || u.county || '',
-      place_indicator: placeIndicator,
-      location: placeIndicator,
-      joined: u.created_at ? new Date(u.created_at).toLocaleDateString() : (housekeeper.joined || ''),
-      verified: Boolean(u.email_verified_at),
-      status: housekeeper.status || u.status || 'Active',
-      rating: hk.rating ?? housekeeper.rating ?? 0,
-      years_experience: hk.years_experience ?? housekeeper.years_experience ?? 0,
-      hourly_rate: hk.hourly_rate ?? housekeeper.hourly_rate ?? 20,
-      bio: hk.bio || housekeeper.bio || '',
-      specializations: hk.specializations || housekeeper.specializations || [],
-      cleaningSpecialties: Array.isArray(hk.specializations) ? hk.specializations : (housekeeper.cleaningSpecialties || []),
-      has_own_supplies: Boolean(hk.has_own_supplies),
-    };
-  } catch (err) {
-    viewingHousekeeper.value = housekeeper;
-  }
+  viewingHousekeeper.value = housekeeper;
 };
 
 const settings = ref({
@@ -10771,19 +8698,6 @@ const lookupBookingZipCode = async () => {
   bookingZipLocation.value = 'Looking up location…';
   const location = await resolveZipCityState(zip);
   bookingZipLocation.value = location || 'ZIP not found';
-};
-
-const lookupTrainingCenterZipCode = async () => {
-  const zip = normalizeZip5(trainingCenterFormData.value.zip_code);
-  if (!zip) {
-    trainingCenterZipLocation.value = '';
-    return;
-  }
-
-  // Show loading state
-  trainingCenterZipLocation.value = 'Looking up location…';
-  const location = await resolveZipCityState(zip);
-  trainingCenterZipLocation.value = location || 'ZIP not found';
 };
 
 // Phone number formatting function - NY format (XXX) XXX-XXXX
@@ -11764,14 +9678,7 @@ const filteredCaregiverPayments = computed(() => {
 });
 
 const loadHousekeeperPayments = async () => {
-  try {
-    const response = await fetch('/api/admin/housekeeper-salaries', {
-      credentials: 'include'
-    });
-    const data = await response.json();
-    housekeeperPayments.value = data.payments || [];
-  } catch (error) {
-  }
+  housekeeperPayments.value = [];
 };
 
 const filteredHousekeeperPayments = computed(() => {
@@ -11825,45 +9732,7 @@ const viewHousekeeperPaymentDetails = (item) => {
 };
 
 const payHousekeeper = async (item) => {
-  if (!item.can_pay) {
-    warning('Cannot process payment. Check if bank is connected and there are unpaid hours.', 'Payment');
-    return;
-  }
-  
-  if (!confirm(`Pay ${item.housekeeper} $${item.unpaid_amount.toFixed(2)}?`)) {
-    return;
-  }
-
-  try {
-    item.paying = true;
-    const response = await fetch('/api/admin/pay-housekeeper', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
-      },
-      credentials: 'include',
-      body: JSON.stringify({
-        housekeeper_id: item.id,
-        amount: item.unpaid_amount
-      })
-    });
-    
-    const data = await response.json();
-    
-    if (data.success) {
-      success(`Payment of $${data.amount.toFixed(2)} sent to ${data.housekeeper}`, 'Payment Success');
-      // Reload housekeeper payments
-      await loadHousekeeperPayments();
-    } else {
-      error(data.message || 'Payment failed', 'Error');
-    }
-  } catch (err) {
-    error('Failed to process payment: ' + (err.message || 'Unknown error'), 'Error');
-  } finally {
-    item.paying = false;
-  }
+  warning('Housekeeper payouts are no longer supported.', 'Payment');
 };
 
 const exportHousekeeperPaymentsPDF = () => {
@@ -11992,97 +9861,6 @@ const payAllMarketingCommissions = async () => {
 const viewMarketingCommissionDetails = (item) => {
   // Show detailed commission breakdown dialog
   alert(`Marketing Commission Details:\n\nName: ${item.name}\nTotal Earned: $${item.total_commission}\nPending: $${item.pending_commission}\nReferral Code: ${item.referral_code}`);
-};
-
-// Training Commissions
-const trainingCommissionHeaders = [
-  { title: 'Center Name', key: 'name' },
-  { title: 'Email', key: 'email' },
-  { title: 'Caregivers Trained', key: 'caregivers_count' },
-  { title: 'Total Commission', key: 'total_commission' },
-  { title: 'Pending', key: 'pending_commission' },
-  { title: 'Bank Account', key: 'bank_status' },
-  { title: 'Status', key: 'payment_status' },
-  { title: 'Actions', key: 'actions', sortable: false },
-];
-
-const trainingCommissions = ref([]);
-const loadingTrainingCommissions = ref(false);
-const trainingCommissionSearch = ref('');
-const trainingCommissionStatusFilter = ref('All');
-const trainingCommissionPeriodFilter = ref('Current Month');
-
-const filteredTrainingCommissions = computed(() => {
-  let filtered = trainingCommissions.value;
-  
-  if (trainingCommissionSearch.value) {
-    const search = trainingCommissionSearch.value.toLowerCase();
-    filtered = filtered.filter(t => 
-      t.name.toLowerCase().includes(search) ||
-      t.email.toLowerCase().includes(search)
-    );
-  }
-  
-  if (trainingCommissionStatusFilter.value !== 'All') {
-    const statusVal = trainingCommissionStatusFilter.value.toLowerCase();
-    filtered = filtered.filter(t => (t.payment_status || '').toLowerCase() === statusVal);
-  }
-  
-  return filtered;
-});
-
-const loadTrainingCommissions = async () => {
-  loadingTrainingCommissions.value = true;
-  try {
-    const response = await fetch('/api/admin/training-commissions', {
-      credentials: 'include'
-    });
-    const data = await response.json();
-    
-    if (data.success) {
-      trainingCommissions.value = data.commissions.map(c => ({
-        ...c,
-        total_commission: parseFloat(c.total_commission || 0).toFixed(2),
-        pending_commission: parseFloat(c.pending_commission || 0).toFixed(2),
-        bank_connected: !!c.stripe_connect_id,
-        bank_status: c.stripe_connect_id ? 'Connected' : 'Not Connected',
-        payment_status: parseFloat(c.pending_commission || 0) > 0 ? 'Pending' : 'Paid',
-        paying: false
-      }));
-    }
-  } catch (error) {
-  } finally {
-    loadingTrainingCommissions.value = false;
-  }
-};
-
-const payAllTrainingCommissions = async () => {
-  const pending = trainingCommissions.value.filter(t => 
-    parseFloat(t.pending_commission) > 0 && t.bank_connected
-  );
-  
-  if (pending.length === 0) {
-    showError('No pending commissions to pay');
-    return;
-  }
-  
-  const total = pending.reduce((sum, t) => sum + parseFloat(t.pending_commission), 0);
-  
-  if (!confirm(`Pay total of $${total.toFixed(2)} to ${pending.length} training centers?`)) return;
-  
-  try {
-    for (const item of pending) {
-      await payTrainingCommission(item);
-    }
-    showSuccess('All commissions paid successfully!');
-  } catch (error) {
-    showError('Some payments failed');
-  }
-};
-
-const viewTrainingCommissionDetails = (item) => {
-  // Show detailed commission breakdown dialog
-  alert(`Training Commission Details:\n\nCenter: ${item.name}\nTotal Earned: $${item.total_commission}\nPending: $${item.pending_commission}\nCaregivers: ${item.caregivers_count}`);
 };
 
 const transactionHeaders = [
@@ -12495,17 +10273,6 @@ const filteredAdminStaff = computed(() => {
   });
 });
 
-// Training Centers filtering
-const filteredTrainingCenters = computed(() => {
-  return trainingCenters.value.filter(t => {
-    const matchesSearch = !trainingCenterSearch.value || t.name.toLowerCase().includes(trainingCenterSearch.value.toLowerCase()) || t.email.toLowerCase().includes(trainingCenterSearch.value.toLowerCase());
-    const matchesStatus = trainingCenterStatusFilter.value === 'All' || (t.status && String(t.status).toLowerCase() === trainingCenterStatusFilter.value.toLowerCase());
-    const tCounty = t.county != null ? String(t.county).trim() : '';
-    const matchesCounty = trainingCenterCountyFilter.value === 'All' || (tCounty && tCounty === trainingCenterCountyFilter.value);
-    return matchesSearch && matchesStatus && matchesCounty;
-  });
-});
-
 const locationFilterOptions = ref([
   'All',
   'Manhattan',
@@ -12536,7 +10303,6 @@ const userCountyOptions = computed(() => ['All', ...uniqueTrimmed(users.value, '
 const caregiverCountyOptions = computed(() => ['All', ...uniqueTrimmed(caregivers.value, 'county')]);
 const housekeeperCountyOptions = computed(() => ['All', ...uniqueTrimmed(housekeepers.value, 'county')]);
 const clientCountyOptions = computed(() => ['All', ...uniqueTrimmed(clients.value, 'county')]);
-const trainingCenterCountyOptions = computed(() => ['All', ...uniqueTrimmed(trainingCenters.value, 'county')]);
 
 // Location options from actual data (county + borough combined) per section
 const userLocationOptions = computed(() => {
@@ -12936,7 +10702,6 @@ const unapproveApplication = async (application) => {
         }
         loadApplications();
         loadUsers();
-        loadHousekeepers();
       };
       try {
         await doUnapprove();
@@ -13318,40 +11083,6 @@ const payMarketingCommission = async (item) => {
   }
 };
 
-// Pay Training Commission
-const payTrainingCommission = async (item) => {
-  if (payingCommission.value) return; // Prevent double-click
-  
-  if (!confirm(`Pay $${parseFloat(item.commissionEarned).toFixed(2)} commission to ${item.name}?`)) {
-    return;
-  }
-  
-  payingCommission.value = item.id;
-  
-  try {
-    const response = await fetch(`/api/stripe/admin/pay-training-commission/${item.id}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content')
-      }
-    });
-    
-    const data = await response.json();
-    
-    if (data.success) {
-      success(`Successfully paid $${parseFloat(data.amount).toFixed(2)} to ${item.name}`);
-      await loadTrainingCenters(); // Refresh training centers data
-    } else {
-      error(data.message || 'Payment failed');
-    }
-  } catch (err) {
-    error('Payment failed: ' + err.message);
-  } finally {
-    payingCommission.value = null;
-  }
-};
-
 const viewMarketingStaffDetails = (staff) => {
   viewingMarketingStaff.value = staff;
   viewMarketingStaffDialog.value = true;
@@ -13676,192 +11407,6 @@ const deleteSelectedAdminStaff = () => {
   );
 };
 
-// Training Center Form Data and Methods
-const loadTrainingCenters = async () => {
-  try {
-    const response = await fetch('/api/admin/training-centers', {
-      headers: {
-        'Accept': 'application/json',
-        'X-Requested-With': 'XMLHttpRequest'
-      },
-      credentials: 'include'
-    });
-    
-    if (!response.ok) {
-      const errorText = await response.text();
-      trainingCenters.value = [];
-      return;
-    }
-    
-    const data = await response.json();
-
-    trainingCenters.value = (data.centers || []).map(c => {
-      const item = {
-        ...c,
-        zip_code: c.zip_code || c.zip || '',
-        location: '',
-        place_indicator: ''
-      };
-      ensureItemPlaceIndicator(item);
-      return item;
-    });
-    
-    if (trainingCenters.value.length === 0) {
-    }
-  } catch (err) {
-    trainingCenters.value = [];
-  }
-};
-
-const viewTrainingCenterDetails = async (center) => {
-  viewingTrainingCenter.value = { ...center };
-  viewTrainingCenterDialog.value = true;
-
-  if (viewingTrainingCenter.value) {
-    viewingTrainingCenter.value.zip_code = viewingTrainingCenter.value.zip_code || viewingTrainingCenter.value.zip || '';
-    viewingTrainingCenter.value.place_indicator = viewingTrainingCenter.value.place_indicator || '';
-    ensureItemPlaceIndicator(viewingTrainingCenter.value);
-  }
-  
-  // Load caregivers for this center
-  try {
-    const response = await fetch(`/api/admin/training-centers/${center.id}/caregivers`, {
-      credentials: 'include'
-    });
-    const data = await response.json();
-    viewingTrainingCenter.value.caregivers = data.caregivers || [];
-  } catch (err) {
-  }
-};
-
-const openTrainingCenterDialog = (center = null) => {
-  if (center) {
-    editingTrainingCenter.value = center;
-    trainingCenterFormData.value = {
-      name: center.name || '',
-      email: center.email || '',
-      phone: center.phone || '',
-      address: center.address || '',
-      state: center.state || 'New York',
-      county: center.county || '',
-      city: center.city || '',
-      zip_code: center.zip_code || '',
-      password: '',
-      status: center.status || 'Active'
-    };
-    if (center.zip_code) {
-      lookupTrainingCenterZipCode();
-    } else {
-      trainingCenterZipLocation.value = '';
-    }
-  } else {
-    editingTrainingCenter.value = null;
-    trainingCenterFormData.value = { 
-      name: '', 
-      email: '', 
-      phone: '', 
-      address: '', 
-      state: 'New York', 
-      county: '', 
-      city: '', 
-      zip_code: '', 
-      password: '', 
-      status: 'Active' 
-    };
-    trainingCenterZipLocation.value = '';
-  }
-  trainingCenterDialog.value = true;
-};
-
-const saveTrainingCenter = async () => {
-  try {
-    if (!trainingCenterFormData.value.name || !trainingCenterFormData.value.email) {
-      error('Please fill in required fields: Training Center Name and Email', 'Validation Error');
-      return;
-    }
-    
-    if (editingTrainingCenter.value && !editingTrainingCenter.value.id) {
-      error('Invalid training center data. Please refresh the page and try again.', 'Error');
-      return;
-    }
-    
-    const url = editingTrainingCenter.value 
-      ? `/api/admin/training-centers/${editingTrainingCenter.value.id}`
-      : '/api/admin/training-centers';
-    
-    // Log save operation details
-    const saveDetails = {
-      isEdit: !!editingTrainingCenter.value,
-      id: editingTrainingCenter.value?.id,
-      url: url,
-      formData: trainingCenterFormData.value
-    };
-    
-    const formData = {
-      name: trainingCenterFormData.value.name.trim(),
-      email: trainingCenterFormData.value.email,
-      phone: trainingCenterFormData.value.phone || null,
-      address: trainingCenterFormData.value.address || null,
-      state: trainingCenterFormData.value.state || 'New York',
-      county: trainingCenterFormData.value.county || null,
-      city: trainingCenterFormData.value.city || null,
-      zip_code: trainingCenterFormData.value.zip_code || null,
-      status: trainingCenterFormData.value.status
-    };
-    
-    // Password is optional - backend will generate random password if not provided
-    if (!editingTrainingCenter.value && trainingCenterFormData.value.password) {
-      formData.password = trainingCenterFormData.value.password;
-    }
-
-    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-    const response = await fetch(url, {
-      method: editingTrainingCenter.value ? 'PUT' : 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-CSRF-TOKEN': csrfToken || '',
-        'Accept': 'application/json',
-        'X-Requested-With': 'XMLHttpRequest'
-      },
-      body: JSON.stringify(formData)
-    });
-
-    const data = await response.json();
-
-    if (response.ok && data.success) {
-      success(editingTrainingCenter.value ? 'Training center updated successfully!' : 'Training center created successfully!', editingTrainingCenter.value ? 'Training Center Updated' : 'Training Center Created');
-      trainingCenterDialog.value = false;
-      await loadTrainingCenters();
-    } else {
-      const errorMessage = data.message || (data.errors ? JSON.stringify(data.errors) : 'Failed to save training center. Please try again.');
-      error(errorMessage, 'Save Failed');
-    }
-  } catch (err) {
-    error('Failed to save training center: ' + err.message, 'Error');
-  }
-};
-
-const deleteTrainingCenter = (center) => {
-  showConfirm(
-    'Delete Training Center',
-    `Are you sure you want to delete ${center.name}? This action cannot be undone.`,
-    async () => {
-      try {
-        await fetch(`/api/admin/training-centers/${center.id}`, {
-          method: 'DELETE',
-          headers: {
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
-          }
-        });
-        success('Training center deleted!', 'Deleted');
-        loadTrainingCenters();
-      } catch (err) {
-        error('Failed to delete training center', 'Error');
-      }
-    }
-  );
-};
-
 const openCaregiverDialog = (caregiver = null) => {
   if (caregiver) {
     editingCaregiver.value = true;
@@ -13895,9 +11440,6 @@ const openCaregiverDialog = (caregiver = null) => {
       zip_code: caregiver.zip_code || caregiver.zip || '',
       password: '',
       experience: caregiver.years_experience || caregiver.experience || '',
-      trainingCenter: caregiver.training_center_name || caregiver.training_center || '',
-      customTrainingCenter: '',
-      isCustomTrainingCenter: false,
       trainingCertificate: null,
       bio: caregiver.bio || '',
       preferred_hourly_rate_min: caregiver.preferred_hourly_rate_min ?? caregiver.caregiver?.preferred_hourly_rate_min ?? null,
@@ -13929,9 +11471,6 @@ const openCaregiverDialog = (caregiver = null) => {
       zip_code: '', 
       password: '',
       experience: '', 
-      trainingCenter: '', 
-      customTrainingCenter: '', 
-      isCustomTrainingCenter: false,
       trainingCertificate: null, 
       bio: '', 
   preferred_hourly_rate_min: null,
@@ -14207,7 +11746,7 @@ const saveCaregiver = async () => {
       borough: caregiverForm.value.city || null,
       zip_code: caregiverForm.value.zip_code || null,
       years_experience: caregiverForm.value.experience || null,
-      training_center: caregiverForm.value.isCustomTrainingCenter ? caregiverForm.value.customTrainingCenter : caregiverForm.value.trainingCenter || null,
+      training_center: null,
       bio: caregiverForm.value.bio || null,
   preferred_hourly_rate_min: caregiverForm.value.preferred_hourly_rate_min ?? null,
   preferred_hourly_rate_max: caregiverForm.value.preferred_hourly_rate_max ?? null,
@@ -14573,57 +12112,6 @@ const deleteSelectedMarketingStaff = async () => {
         await loadMarketingStaff();
       } catch (err) {
         error('Failed to delete marketing partner. Please try again.', 'Delete Failed');
-      }
-    }
-  );
-};
-
-const deleteSelectedTrainingCenters = async () => {
-  if (selectedTrainingCenters.value.length === 0) return;
-  showConfirm(
-    'Delete Selected Training Centers',
-    `Are you sure you want to delete ${selectedTrainingCenters.value.length} training center(s)? This action cannot be undone.`,
-    async () => {
-      try {
-        let deletedCount = 0;
-        let failedCount = 0;
-        const centerIdsToDelete = [...selectedTrainingCenters.value];
-        
-        for (const centerId of centerIdsToDelete) {
-          try {
-            const response = await fetch(`/api/admin/training-centers/${centerId}`, {
-              method: 'DELETE',
-              headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
-                'Accept': 'application/json'
-              }
-            });
-            
-            const data = await response.json();
-            
-            if (response.ok && data.success) {
-              deletedCount++;
-            } else {
-              failedCount++;
-            }
-          } catch (err) {
-            failedCount++;
-          }
-        }
-        
-        if (failedCount === 0) {
-          success(`${deletedCount} training center(s) deleted successfully!`, 'Training Centers Deleted');
-        } else if (deletedCount > 0) {
-          warning(`${deletedCount} training center(s) deleted, but ${failedCount} failed.`, 'Partial Success');
-        } else {
-          error('Failed to delete training centers. Please try again.', 'Delete Failed');
-        }
-        
-        selectedTrainingCenters.value = [];
-        await loadTrainingCenters();
-      } catch (err) {
-        error('Failed to delete training centers. Please try again.', 'Delete Failed');
       }
     }
   );
@@ -15073,31 +12561,7 @@ const assignCaregiverDialog = async (booking) => {
 };
 
 const assignHousekeeperDialog = async (booking) => {
-  selectedBooking.value = booking;
-  assignHousekeeperSearch.value = '';
-  assignHousekeeperAvailabilityFilter.value = 'Available';
-
-  customHousekeepersNeeded.value = booking.caregiversNeeded;
-
-  // Prefill from existing housekeeper assignments (or legacy assignments with housekeeper_id)
-  const hkAssignments = booking.housekeeper_assignments || booking.housekeeperAssignments || [];
-  const fromAssignments = (booking.assignments || [])
-    .filter(a => String(a.provider_type || '').toLowerCase() === 'housekeeper' || a.housekeeper_id || a.housekeeper?.id)
-    .map(a => a.housekeeper_id || a.housekeeper?.id);
-  assignSelectedHousekeepers.value = hkAssignments.length
-    ? hkAssignments.map(a => a.housekeeper_id ?? a.housekeeper?.id).filter(Boolean)
-    : fromAssignments.filter(Boolean);
-
-  assignedHousekeeperRates.value = {};
-  assignSelectedHousekeepers.value.forEach(housekeeperId => {
-    const fromApi = hkAssignments.find(a => (a.housekeeper_id ?? a.housekeeper?.id) === housekeeperId);
-    const hk = housekeepers.value.find(h => h.id === housekeeperId);
-    assignedHousekeeperRates.value[housekeeperId] = fromApi?.hourly_rate ?? hk?.hourly_rate ?? 20;
-  });
-  const hkIds = (housekeepers.value || []).map(h => h.id).filter(Boolean);
-  await loadStaffWeeklyHours(booking.id, [], hkIds);
-
-  assignHousekeeperDialogOpen.value = true;
+  await assignCaregiverDialog(booking);
 };
 
 const closeAssignDialog = () => {
@@ -15118,8 +12582,8 @@ const closeAssignHousekeeperDialog = () => {
 
 const toggleCaregiverSelection = (caregiverId) => {
   const index = assignSelectedCaregivers.value.indexOf(caregiverId);
-  const workerType = selectedBooking.value?.service_type === 'Housekeeping' ? 'housekeeper' : 'caregiver';
-  const workerTypePlural = selectedBooking.value?.service_type === 'Housekeeping' ? 'housekeepers' : 'caregivers';
+  const workerType = 'caregiver';
+  const workerTypePlural = 'caregivers';
   
   if (index > -1) {
     // Uncheck - remove from selection and clear rate
@@ -15448,52 +12912,7 @@ const viewAssignedCaregivers = (booking) => {
 };
 
 const viewAssignedHousekeepers = (booking) => {
-  viewingBookingHousekeepers.value = booking;
-  housekeeperSchedules.value = {};
-  weeklyHousekeeperSchedule.value = {};
-  assignedHousekeepersTab.value = 'housekeepers';
-  viewAssignedHousekeepersDialog.value = true; // Open immediately so the UI responds right away
-
-  // Load schedules in the background so the dialog is not blocked
-  const assigned = getAssignedHousekeepers(booking.id);
-  if (assigned.length > 0) {
-    (async () => {
-      for (const hk of assigned) {
-        try {
-          const response = await fetch(`/api/bookings/${booking.id}/housekeeper/${hk.id}/schedule`, {
-            credentials: 'include'
-          });
-          if (response.ok) {
-            const responseData = await response.json();
-            const raw = responseData.data ?? responseData;
-            if (!raw) continue;
-            // API returns schedule_days: [{ day, start_time, end_time }, ...] (array or JSON string); normalize to days + schedules
-            let days = [];
-            let schedules = {};
-            let scheduleDays = raw.schedule_days;
-            if (typeof scheduleDays === 'string') {
-              try { scheduleDays = JSON.parse(scheduleDays); } catch (_) { scheduleDays = []; }
-            }
-            if (Array.isArray(scheduleDays) && scheduleDays.length > 0) {
-              days = scheduleDays.map(s => (s.day || s).toString().toLowerCase());
-              schedules = scheduleDays.reduce((acc, s) => {
-                const day = (s.day || s).toString().toLowerCase();
-                acc[day] = { start_time: s.start_time || '08:00', end_time: s.end_time || '17:00' };
-                return acc;
-              }, {});
-            } else if (raw.days?.length) {
-              days = raw.days;
-              schedules = raw.schedules || {};
-            }
-            housekeeperSchedules.value[hk.id] = { days, schedules };
-            for (const day of days) {
-              weeklyHousekeeperSchedule.value[day] = hk.id;
-            }
-          }
-        } catch (_) { /* ignore */ }
-      }
-    })();
-  }
+  viewAssignedCaregivers(booking);
 };
 
 const getHousekeeperScheduleDays = (housekeeperId) => {
@@ -16642,8 +14061,7 @@ const contractorSearch = ref('');
 const contractorTypeFilter = ref('All');
 const contractorTypeOptions = [
   { title: 'All', value: 'All' },
-  { title: 'Caregivers', value: 'Caregivers' },
-  { title: 'Housekeepers', value: 'Housekeepers' }
+  { title: 'Caregivers', value: 'Caregiver' },
 ];
 const boroughFilter = ref('All');
 const sortBy = ref('name');
@@ -16671,30 +14089,18 @@ const loadQuickCaregivers = async () => {
   }
 };
 
-// Combined contractors (caregivers + housekeepers) for dashboard widget - first 3
+// Caregivers for dashboard widget - first 3
 const quickContractors = computed(() => {
-  const cg = (quickCaregivers.value || []).slice(0, 3).map(c => ({
+  return (quickCaregivers.value || []).slice(0, 3).map(c => ({
     ...c,
     id: 'cg-' + (c.id ?? c.userId ?? Math.random()),
     contractorType: 'Caregiver',
     initials: c.initials || (c.name || ' ').split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2),
     available: c.available !== false
   }));
-  const hk = (housekeepers.value || []).slice(0, 3).map(h => ({
-    id: 'hk-' + h.id,
-    name: h.name,
-    phone: h.phone || 'N/A',
-    contractorType: 'Housekeeper',
-    initials: (h.name || ' ').split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2),
-    available: h.status === 'Available' || h.status === 'Active'
-  }));
-  return [...cg, ...hk].slice(0, 3);
 });
 
 const openContractorsContactsDialog = () => {
-  if (housekeepers.value.length === 0) {
-    loadHousekeepers();
-  }
   contractorsContactsDialog.value = true;
 };
 
@@ -16744,19 +14150,14 @@ const filteredAndSortedCaregivers = computed(() => {
   return filtered;
 });
 
-// Combined contractors list for Contractors Contacts dialog (caregivers + housekeepers)
+// Combined contractors list for Contractors Contacts dialog (caregivers only)
 const filteredAndSortedContractors = computed(() => {
   const cgList = (caregivers.value || []).map(c => ({
     ...c,
     id: 'cg-' + (c.id ?? c.userId),
     contractorType: 'Caregiver'
   }));
-  const hkList = (housekeepers.value || []).map(h => ({
-    ...h,
-    id: 'hk-' + h.id,
-    contractorType: 'Housekeeper'
-  }));
-  let filtered = [...cgList, ...hkList].filter(contractor => {
+  let filtered = [...cgList].filter(contractor => {
     const matchesType = contractorTypeFilter.value === 'All' || contractor.contractorType === contractorTypeFilter.value;
     const matchesSearch = !contractorSearch.value ||
       (contractor.name || '').toLowerCase().includes(contractorSearch.value.toLowerCase()) ||
@@ -17051,18 +14452,16 @@ const initCharts = () => {
     const ctx = userChart.value.getContext('2d');
     const clients = parseInt(clientMetrics.value[0].value) || 0;
     const caregivers = parseInt(caregiverMetrics.value[0].value) || 0;
-    const housekeepers = parseInt(housekeeperMetrics.value[0].value) || 0;
     const admins = parseInt(adminCount.value) || 0;
     const marketing = parseInt(marketingCount.value) || 0;
-    const training = parseInt(trainingCenterCount.value) || 0;
-    const total = clients + caregivers + housekeepers + admins + marketing + training;
+    const total = clients + caregivers + admins + marketing;
     userChartInstance = new window.Chart(ctx, {
       type: 'doughnut',
       data: {
-        labels: ['Clients', 'Caregivers', 'Housekeepers', 'Admins', 'Marketing', 'Training'],
+        labels: ['Clients', 'Caregivers', 'Admins', 'Marketing'],
         datasets: [{ 
-          data: [clients, caregivers, housekeepers, admins, marketing, training], 
-          backgroundColor: ['#3b82f6', '#10b981', '#8b5cf6', '#dc2626', '#f59e0b', '#06b6d4'], 
+          data: [clients, caregivers, admins, marketing], 
+          backgroundColor: ['#3b82f6', '#10b981', '#dc2626', '#f59e0b'], 
           borderWidth: 2,
           borderColor: '#fff',
           hoverBorderWidth: 3
@@ -17252,39 +14651,6 @@ const exportMarketingCommissionsPDF = () => {
   }
 };
 
-const exportTrainingCommissionsPDF = () => {
-  try {
-    console.log('Exporting Training Commissions PDF...');
-    console.log('Data:', filteredTrainingCommissions.value);
-    console.log('Period:', trainingCommissionPeriodFilter.value);
-    
-    if (!window.jspdf) {
-      console.error('jsPDF library not loaded!');
-      alert('PDF library not loaded. Please refresh the page.');
-      return;
-    }
-    
-    if (!filteredTrainingCommissions.value || filteredTrainingCommissions.value.length === 0) {
-      console.warn('No training commission data to export');
-      alert('No commission data available to export.');
-      return;
-    }
-    
-    generatePaymentPDF('Training Center Commissions', filteredTrainingCommissions.value, trainingCommissionPeriodFilter.value, [
-      'Date',
-      'Training Center',
-      'Caregiver Name',
-      'Commission Amount',
-      'Status'
-    ]);
-    
-    console.log('PDF exported successfully!');
-  } catch (error) {
-    console.error('Error exporting PDF:', error);
-    alert('Error generating PDF: ' + error.message);
-  }
-};
-
 const generatePaymentPDF = async (title, data, period, columns) => {
   try {
     // Prepare data for server-side PDF generation
@@ -17413,18 +14779,14 @@ watch(currentSection, (newVal) => {
   if (newVal === 'analytics') {
     setTimeout(initCharts, 300);
   }
-  // Reload training centers when switching to training centers section
-  if (newVal === 'training-centers') {
-    loadTrainingCenters();
-  }
   if (newVal === 'featured-posts') {
     loadAdminFeaturedPosts();
   }
   if (newVal === 'announcements') {
     loadRecentAnnouncements();
   }
-  // Load bookings when opening Clients/Caregivers/Housekeepers so contract filter (Ongoing/No contract) has data
-  if ((newVal === 'clients' || newVal === 'caregivers' || newVal === 'housekeepers') && clientBookings.value.length === 0 && !loadingBookings.value) {
+  // Load bookings when opening Clients/Caregivers so contract filter (Ongoing/No contract) has data
+  if ((newVal === 'clients' || newVal === 'caregivers') && clientBookings.value.length === 0 && !loadingBookings.value) {
     loadClientBookings();
   }
 });
@@ -17512,7 +14874,6 @@ onMounted(async () => {
     { fn: loadProfile, weight: 5 },
     { fn: loadAdminStats, weight: 15 },
     { fn: loadQuickCaregivers, weight: 10 },
-    { fn: loadHousekeepers, weight: 10 },
     { fn: loadUsers, weight: 15 },
     { fn: loadClientBookings, weight: 15 },
     { fn: loadApplications, weight: 5 },
@@ -17526,15 +14887,11 @@ onMounted(async () => {
     { fn: loadTimeTrackingData, weight: 5 },
     { fn: loadMarketingStaff, weight: 3 },
     { fn: loadAdminStaff, weight: 3 },
-    { fn: loadTrainingCenters, weight: 3 },
-    { fn: loadCaregiverTrainingCenters, weight: 3 },
     { fn: loadPaymentStats, weight: 5 },
     { fn: loadRecentTransactions, weight: 3 },
     { fn: loadClientPayments, weight: 3 },
     { fn: loadCaregiverPayments, weight: 3 },
-    { fn: loadHousekeeperPayments, weight: 3 },
     { fn: loadMarketingCommissions, weight: 3 },
-    { fn: loadTrainingCommissions, weight: 3 },
     { fn: loadAllTransactions, weight: 5 },
     { fn: loadMoneyFlowData, weight: 3 },
     { fn: loadTopPerformers, weight: 3 },
@@ -17596,21 +14953,21 @@ watch(clientBookings, () => {
 }, { deep: true });
 
 // Re-add labels when other table data changes
-watch([caregivers, clients, pendingApplications, marketingStaff, trainingCenters], () => {
+watch([caregivers, clients, pendingApplications, marketingStaff], () => {
   setTimeout(() => {
     addMobileTableLabels();
   }, 300);
 }, { deep: true });
 
 // Update Total Contractors stat when caregivers or housekeepers change
-watch([caregivers, housekeepers], () => {
-  const totalStaff = caregivers.value.length + housekeepers.value.length;
+watch([caregivers], () => {
+  const totalStaff = caregivers.value.length;
   stats.value[3].value = totalStaff.toString();
-  stats.value[3].change = `${caregivers.value.length} Caregivers, ${housekeepers.value.length} Housekeepers`;
+  stats.value[3].change = `${caregivers.value.length} Caregivers`;
 }, { deep: true });
 
 // Update Analytics metrics when data changes
-watch([clients, caregivers, housekeepers], () => {
+watch([clients, caregivers], () => {
   // Update Client Metrics
   clientMetrics.value[0].value = clients.value.length.toString();
   
@@ -17621,17 +14978,10 @@ watch([clients, caregivers, housekeepers], () => {
   const topRated = caregivers.value.filter(c => c.rating >= 5).length;
   caregiverMetrics.value[2].value = topRated.toString();
   
-  // Update Housekeeper Metrics
-  housekeeperMetrics.value[0].value = housekeepers.value.length.toString();
-  const activeHousekeepers = housekeepers.value.filter(h => h.status === 'Available' || h.status === 'Active').length;
-  housekeeperMetrics.value[1].value = activeHousekeepers.toString();
-  const assignedHousekeepers = housekeepers.value.filter(h => h.status === 'Assigned' || h.assigned).length;
-  housekeeperMetrics.value[2].value = assignedHousekeepers.toString();
-  
-  // Update total users for chart (all 6 types)
+  // Update total users for chart
   totalUsersForChart.value = (
-    clients.value.length + caregivers.value.length + housekeepers.value.length +
-    parseInt(adminCount.value || 0) + parseInt(marketingCount.value || 0) + parseInt(trainingCenterCount.value || 0)
+    clients.value.length + caregivers.value.length +
+    parseInt(adminCount.value || 0) + parseInt(marketingCount.value || 0)
   ).toString();
   
   // Update analytics stats

@@ -49,7 +49,7 @@ class PageController extends Controller
 
     public function housekeeperNewYork()
     {
-        return view('housekeeper-new-york');
+        return redirect()->route('housekeeping-new-york', [], 301);
     }
 
     public function hireCaregiverNewYork()
@@ -104,7 +104,7 @@ class PageController extends Controller
 
     public function trainingCenter()
     {
-        return view('training-center');
+        return redirect('/', 301);
     }
 
     public function apiTest()
@@ -114,7 +114,7 @@ class PageController extends Controller
 
     public function services()
     {
-        return view('services');
+        return redirect()->route('caregiver-new-york', [], 301);
     }
 
     public function contractors()

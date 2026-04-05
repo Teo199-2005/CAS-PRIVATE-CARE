@@ -1180,68 +1180,10 @@ class StripeController extends Controller
             return response()->json(['error' => 'Unauthorized'], 403);
         }
 
-        // SECURITY: Wrap in transaction with row locking to prevent race conditions
-        return DB::transaction(function () use ($userId) {
-            $trainingUser = User::findOrFail($userId);
-
-            if (!in_array($trainingUser->user_type, ['training', 'training_center'])) {
-                return response()->json(['error' => 'User is not training center'], 400);
-            }
-
-            // SECURITY: Lock rows for update to prevent concurrent payments
-            $pendingCommissions = TimeTracking::where('training_center_user_id', $userId)
-                ->where('payment_status', 'pending')
-                ->whereNotNull('training_center_commission')
-                ->where('training_center_commission', '>', 0)
-                ->lockForUpdate()
-                ->get();
-
-            if ($pendingCommissions->isEmpty()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'No pending commissions to pay'
-                ], 400);
-            }
-
-            $totalAmount = $pendingCommissions->sum('training_center_commission');
-
-            // Transfer to training center (StripePaymentService now has idempotency)
-            $result = $this->stripeService->transferToTraining($trainingUser, $totalAmount, [
-                'commission_count' => $pendingCommissions->count(),
-                'payment_date' => now()->toDateString(),
-                'time_tracking_id' => $pendingCommissions->pluck('id')->implode('_')
-            ]);
-
-            if (!$result['success']) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Transfer failed: ' . $result['error']
-                ], 400);
-            }
-
-            // Mark commissions as paid (inside transaction)
-            TimeTracking::whereIn('id', $pendingCommissions->pluck('id'))
-                ->update([
-                    'payment_status' => 'paid',
-                    'paid_at' => now(),
-                    'training_commission_paid_at' => now(),
-                    'training_commission_stripe_transfer_id' => $result['transfer_id']
-                ]);
-
-            Log::info('Training commission paid via StripeController', [
-                'user_id' => $userId,
-                'amount' => $totalAmount,
-                'transfer_id' => $result['transfer_id']
-            ]);
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Commission paid successfully',
-                'amount' => $totalAmount,
-                'transfer_id' => $result['transfer_id'],
-                'entries_paid' => $pendingCommissions->count()
-            ]);
-        }); // End transaction
+        return response()->json([
+            'success' => false,
+            'message' => 'Training center commission payouts are no longer supported.',
+        ], 410);
     }
 
     /**

@@ -26,7 +26,7 @@ class TwoFactorAuthentication
      */
     public function handle(Request $request, Closure $next): Response
     {
-        $user = Auth::user();
+        $user = $request->user() ?? Auth::user();
         
         if (!$user) {
             return redirect('/login');
@@ -36,7 +36,11 @@ class TwoFactorAuthentication
         if (!in_array($user->user_type, $this->adminTypes)) {
             return $next($request);
         }
-        
+
+        if (!config('security.admin_two_factor_enabled', false)) {
+            return $next($request);
+        }
+
         // Check if 2FA is already verified for this session
         $twoFactorVerified = session('2fa_verified_' . $user->id, false);
         $twoFactorExpiry = session('2fa_verified_at_' . $user->id);

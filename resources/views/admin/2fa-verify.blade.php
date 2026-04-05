@@ -36,7 +36,7 @@
         
         .logo-section {
             text-align: center;
-            margin-bottom: 2rem;
+            margin-bottom: 1.5rem;
         }
         
         .logo-section img {
@@ -50,35 +50,77 @@
             margin-top: 1rem;
             font-weight: 700;
         }
-        
-        .shield-icon {
-            font-size: 3rem;
+
+        /* Grouped 2FA header: single vertical axis (no Bootstrap required) */
+        .two-factor-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            margin-bottom: 1.75rem;
+        }
+
+        .two-factor-icon-wrap {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 4.75rem;
+            height: 4.75rem;
+            margin-bottom: 1.125rem;
+            border-radius: 50%;
+            background: linear-gradient(160deg, rgba(11, 79, 162, 0.14) 0%, rgba(21, 101, 192, 0.06) 100%);
+            border: 1px solid rgba(11, 79, 162, 0.18);
+            box-shadow: 0 4px 14px rgba(11, 79, 162, 0.08);
+        }
+
+        .two-factor-icon-wrap .shield-icon {
+            font-size: 2.35rem;
             color: #0B4FA2;
-            margin-bottom: 1rem;
+            line-height: 1;
         }
-        
-        h2 {
-            font-size: 1.25rem;
-            color: #1e293b;
-            margin-bottom: 0.5rem;
-            text-align: center;
+
+        .two-factor-section h2 {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #0f172a;
+            margin: 0 0 0.5rem;
+            letter-spacing: -0.02em;
         }
-        
-        .subtitle {
-            color: #64748b;
-            text-align: center;
-            margin-bottom: 2rem;
+
+        .two-factor-section .subtitle {
+            margin: 0;
+            max-width: 17.5rem;
             font-size: 0.9rem;
+            line-height: 1.45;
+            color: #64748b;
+        }
+
+        .form-stack {
+            display: flex;
+            flex-direction: column;
+            align-items: stretch;
+            width: 100%;
         }
         
         .email-display {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            flex-wrap: wrap;
             background: #f1f5f9;
             border-radius: 12px;
-            padding: 1rem;
-            text-align: center;
-            margin-bottom: 1.5rem;
+            padding: 0.875rem 1rem;
+            margin-bottom: 1.25rem;
             font-weight: 600;
             color: #334155;
+            font-size: 0.9rem;
+        }
+
+        .email-display .bi-envelope {
+            color: #0B4FA2;
+            font-size: 1.1rem;
+            flex-shrink: 0;
         }
         
         .otp-input-group {
@@ -144,31 +186,54 @@
         .btn-secondary {
             background: transparent;
             color: #0B4FA2;
-            margin-top: 1rem;
+            margin-top: 0.75rem;
+            border: none;
+            box-shadow: none;
         }
         
         .btn-secondary:hover {
-            background: #f1f5f9;
+            background: rgba(11, 79, 162, 0.06);
+            transform: none;
+        }
+
+        .btn-secondary:disabled {
+            opacity: 0.65;
         }
         
         .message {
-            padding: 1rem;
+            padding: 0.875rem 1rem;
             border-radius: 12px;
             margin-bottom: 1rem;
             display: none;
-            align-items: center;
+            align-items: flex-start;
+            justify-content: flex-start;
             gap: 0.5rem;
+            text-align: left;
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+
+        .message i {
+            flex-shrink: 0;
+            margin-top: 0.1rem;
+        }
+
+        .message span {
+            flex: 1;
+            min-width: 0;
         }
         
         .message.error {
             background: #fef2f2;
-            color: #dc2626;
+            border: 1px solid #fecaca;
+            color: #b91c1c;
             display: flex;
         }
         
         .message.success {
             background: #f0fdf4;
-            color: #16a34a;
+            border: 1px solid #bbf7d0;
+            color: #15803d;
             display: flex;
         }
         
@@ -196,6 +261,15 @@
             .verify-card {
                 padding: 1.5rem;
             }
+
+            .two-factor-icon-wrap {
+                width: 4.25rem;
+                height: 4.25rem;
+            }
+
+            .two-factor-icon-wrap .shield-icon {
+                font-size: 2rem;
+            }
             
             .otp-input {
                 width: 42px;
@@ -211,46 +285,62 @@
             <img src="{{ asset('logo flower.png') }}" alt="CAS Private Care">
             <h1>Admin Verification</h1>
         </div>
-        
-        <div class="text-center">
-            <i class="bi bi-shield-lock shield-icon"></i>
+
+        <div class="two-factor-section">
+            <div class="two-factor-icon-wrap" aria-hidden="true">
+                <i class="bi bi-shield-lock shield-icon"></i>
+            </div>
+            <h2>Two-Factor Authentication</h2>
+            <p class="subtitle">Enter the 6-digit code sent to your email</p>
         </div>
+
+        <div class="form-stack">
+            <div class="email-display">
+            <i class="bi bi-envelope" aria-hidden="true"></i>
+            <span>{{ $email }}</span>
+            </div>
         
-        <h2>Two-Factor Authentication</h2>
-        <p class="subtitle">Enter the 6-digit code sent to your email</p>
+            <div id="message" class="message" role="alert"></div>
         
-        <div class="email-display">
-            <i class="bi bi-envelope me-2"></i>
-            {{ $email }}
-        </div>
+            <div class="otp-input-group">
+            <input type="text" class="otp-input" maxlength="1" inputmode="numeric" pattern="[0-9]*">
+            <input type="text" class="otp-input" maxlength="1" inputmode="numeric" pattern="[0-9]*">
+            <input type="text" class="otp-input" maxlength="1" inputmode="numeric" pattern="[0-9]*">
+            <input type="text" class="otp-input" maxlength="1" inputmode="numeric" pattern="[0-9]*">
+            <input type="text" class="otp-input" maxlength="1" inputmode="numeric" pattern="[0-9]*">
+            <input type="text" class="otp-input" maxlength="1" inputmode="numeric" pattern="[0-9]*">
+            </div>
         
-        <div id="message" class="message"></div>
-        
-        <div class="otp-input-group">
-            <input type="text" class="otp-input" maxlength="1" inputmode="numeric" pattern="[0-9]*">
-            <input type="text" class="otp-input" maxlength="1" inputmode="numeric" pattern="[0-9]*">
-            <input type="text" class="otp-input" maxlength="1" inputmode="numeric" pattern="[0-9]*">
-            <input type="text" class="otp-input" maxlength="1" inputmode="numeric" pattern="[0-9]*">
-            <input type="text" class="otp-input" maxlength="1" inputmode="numeric" pattern="[0-9]*">
-            <input type="text" class="otp-input" maxlength="1" inputmode="numeric" pattern="[0-9]*">
-        </div>
-        
-        <button type="button" id="verifyBtn" class="btn btn-primary" onclick="verifyCode()">
+            <button type="button" id="verifyBtn" class="btn btn-primary" onclick="verifyCode()">
             <i class="bi bi-check-circle"></i>
             Verify Code
-        </button>
+            </button>
         
-        <button type="button" id="resendBtn" class="btn btn-secondary" onclick="sendOTP()">
+            <button type="button" id="resendBtn" class="btn btn-secondary" onclick="sendOTP()">
             <i class="bi bi-arrow-clockwise"></i>
             <span id="resendText">Send Code</span>
-        </button>
+            </button>
         
-        <div class="timer" id="timer" style="display: none;">
+            <div class="timer" id="timer" style="display: none;">
             Code expires in <span id="countdown">10:00</span>
+            </div>
         </div>
     </div>
     
     <script>
+        const sendOtpUrl = @json(route('admin.2fa.send-otp'));
+        const verifyUrl = @json(route('admin.2fa.verify.submit'));
+        const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
+        const fetchDefaults = {
+            credentials: 'same-origin',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': csrfToken,
+                'X-Requested-With': 'XMLHttpRequest',
+            },
+        };
+
         const inputs = document.querySelectorAll('.otp-input');
         const verifyBtn = document.getElementById('verifyBtn');
         const resendBtn = document.getElementById('resendBtn');
@@ -301,7 +391,8 @@
         
         function showMessage(text, type) {
             message.className = 'message ' + type;
-            message.innerHTML = `<i class="bi bi-${type === 'error' ? 'x-circle' : 'check-circle'}"></i>${text}`;
+            const icon = type === 'error' ? 'x-circle' : 'check-circle';
+            message.innerHTML = `<i class="bi bi-${icon}" aria-hidden="true"></i><span>${text}</span>`;
             message.style.display = 'flex';
         }
         
@@ -329,12 +420,9 @@
             document.getElementById('resendText').textContent = 'Sending...';
             
             try {
-                const response = await fetch('/api/admin/2fa/send', {
+                const response = await fetch(sendOtpUrl, {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                    },
+                    ...fetchDefaults,
                 });
                 
                 const data = await response.json();
@@ -362,12 +450,9 @@
             verifyBtn.innerHTML = '<div class="spinner"></div> Verifying...';
             
             try {
-                const response = await fetch('/api/admin/2fa/verify', {
+                const response = await fetch(verifyUrl, {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                    },
+                    ...fetchDefaults,
                     body: JSON.stringify({ code }),
                 });
                 

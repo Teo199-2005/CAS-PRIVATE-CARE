@@ -26,7 +26,7 @@
             <div class="mobile-links-grid">
                 <a href="{{ url('/caregiver-new-york') }}">Caregivers</a>
                 <a href="{{ url('/') }}#services">Care Options</a>
-                <a href="{{ url('/contractor-partner') }}">1099 Partners</a>
+                <a href="{{ url('/contractor-partner') }}">Careers (W-2)</a>
             </div>
         </div>
 
@@ -43,7 +43,7 @@
             </a>
             <div class="mobile-contact-item">
                 <i class="bi bi-geo-alt-fill"></i>
-                <span>{{ config('app.address', 'New York, USA') }}</span>
+                <span>{{ config('app.address', '481 8th Ave, New York, NY 10001') }}</span>
             </div>
         </div>
 

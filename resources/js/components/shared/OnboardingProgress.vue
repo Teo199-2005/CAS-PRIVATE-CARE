@@ -62,44 +62,76 @@ const props = defineProps({
   applicationStatus: { type: String, default: 'pending' },
   bankConnected: { type: Boolean, default: false },
   w9Submitted: { type: Boolean, default: false },
+  /** W-2 caregiver payroll onboarding (replaces W-9 + Stripe bank for caregivers). */
+  payrollComplete: { type: Boolean, default: false },
   profileComplete: { type: Boolean, default: false },
   showCompleted: { type: Boolean, default: false }
 });
 
 const emit = defineEmits(['step-click', 'complete']);
 
-const steps = computed(() => [
-  {
-    id: 'application',
-    title: 'Application',
-    completed: ['pending', 'approved', 'active'].includes(props.applicationStatus),
-    action: 'view-application'
-  },
-  {
-    id: 'approval',
-    title: 'Approval',
-    completed: props.applicationStatus === 'approved' || props.applicationStatus === 'active',
-    action: null
-  },
-  {
-    id: 'w9',
-    title: 'W9 Form',
-    completed: props.w9Submitted,
-    action: 'submit-w9'
-  },
-  {
-    id: 'bank',
-    title: 'Bank Account',
-    completed: props.bankConnected,
-    action: 'connect-bank'
-  },
-  {
-    id: 'profile',
-    title: 'Profile',
-    completed: props.profileComplete,
-    action: 'edit-profile'
+const steps = computed(() => {
+  if (props.role === 'caregiver') {
+    return [
+      {
+        id: 'application',
+        title: 'Application',
+        completed: ['pending', 'approved', 'active'].includes(props.applicationStatus),
+        action: 'view-application'
+      },
+      {
+        id: 'approval',
+        title: 'Approval',
+        completed: props.applicationStatus === 'approved' || props.applicationStatus === 'active',
+        action: null
+      },
+      {
+        id: 'payroll',
+        title: 'Payroll',
+        completed: props.payrollComplete,
+        action: 'payroll-onboarding'
+      },
+      {
+        id: 'profile',
+        title: 'Profile',
+        completed: props.profileComplete,
+        action: 'edit-profile'
+      }
+    ];
   }
-]);
+  return [
+    {
+      id: 'application',
+      title: 'Application',
+      completed: ['pending', 'approved', 'active'].includes(props.applicationStatus),
+      action: 'view-application'
+    },
+    {
+      id: 'approval',
+      title: 'Approval',
+      completed: props.applicationStatus === 'approved' || props.applicationStatus === 'active',
+      action: null
+    },
+    {
+      id: 'w9',
+      title: 'W9 Form',
+      completed: props.w9Submitted,
+      action: 'submit-w9'
+    },
+    {
+      id: 'bank',
+      title: 'Bank Account',
+      completed: props.bankConnected,
+      action: 'connect-bank'
+    },
+    {
+      id: 'profile',
+      title: 'Profile',
+      completed: props.profileComplete,
+      action: 'edit-profile'
+    }
+  ];
+});
 
 const completedSteps = computed(() => steps.value.filter(s => s.completed).length);
 const totalSteps = computed(() => steps.value.length);

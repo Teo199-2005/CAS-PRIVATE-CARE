@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Contracts\PayrollProviderInterface;
+use App\Services\Payroll\NullPayrollProvider;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Support\Facades\RateLimiter;
@@ -15,7 +17,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->bind(PayrollProviderInterface::class, NullPayrollProvider::class);
     }
 
     /**

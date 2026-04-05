@@ -930,19 +930,14 @@ class StripePaymentService
             $clientRate = PricingService::CLIENT_RATE_WITH_REFERRAL;
         }
 
-        $trainingCommission = 0;
-        if ($timeTracking->training_center_user_id) {
-            $trainingCommission = $this->calculatePaymentByMinute($minutes, 0.50);
-        }
-
         $totalClientCharge = $this->calculatePaymentByMinute($minutes, $clientRate);
-        $agencyCommission = $totalClientCharge - $caregiverEarnings - $marketingCommission - $trainingCommission;
+        $agencyCommission = $totalClientCharge - $caregiverEarnings - $marketingCommission;
 
         $timeTracking->update([
             'hours_worked' => $hours,
             'caregiver_earnings' => $caregiverEarnings,
             'marketing_partner_commission' => $marketingCommission > 0 ? $marketingCommission : null,
-            'training_center_commission' => $trainingCommission > 0 ? $trainingCommission : null,
+            'training_center_commission' => null,
             'agency_commission' => $agencyCommission,
             'total_client_charge' => $totalClientCharge
         ]);

@@ -3555,7 +3555,7 @@ const navItems = computed(() => [
   { icon: 'mdi-bell', title: 'Notifications', value: 'notifications', badge: unreadNotifications.value > 0 },
   { icon: 'mdi-credit-card', title: 'Payment Information', value: 'payment' },
   { icon: 'mdi-calendar-plus', title: 'Book Service', value: 'book-form', category: 'SERVICES' },
-  { icon: 'mdi-account-multiple', title: 'Browse Caregivers & Housekeepers', value: 'book', category: 'SERVICES' },
+  { icon: 'mdi-account-multiple', title: 'Browse Caregivers', value: 'book', category: 'SERVICES' },
   // Removed: My Bookings (accessible from dashboard)
   // Removed: Analytics Reports
   { icon: 'mdi-account-circle', title: 'Profile', value: 'profile', category: 'ACCOUNT' }
@@ -4835,11 +4835,9 @@ const exportAnalyticsPdf = async () => {
 };
 
 const getServicePrice = (serviceType) => {
-  // Pricing breakdown:
-  // ALL SERVICES (Caregivers & Housekeepers):
+  // Pricing breakdown (caregiver-aligned services):
   //   Without Referral: $45/hr
   //   With Referral: $42/hr ($3 discount)
-  // Note: Admin assigns provider earnings, agency gets remainder
   const prices = {
     'Caregiver': '$45 per hour',
     'Elderly Care': '$45 per hour',
@@ -4860,11 +4858,6 @@ const getReferralDiscountAmount = (serviceType) => {
 };
 
 const getHourlyRate = (serviceType) => {
-  // PRICING BREAKDOWN:
-  // ALL SERVICES (Caregivers & Housekeepers):
-  //   Without referral: $45/hr
-  //   With referral: $42/hr ($3 discount)
-  // Note: Housekeeper earnings are assigned by admin, agency gets remainder
   const rates = {
     'Caregiver': 45,
     'Elderly Care': 45,
@@ -4902,8 +4895,7 @@ const getOriginalRate = (serviceType) => {
 
 // Get default rate for a service type (used in booking details)
 const getDefaultRate = (serviceType) => {
-  // All services: $45/hr (same as caregivers), Personal Assistant: $30/hr
-  // Housekeeper earnings are assigned by admin, agency gets remainder
+  // All listed services: $45/hr except Personal Assistant: $30/hr
   const rates = {
     'Caregiver': 45,
     'Elderly Care': 45,
@@ -4950,11 +4942,6 @@ const getTotalCost = () => {
     return '';
   }
   
-  // PRICING BREAKDOWN:
-  // ALL SERVICES (Caregivers & Housekeepers):
-  //   Without referral: $45/hr
-  //   With referral: $42/hr ($3 discount)
-  // Note: Housekeeper earnings are assigned by admin, agency gets remainder
   const rates = {
     'Caregiver': 45,
     'Elderly Care': 45,
@@ -5646,7 +5633,7 @@ const applyReferralCode = async () => {
     }
     
     if (response.ok && data.valid) {
-      referralDiscount.value = parseFloat(data.data?.discount_per_hour) || 3.00;
+      referralDiscount.value = parseFloat(data.data?.discount_per_hour) || 1.50;
       appliedReferralCodeId.value = data.data?.id ?? null;
       referralCodeError.value = '';
       success(`Referral code "${code}" applied successfully! You'll receive $${referralDiscount.value.toFixed(2)} off per hour.`);

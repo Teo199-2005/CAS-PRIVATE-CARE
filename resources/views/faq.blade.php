@@ -8,8 +8,8 @@
     <!-- Primary Meta Tags -->
     <title>Frequently Asked Questions | CAS Private Care LLC</title>
     <meta name="title" content="Frequently Asked Questions | CAS Private Care LLC">
-    <meta name="description" content="Find answers to common questions for clients booking care services and 1099 contractors. Learn about booking, payments, scheduling, and more.">
-    <meta name="keywords" content="caregiver FAQ, care services FAQ, 1099 contractor FAQ, caregiver contractor questions, booking care services">
+    <meta name="description" content="Find answers to common questions for clients booking care services and for W-2 caregiver team members. Learn about booking, payments, scheduling, and more.">
+    <meta name="keywords" content="caregiver FAQ, home care FAQ, W-2 caregiver jobs, booking care services, CAS Private Care">
     <meta name="author" content="CAS Private Care LLC">
     <meta name="robots" content="index, follow">
     <link rel="canonical" href="{{ url('/faq') }}">
@@ -18,14 +18,14 @@
     <meta property="og:type" content="website">
     <meta property="og:url" content="{{ url('/faq') }}">
     <meta property="og:title" content="Frequently Asked Questions | CAS Private Care LLC">
-    <meta property="og:description" content="Find answers to common questions for clients booking care services and 1099 contractors.">
+    <meta property="og:description" content="Find answers to common questions for clients and W-2 caregivers.">
     <meta property="og:image" content="{{ asset('logo.png') }}">
     
     <!-- Twitter -->
     <meta property="twitter:card" content="summary_large_image">
     <meta property="twitter:url" content="{{ url('/faq') }}">
     <meta property="twitter:title" content="Frequently Asked Questions | CAS Private Care LLC">
-    <meta property="twitter:description" content="Find answers to common questions for clients booking care services and 1099 contractors.">
+    <meta property="twitter:description" content="Find answers to common questions for clients and W-2 caregivers.">
     <meta property="twitter:image" content="{{ asset('logo.png') }}">
     
     <!-- FAQ Schema for SEO -->
@@ -61,18 +61,18 @@
         ],
         [
           '@type' => 'Question',
-          'name' => 'Is this a W-2 job or 1099 contractor position?',
+          'name' => 'Are caregivers W-2 employees?',
           'acceptedAnswer' => [
             '@type' => 'Answer',
-            'text' => 'This is a 1099 independent contractor position. You are self-employed and have flexibility over your schedule and which bookings to accept.'
+            'text' => 'Yes. Caregivers on CAS Private Care are W-2 employees. Payroll and tax withholding are handled through our payroll process (including direct deposit). You will complete payroll onboarding with required employment information.'
           ]
         ],
         [
           '@type' => 'Question',
-          'name' => 'How do payments work for contractors?',
+          'name' => 'How do caregivers get paid?',
           'acceptedAnswer' => [
             '@type' => 'Answer',
-            'text' => 'Payments are issued on a regular schedule through our platform once a booking is successfully completed. You can view your completed jobs and payout history in your contractor dashboard. Specific rates are shown inside the platform for each booking before you accept it.'
+            'text' => 'W-2 caregivers are paid on a regular payroll schedule via direct deposit after successful completion of shifts, according to your assignment and company payroll policies. Rates and schedules are confirmed inside the platform.'
           ]
         ]
       ]
@@ -643,7 +643,7 @@
             <h1>Frequently Asked Questions</h1>
             <p>Find answers to your questions about booking, safety, and working with CAS Private Care.</p>
             <div class="faq-meta">
-                <span class="faq-pill"><i class="bi bi-shield-check"></i> Verified contractors</span>
+                <span class="faq-pill"><i class="bi bi-shield-check"></i> Verified caregivers</span>
                 <span class="faq-pill"><i class="bi bi-credit-card"></i> Secure payments</span>
                 <span class="faq-pill"><i class="bi bi-clock"></i> Fast booking</span>
             </div>
@@ -666,18 +666,18 @@
                                 <span class="faq-chevron"><i class="bi bi-chevron-down"></i></span>
                             </summary>
                             <div class="faq-a">
-                                <p>We connect families with verified independent contractors for:</p>
+                                <p>We connect families with verified W-2 caregivers for:</p>
                                 <ul>
                                     <li><strong>Caregiving</strong> (elderly & companion support, medication reminders, meal prep, mobility support, supervision)</li>
                                     <li><strong>Special needs support</strong> (personalized routines and assistance based on the client’s needs)</li>
-                                    <li><strong>Housekeeping</strong> (house helpers, deep cleaning, and home organization depending on the booking)</li>
+                                    <li><strong>Respite &amp; family relief</strong> (scheduled coverage so family caregivers can rest while a trusted professional stays with your loved one)</li>
                                 </ul>
                             </div>
                         </details>
 
                         <details class="faq-item">
                             <summary>
-                                <span class="faq-q"><i class="bi bi-lightning-charge"></i> How quickly can I book a caregiver or housekeeper?</span>
+                                <span class="faq-q"><i class="bi bi-lightning-charge"></i> How quickly can I book a caregiver?</span>
                                 <span class="faq-chevron"><i class="bi bi-chevron-down"></i></span>
                             </summary>
                             <div class="faq-a">
@@ -691,7 +691,7 @@
                                 <span class="faq-chevron"><i class="bi bi-chevron-down"></i></span>
                             </summary>
                             <div class="faq-a">
-                                <p>Yes. We connect clients with verified contractors across Manhattan, Brooklyn, Queens, the Bronx, and Staten Island (and nearby areas when available).</p>
+                                <p>Yes. We connect clients with verified caregivers across Manhattan, Brooklyn, Queens, the Bronx, and Staten Island (and nearby areas when available).</p>
                             </div>
                         </details>
 
@@ -707,7 +707,7 @@
 
                         <details class="faq-item">
                             <summary>
-                                <span class="faq-q"><i class="bi bi-shield-check"></i> Are contractors verified and background-checked?</span>
+                                <span class="faq-q"><i class="bi bi-shield-check"></i> Are caregivers verified and background-checked?</span>
                                 <span class="faq-chevron"><i class="bi bi-chevron-down"></i></span>
                             </summary>
                             <div class="faq-a">
@@ -721,40 +721,40 @@
                                 <span class="faq-chevron"><i class="bi bi-chevron-down"></i></span>
                             </summary>
                             <div class="faq-a">
-                                <p>Yes. You can request one-time or recurring bookings. Many clients schedule weekly or daily support depending on availability and the contractor’s schedule.</p>
+                                <p>Yes. You can request one-time or recurring bookings. Many clients schedule weekly or daily support depending on availability and the caregiver’s schedule.</p>
                             </div>
                         </details>
                     </div>
                 </div>
             </div>
 
-            <!-- FAQs for 1099 Contractors -->
+            <!-- FAQs for W-2 Caregivers -->
             <div class="faq-section" data-animate>
                 <div class="faq-section-header" style="background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);">
                     <h2>
                         <i class="bi bi-briefcase-fill"></i>
-                        For 1099 Contractors
+                        For W-2 Caregivers
                     </h2>
                 </div>
                 <div class="faq-section-content">
                     <div class="faq-accordion">
                         <details class="faq-item">
                             <summary>
-                                <span class="faq-q"><i class="bi bi-person-badge"></i> Is this W-2 employment or 1099 contracting?</span>
+                                <span class="faq-q"><i class="bi bi-person-badge"></i> Am I a W-2 employee?</span>
                                 <span class="faq-chevron"><i class="bi bi-chevron-down"></i></span>
                             </summary>
                             <div class="faq-a">
-                                <p>Contractors on CAS Private Care are independent 1099 contractors (self-employed). You control your availability and which bookings you accept. Contractors are responsible for their own taxes and business compliance.</p>
+                                <p>Yes. Caregivers are W-2 employees of CAS Private Care LLC. Taxes are withheld through payroll, and you will complete payroll onboarding (including direct deposit details) as part of hiring.</p>
                             </div>
                         </details>
 
                         <details class="faq-item">
                             <summary>
-                                <span class="faq-q"><i class="bi bi-cash-stack"></i> How do payouts work?</span>
+                                <span class="faq-q"><i class="bi bi-cash-stack"></i> How do I get paid?</span>
                                 <span class="faq-chevron"><i class="bi bi-chevron-down"></i></span>
                             </summary>
                             <div class="faq-a">
-                                <p>Payouts are sent on a regular schedule through the platform after services are completed. You can view job history and payout status in your dashboard. Each booking shows the compensation details inside the platform before you accept.</p>
+                                <p>You are paid on a regular payroll schedule via direct deposit. You can view your work history in your caregiver dashboard. Assignment and pay details are confirmed inside the platform.</p>
                             </div>
                         </details>
 
@@ -784,7 +784,7 @@
                                 <span class="faq-chevron"><i class="bi bi-chevron-down"></i></span>
                             </summary>
                             <div class="faq-a">
-                                <p>We may offer partner programs (marketing partners and training center partnerships). Eligibility and terms are shown inside the platform or shared by our team—program amounts and compensation details are not displayed publicly.</p>
+                                <p>We may offer partner programs (for example, marketing partners). Eligibility and terms are shown inside the platform or shared by our team—program amounts and compensation details are not displayed publicly.</p>
                             </div>
                         </details>
 

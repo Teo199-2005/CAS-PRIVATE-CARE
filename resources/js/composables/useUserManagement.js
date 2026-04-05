@@ -23,10 +23,8 @@ export function useUserManagement() {
     // User lists
     const clients = ref([]);
     const caregivers = ref([]);
-    const housekeepers = ref([]);
     const marketingStaff = ref([]);
     const adminStaff = ref([]);
-    const trainingCenters = ref([]);
     
     // Selected user for editing
     const selectedUser = ref(null);
@@ -40,10 +38,8 @@ export function useUserManagement() {
     // Form data
     const clientForm = ref({});
     const caregiverForm = ref({});
-    const housekeeperForm = ref({});
     const marketingStaffForm = ref({});
     const adminStaffForm = ref({});
-    const trainingCenterForm = ref({});
     
     // Search and filters
     const searchQuery = ref('');
@@ -58,8 +54,6 @@ export function useUserManagement() {
     const activeClients = computed(() => clients.value.filter(c => c.status === 'active').length);
     const totalCaregivers = computed(() => caregivers.value.length);
     const activeCaregivers = computed(() => caregivers.value.filter(c => c.status === 'active').length);
-    const totalHousekeepers = computed(() => housekeepers.value.length);
-    const activeHousekeepers = computed(() => housekeepers.value.filter(h => h.status === 'active').length);
 
     // ============================================
     // FETCH METHODS
@@ -97,21 +91,6 @@ export function useUserManagement() {
         }
     }
     
-    async function fetchHousekeepers() {
-        loading.value = true;
-        error.value = null;
-        
-        try {
-            const response = await axios.get('/api/admin/housekeepers', { params: { per_page: 50 } });
-            housekeepers.value = response.data.housekeepers ?? response.data.data ?? response.data ?? [];
-        } catch (err) {
-            error.value = err.response?.data?.message || 'Failed to load housekeepers';
-            console.error('Housekeepers fetch error:', err);
-        } finally {
-            loading.value = false;
-        }
-    }
-    
     async function fetchMarketingStaff() {
         loading.value = true;
         error.value = null;
@@ -142,29 +121,12 @@ export function useUserManagement() {
         }
     }
     
-    async function fetchTrainingCenters() {
-        loading.value = true;
-        error.value = null;
-        
-        try {
-            const response = await axios.get('/api/admin/training-centers');
-            trainingCenters.value = response.data.data || response.data || [];
-        } catch (err) {
-            error.value = err.response?.data?.message || 'Failed to load training centers';
-            console.error('Training centers fetch error:', err);
-        } finally {
-            loading.value = false;
-        }
-    }
-    
     async function fetchAllUsers() {
         await Promise.all([
             fetchClients(),
             fetchCaregivers(),
-            fetchHousekeepers(),
             fetchMarketingStaff(),
             fetchAdminStaff(),
-            fetchTrainingCenters(),
         ]);
     }
 
@@ -189,9 +151,6 @@ export function useUserManagement() {
                     break;
                 case 'caregiver':
                     await fetchCaregivers();
-                    break;
-                case 'housekeeper':
-                    await fetchHousekeepers();
                     break;
                 case 'marketing':
                     await fetchMarketingStaff();
@@ -264,10 +223,8 @@ export function useUserManagement() {
         const endpoints = {
             'client': '/api/admin/users',
             'caregiver': '/api/admin/caregivers',
-            'housekeeper': '/api/admin/housekeepers',
             'marketing': '/api/admin/marketing-staff',
             'adminstaff': '/api/admin/admin-staff',
-            'trainingcenter': '/api/admin/training-centers',
         };
         return endpoints[userType] || '/api/admin/users';
     }
@@ -280,17 +237,11 @@ export function useUserManagement() {
             case 'caregiver':
                 await fetchCaregivers();
                 break;
-            case 'housekeeper':
-                await fetchHousekeepers();
-                break;
             case 'marketing':
                 await fetchMarketingStaff();
                 break;
             case 'adminstaff':
                 await fetchAdminStaff();
-                break;
-            case 'trainingcenter':
-                await fetchTrainingCenters();
                 break;
         }
     }
@@ -313,10 +264,8 @@ export function useUserManagement() {
         const labels = {
             'client': 'Client',
             'caregiver': 'Caregiver',
-            'housekeeper': 'Housekeeper',
             'marketing': 'Marketing Staff',
             'adminstaff': 'Admin Staff',
-            'trainingcenter': 'Training Center',
             'admin': 'Administrator',
         };
         return labels[type?.toLowerCase()] || type;
@@ -354,22 +303,6 @@ export function useUserManagement() {
                 languages: ['English'],
                 notes: '',
             },
-            'housekeeper': {
-                id: null,
-                user_id: null,
-                name: '',
-                email: '',
-                phone: '',
-                address: '',
-                city: '',
-                state: 'NY',
-                zip_code: '',
-                status: 'pending',
-                hourly_rate: 20,
-                services: [],
-                availability: {},
-                notes: '',
-            },
             'marketing': {
                 id: null,
                 name: '',
@@ -387,18 +320,6 @@ export function useUserManagement() {
                 permissions: {},
                 status: 'active',
             },
-            'trainingcenter': {
-                id: null,
-                name: '',
-                email: '',
-                phone: '',
-                address: '',
-                city: '',
-                state: 'NY',
-                zip_code: '',
-                commission_rate: 5,
-                status: 'active',
-            },
         };
         
         return forms[userType] || {};
@@ -413,10 +334,8 @@ export function useUserManagement() {
         error,
         clients,
         caregivers,
-        housekeepers,
         marketingStaff,
         adminStaff,
-        trainingCenters,
         selectedUser,
         selectedUserType,
         showEditDialog,
@@ -424,10 +343,8 @@ export function useUserManagement() {
         showConfirmDialog,
         clientForm,
         caregiverForm,
-        housekeeperForm,
         marketingStaffForm,
         adminStaffForm,
-        trainingCenterForm,
         searchQuery,
         statusFilter,
         sortBy,
@@ -438,16 +355,12 @@ export function useUserManagement() {
         activeClients,
         totalCaregivers,
         activeCaregivers,
-        totalHousekeepers,
-        activeHousekeepers,
         
         // Methods
         fetchClients,
         fetchCaregivers,
-        fetchHousekeepers,
         fetchMarketingStaff,
         fetchAdminStaff,
-        fetchTrainingCenters,
         fetchAllUsers,
         updateUserStatus,
         saveUser,

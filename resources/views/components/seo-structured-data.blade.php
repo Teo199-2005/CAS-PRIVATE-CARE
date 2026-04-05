@@ -24,7 +24,7 @@ $phone = '+1-646-282-8282';
         "height": 200
     },
     "image": "{{ $logo }}",
-    "description": "Professional home care services including verified caregivers, housekeeping, and personal assistants in New York.",
+    "description": "Professional home care marketplace connecting New York families with verified caregivers for companion care, elderly support, and day-to-day assistance.",
     "telephone": "{{ $phone }}",
     "email": "contact@casprivatecare.com",
     "foundingDate": "2020",
@@ -33,7 +33,7 @@ $phone = '+1-646-282-8282';
     "paymentAccepted": "Credit Card, Debit Card, Bank Transfer",
     "address": {
         "@type": "PostalAddress",
-        "streetAddress": "New York",
+        "streetAddress": "481 8th Ave",
         "addressLocality": "New York",
         "addressRegion": "NY",
         "postalCode": "10001",
@@ -41,8 +41,8 @@ $phone = '+1-646-282-8282';
     },
     "geo": {
         "@type": "GeoCoordinates",
-        "latitude": 40.7128,
-        "longitude": -74.0060
+        "latitude": 40.75278,
+        "longitude": -73.99361
     },
     "areaServed": [
         {
@@ -56,30 +56,30 @@ $phone = '+1-646-282-8282';
     ],
     "hasOfferCatalog": {
         "@type": "OfferCatalog",
-        "name": "Home Care Services",
+        "name": "Caregiver Services",
         "itemListElement": [
             {
                 "@type": "Offer",
                 "itemOffered": {
                     "@type": "Service",
-                    "name": "Caregiver Services",
-                    "description": "Professional, verified caregivers for elderly care, companion care, and personal assistance."
+                    "name": "Elderly & Companion Care",
+                    "description": "Verified caregivers for daily activities, companionship, and respectful support at home."
                 }
             },
             {
                 "@type": "Offer",
                 "itemOffered": {
                     "@type": "Service",
-                    "name": "Housekeeping Services",
-                    "description": "Professional housekeeping and home maintenance services."
+                    "name": "Special Needs Support",
+                    "description": "Patient, trained caregivers for individuals who need extra attention and routine."
                 }
             },
             {
                 "@type": "Offer",
                 "itemOffered": {
                     "@type": "Service",
-                    "name": "Personal Assistant Services",
-                    "description": "Professional personal assistants for daily tasks and errands."
+                    "name": "Respite & Family Relief",
+                    "description": "Flexible scheduling so families can rest while a trusted caregiver stays with a loved one."
                 }
             }
         ]

@@ -14,7 +14,6 @@ import CaregiverDashboard from './components/CaregiverDashboard.vue';
 import AdminDashboard from './components/AdminDashboard.vue';
 import AdminSettings from './components/AdminSettings.vue';
 import MarketingDashboard from './components/MarketingDashboard.vue';
-import TrainingDashboard from './components/TrainingDashboard.vue';
 
 const vuetify = createVuetify({
     components,
@@ -86,16 +85,6 @@ if (document.getElementById('marketing-dashboard-app')) {
     });
     app.use(vuetify);
     app.mount('#marketing-dashboard-app');
-}
-
-if (document.getElementById('training-dashboard-app')) {
-    const app = createApp({
-        components: {
-            TrainingDashboard,
-        },
-    });
-    app.use(vuetify);
-    app.mount('#training-dashboard-app');
 }
 
 if (document.getElementById('admin-staff-dashboard-app')) {

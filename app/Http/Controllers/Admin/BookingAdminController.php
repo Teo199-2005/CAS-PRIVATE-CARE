@@ -356,6 +356,13 @@ class BookingAdminController extends Controller
             $staffHours = app(StaffHoursService::class);
             $caregiverIds = $request->has('caregiver_ids') ? (array) $request->input('caregiver_ids', []) : [];
             $housekeeperIds = $request->has('housekeeper_ids') ? (array) $request->input('housekeeper_ids', []) : [];
+
+            // Decommissioned: housekeeper scheduling via this endpoint is no longer supported.
+            $requestedHousekeeperIds = array_filter($housekeeperIds, fn ($hid) => (int) $hid > 0);
+            if (!empty($requestedHousekeeperIds)) {
+                return $this->errorResponse('Housekeeper scheduling is no longer supported.', 410);
+            }
+
             $caregivers = [];
             $housekeepers = [];
             foreach ($caregiverIds as $cid) {
@@ -591,7 +598,8 @@ class BookingAdminController extends Controller
         }
 
         $user = Auth::user();
-        if (!$user || $user->role !== 'admin') {
+        // Use user_type (admin / adminstaff), not role — role is "Super Admin" / "Admin Staff", never the literal "admin".
+        if (!$user || !in_array($user->user_type, ['admin', 'adminstaff'], true)) {
             return $this->errorResponse('Forbidden - Admin access required', 403);
         }
 

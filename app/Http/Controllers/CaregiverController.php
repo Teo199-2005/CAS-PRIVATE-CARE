@@ -467,7 +467,7 @@ class CaregiverController extends Controller
                 <td>
                     <div class="company-name">CAS PRIVATE CARE LLC</div>
                     <div class="company-tagline">Comfort & Support</div>
-                    <div class="company-address">New York, NY</div>
+                    <div class="company-address">' . htmlspecialchars(config('app.address', '481 8th Ave, New York, NY 10001'), ENT_QUOTES, 'UTF-8') . '</div>
                 </td>
                 <td class="date-cell">
                     <strong>Report Date:</strong> ' . date('F d, Y') . '<br>

@@ -185,6 +185,8 @@ class AdminDashboardTest extends TestCase
         $response = $this->actingAs($this->admin)
             ->getJson('/api/admin/training-commissions');
 
-        $response->assertStatus(200);
+        $response->assertStatus(200)
+            ->assertJsonPath('retired', true)
+            ->assertJsonPath('commissions', []);
     }
 }

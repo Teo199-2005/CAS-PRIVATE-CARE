@@ -18,17 +18,9 @@
         <v-icon start>mdi-hand-heart</v-icon>
         Caregiver Payments
       </v-tab>
-      <v-tab value="housekeeper-payments" aria-label="Housekeeper Payments">
-        <v-icon start>mdi-broom</v-icon>
-        Housekeeper Payments
-      </v-tab>
       <v-tab value="marketing-commissions" aria-label="Marketing Commissions">
         <v-icon start>mdi-bullhorn</v-icon>
         Marketing Commissions
-      </v-tab>
-      <v-tab value="training-commissions" aria-label="Training Commissions">
-        <v-icon start>mdi-school</v-icon>
-        Training Commissions
       </v-tab>
       <v-tab value="transactions" aria-label="All Transactions">
         <v-icon start>mdi-swap-horizontal</v-icon>
@@ -86,19 +78,6 @@
         />
       </v-tabs-window-item>
 
-      <!-- Housekeeper Payments Tab -->
-      <v-tabs-window-item value="housekeeper-payments">
-        <HousekeeperPaymentsTab
-          :payments="housekeeperPayments"
-          :is-mobile="isMobile"
-          :is-friday="isFriday"
-          :loading="loading"
-          @view-details="viewHousekeeperPaymentDetails"
-          @pay="payHousekeeper"
-          @export-pdf="$emit('export-housekeeper-payments')"
-        />
-      </v-tabs-window-item>
-
       <!-- Marketing Commissions Tab -->
       <v-tabs-window-item value="marketing-commissions">
         <MarketingCommissionsTab
@@ -110,20 +89,6 @@
           @pay="payMarketingCommission"
           @pay-all="$emit('pay-all-marketing-commissions')"
           @export-pdf="$emit('export-marketing-commissions')"
-        />
-      </v-tabs-window-item>
-
-      <!-- Training Commissions Tab -->
-      <v-tabs-window-item value="training-commissions">
-        <TrainingCommissionsTab
-          :commissions="trainingCommissions"
-          :is-mobile="isMobile"
-          :is-friday="isFriday"
-          :loading="loadingTrainingCommissions"
-          @view-details="viewTrainingCommissionDetails"
-          @pay="payTrainingCommission"
-          @pay-all="$emit('pay-all-training-commissions')"
-          @export-pdf="$emit('export-training-commissions')"
         />
       </v-tabs-window-item>
 
@@ -435,14 +400,8 @@ const ClientPaymentsTab = defineAsyncComponent(() =>
 const CaregiverPaymentsTab = defineAsyncComponent(() => 
   import('./payments/CaregiverPaymentsTab.vue')
 );
-const HousekeeperPaymentsTab = defineAsyncComponent(() => 
-  import('./payments/HousekeeperPaymentsTab.vue')
-);
 const MarketingCommissionsTab = defineAsyncComponent(() => 
   import('./payments/MarketingCommissionsTab.vue')
-);
-const TrainingCommissionsTab = defineAsyncComponent(() => 
-  import('./payments/TrainingCommissionsTab.vue')
 );
 const AllTransactionsTab = defineAsyncComponent(() => 
   import('./payments/AllTransactionsTab.vue')
@@ -536,11 +495,6 @@ const props = defineProps({
     type: Boolean,
     default: false
   },
-  /** Loading state for training commissions */
-  loadingTrainingCommissions: {
-    type: Boolean,
-    default: false
-  }
 });
 
 /**
@@ -555,14 +509,11 @@ const emit = defineEmits([
   'pay-caregiver',
   'pay-housekeeper',
   'pay-marketing-commission',
-  'pay-training-commission',
   'process-salaries',
   'pay-all-marketing-commissions',
-  'pay-all-training-commissions',
   'export-caregiver-payments',
   'export-housekeeper-payments',
   'export-marketing-commissions',
-  'export-training-commissions',
   'export-transactions',
   'confirm-payment',
   'tab-change'
@@ -630,14 +581,6 @@ const viewMarketingCommissionDetails = (commission) => {
 };
 
 /**
- * View training commission details
- */
-const viewTrainingCommissionDetails = (commission) => {
-  selectedPaymentDetails.value = { ...commission, type: 'Training Center' };
-  paymentDetailsDialog.value = true;
-};
-
-/**
  * Initiate caregiver payment
  */
 const payCaregiver = (caregiver) => {
@@ -658,14 +601,6 @@ const payHousekeeper = (housekeeper) => {
  */
 const payMarketingCommission = (staff) => {
   selectedPayment.value = { ...staff, paymentType: 'marketing' };
-  paymentConfirmDialog.value = true;
-};
-
-/**
- * Initiate training commission payment
- */
-const payTrainingCommission = (center) => {
-  selectedPayment.value = { ...center, paymentType: 'training' };
   paymentConfirmDialog.value = true;
 };
 
@@ -699,9 +634,6 @@ const confirmPayment = async () => {
         break;
       case 'marketing':
         emit('pay-marketing-commission', selectedPayment.value);
-        break;
-      case 'training':
-        emit('pay-training-commission', selectedPayment.value);
         break;
     }
     

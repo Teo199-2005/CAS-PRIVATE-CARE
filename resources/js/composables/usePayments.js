@@ -23,16 +23,14 @@ export function usePayments() {
     // Payment data
     const clientPayments = ref([]);
     const caregiverPayments = ref([]);
-    const housekeeperPayments = ref([]);
     const marketingCommissions = ref([]);
-    const trainingCommissions = ref([]);
     const transactions = ref([]);
     
     // Money flow stats
     const moneyFlow = ref({
         today: { revenue: 0, payouts: 0, profit: 0 },
         totals: { revenue: 0, payouts: 0, profit: 0, pending: 0 },
-        commissions: { marketing: 0, training: 0 },
+        commissions: { marketing: 0 },
     });
     
     // Pagination
@@ -67,13 +65,17 @@ export function usePayments() {
             if (response.data) {
                 clientPayments.value = response.data.client_payments || [];
                 caregiverPayments.value = response.data.caregiver_payments || [];
-                housekeeperPayments.value = response.data.housekeeper_payments || [];
                 marketingCommissions.value = response.data.marketing_commissions || [];
-                trainingCommissions.value = response.data.training_commissions || [];
                 transactions.value = response.data.transactions || [];
                 
                 if (response.data.money_flow) {
-                    moneyFlow.value = response.data.money_flow;
+                    const mf = response.data.money_flow;
+                    moneyFlow.value = {
+                        ...mf,
+                        commissions: {
+                            marketing: mf.commissions?.marketing ?? 0,
+                        },
+                    };
                 }
             }
         } catch (err) {
@@ -111,31 +113,6 @@ export function usePayments() {
     }
     
     /**
-     * Process a housekeeper payout
-     */
-    async function processHousekeeperPayout(housekeeperId, amount, bookingIds = []) {
-        loading.value = true;
-        error.value = null;
-        
-        try {
-            const response = await axios.post('/api/admin/payments/housekeeper-payout', {
-                housekeeper_id: housekeeperId,
-                amount,
-                booking_ids: bookingIds,
-            });
-            
-            await fetchPayments();
-            
-            return { success: true, data: response.data };
-        } catch (err) {
-            error.value = err.response?.data?.message || 'Failed to process payout';
-            return { success: false, error: error.value };
-        } finally {
-            loading.value = false;
-        }
-    }
-    
-    /**
      * Process marketing commission payment
      */
     async function processMarketingCommission(staffId, amount, referralIds = []) {
@@ -147,31 +124,6 @@ export function usePayments() {
                 staff_id: staffId,
                 amount,
                 referral_ids: referralIds,
-            });
-            
-            await fetchPayments();
-            
-            return { success: true, data: response.data };
-        } catch (err) {
-            error.value = err.response?.data?.message || 'Failed to process commission';
-            return { success: false, error: error.value };
-        } finally {
-            loading.value = false;
-        }
-    }
-    
-    /**
-     * Process training commission payment
-     */
-    async function processTrainingCommission(centerId, amount, trainingIds = []) {
-        loading.value = true;
-        error.value = null;
-        
-        try {
-            const response = await axios.post('/api/admin/payments/training-commission', {
-                center_id: centerId,
-                amount,
-                training_ids: trainingIds,
             });
             
             await fetchPayments();
@@ -259,9 +211,7 @@ export function usePayments() {
         error,
         clientPayments,
         caregiverPayments,
-        housekeeperPayments,
         marketingCommissions,
-        trainingCommissions,
         transactions,
         moneyFlow,
         pagination,
@@ -275,9 +225,7 @@ export function usePayments() {
         // Methods
         fetchPayments,
         processCaregiverPayout,
-        processHousekeeperPayout,
         processMarketingCommission,
-        processTrainingCommission,
         issueRefund,
         getPaymentStatusColor,
         getTransactionTypeColor,

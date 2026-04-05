@@ -236,7 +236,7 @@ class StripeControllersTest extends TestCase
 
         $response = $this->postJson('/api/v2/housekeeper/stripe/onboard');
 
-        $this->assertNotEquals(403, $response->status());
+        $response->assertStatus(410);
     }
 
     /** @test */
@@ -265,12 +265,7 @@ class StripeControllersTest extends TestCase
 
         $response = $this->getJson('/api/v2/housekeeper/stripe/status');
 
-        $response->assertStatus(200)
-            ->assertJson([
-                'success' => true,
-                'has_account' => false,
-                'status' => 'not_started'
-            ]);
+        $response->assertStatus(410);
     }
 
     // ============================================
@@ -407,7 +402,7 @@ class StripeControllersTest extends TestCase
         // Housekeeper
         $housekeeper = User::factory()->create(['user_type' => 'housekeeper']);
         Sanctum::actingAs($housekeeper);
-        $this->getJson('/api/v2/housekeeper/stripe/status')->assertStatus(200);
+        $this->getJson('/api/v2/housekeeper/stripe/status')->assertStatus(410);
         $this->postJson('/api/v2/caregiver/stripe/onboard')->assertStatus(403);
         $this->getJson('/api/v2/admin/stripe/payments')->assertStatus(403);
     }

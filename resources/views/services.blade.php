@@ -6,10 +6,10 @@
     @include('partials.favicon')
     
     <!-- Primary Meta Tags -->
-    <title>Our Services | CAS Private Care LLC - Caregiving & Housekeeping Services NYC</title>
-    <meta name="title" content="Our Services | CAS Private Care LLC - Caregiving & Housekeeping Services NYC">
-    <meta name="description" content="Professional caregiving and housekeeping services in New York. Elderly care, companion care, deep cleaning, and special needs support. Book verified 1099 contractors today.">
-    <meta name="keywords" content="caregiver services NYC, housekeeping services New York, elderly care Manhattan, companion care Brooklyn, home care Queens, deep cleaning services">
+    <title>Our Services | CAS Private Care LLC - W-2 Caregiver Home Care NYC</title>
+    <meta name="title" content="Our Services | CAS Private Care LLC - W-2 Caregiver Home Care NYC">
+    <meta name="description" content="Professional home care in New York. Elderly care, companion care, and daily living support from W-2 caregivers. Book through CAS Private Care LLC.">
+    <meta name="keywords" content="caregiver services NYC, W-2 home care, elderly care Manhattan, companion care Brooklyn, home care Queens">
     <meta name="robots" content="index, follow">
     <link rel="canonical" href="{{ url('/services') }}">
     
@@ -17,14 +17,14 @@
     <meta property="og:type" content="website">
     <meta property="og:url" content="{{ url('/services') }}">
     <meta property="og:title" content="Our Services | CAS Private Care LLC">
-    <meta property="og:description" content="Professional caregiving and housekeeping services in New York. Book verified 1099 contractors today.">
+    <meta property="og:description" content="Professional home care in New York from W-2 caregivers. Book through CAS Private Care LLC.">
     <meta property="og:image" content="{{ asset('logo.png') }}">
     
     <!-- Twitter -->
     <meta property="twitter:card" content="summary_large_image">
     <meta property="twitter:url" content="{{ url('/services') }}">
     <meta property="twitter:title" content="Our Services | CAS Private Care LLC">
-    <meta property="twitter:description" content="Professional caregiving and housekeeping services in New York.">
+    <meta property="twitter:description" content="Professional home care in New York from W-2 caregivers.">
     <meta property="twitter:image" content="{{ asset('logo.png') }}">
     
     <!-- Service Schema -->
@@ -995,10 +995,10 @@
             <div class="hero-content">
                 <div class="hero-badge">
                     <i class="bi bi-shield-check"></i>
-                    Verified 1099 Contractors
+                    W-2 Caregivers
                 </div>
                 <h1>Professional Care <span>Services</span> for Every Family</h1>
-                <p>Connect with verified independent contractors for caregiving and housekeeping services throughout New York. Quality care, flexible scheduling, trusted professionals.</p>
+                <p>Connect with verified W-2 caregivers for non-medical home care throughout New York. Quality care, flexible scheduling, and a team you can trust.</p>
                 
                 <div class="hero-stats">
                     <div class="hero-stat">
@@ -1007,7 +1007,7 @@
                     </div>
                     <div class="hero-stat">
                         <span class="hero-stat-value">500+</span>
-                        <span class="hero-stat-label">Verified Contractors</span>
+                        <span class="hero-stat-label">Caregivers</span>
                     </div>
                     <div class="hero-stat">
                         <span class="hero-stat-value">4.9★</span>

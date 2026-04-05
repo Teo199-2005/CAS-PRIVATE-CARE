@@ -223,7 +223,18 @@
                 <li><strong>Post Reviews:</strong> Reviews, ratings, and comments about services received or provided</li>
             </ul>
 
-            <h3>1.2 Information We Collect Automatically</h3>
+            <h3>1.2 Employment and payroll (caregivers)</h3>
+            <p>If you apply or work as a W-2 caregiver, we collect additional information needed to run payroll and meet tax and employment obligations, which may include:</p>
+            <ul>
+                <li><strong>Legal name and date of birth</strong> (must match government-issued ID)</li>
+                <li><strong>Social Security number (SSN)</strong>, stored with strong encryption and never used for marketing</li>
+                <li><strong>Residential address</strong> as shown on ID</li>
+                <li><strong>Bank routing and account numbers</strong> for direct deposit, stored with encryption</li>
+                <li><strong>Emergency contact</strong> information for workplace safety</li>
+            </ul>
+            <p>We use this information solely for hiring, payroll, tax withholding, benefits administration (if applicable), and related compliance. We do not sell SSN or bank account data. Access is limited to authorized payroll and HR staff and systems. Retention follows legal requirements for employment and tax records.</p>
+
+            <h3>1.3 Information We Collect Automatically</h3>
             <p>When you use our Service, we automatically collect certain information, including:</p>
             <ul>
                 <li><strong>Usage Data:</strong> Information about how you access and use our Service, including pages visited, features used, time spent on pages, and navigation patterns</li>
@@ -233,13 +244,13 @@
                 <li><strong>Cookies and Tracking Technologies:</strong> Information collected through cookies, web beacons, and similar technologies (see "Cookies and Tracking Technologies" section below)</li>
             </ul>
 
-            <h3>1.3 Information from Third Parties</h3>
+            <h3>1.4 Information from Third Parties</h3>
             <p>We may receive information about you from third parties, including:</p>
             <ul>
                 <li><strong>Social Media Platforms:</strong> If you choose to register or log in using Google, Facebook, or other social media accounts, we may receive information from these platforms</li>
                 <li><strong>Payment Processors:</strong> Information from payment processors regarding transactions and payment methods</li>
                 <li><strong>Background Check Services:</strong> If applicable, information from background check providers</li>
-                <li><strong>Training Centers:</strong> Information about certifications and training completed</li>
+                <li><strong>Education and certifications:</strong> Information you or third-party verification partners provide about credentials and training relevant to your profile</li>
             </ul>
 
             <h2>2. How We Use Your Information</h2>
@@ -451,7 +462,7 @@
                     <strong>CAS Private Care LLC</strong><br>
                     Email: <a href="mailto:contact@casprivatecare.online">contact@casprivatecare.online</a><br>
                     Phone: <a href="tel:+16462828282">+1 (646) 282-8282</a><br>
-                    Address: New York, USA
+                    Address: {{ config('app.address', '481 8th Ave, New York, NY 10001') }}
                 </p>
                 <p style="margin-top: 1rem;">
                     <strong>Data Protection Officer:</strong><br>

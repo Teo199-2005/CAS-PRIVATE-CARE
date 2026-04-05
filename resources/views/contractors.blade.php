@@ -6,25 +6,25 @@
     @include('partials.favicon')
     
     <!-- Primary Meta Tags -->
-    <title>Become a 1099 Contractor | CAS Private Care LLC - Join Our Network</title>
-    <meta name="title" content="Become a 1099 Contractor | CAS Private Care LLC - Join Our Network">
-    <meta name="description" content="Join CAS Private Care as an independent 1099 contractor. Flexible scheduling, choose your own clients, competitive rates. Caregivers and housekeepers wanted in NYC.">
-    <meta name="keywords" content="1099 contractor caregiver, independent contractor housekeeping, caregiver jobs NYC, housekeeper contractor, flexible caregiver work, self-employed caregiver">
+    <title>W-2 Caregiver Careers | CAS Private Care LLC - Join Our Team</title>
+    <meta name="title" content="W-2 Caregiver Careers | CAS Private Care LLC - Join Our Team">
+    <meta name="description" content="Join CAS Private Care as a W-2 caregiver employee. Competitive pay, payroll and tax withholding, direct deposit. Caregiver jobs across NYC.">
+    <meta name="keywords" content="W-2 caregiver jobs NYC, employed caregiver, home care employment, CAS Private Care careers">
     <meta name="robots" content="index, follow">
     <link rel="canonical" href="{{ url('/contractors') }}">
     
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website">
     <meta property="og:url" content="{{ url('/contractors') }}">
-    <meta property="og:title" content="Become a 1099 Contractor | CAS Private Care LLC">
-    <meta property="og:description" content="Join our network of independent contractors. Flexible work, choose your clients, competitive pay.">
+    <meta property="og:title" content="W-2 Caregiver Careers | CAS Private Care LLC">
+    <meta property="og:description" content="Join our team as a W-2 caregiver. Payroll, direct deposit, and support across NYC.">
     <meta property="og:image" content="{{ asset('logo.png') }}">
     
     <!-- Twitter -->
     <meta property="twitter:card" content="summary_large_image">
     <meta property="twitter:url" content="{{ url('/contractors') }}">
-    <meta property="twitter:title" content="Become a 1099 Contractor | CAS Private Care LLC">
-    <meta property="twitter:description" content="Join our network of independent contractors. Flexible work, choose your clients.">
+    <meta property="twitter:title" content="W-2 Caregiver Careers | CAS Private Care LLC">
+    <meta property="twitter:description" content="Join our team as a W-2 caregiver with payroll and direct deposit.">
     <meta property="twitter:image" content="{{ asset('logo.png') }}">
     
     <!-- Bootstrap Icons -->
@@ -1134,23 +1134,23 @@
                 <div class="hero-content">
                     <div class="hero-badge">
                         <i class="bi bi-briefcase-fill"></i>
-                        Independent 1099 Contractors
+                        W-2 Caregiver Careers
                     </div>
-                    <h1>Be Your Own Boss as a <span>1099 Contractor</span></h1>
-                    <p>Join CAS Private Care's network of independent contractors. Set your own schedule, choose your clients, and grow your caregiving or housekeeping business on your terms.</p>
+                    <h1>Join Our Team as a <span>W-2 Caregiver</span></h1>
+                    <p>Work with CAS Private Care as an employee: payroll with tax withholding, direct deposit, and a supportive team matching you with families across NYC.</p>
                     
                     <div class="hero-features">
                         <span class="hero-feature">
                             <i class="bi bi-check-circle-fill"></i>
-                            Flexible Schedule
+                            W-2 Employment
                         </span>
                         <span class="hero-feature">
                             <i class="bi bi-check-circle-fill"></i>
-                            Choose Your Clients
+                            Direct Deposit
                         </span>
                         <span class="hero-feature">
                             <i class="bi bi-check-circle-fill"></i>
-                            Weekly Payments
+                            Support &amp; Training
                         </span>
                     </div>
                     
@@ -1170,7 +1170,7 @@
                     <img src="https://images.unsplash.com/photo-1594824476967-48c8b964273f?w=600&q=80" alt="Professional caregiver" loading="lazy" decoding="async">
                     <div class="hero-stats-card">
                         <h4>500+</h4>
-                        <p>Active Contractors</p>
+                        <p>Team Members</p>
                     </div>
                 </div>
             </div>
@@ -1180,8 +1180,8 @@
         <section class="benefits-section">
             <div class="container">
                 <div class="section-header">
-                    <h2>Why Work as a <span>1099 Contractor?</span></h2>
-                    <p>Enjoy the freedom and flexibility of independent contracting</p>
+                    <h2>Why Work With <span>CAS Private Care?</span></h2>
+                    <p>Stable W-2 employment focused on quality home care</p>
                 </div>
                 
                 <div class="benefits-grid">
@@ -1189,32 +1189,32 @@
                         <div class="benefit-icon">
                             <i class="bi bi-calendar3"></i>
                         </div>
-                        <h3>Set Your Own Schedule</h3>
-                        <p>Work when you want. Accept bookings that fit your lifestyle and availability. You're in complete control of your time.</p>
+                        <h3>Consistent Scheduling</h3>
+                        <p>Coordinate assignments that fit your availability while meeting family needs. Your manager and the platform help keep schedules organized.</p>
                     </div>
                     
                     <div class="benefit-card" data-animate>
                         <div class="benefit-icon">
                             <i class="bi bi-people"></i>
                         </div>
-                        <h3>Choose Your Clients</h3>
-                        <p>Review booking requests and choose the clients that are the right fit for you. Build lasting relationships on your terms.</p>
+                        <h3>Meaningful Work</h3>
+                        <p>Support clients in their homes with companion care, daily living assistance, and respectful, professional service.</p>
                     </div>
                     
                     <div class="benefit-card" data-animate>
                         <div class="benefit-icon">
                             <i class="bi bi-graph-up-arrow"></i>
                         </div>
-                        <h3>Grow Your Business</h3>
-                        <p>Build your reputation with reviews, expand your client base, and increase your earnings as you gain experience.</p>
+                        <h3>Grow Your Skills</h3>
+                        <p>Build experience with diverse cases, feedback from families, and optional training aligned with your role.</p>
                     </div>
                     
                     <div class="benefit-card" data-animate>
                         <div class="benefit-icon">
                             <i class="bi bi-wallet2"></i>
                         </div>
-                        <h3>Weekly Payments</h3>
-                        <p>Get paid weekly via direct deposit. Track your earnings in real-time through your contractor dashboard.</p>
+                        <h3>Payroll &amp; Direct Deposit</h3>
+                        <p>Get paid on a regular payroll schedule with taxes withheld. Complete secure payroll onboarding for banking details.</p>
                     </div>
                     
                     <div class="benefit-card" data-animate>
@@ -1236,34 +1236,34 @@
             </div>
         </section>
 
-        <!-- 1099 Information Section -->
+        <!-- W-2 Employment Section -->
         <section class="info-section">
             <div class="container">
                 <div class="info-grid">
                     <div class="info-content">
-                        <h2>What Does <span>1099 Contractor</span> Mean?</h2>
-                        <p>As a 1099 independent contractor, you're self-employed and run your own business. This gives you freedom and flexibility that traditional employment doesn't offer.</p>
+                        <h2>What Does <span>W-2 Employment</span> Mean?</h2>
+                        <p>You are hired as an employee of CAS Private Care LLC. We withhold payroll taxes, pay employer-side taxes where applicable, and pay you through payroll direct deposit after onboarding.</p>
                         
                         <ul class="info-list">
                             <li>
                                 <i class="bi bi-check-circle-fill"></i>
-                                <span><strong>You're self-employed</strong> — not an employee of CAS Private Care</span>
+                                <span><strong>Employee status</strong> — covered by our payroll and employment policies</span>
                             </li>
                             <li>
                                 <i class="bi bi-check-circle-fill"></i>
-                                <span><strong>Set your own rates</strong> — negotiate directly with clients for your services</span>
+                                <span><strong>Tax withholding</strong> — federal and state withholding handled through payroll</span>
                             </li>
                             <li>
                                 <i class="bi bi-check-circle-fill"></i>
-                                <span><strong>Tax responsibility</strong> — you handle your own taxes as a business owner</span>
+                                <span><strong>Payroll onboarding</strong> — legal name, SSN, ID address, bank details, emergency contact (for Gusto/payroll)</span>
                             </li>
                             <li>
                                 <i class="bi bi-check-circle-fill"></i>
-                                <span><strong>Business deductions</strong> — deduct eligible expenses like mileage and supplies</span>
+                                <span><strong>Platform tools</strong> — scheduling, time tracking, and communication in one place</span>
                             </li>
                             <li>
                                 <i class="bi bi-check-circle-fill"></i>
-                                <span><strong>Multiple clients</strong> — work with multiple families and grow your business</span>
+                                <span><strong>NYC coverage</strong> — assignments across boroughs based on need and your availability</span>
                             </li>
                         </ul>
                     </div>
@@ -1271,23 +1271,23 @@
                     <div class="info-cards">
                         <div class="info-card" data-animate>
                             <i class="bi bi-clock-history"></i>
-                            <h4>Flexible Hours</h4>
-                            <p>Work part-time or full-time on your schedule</p>
+                            <h4>Steady Opportunities</h4>
+                            <p>Part-time and full-time paths depending on openings</p>
                         </div>
                         <div class="info-card" data-animate>
                             <i class="bi bi-phone"></i>
-                            <h4>Easy Booking</h4>
-                            <p>Accept jobs through our mobile-friendly platform</p>
+                            <h4>Digital Workflow</h4>
+                            <p>View assignments through our caregiver dashboard</p>
                         </div>
                         <div class="info-card" data-animate>
                             <i class="bi bi-cash-stack"></i>
-                            <h4>Direct Payments</h4>
-                            <p>Receive weekly payments via Stripe</p>
+                            <h4>Payroll Paydays</h4>
+                            <p>Direct deposit on the company payroll schedule</p>
                         </div>
                         <div class="info-card" data-animate>
                             <i class="bi bi-star-fill"></i>
-                            <h4>Build Your Brand</h4>
-                            <p>Grow your reputation with client reviews</p>
+                            <h4>Recognition</h4>
+                            <p>Build trust with families through quality care</p>
                         </div>
                     </div>
                 </div>
@@ -1298,8 +1298,8 @@
         <section class="requirements-section">
             <div class="container">
                 <div class="section-header">
-                    <h2>Contractor <span>Requirements</span></h2>
-                    <p>What you need to join our network of independent contractors</p>
+                    <h2>Caregiver <span>Requirements</span></h2>
+                    <p>What you need to join our W-2 caregiver team</p>
                 </div>
                 
                 <div class="requirements-grid">
@@ -1377,27 +1377,6 @@
                         </ul>
                     </div>
                     
-                    <div class="requirement-category" data-animate>
-                        <h3><i class="bi bi-house-heart"></i> For Housekeepers</h3>
-                        <ul class="requirement-list">
-                            <li>
-                                <i class="bi bi-check-circle-fill"></i>
-                                <span>Prior housekeeping experience (1+ years preferred)</span>
-                            </li>
-                            <li>
-                                <i class="bi bi-check-circle-fill"></i>
-                                <span>Knowledge of cleaning products and techniques</span>
-                            </li>
-                            <li>
-                                <i class="bi bi-check-circle-fill"></i>
-                                <span>Attention to detail and organization skills</span>
-                            </li>
-                            <li>
-                                <i class="bi bi-check-circle-fill"></i>
-                                <span>Physical ability to perform cleaning tasks</span>
-                            </li>
-                        </ul>
-                    </div>
                 </div>
             </div>
         </section>
@@ -1407,7 +1386,7 @@
             <div class="container">
                 <div class="section-header">
                     <h2>How to <span>Get Started</span></h2>
-                    <p>Join our network in just a few simple steps</p>
+                    <p>Join our W-2 team in a few clear steps</p>
                 </div>
                 
                 <div class="join-steps">
@@ -1425,14 +1404,14 @@
                     
                     <div class="join-step" data-animate>
                         <div class="step-number">3</div>
-                        <h3>Set Up Profile</h3>
-                        <p>Create your professional profile, set your availability, and connect your payment.</p>
+                        <h3>Payroll Onboarding</h3>
+                        <p>Complete your caregiver profile and secure payroll information (tax ID, bank details) for direct deposit.</p>
                     </div>
                     
                     <div class="join-step" data-animate>
                         <div class="step-number">4</div>
-                        <h3>Start Earning</h3>
-                        <p>Browse available jobs, accept bookings, and start building your client base!</p>
+                        <h3>Start Working</h3>
+                        <p>Once cleared, receive assignments and track time through your caregiver dashboard.</p>
                     </div>
                 </div>
             </div>
@@ -1442,8 +1421,8 @@
         <section class="section-light" style="padding: 5rem 2rem;">
             <div class="container">
                 <div class="section-header">
-                    <h2>How <span>Payouts</span> Work</h2>
-                    <p>Transparent payment processing so you always know what to expect</p>
+                    <h2>How <span>Pay</span> Works</h2>
+                    <p>W-2 payroll with direct deposit—no contractor payout accounts</p>
                 </div>
                 
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 2rem; margin-top: 3rem;">
@@ -1451,24 +1430,24 @@
                         <div style="width: 70px; height: 70px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.25rem;">
                             <i class="bi bi-credit-card-fill" style="color: white; font-size: 1.75rem;"></i>
                         </div>
-                        <h3 style="font-family: 'Sora', sans-serif; font-weight: 700; color: #1e293b; margin-bottom: 0.75rem;">Client Pays</h3>
-                        <p style="color: #64748b; font-size: 0.95rem; line-height: 1.7;">Clients pay through our secure platform at time of booking. All payments are processed via Stripe.</p>
+                        <h3 style="font-family: 'Sora', sans-serif; font-weight: 700; color: #1e293b; margin-bottom: 0.75rem;">Clients &amp; Billing</h3>
+                        <p style="color: #64748b; font-size: 0.95rem; line-height: 1.7;">Families pay for services through our platform. Your wages are paid separately on payroll, not as instant transfers to a contractor account.</p>
                     </div>
                     
                     <div style="background: white; border-radius: 20px; padding: 2rem; box-shadow: 0 8px 30px rgba(0,0,0,0.08); text-align: center;">
                         <div style="width: 70px; height: 70px; background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.25rem;">
                             <i class="bi bi-percent" style="color: white; font-size: 1.75rem;"></i>
                         </div>
-                        <h3 style="font-family: 'Sora', sans-serif; font-weight: 700; color: #1e293b; margin-bottom: 0.75rem;">Platform Fee</h3>
-                        <p style="color: #64748b; font-size: 0.95rem; line-height: 1.7;">A small platform fee is deducted to cover payment processing, support, and booking management.</p>
+                        <h3 style="font-family: 'Sora', sans-serif; font-weight: 700; color: #1e293b; margin-bottom: 0.75rem;">Payroll Taxes</h3>
+                        <p style="color: #64748b; font-size: 0.95rem; line-height: 1.7;">Standard payroll withholding applies (federal/state as applicable). You receive pay stubs and year-end W-2 forms from payroll.</p>
                     </div>
                     
                     <div style="background: white; border-radius: 20px; padding: 2rem; box-shadow: 0 8px 30px rgba(0,0,0,0.08); text-align: center;">
                         <div style="width: 70px; height: 70px; background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.25rem;">
                             <i class="bi bi-calendar-week" style="color: white; font-size: 1.75rem;"></i>
                         </div>
-                        <h3 style="font-family: 'Sora', sans-serif; font-weight: 700; color: #1e293b; margin-bottom: 0.75rem;">Weekly Payouts</h3>
-                        <p style="color: #64748b; font-size: 0.95rem; line-height: 1.7;">Your earnings are deposited directly to your bank account every week via Stripe Connect.</p>
+                        <h3 style="font-family: 'Sora', sans-serif; font-weight: 700; color: #1e293b; margin-bottom: 0.75rem;">Direct Deposit</h3>
+                        <p style="color: #64748b; font-size: 0.95rem; line-height: 1.7;">After payroll onboarding, net pay is deposited to the bank account you provide. We do not use Stripe Connect for caregiver wages.</p>
                     </div>
                     
                     
@@ -1480,8 +1459,8 @@
         <section style="padding: 5rem 2rem; background: #f1f5f9;">
             <div class="container">
                 <div class="section-header">
-                    <h2>Contractor <span>FAQ</span></h2>
-                    <p>Common questions from our independent contractors</p>
+                    <h2>Caregiver <span>FAQ</span></h2>
+                    <p>Common questions from applicants and team members</p>
                 </div>
                 
                 <div style="max-width: 800px; margin: 3rem auto 0;">
@@ -1491,27 +1470,27 @@
                                 Am I an employee of CAS Private Care?
                                 <i class="bi bi-chevron-down" style="color: #f97316;"></i>
                             </summary>
-                            <p style="margin-top: 1rem; color: #64748b; line-height: 1.8;">No. As a 1099 independent contractor, you are self-employed. You control your own schedule, rates, and choose which jobs to accept. CAS Private Care provides the platform to connect you with clients.</p>
+                            <p style="margin-top: 1rem; color: #64748b; line-height: 1.8;">W-2 caregivers are employees of CAS Private Care LLC. Schedules and assignments are coordinated with management; pay is through payroll with applicable tax withholding.</p>
                         </details>
                     </div>
                     
                     <div style="background: white; border-radius: 16px; margin-bottom: 1rem; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
                         <details style="padding: 1.5rem;">
                             <summary style="font-weight: 700; color: #1e293b; cursor: pointer; font-size: 1.05rem; list-style: none; display: flex; align-items: center; justify-content: space-between;">
-                                How do I handle taxes as a 1099 contractor?
+                                How do taxes work as a W-2 employee?
                                 <i class="bi bi-chevron-down" style="color: #f97316;"></i>
                             </summary>
-                            <p style="margin-top: 1rem; color: #64748b; line-height: 1.8;">As an independent contractor, you're responsible for your own taxes. We recommend setting aside 25-30% of your earnings for taxes and consulting with a tax professional. You may be able to deduct business expenses like mileage, supplies, and professional development.</p>
+                            <p style="margin-top: 1rem; color: #64748b; line-height: 1.8;">We withhold income and employment taxes as required and remit them through payroll. You will receive a W-2 after year-end. For personal tax questions, consult a tax professional.</p>
                         </details>
                     </div>
                     
                     <div style="background: white; border-radius: 16px; margin-bottom: 1rem; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
                         <details style="padding: 1.5rem;">
                             <summary style="font-weight: 700; color: #1e293b; cursor: pointer; font-size: 1.05rem; list-style: none; display: flex; align-items: center; justify-content: space-between;">
-                                Can I work for other platforms or clients?
+                                Can I work for other employers too?
                                 <i class="bi bi-chevron-down" style="color: #f97316;"></i>
                             </summary>
-                            <p style="margin-top: 1rem; color: #64748b; line-height: 1.8;">Absolutely! As an independent contractor, you're free to work with other platforms, agencies, or private clients. Many of our contractors diversify their income sources.</p>
+                            <p style="margin-top: 1rem; color: #64748b; line-height: 1.8;">Outside employment may be allowed depending on scheduling, non-compete or confidentiality terms in your offer, and applicable law. Discuss any second job with your manager during onboarding.</p>
                         </details>
                     </div>
                     
@@ -1531,7 +1510,7 @@
                                 Do I need my own equipment or supplies?
                                 <i class="bi bi-chevron-down" style="color: #f97316;"></i>
                             </summary>
-                            <p style="margin-top: 1rem; color: #64748b; line-height: 1.8;">For housekeepers, clients typically provide cleaning supplies, but you may bring your preferred products. For caregivers, the client's home has what you need. You'll want reliable transportation to get to client locations.</p>
+                            <p style="margin-top: 1rem; color: #64748b; line-height: 1.8;">Clients' homes usually have what you need for companion and daily living support. Any employer-provided supplies or dress code will be explained during onboarding. Reliable transportation to assignments is required.</p>
                         </details>
                     </div>
                 </div>
