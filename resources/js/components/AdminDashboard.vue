@@ -8235,12 +8235,10 @@ const moneyFlow = ref({
 
 const loadMoneyFlowData = async () => {
   try {
-    console.log('🔄 Loading Money Flow Data...');
     const response = await fetch('/api/admin/money-flow-dashboard', {
       credentials: 'include'
     });
-    console.log('📡 Money Flow API Response Status:', response.status);
-    
+
     if (!response.ok) {
       const errorText = await response.text();
       console.error('❌ Money Flow API Error:', errorText);
@@ -8248,12 +8246,10 @@ const loadMoneyFlowData = async () => {
     }
     
     const data = await response.json();
-    console.log('📦 Money Flow API Raw Data:', JSON.stringify(data, null, 2));
-    
+
     if (data.success) {
       // Safely extract today data
       const today = data.today || {};
-      console.log('📅 Today Data:', today);
       moneyFlow.value.today = {
         payments_in: Number(today.payments_in ?? 0),
         payouts_out: Number(today.payouts_out ?? 0),
@@ -8262,7 +8258,6 @@ const loadMoneyFlowData = async () => {
       
       // Safely extract totals data
       const totals = data.totals || {};
-      console.log('💰 Totals Data:', totals);
       moneyFlow.value.totals = {
         total_payments_in: Number(totals.total_payments_in ?? 0),
         total_payouts_out: Number(totals.total_payouts_out ?? 0),
@@ -8274,7 +8269,6 @@ const loadMoneyFlowData = async () => {
       
       // Safely extract commissions data
       const commissions = data.commissions || {};
-      console.log('💵 Commissions Data:', commissions);
       moneyFlow.value.commissions = {
         pending_marketing: Number(commissions.pending_marketing ?? 0),
         pending_training: Number(commissions.pending_training ?? 0),
@@ -8284,11 +8278,6 @@ const loadMoneyFlowData = async () => {
       moneyFlow.value.recent_transactions = data.recent_transactions || [];
       moneyFlow.value.failed_payouts = data.failed_payouts || [];
       moneyFlow.value.caregiver_balances = data.caregiver_balances || [];
-      
-      console.log('✅ Money Flow Data Loaded Successfully:');
-      console.log('   Today:', moneyFlow.value.today);
-      console.log('   Totals:', moneyFlow.value.totals);
-      console.log('   Commissions:', moneyFlow.value.commissions);
     } else {
       console.error('❌ Money Flow API returned success=false');
     }
@@ -9737,10 +9726,6 @@ const payHousekeeper = async (item) => {
 
 const exportHousekeeperPaymentsPDF = () => {
   try {
-    console.log('Exporting Housekeeper Payments PDF...');
-    console.log('Data:', filteredHousekeeperPayments.value);
-    console.log('Period:', housekeeperSalaryPeriodFilter.value);
-    
     if (!window.jspdf) {
       console.error('jsPDF library not loaded!');
       alert('PDF library not loaded. Please refresh the page.');
@@ -9760,8 +9745,6 @@ const exportHousekeeperPaymentsPDF = () => {
       'Total Hours',
       'Total Payout'
     ]);
-    
-    console.log('PDF exported successfully!');
   } catch (error) {
     console.error('Error exporting PDF:', error);
     alert('Error generating PDF: ' + error.message);
@@ -9994,9 +9977,9 @@ const loadClientBookings = async () => {
         assignmentStatus = 'assigned';
       }
       
-      // Calculate pricing
-      // Pricing: Caregiver $28 + Agency $16.50 + Training $0.50 = $45/hr (no referral)
-      // With referral: Caregiver $28 + Agency $10.50 + Marketing $1 + Training $0.50 = $40/hr
+      // Calculate pricing (PricingService: no referral $45/hr, with referral $43.50/hr)
+      // No referral: caregiver $28 + agency $16.50 = $45/hr
+      // With referral: caregiver $28 + agency $14.50 + marketing $1 = $43.50/hr
       const hoursPerDay = extractHours(b.duty_type);
       const hourlyRate = parseFloat(b.hourly_rate) || 45;
       const durationDays = parseInt(b.duration_days) || 1;
@@ -13161,9 +13144,7 @@ const assignCaregiverToDay = async (dayValue, caregiverId) => {
           schedules: oldSchedule.schedules
         })
       }).then(response => {
-        if (response.ok) {
-          console.log('Previous caregiver schedule cleared');
-        } else {
+        if (!response.ok) {
           console.error('Failed to clear previous caregiver schedule');
         }
       }).catch(err => console.error('Error removing previous caregiver:', err));
@@ -14587,10 +14568,6 @@ const initCharts = () => {
 // PDF Export Functions
 const exportCaregiverPaymentsPDF = () => {
   try {
-    console.log('Exporting Caregiver Payments PDF...');
-    console.log('Data:', filteredCaregiverPayments.value);
-    console.log('Period:', salaryPeriodFilter.value);
-    
     if (!window.jspdf) {
       console.error('jsPDF library not loaded!');
       alert('PDF library not loaded. Please refresh the page.');
@@ -14610,8 +14587,6 @@ const exportCaregiverPaymentsPDF = () => {
       'Total Hours',
       'Total Payout'
     ]);
-    
-    console.log('PDF exported successfully!');
   } catch (error) {
     console.error('Error exporting PDF:', error);
     alert('Error generating PDF: ' + error.message);
@@ -14620,10 +14595,6 @@ const exportCaregiverPaymentsPDF = () => {
 
 const exportMarketingCommissionsPDF = () => {
   try {
-    console.log('Exporting Marketing Commissions PDF...');
-    console.log('Data:', filteredMarketingCommissions.value);
-    console.log('Period:', marketingCommissionPeriodFilter.value);
-    
     if (!window.jspdf) {
       console.error('jsPDF library not loaded!');
       alert('PDF library not loaded. Please refresh the page.');
@@ -14643,8 +14614,6 @@ const exportMarketingCommissionsPDF = () => {
       'Commission Amount',
       'Status'
     ]);
-    
-    console.log('PDF exported successfully!');
   } catch (error) {
     console.error('Error exporting PDF:', error);
     alert('Error generating PDF: ' + error.message);
@@ -14761,8 +14730,6 @@ const generatePaymentPDF = async (title, data, period, columns) => {
       
       // Clean up after a delay
       setTimeout(() => URL.revokeObjectURL(url), 100);
-      
-      console.log('PDF opened in new tab successfully');
     } else {
       throw new Error('Failed to generate PDF report');
     }

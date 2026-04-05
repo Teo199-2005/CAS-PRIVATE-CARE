@@ -980,7 +980,7 @@
                             <div class="item-value-container">
                               <span v-if="referralDiscount > 0" class="original-price">${{ getOriginalRate(bookingData.serviceType) }}</span>
                               <span class="item-value" :class="{ 'discounted-price': referralDiscount > 0 }">{{ getHourlyRate(bookingData.serviceType) }}</span>
-                              <v-chip v-if="referralDiscount > 0" color="success" size="x-small" class="discount-chip">-${{ referralDiscount }}/hr</v-chip>
+                              <v-chip v-if="referralDiscount > 0" color="success" size="x-small" class="discount-chip">-${{ Number(referralDiscount).toFixed(2) }}/hr</v-chip>
                             </div>
                           </div>
                           <v-divider class="my-2"></v-divider>
@@ -2445,7 +2445,7 @@
                   <div class="pricing-rate-display">
                     <span v-if="selectedBookingDetails.hasReferralDiscount" class="original-rate">${{ selectedBookingDetails.originalRate || 45 }}</span>
                     <span class="pricing-value" :class="{ 'discounted-rate': selectedBookingDetails.hasReferralDiscount }">${{ selectedBookingDetails.hourlyRate }}</span>
-                    <v-chip v-if="selectedBookingDetails.hasReferralDiscount" color="success" size="x-small" class="ml-2">-$3/hr</v-chip>
+                    <v-chip v-if="selectedBookingDetails.hasReferralDiscount" color="success" size="x-small" class="ml-2">-${{ Number(selectedBookingDetails.referralDiscount || 0).toFixed(2) }}/hr</v-chip>
                   </div>
                 </div>
                 <div class="pricing-item" v-if="selectedBookingDetails.hasReferralDiscount">
@@ -4837,7 +4837,7 @@ const exportAnalyticsPdf = async () => {
 const getServicePrice = (serviceType) => {
   // Pricing breakdown (caregiver-aligned services):
   //   Without Referral: $45/hr
-  //   With Referral: $42/hr ($3 discount)
+  //   With Referral: $43.50/hr ($1.50/hr discount from validated referral code)
   const prices = {
     'Caregiver': '$45 per hour',
     'Elderly Care': '$45 per hour',
@@ -4851,10 +4851,9 @@ const getServicePrice = (serviceType) => {
   return prices[serviceType] || '$45 per hour';
 };
 
-// Get the discount amount per hour based on service type
-const getReferralDiscountAmount = (serviceType) => {
-  // All services get $3/hr discount with referral code (same as caregivers)
-  return 3;
+// Per-hour discount from last successful /api/referral-codes/validate (discount_per_hour)
+const getReferralDiscountAmount = (_serviceType) => {
+  return referralDiscount.value > 0 ? referralDiscount.value : 0;
 };
 
 const getHourlyRate = (serviceType) => {
@@ -4869,12 +4868,12 @@ const getHourlyRate = (serviceType) => {
     'Personal Assistant': 30
   };
   const baseRate = rates[serviceType] || 45;
-  
-  // Apply $3 discount if referral is active
+
   if (referralDiscount.value > 0) {
     const discountAmount = getReferralDiscountAmount(serviceType);
     const discountedRate = baseRate - discountAmount;
-    return discountedRate > 0 ? `$${discountedRate}` : `$${baseRate}`;
+    if (discountedRate <= 0) return `$${baseRate}`;
+    return `$${discountedRate.toFixed(2)}`;
   }
   return `$${baseRate}`;
 };
@@ -4930,7 +4929,6 @@ const getTotalSavings = () => {
   const hoursPerDay = parseInt(bookingData.value.dutyType.split(' ')[0]) || 0;
   const days = bookingData.value.durationDays || 0;
   
-  // Use service-appropriate discount amount
   const discountAmount = referralDiscount.value > 0 ? getReferralDiscountAmount(bookingData.value.serviceType) : 0;
   const savings = hoursPerDay * days * discountAmount;
   
@@ -4966,7 +4964,11 @@ const getTotalCost = () => {
   }
   
   const total = hoursPerDay * days * finalRate;
-  return total > 0 ? `$${total.toLocaleString()}` : '';
+  if (total <= 0) return '';
+  if (referralDiscount.value > 0) {
+    return `$${Number(total).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  }
+  return `$${total.toLocaleString()}`;
 };
 
 // Calculate price for a booking object (used in dashboard widgets)
@@ -5414,7 +5416,6 @@ const saveProfile = async () => {
       let errorMessage = 'Failed to save profile';
       try {
         const data = await response.json();
-        console.log('Validation error response:', data); // Debug log
 
         // Handle Laravel validation errors (data.errors is an object with field names as keys)
         if (data.errors && typeof data.errors === 'object') {

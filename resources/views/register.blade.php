@@ -1903,7 +1903,7 @@
             gap: 2rem;
             margin-bottom: 2rem;
             align-items: stretch;
-            max-width: 800px;
+            max-width: 920px;
             margin-left: auto;
             margin-right: auto;
         }
@@ -1955,37 +1955,48 @@
             box-shadow: 0 8px 24px rgba(245, 158, 11, 0.25);
         }
 
-        .partner-type-icon {
-            width: 80px;
-            height: 80px;
-            margin: 0 auto 1.5rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
-            border-radius: 16px;
-            box-shadow: 0 6px 16px rgba(245, 158, 11, 0.15);
-            transition: all 0.3s ease;
+        .partner-type-visual {
+            width: 86%;
+            max-width: 260px;
+            margin: 0 auto 1.1rem;
+            border-radius: 14px;
+            overflow: hidden;
+            aspect-ratio: 5 / 6;
+            background: #f1f5f9;
+            box-shadow: 0 4px 14px rgba(15, 23, 42, 0.08);
+            transition: transform 0.35s ease, box-shadow 0.35s ease;
+            flex-shrink: 0;
         }
 
-        .partner-type-option:hover .partner-type-icon {
-            transform: scale(1.05);
-            box-shadow: 0 8px 20px rgba(245, 158, 11, 0.2);
+        .partner-type-visual img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            /* Shift focal point down slightly so `cover` clips a bit off the top */
+            object-position: center 52%;
+            display: block;
         }
 
-        .partner-type-icon i {
-            font-size: 2.5rem;
-            color: #f59e0b;
-            display: inline-block;
+        .partner-type-visual--caregiver img {
+            object-position: center 48%;
+        }
+
+        .partner-type-visual--marketing img {
+            object-position: center 58%;
+        }
+
+        .partner-type-option:hover .partner-type-visual {
+            transform: scale(1.02);
+            box-shadow: 0 8px 24px rgba(245, 158, 11, 0.18);
         }
 
         .partner-type-title {
             font-size: 1.25rem;
             font-weight: 700;
             color: #1e293b;
-            margin-bottom: auto;
+            margin-bottom: 0.75rem;
             letter-spacing: -0.01em;
-            flex-grow: 1;
+            flex-grow: 0;
         }
 
         .partner-type-button {
@@ -2107,20 +2118,18 @@
                 border-radius: 12px;
             }
 
-            .partner-type-icon {
-                width: 60px;
-                height: 60px;
+            .partner-type-visual {
+                width: 80%;
+                max-width: 240px;
                 margin: 0 auto 1rem;
                 border-radius: 12px;
-            }
-
-            .partner-type-icon i {
-                font-size: 2rem;
+                aspect-ratio: 16 / 10;
+                max-height: 190px;
             }
 
             .partner-type-title {
                 font-size: 1.1rem;
-                margin-bottom: 1rem;
+                margin-bottom: 0.75rem;
             }
 
             .partner-type-button {
@@ -2158,13 +2167,11 @@
                 padding: 1.75rem 1.25rem;
             }
 
-            .partner-type-icon {
-                width: 70px;
-                height: 70px;
-            }
-
-            .partner-type-icon i {
-                font-size: 2.25rem;
+            .partner-type-visual {
+                width: 84%;
+                max-width: 220px;
+                aspect-ratio: 3 / 4;
+                max-height: 228px;
             }
         }
 
@@ -2391,18 +2398,18 @@
             </div>
             <div class="partner-type-options">
                 <div class="partner-type-option" data-partner-type="caregiver" onclick="selectPartnerType('caregiver')">
-                    <div class="partner-type-icon">
-                        <i class="bi bi-person-heart"></i>
+                    <div class="partner-type-visual partner-type-visual--caregiver">
+                        <img src="{{ asset('caregiver.png') }}" alt="Professional caregiver supporting a client" width="400" height="500" loading="lazy" decoding="async">
                     </div>
                     <div class="partner-type-title">Caregiver</div>
-                    <button class="partner-type-button" onclick="event.stopPropagation(); selectPartnerType('caregiver')">Select</button>
+                    <button type="button" class="partner-type-button" onclick="event.stopPropagation(); selectPartnerType('caregiver')">Select</button>
                 </div>
                 <div class="partner-type-option" data-partner-type="marketing_partner" onclick="selectPartnerType('marketing_partner')">
-                    <div class="partner-type-icon">
-                        <i class="bi bi-people-fill"></i>
+                    <div class="partner-type-visual partner-type-visual--marketing">
+                        <img src="{{ asset('marketingpartner.png') }}" alt="Marketing professional with growth and analytics" width="400" height="500" loading="lazy" decoding="async">
                     </div>
                     <div class="partner-type-title">Marketing Partner</div>
-                    <button class="partner-type-button" onclick="event.stopPropagation(); selectPartnerType('marketing_partner')">Select</button>
+                    <button type="button" class="partner-type-button" onclick="event.stopPropagation(); selectPartnerType('marketing_partner')">Select</button>
                 </div>
             </div>
         </div>
@@ -3153,10 +3160,8 @@
                         zipLocationDisplay.style.display = 'block';
 
                         const response = await fetch(`/api/zipcode-lookup/${zip}`);
-                        console.log('ZIP lookup response status:', response.status);
                         if (response.ok) {
                             const json = await response.json();
-                            console.log('ZIP lookup data:', json);
                             // Handle both wrapped (ApiResponseTrait) and unwrapped responses
                             const data = json.data || json;
                             if ((json.success || data.success) && (data.location || json.location)) {

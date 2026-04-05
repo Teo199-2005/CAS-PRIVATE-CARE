@@ -1014,18 +1014,16 @@ const weeklySummary = ref({
   previous_payout_date: null
 });
 
-// Pricing breakdown (with referral code):
+// Pricing breakdown (with referral code) — matches PricingService:
 // - Caregiver: $28.00/hr
-// - Agency (net): $10.50/hr
-// - Marketing Associate (referral commission): $1.00/hr
-// - Training Center: $0.50/hr
-// Total Client Rate: $42/hr (with $3 referral discount)
+// - Agency (remainder): $14.50/hr
+// - Marketing (typical Silver): $1.00/hr
+// Total Client Rate: $43.50/hr ($1.50/hr referral discount vs $45)
 //
 // Pricing breakdown (without referral code):
 // - Caregiver: $28.00/hr
 // - Agency: $16.50/hr
-// - Training Center: $0.50/hr
-// Total Client Rate: $45/hr (without referral)
+// Total Client Rate: $45/hr
 const myClients = ref([]);
 
 const loadMarketingStats = async () => {

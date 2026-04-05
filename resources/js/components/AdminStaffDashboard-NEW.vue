@@ -5367,9 +5367,9 @@ if (!response.ok) {
         assignmentStatus = 'assigned';
       }
       
-      // Calculate pricing
-      // Pricing: Caregiver $28 + Agency $16.50 + Training $0.50 = $45/hr (no referral)
-      // With referral: Caregiver $28 + Agency $10.50 + Marketing $1 + Training $0.50 = $40/hr
+      // Calculate pricing (PricingService: no referral $45/hr, with referral $43.50/hr)
+      // No referral: caregiver $28 + agency $16.50 = $45/hr
+      // With referral: caregiver $28 + agency $14.50 + marketing $1 = $43.50/hr
       const hoursPerDay = extractHours(b.duty_type);
       const hourlyRate = parseFloat(b.hourly_rate) || 45;
       const durationDays = parseInt(b.duration_days) || 1;
