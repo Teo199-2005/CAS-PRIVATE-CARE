@@ -534,9 +534,9 @@
         /* Push promotional card down so it aligns with description/CTAs on the left */
         .hero-image-container {
             position: relative;
-            height: 350px;
+            height: 390px;
             width: 100%;
-            max-width: 610px;
+            max-width: 680px;
             margin-top: 6rem;
             border-radius: 20px;
             overflow: hidden;
