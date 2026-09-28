@@ -109,7 +109,7 @@ When menu opened:
 │   Assistant   │  1099 Partners          │
 ├─────────────────────────────────────────┤
 │          CONTACT US                     │
-│   📞 (646) 282-8282                     │
+│   📞                      │
 │   ✉️ contact@casprivatecare.online     │
 │   📍 New York, USA                      │
 ├─────────────────────────────────────────┤

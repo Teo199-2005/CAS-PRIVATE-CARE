@@ -105,7 +105,7 @@ Login as Admin → User Management → Caregivers
 ║                                                           ║
 ║  ──────────────────────────────────────                   ║
 ║  Email: maria@example.com                                 ║
-║  Phone: (646) 282-8282                                    ║
+║  Phone:                                     ║
 ║  Borough: Manhattan                                       ║
 ║  ──────────────────────────────────────                   ║
 ║                                                           ║

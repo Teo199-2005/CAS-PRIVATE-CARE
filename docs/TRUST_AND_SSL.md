@@ -59,7 +59,7 @@ Optional (used by footer and trust line):
 
 ```env
 APP_ADDRESS="New York, USA"
-APP_PHONE="+1 (646) 282-8282"
+APP_PHONE=""
 APP_EMAIL="contact@casprivatecare.online"
 ```
 

@@ -1294,8 +1294,8 @@
                                 <span>350 5th Avenue, Suite 4820<br>New York, NY 10118</span>
                             </div>
                             <div style="display: flex; align-items: center; gap: 0.75rem;">
-                                <i class="bi bi-telephone-fill" style="color: #0B4FA2; font-size: 1rem;"></i>
-                                <span style="font-weight: 600;">(646) 282-8282</span>
+                                <i class="bi bi-envelope-fill" style="color: #0B4FA2; font-size: 1rem;"></i>
+                                <a href="{{ url('/contact') }}" style="font-weight: 600; color: #0B4FA2; text-decoration: none;">Contact Us</a>
                             </div>
                             <div style="display: flex; align-items: center; gap: 0.75rem;">
                                 <i class="bi bi-clock-fill" style="color: #0B4FA2; font-size: 1rem;"></i>
@@ -1310,8 +1310,8 @@
                             <span style="background: #eff6ff; color: #1e40af; padding: 0.4rem 0.75rem; border-radius: 8px; font-size: 0.8rem; font-weight: 500;"><i class="bi bi-check-circle-fill" style="color: #10b981;"></i> Job placement</span>
                         </div>
 
-                        <a href="tel:+16462828282" style="display: flex; align-items: center; justify-content: center; gap: 0.5rem; padding: 0.9rem 1.5rem; background: linear-gradient(135deg, #0B4FA2 0%, #1e40af 100%); color: white; border-radius: 12px; font-weight: 600; font-size: 1rem; text-decoration: none; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(11,79,162,0.3);" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 25px rgba(11,79,162,0.4)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(11,79,162,0.3)'">
-                            <i class="bi bi-telephone-fill"></i> Call Now
+                        <a href="{{ url('/contact') }}" style="display: flex; align-items: center; justify-content: center; gap: 0.5rem; padding: 0.9rem 1.5rem; background: linear-gradient(135deg, #0B4FA2 0%, #1e40af 100%); color: white; border-radius: 12px; font-weight: 600; font-size: 1rem; text-decoration: none; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(11,79,162,0.3);" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 25px rgba(11,79,162,0.4)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(11,79,162,0.3)'">
+                            <i class="bi bi-envelope-fill"></i> Contact Us
                         </a>
                     </div>
                 </div>
@@ -1345,8 +1345,8 @@
                                 <span>445 Albee Square West<br>Brooklyn, NY 11201</span>
                             </div>
                             <div style="display: flex; align-items: center; gap: 0.75rem;">
-                                <i class="bi bi-telephone-fill" style="color: #10b981; font-size: 1rem;"></i>
-                                <span style="font-weight: 600;">(718) 555-0142</span>
+                                <i class="bi bi-envelope-fill" style="color: #10b981; font-size: 1rem;"></i>
+                                <a href="{{ url('/contact') }}" style="font-weight: 600; color: #10b981; text-decoration: none;">Contact Us</a>
                             </div>
                             <div style="display: flex; align-items: center; gap: 0.75rem;">
                                 <i class="bi bi-clock-fill" style="color: #10b981; font-size: 1rem;"></i>
@@ -1361,8 +1361,8 @@
                             <span style="background: #ecfdf5; color: #166534; padding: 0.4rem 0.75rem; border-radius: 8px; font-size: 0.8rem; font-weight: 500;"><i class="bi bi-check-circle-fill" style="color: #10b981;"></i> Career counseling</span>
                         </div>
 
-                        <a href="tel:+17185550142" style="display: flex; align-items: center; justify-content: center; gap: 0.5rem; padding: 0.9rem 1.5rem; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border-radius: 12px; font-weight: 600; font-size: 1rem; text-decoration: none; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(16,185,129,0.3);" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 25px rgba(16,185,129,0.4)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(16,185,129,0.3)'">
-                            <i class="bi bi-telephone-fill"></i> Call Now
+                        <a href="{{ url('/contact') }}" style="display: flex; align-items: center; justify-content: center; gap: 0.5rem; padding: 0.9rem 1.5rem; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border-radius: 12px; font-weight: 600; font-size: 1rem; text-decoration: none; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(16,185,129,0.3);" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 25px rgba(16,185,129,0.4)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(16,185,129,0.3)'">
+                            <i class="bi bi-envelope-fill"></i> Contact Us
                         </a>
                     </div>
                 </div>
@@ -1399,8 +1399,8 @@
                                 <span>37-11 35th Avenue<br>Long Island City, NY 11101</span>
                             </div>
                             <div style="display: flex; align-items: center; gap: 0.75rem;">
-                                <i class="bi bi-telephone-fill" style="color: #f97316; font-size: 1rem;"></i>
-                                <span style="font-weight: 600;">(718) 555-0198</span>
+                                <i class="bi bi-envelope-fill" style="color: #f97316; font-size: 1rem;"></i>
+                                <a href="{{ url('/contact') }}" style="font-weight: 600; color: #f97316; text-decoration: none;">Contact Us</a>
                             </div>
                             <div style="display: flex; align-items: center; gap: 0.75rem;">
                                 <i class="bi bi-clock-fill" style="color: #f97316; font-size: 1rem;"></i>
@@ -1415,8 +1415,8 @@
                             <span style="background: #fff7ed; color: #9a3412; padding: 0.4rem 0.75rem; border-radius: 8px; font-size: 0.8rem; font-weight: 500;"><i class="bi bi-check-circle-fill" style="color: #f97316;"></i> Evening classes</span>
                         </div>
 
-                        <a href="tel:+17185550198" style="display: flex; align-items: center; justify-content: center; gap: 0.5rem; padding: 0.9rem 1.5rem; background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); color: white; border-radius: 12px; font-weight: 600; font-size: 1rem; text-decoration: none; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(249,115,22,0.3);" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 25px rgba(249,115,22,0.4)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(249,115,22,0.3)'">
-                            <i class="bi bi-telephone-fill"></i> Call Now
+                        <a href="{{ url('/contact') }}" style="display: flex; align-items: center; justify-content: center; gap: 0.5rem; padding: 0.9rem 1.5rem; background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); color: white; border-radius: 12px; font-weight: 600; font-size: 1rem; text-decoration: none; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(249,115,22,0.3);" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 25px rgba(249,115,22,0.4)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(249,115,22,0.3)'">
+                            <i class="bi bi-envelope-fill"></i> Contact Us
                         </a>
                     </div>
                 </div>
@@ -1445,8 +1445,8 @@
                         <a href="{{ url('/register') }}" style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.75rem 1.5rem; background: white; color: #0B4FA2; border-radius: 10px; font-weight: 600; font-size: 0.95rem; text-decoration: none; transition: all 0.3s ease;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 20px rgba(0,0,0,0.15)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'">
                             <i class="bi bi-person-plus-fill"></i> Enroll Now
                         </a>
-                        <a href="tel:+16462828282" style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.75rem 1.5rem; background: rgba(255, 255, 255, 0.15); color: white; border-radius: 10px; font-weight: 600; font-size: 0.95rem; text-decoration: none; border: 1px solid rgba(255, 255, 255, 0.3); transition: all 0.3s ease;" onmouseover="this.style.background='rgba(255,255,255,0.25)'" onmouseout="this.style.background='rgba(255,255,255,0.15)'">
-                            <i class="bi bi-telephone-fill"></i> (646) 282-8282
+                        <a href="{{ url('/contact') }}" style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.75rem 1.5rem; background: rgba(255, 255, 255, 0.15); color: white; border-radius: 10px; font-weight: 600; font-size: 0.95rem; text-decoration: none; border: 1px solid rgba(255, 255, 255, 0.3); transition: all 0.3s ease;" onmouseover="this.style.background='rgba(255,255,255,0.25)'" onmouseout="this.style.background='rgba(255,255,255,0.15)'">
+                            <i class="bi bi-envelope-fill"></i> Contact Us
                         </a>
                     </div>
                     <div style="display: flex; gap: 1.25rem; font-size: 0.8rem; color: rgba(255, 255, 255, 0.8);">

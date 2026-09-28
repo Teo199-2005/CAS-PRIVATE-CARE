@@ -331,8 +331,7 @@ LONG-TAIL KEYWORDS:
       "longitude": "-74.0060"
     }
   },
-  "telephone": "+1-646-282-8282",
-  "priceRange": "$$"
+    "priceRange": "$$"
 }
 ```
 
@@ -344,8 +343,7 @@ LONG-TAIL KEYWORDS:
   "@id": "https://casprivatecare.com/caregiver-brooklyn",
   "name": "CAS Private Care - Brooklyn Caregiver Services",
   "image": "https://casprivatecare.com/caregiver-brooklyn.jpg",
-  "telephone": "+1-646-282-8282",
-  "address": {
+    "address": {
     "@type": "PostalAddress",
     "addressLocality": "Brooklyn",
     "addressRegion": "NY",
@@ -960,7 +958,7 @@ CTA: "Find Your Caregiver" button
 [CTA Section]
 - Primary CTA: "Find Your Caregiver Now"
 - Secondary CTA: "View Caregiver Profiles"
-- Tertiary: "Call Us: (646) 282-8282"
+- Tertiary: "Contact Us"
 
 [Location Map]
 - Interactive map showing service areas

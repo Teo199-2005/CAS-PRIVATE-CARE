@@ -91,10 +91,6 @@
 
 <div class="mobile-action-bar">
     <div class="mobile-action-bar-inner">
-        <a href="tel:+16462828282" class="mobile-action-btn secondary">
-            <i class="bi bi-telephone-fill"></i>
-            <span>Call Now</span>
-        </a>
         <a href="{{ url('/login') }}" class="mobile-action-btn primary">
             <i class="bi bi-calendar-check-fill"></i>
             <span>Book Care</span>

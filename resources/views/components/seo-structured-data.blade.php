@@ -4,7 +4,6 @@
 @php
 $baseUrl = config('app.url', 'https://casprivatecare.com');
 $logo = asset('logo.png');
-$phone = '+1-646-282-8282';
 @endphp
 
 {{-- Organization Schema --}}
@@ -25,7 +24,6 @@ $phone = '+1-646-282-8282';
     },
     "image": "{{ $logo }}",
     "description": "Professional home care marketplace connecting New York families with verified caregivers for companion care, elderly support, and day-to-day assistance.",
-    "telephone": "{{ $phone }}",
     "email": "contact@casprivatecare.com",
     "foundingDate": "2020",
     "priceRange": "$$",

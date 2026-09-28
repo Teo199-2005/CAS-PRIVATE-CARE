@@ -243,8 +243,7 @@ manualChunks: {
 {
   "@type": "LocalBusiness",
   "name": "CAS Private Care LLC",
-  "telephone": "+1-646-282-8282",
-  "priceRange": "$$",
+    "priceRange": "$$",
   "areaServed": {"@type": "City", "name": "New York"}
 }
 ```

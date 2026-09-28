@@ -80,7 +80,7 @@
             </div>
             <div class="company-info">
                 {{ config('app.address', '481 8th Ave, New York, NY 10001') }}<br>
-                Phone: (646) 282-8282 | Email: billing@casprivatecare.com<br>
+                Email: billing@casprivatecare.com<br>
                 License: NYC-PC-2024-001 | Tax ID: 12-3456789
             </div>
         </div>
@@ -176,7 +176,7 @@
             <div class="thank-you-note">
                 <p>Thank you for choosing CAS Private Care LLC!</p>
                 <p>This document serves as your official receipt for services rendered. Your trust in our professional caregiving services is greatly appreciated.</p>
-                <p>For questions regarding this receipt or your booking, please contact us at billing@casprivatecare.com or call (646) 282-8282.</p>
+                <p>For questions regarding this receipt or your booking, please contact us at billing@casprivatecare.com.</p>
             </div>
         </div>
         

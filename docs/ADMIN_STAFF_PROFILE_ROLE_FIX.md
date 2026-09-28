@@ -25,7 +25,7 @@ const profileData = ref({
   firstName: 'Admin',
   lastName: 'User',
   email: 'admin@casprivatecare.com',
-  phone: '(646) 282-8282',
+  phone: '',
   department: 'System Administration',
   role: 'Super Admin',  // ❌ Hardcoded
 });
@@ -42,7 +42,7 @@ const profileData = ref({
   firstName: 'Admin',
   lastName: 'Staff',
   email: 'staff@casprivatecare.com',
-  phone: '(646) 555-0102',
+  phone: '',
   department: 'System Administration',
   role: 'Admin Staff',  // ✅ Correct default
 });
@@ -71,7 +71,7 @@ const loadProfile = async () => {
       profileData.value.firstName = profile.value.firstName;
       profileData.value.lastName = profile.value.lastName;
       profileData.value.email = data.email || 'admin@casprivatecare.com';
-      profileData.value.phone = data.phone || '(646) 282-8282';
+      profileData.value.phone = data.phone || '';
       // ❌ Missing role and department assignment
     }
   } catch (error) {
@@ -96,7 +96,7 @@ const loadProfile = async () => {
       profileData.value.firstName = profile.value.firstName;
       profileData.value.lastName = profile.value.lastName;
       profileData.value.email = data.email || 'staff@casprivatecare.com';
-      profileData.value.phone = data.phone || '(646) 555-0102';
+      profileData.value.phone = data.phone || '';
       profileData.value.role = profile.value.role;  // ✅ Added
       profileData.value.department = profile.value.department;  // ✅ Added
       

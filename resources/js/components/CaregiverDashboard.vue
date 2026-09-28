@@ -1607,9 +1607,9 @@
               <v-list-item-title>Email Support</v-list-item-title>
               <v-list-item-subtitle>support@casprivatecare.com</v-list-item-subtitle>
             </v-list-item>
-            <v-list-item prepend-icon="mdi-phone">
-              <v-list-item-title>Phone Support</v-list-item-title>
-              <v-list-item-subtitle>(212) 555-0123</v-list-item-subtitle>
+            <v-list-item prepend-icon="mdi-envelope">
+              <v-list-item-title>Email Support</v-list-item-title>
+              <v-list-item-subtitle>support@casprivatecare.com</v-list-item-subtitle>
             </v-list-item>
           </v-list>
         </v-card-text>

@@ -8,7 +8,7 @@
     <!-- Primary Meta Tags -->
     <title>Contact Us - CAS Private Care LLC | Get in Touch</title>
     <meta name="title" content="Contact Us - CAS Private Care LLC | Get in Touch">
-    <meta name="description" content="Contact CAS Private Care LLC for professional caregiving services in New York. Call us at (646) 282-8282 or email contact@casprivatecare.online. We're here to help!">
+    <meta name="description" content="Contact CAS Private Care LLC for professional caregiving services in New York. Email us at contact@casprivatecare.online or send a message online. We're here to help!">
     <meta name="keywords" content="contact CAS Private Care, caregiving inquiries, New York care services, customer support">
     <meta name="author" content="CAS Private Care LLC">
     <meta name="robots" content="index, follow">
@@ -681,7 +681,7 @@
                             <div class="form-row">
                                 <div class="form-group">
                                     <label for="phone">Phone Number <span>*</span></label>
-                                    <input type="tel" id="phone" name="phone" class="form-input" placeholder="(646) 282-8282" required inputmode="tel">
+                                    <input type="tel" id="phone" name="phone" class="form-input" placeholder="(555) 123-4567" required inputmode="tel">
                                 </div>
                                 <div class="form-group">
                                     <label for="email">Email <span>*</span></label>
@@ -756,13 +756,6 @@
                             <h4>Email Us</h4>
                             <p>Send us an email anytime</p>
                             <a href="mailto:contact@casprivatecare.online">contact@casprivatecare.online</a>
-                        </div>
-
-                        <div class="contact-info-item" data-animate>
-                            <i class="bi bi-telephone-fill"></i>
-                            <h4>Call Us</h4>
-                            <p>Mon-Fri 9am-6pm EST</p>
-                            <a href="tel:+16462828282">+1 (646) 282-8282</a>
                         </div>
 
                         <div class="contact-info-item" data-animate>

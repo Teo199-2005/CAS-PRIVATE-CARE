@@ -21,7 +21,7 @@
               <h4 class="section-title">Contact Information</h4>
               <div class="detail-item">
                 <v-icon size="small" class="mr-2">mdi-phone</v-icon>
-                <span>{{ client.phone || '(646) 282-8282' }}</span>
+                <span>{{ client.phone || 'Not provided' }}</span>
               </div>
               <div class="detail-item">
                 <v-icon size="small" class="mr-2">mdi-email</v-icon>
@@ -57,7 +57,7 @@
               </div>
               <div class="detail-item">
                 <v-icon size="small" class="mr-2">mdi-phone</v-icon>
-                <span>{{ client.emergencyPhone || '(646) 282-8282' }}</span>
+                <span>{{ client.emergencyPhone || 'Not provided' }}</span>
               </div>
             </div>
           </div>

@@ -163,7 +163,6 @@
             <p style="font-size: 14px; color: #ffffff; margin-bottom: 10px;"><strong>CAS Private Care LLC</strong></p>
             <p>{{ config('app.address', '481 8th Ave, New York, NY 10001') }}</p>
             <p>
-                <a href="tel:+16462828282">(646) 282-8282</a> | 
                 <a href="mailto:casprivatecare@casprivatecare.com">casprivatecare@casprivatecare.com</a>
             </p>
             <div class="divider" style="background-color: #334155; margin: 20px 0;"></div>

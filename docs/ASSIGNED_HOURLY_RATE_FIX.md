@@ -52,7 +52,7 @@ const getAssignedCaregivers = (bookingId) => {
       id: assignment.caregiver_id,
       name: assignment.caregiver?.user?.name || 'Unknown',
       email: assignment.caregiver?.user?.email || 'Unknown',
-      phone: assignment.caregiver?.user?.phone || '(646) 282-8282',
+      phone: assignment.caregiver?.user?.phone || '',
       rating: assignment.caregiver?.rating || 5.0,
       status: 'Active',
       borough: 'Manhattan',

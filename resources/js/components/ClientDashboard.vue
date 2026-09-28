@@ -1195,7 +1195,7 @@
                     <div class="contract-section">
                       <h3 class="contract-heading">14. COMPLAINT RESOLUTION</h3>
                       <p class="contract-text">
-                        If you have any concerns or complaints about services, please contact us immediately at (555) 123-4567 or admin@casprivatecare.com. We take all complaints seriously and will: (a) Acknowledge receipt within 24 hours; (b) Investigate thoroughly; (c) Provide a written response within 5 business days; (d) Take appropriate corrective action; (e) Follow up to ensure resolution. You also have the right to contact your state's home care licensing authority with complaints.
+                        If you have any concerns or complaints about services, please contact us immediately at admin@casprivatecare.com. We take all complaints seriously and will: (a) Acknowledge receipt within 24 hours; (b) Investigate thoroughly; (c) Provide a written response within 5 business days; (d) Take appropriate corrective action; (e) Follow up to ensure resolution. You also have the right to contact your state's home care licensing authority with complaints.
                       </p>
                     </div>
 
@@ -2265,9 +2265,9 @@
               <v-list-item-title>CAS Private Care Admin</v-list-item-title>
               <v-list-item-subtitle>24/7 Support Team</v-list-item-subtitle>
             </v-list-item>
-            <v-list-item prepend-icon="mdi-phone">
-              <v-list-item-title>(212) 555-0123</v-list-item-title>
-              <v-list-item-subtitle>Emergency Hotline</v-list-item-subtitle>
+            <v-list-item prepend-icon="mdi-envelope">
+              <v-list-item-title>admin@casprivatecare.com</v-list-item-title>
+              <v-list-item-subtitle>Email Support</v-list-item-subtitle>
             </v-list-item>
             <v-list-item prepend-icon="mdi-email">
               <v-list-item-title>support@casprivatecare.com</v-list-item-title>
@@ -2299,9 +2299,9 @@
               <v-list-item-title>Email Support</v-list-item-title>
               <v-list-item-subtitle>support@casprivatecare.com</v-list-item-subtitle>
             </v-list-item>
-            <v-list-item prepend-icon="mdi-phone">
-              <v-list-item-title>Phone Support</v-list-item-title>
-              <v-list-item-subtitle>(212) 555-0123</v-list-item-subtitle>
+            <v-list-item prepend-icon="mdi-envelope">
+              <v-list-item-title>Email Support</v-list-item-title>
+              <v-list-item-subtitle>support@casprivatecare.com</v-list-item-subtitle>
             </v-list-item>
           </v-list>
         </v-card-text>

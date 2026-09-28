@@ -1228,7 +1228,6 @@
             <p>Join 1,000+ families who trust CAS Private Care for their caregiver needs</p>
             <div class="hero-buttons">
                 <a href="{{ url('/register') }}" class="btn-primary">Get Started Today</a>
-                <a href="tel:+16462828282" class="btn-secondary"><i class="bi bi-telephone"></i> Call: (646) 282-8282</a>
             </div>
         </div>
     </section>

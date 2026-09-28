@@ -33,10 +33,6 @@
         <!-- Contact Info -->
         <div class="mobile-footer-contact">
             <h4>Contact Us</h4>
-            <a href="tel:{{ config('app.phone', '+16462828282') }}" class="mobile-contact-item">
-                <i class="bi bi-telephone-fill"></i>
-                <span>{{ config('app.phone', '+1 (646) 282-8282') }}</span>
-            </a>
             <a href="mailto:{{ config('app.email', 'contact@casprivatecare.online') }}" class="mobile-contact-item">
                 <i class="bi bi-envelope-fill"></i>
                 <span>{{ config('app.email', 'contact@casprivatecare.online') }}</span>

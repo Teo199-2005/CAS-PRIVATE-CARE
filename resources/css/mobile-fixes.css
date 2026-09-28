@@ -3751,7 +3751,6 @@ nav .dropdown-menu a,
 .hero a,
 .hero-content a,
 .hero-social-icon,
-.hero-call-number,
 footer .footer-section a,
 footer .footer-bottom-links a,
 footer .social-icon,
@@ -3769,8 +3768,7 @@ nav .dropdown-menu a:hover {
 
 .hero a,
 .hero-content a,
-.hero-social-icon,
-.hero-call-number {
+.hero-social-icon {
     color: #ffffff !important;
 }
 
@@ -3784,10 +3782,6 @@ nav .dropdown-menu a:hover {
 
 .hero-buttons .btn-secondary {
     background: linear-gradient(135deg, #f97316 0%, #ea580c 100%) !important;
-}
-
-.hero-call-number:hover {
-    color: #fbbf24 !important;
 }
 
 /* Placeholder text contrast */

@@ -1421,7 +1421,7 @@
                         Sign Up Now
                     </a>
                     <a href="{{ url('/contact') }}" class="btn-cta-secondary">
-                        <i class="bi bi-telephone"></i>
+                        <i class="bi bi-envelope"></i>
                         Contact Us
                     </a>
                 </div>

@@ -39,7 +39,6 @@
       'image' => asset('logo.png'),
       '@id' => url('/'),
       'url' => url('/'),
-    'telephone' => '+1-646-282-8282',
       'priceRange' => '$$',
       'address' => [
         '@type' => 'PostalAddress',

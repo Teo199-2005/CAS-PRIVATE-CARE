@@ -43,10 +43,6 @@
                 <span>{{ config('app.address', '481 8th Ave, New York, NY 10001') }}</span>
             </div>
             <div class="footer-location">
-                <i class="bi bi-telephone-fill"></i>
-                <span><a href="tel:{{ config('app.phone', '+16462828282') }}" style="color: #94a3b8; text-decoration: none;">{{ config('app.phone', '+1 (646) 282-8282') }}</a></span>
-            </div>
-            <div class="footer-location">
                 <i class="bi bi-envelope-fill"></i>
                 <span><a href="mailto:{{ config('app.email', 'contact@casprivatecare.online') }}" style="color: #94a3b8; text-decoration: none;">{{ config('app.email', 'contact@casprivatecare.online') }}</a></span>
             </div>

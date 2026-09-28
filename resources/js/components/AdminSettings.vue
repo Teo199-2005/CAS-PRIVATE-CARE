@@ -239,7 +239,7 @@ const notifications = ref({
   systemAlerts: true,
   smsAlerts: false,
   emergencyNotifications: true,
-  adminPhone: '+1 (646) 282-8282',
+  adminPhone: '',
 });
 
 const maintenanceMessage = ref('The system is currently under maintenance. Please check back later.');

@@ -156,7 +156,7 @@
         </div>
         <div class="support-info">
             <h3><i class="bi bi-headset"></i> Need Immediate Assistance?</h3>
-            <p>Call us at <a href="tel:+16462828282">+1 (646) 282-8282</a> or email <a href="mailto:support@casprivatecare.com">support@casprivatecare.com</a></p>
+            <p>Email us at <a href="mailto:support@casprivatecare.com">support@casprivatecare.com</a></p>
         </div>
     </div>
 </body>

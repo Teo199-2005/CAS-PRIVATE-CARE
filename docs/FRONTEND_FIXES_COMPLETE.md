@@ -36,7 +36,7 @@
 
 ### 6. **Contact Information** ✅
 - **Updated**: Footer contact info uses config values with fallbacks:
-  - Phone: `config('app.phone', '+1 (646) 282-8282')`
+  - Phone: `config('app.phone', '')`
   - Email: `config('app.email', 'contact@casprivatecare.online')`
   - Address: `config('app.address', 'New York, USA')`
 - **Result**: Contact info can be customized via `.env` file
@@ -62,14 +62,14 @@
 
 Add to your `.env` file:
 ```env
-APP_PHONE="+1 (646) 282-8282"
+APP_PHONE=""
 APP_EMAIL="contact@casprivatecare.online"
 APP_ADDRESS="123 Main Street, City, State 12345"
 ```
 
 Or update `config/app.php`:
 ```php
-'phone' => env('APP_PHONE', '+1 (646) 282-8282'),
+'phone' => env('APP_PHONE', ''),
 'email' => env('APP_EMAIL', 'contact@casprivatecare.online'),
 'address' => env('APP_ADDRESS', 'New York, USA'),
 ```

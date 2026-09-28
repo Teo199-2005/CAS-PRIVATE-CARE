@@ -337,7 +337,7 @@
             <p style="font-size: 1.3rem; margin: 1.5rem 0;">Join 1,000+ families who trust CAS Private Care</p>
             <div class="hero-buttons">
                 <a href="{{ url('/register') }}" class="btn-primary">Get Started Today</a>
-                <a href="tel:+16462828282" class="btn-secondary"><i class="bi bi-telephone"></i> (646) 282-8282</a>
+                <a href="{{ url('/contact') }}" class="btn-secondary"><i class="bi bi-envelope"></i> Contact Us</a>
             </div>
         </div>
     </section>

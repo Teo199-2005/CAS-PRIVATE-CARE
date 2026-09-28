@@ -60,8 +60,7 @@
 
 <p style="font-size: 14px; color: #64748b; margin-top: 20px;">
     Need help? Contact our support team at 
-    <a href="mailto:support@casprivatecare.com" style="color: #2563eb;">support@casprivatecare.com</a> 
-    or call us at <a href="tel:+16462828282" style="color: #2563eb;">(646) 282-8282</a>.
+    <a href="mailto:support@casprivatecare.com" style="color: #2563eb;">support@casprivatecare.com</a>.
 </p>
 
 <p style="font-size: 16px; margin-top: 25px;">

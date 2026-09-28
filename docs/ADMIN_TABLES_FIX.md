@@ -89,7 +89,7 @@ GET /api/admin/bookings
               "id": 1,
               "name": "Demo Caregiver",
               "email": "caregiver@demo.com",
-              "phone": "(646) 282-8282"
+              "phone": ""
             }
           }
         }

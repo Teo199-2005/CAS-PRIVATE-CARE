@@ -425,7 +425,6 @@
                 <p>
                     <strong>CAS Private Care LLC</strong><br>
                     Email: <a href="mailto:contact@casprivatecare.online">contact@casprivatecare.online</a><br>
-                    Phone: <a href="tel:+16462828282">+1 (646) 282-8282</a><br>
                     Address: {{ config('app.address', '481 8th Ave, New York, NY 10001') }}
                 </p>
             </div>

@@ -495,8 +495,7 @@ class AdminReportController extends Controller
                 </td>
                 <td class="footer-center">
                     <strong>Contact</strong><br>
-                    support@casprivatecare.com<br>
-                    (646) 282-8282
+                    support@casprivatecare.com
                 </td>
                 <td class="footer-right">
                     <strong>Report Generated</strong><br>

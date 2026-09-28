@@ -41,7 +41,6 @@
         'image' => asset('logo.png'),
         '@id' => url('/'),
         'url' => url('/'),
-        'telephone' => '+1-646-282-8282',
         'priceRange' => '$$',
         'address' => [
             '@type' => 'PostalAddress',
@@ -89,7 +88,7 @@
 <noscript><link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet"></noscript>
 
     <!-- Preload only LCP image to reduce initial requests -->
-    <link rel="preload" as="image" href="{{ asset('cover.jpg') }}" fetchpriority="high">
+    <link rel="preload" as="image" href="{{ asset('herocas2.jpg') }}" fetchpriority="high">
     
     @include('partials.nav-footer-styles')
     
@@ -618,45 +617,6 @@
         }
         .hero-toggle-btn:focus-visible {
             outline: 2px solid #3b82f6;
-            outline-offset: 2px;
-        }
-        .hero-call-cta {
-            margin-top: 1.5rem;
-            margin-bottom: 0;
-            font-size: 0.95rem;
-            color: var(--text-secondary, #475569);
-            display: flex;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 0.35rem;
-        }
-        .hero-call-label {
-            font-weight: 600;
-            color: var(--brand-primary-darker, #1e40af);
-        }
-        .hero-call-number {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.4rem;
-            padding: 0.35rem 0.75rem;
-            background: rgba(249, 115, 22, 0.1);
-            color: #ea580c;
-            font-weight: 700;
-            text-decoration: none;
-            border-radius: 50px;
-            transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease;
-        }
-        .hero-call-number i {
-            font-size: 0.95em;
-        }
-        .hero-call-number:hover {
-            background: rgba(249, 115, 22, 0.18);
-            color: #c2410c;
-            text-decoration: none;
-            transform: translateY(-1px);
-        }
-        .hero-call-number:focus-visible {
-            outline: 2px solid #f97316;
             outline-offset: 2px;
         }
         .hero-social-container {
@@ -6325,14 +6285,10 @@
                     <a href="{{ url('/register') }}?service=caregiver" class="btn-secondary" id="find-btn" style="transition: opacity 0.5s ease;">Find a Caregiver</a>
                     <a href="{{ url('/register') }}" class="btn-primary">Become a Partner</a>
                 </div>
-                <p class="hero-call-cta">
-                    <span class="hero-call-label">Call Us Today!</span>
-                    <a href="tel:{{ config('app.phone', '16462828282') }}" class="hero-call-number" aria-label="Call CAS Private Care"><i class="bi bi-telephone-fill" aria-hidden="true"></i> (646) 282-8282</a>
-                </p>
             </div>
             <div class="hero-right">
                 <div class="hero-image-container">
-                    <img src="{{ asset('cover.jpg') }}" alt="CAS Private Care LLC Cover" class="hero-cover-image" fetchpriority="high" decoding="async" width="800" height="600">
+                    <img src="{{ asset('herocas2.jpg') }}" alt="CAS Private Care LLC Cover" class="hero-cover-image" fetchpriority="high" decoding="async" width="1672" height="941">
                 </div>
                 <div class="hero-social-container">
                     <p class="hero-social-text">CONNECT WITH US:</p>
@@ -7150,10 +7106,6 @@
                     <span>{{ config('app.address', '481 8th Ave, New York, NY 10001') }}</span>
                 </div>
                 <div class="footer-location">
-                    <i class="bi bi-telephone-fill"></i>
-                    <span><a href="tel:{{ config('app.phone', '+16462828282') }}" style="color: #94a3b8; text-decoration: none;">{{ config('app.phone', '+1 (646) 282-8282') }}</a></span>
-                </div>
-                <div class="footer-location">
                     <i class="bi bi-envelope-fill"></i>
                     <span><a href="mailto:{{ config('app.email', 'contact@casprivatecare.online') }}" style="color: #94a3b8; text-decoration: none;">{{ config('app.email', 'contact@casprivatecare.online') }}</a></span>
                 </div>
@@ -7171,7 +7123,7 @@
         <div class="footer-divider"></div>
         <div class="footer-bottom">
             <p>&copy; 2026 CAS Private Care LLC. All rights reserved.</p>
-            <p class="footer-trust-line" style="font-size: 0.85rem; color: #94a3b8; margin-top: 0.5rem;">CAS Private Care LLC is a legitimate care marketplace. Office: {{ config('app.address', '481 8th Ave, New York, NY 10001') }}. Contact: {{ config('app.phone', '+1 (646) 282-8282') }} · {{ config('app.email', 'contact@casprivatecare.online') }}</p>
+            <p class="footer-trust-line" style="font-size: 0.85rem; color: #94a3b8; margin-top: 0.5rem;">CAS Private Care LLC is a legitimate care marketplace. Office: {{ config('app.address', '481 8th Ave, New York, NY 10001') }}. Contact: {{ config('app.email', 'contact@casprivatecare.online') }}</p>
             <div class="footer-bottom-links">
                 <a href="{{ url('/privacy') }}">Privacy Policy</a>
                 <a href="{{ url('/terms') }}">Terms of Service</a>

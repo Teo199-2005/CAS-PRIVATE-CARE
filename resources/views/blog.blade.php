@@ -265,7 +265,7 @@
                             Find a Caregiver
                         </a>
                         <a href="{{ url('/contact') }}" class="btn-outline">
-                            <i class="bi bi-telephone"></i>
+                            <i class="bi bi-envelope"></i>
                             Contact Us
                         </a>
                     </div>

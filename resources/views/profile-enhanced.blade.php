@@ -65,7 +65,7 @@
                     </div>
                     <div class="form-group">
                         <label>Phone</label>
-                        <input type="tel" name="phone" placeholder="(646) 282-8282" required>
+                        <input type="tel" name="phone" placeholder="(555) 123-4567" required>
                     </div>
                 </div>
 
@@ -151,7 +151,7 @@
                     </div>
                     <div class="form-group">
                         <label>Contact Phone</label>
-                        <input type="tel" name="emergency_contact_phone" value="(646) 282-8282" required>
+                        <input type="tel" name="emergency_contact_phone" value="" placeholder="(555) 123-4567" required>
                     </div>
                     <div class="form-group">
                         <label>Relationship</label>

@@ -1916,7 +1916,7 @@
                   v-model="marketingStaffFormData.phone" 
                   label="Phone" 
                   variant="outlined"
-                  placeholder="(646) 282-8282"
+                  placeholder="(555) 123-4567"
                   maxlength="14"
                   @update:model-value="marketingStaffFormData.phone = formatPhoneNumber(marketingStaffFormData.phone)"
                 />
@@ -5066,7 +5066,7 @@
                   v-model="clientForm.phone" 
                   label="Phone" 
                   variant="outlined"
-                  placeholder="(646) 282-8282"
+                  placeholder="(555) 123-4567"
                   maxlength="14"
                   @update:model-value="clientForm.phone = formatPhoneNumber(clientForm.phone)"
                 />
@@ -5253,7 +5253,7 @@
                   v-model="caregiverForm.phone" 
                   label="Phone" 
                   variant="outlined"
-                  placeholder="(646) 282-8282"
+                  placeholder="(555) 123-4567"
                   maxlength="14"
                   @update:model-value="caregiverForm.phone = formatPhoneNumber(caregiverForm.phone)"
                 />
@@ -6611,7 +6611,7 @@
                                 </v-chip>
                                 <v-chip size="small" color="grey-lighten-2">
                                   <v-icon size="16" class="mr-1" style="color: #1a1a1a !important;">mdi-phone</v-icon>
-                                  <span class="text-grey-darken-3">{{ caregiver.phone || '(646) 282-8282' }}</span>
+                                  <span class="text-grey-darken-3">{{ caregiver.phone || 'Not provided' }}</span>
                                 </v-chip>
                                 <v-chip size="small" color="success" variant="elevated">
                                   <v-icon size="16" class="mr-1">mdi-cash</v-icon>
@@ -7790,7 +7790,7 @@ const profileData = ref({
   firstName: 'Admin',
   lastName: 'User',
   email: 'admin@casprivatecare.com',
-  phone: '(646) 282-8282',
+  phone: '',
   department: 'System Administration',
   role: 'Super Admin',
 });
@@ -7887,7 +7887,7 @@ const loadProfile = async () => {
       profileData.value.firstName = profile.value.firstName;
       profileData.value.lastName = profile.value.lastName;
       profileData.value.email = data.email || 'admin@casprivatecare.com';
-  profileData.value.phone = data.phone || '(646) 282-8282';
+  profileData.value.phone = data.phone || '';
       if (data.avatar) {
         userAvatar.value = `/storage/${data.avatar}`;
       }
@@ -8503,7 +8503,7 @@ const loadUsers = async () => {
           borough: u.borough || '',
           location: '',
           place_indicator: (u.zip_code || u.zip) ? 'Loading...' : '',
-          phone: u.phone || '(646) 282-8282',
+          phone: u.phone || '',
           date_of_birth: dob,
           birthdate,
           age,
@@ -8631,7 +8631,7 @@ const notifications = ref({
   systemAlerts: true,
   smsAlerts: false,
   emergencyNotifications: true,
-  adminPhone: '+1 (646) 282-8282',
+  adminPhone: '',
 });
 
 const maintenanceMessage = ref('The system is currently under maintenance. Please check back later.');
@@ -12707,7 +12707,7 @@ const getAssignedCaregivers = (bookingId) => {
         id: assignment.caregiver_id,
         name: assignment.caregiver?.user?.name || 'Unknown',
         email: assignment.caregiver?.user?.email || 'Unknown',
-        phone: assignment.caregiver?.user?.phone || '(646) 282-8282',
+        phone: assignment.caregiver?.user?.phone || '',
         rating: assignment.caregiver?.rating || 5.0,
         status: 'Active',
         borough: 'Manhattan',
@@ -14088,8 +14088,8 @@ const openContractorsContactsDialog = () => {
 // Add phone numbers and boroughs to existing caregivers data
 caregivers.value.forEach((caregiver, index) => {
   if (!caregiver.phone) {
-  const phones = ['(646) 282-8282', '(646) 282-8282', '(646) 282-8282'];
-  caregiver.phone = phones[index] || '(646) 282-8282';
+  const phones = ['', '', ''];
+  caregiver.phone = phones[index] || '';
   }
 
 });
