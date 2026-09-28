@@ -88,7 +88,7 @@
 <noscript><link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet"></noscript>
 
     <!-- Preload only LCP image to reduce initial requests -->
-    <link rel="preload" as="image" href="{{ asset('herocas2.jpg') }}" fetchpriority="high">
+    <link rel="preload" as="image" href="{{ asset('herocas2.png') }}" fetchpriority="high">
     
     @include('partials.nav-footer-styles')
     
@@ -6288,7 +6288,7 @@
             </div>
             <div class="hero-right">
                 <div class="hero-image-container">
-                    <img src="{{ asset('herocas2.jpg') }}" alt="CAS Private Care LLC Cover" class="hero-cover-image" fetchpriority="high" decoding="async" width="1672" height="941">
+                    <img src="{{ asset('herocas2.png') }}" alt="CAS Private Care LLC Cover" class="hero-cover-image" fetchpriority="high" decoding="async" width="1746" height="901">
                 </div>
                 <div class="hero-social-container">
                     <p class="hero-social-text">CONNECT WITH US:</p>
